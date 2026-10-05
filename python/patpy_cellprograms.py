@@ -220,17 +220,23 @@ class EBMF(SampleRepresentationMethod):
             # Positional [[...]] access: `$`-chaining breaks on cell-type
             # names that are not valid R symbols (e.g. "B_non-switched_memory"
             # parses `$B_non-switched_memory` as subtraction).
+            def _r_chars(expr):
+                """Evaluate an R expression returning a character vector; NULL -> []."""
+                res = ro.r(expr)
+                return [] if res is ro.NULL or res is None else [str(x) for x in res]
+
             self._scores = {
                 ct: pd.DataFrame(np.asarray(ro.r(f'{fit_id}_fit[["scores"]][[{i + 1}]]')))
                 for i, ct in enumerate(pseudobulk)
             }
-            # Recover labels: R matrix dimnames survive conversion.
+            # Recover labels: R matrix dimnames survive conversion; K=0 matrices
+            # have NULL dimnames -> empty lists.
             self._score_index = {
-                ct: [str(x) for x in ro.r(f'rownames({fit_id}_fit[["scores"]][[{i + 1}]])')]
+                ct: _r_chars(f'rownames({fit_id}_fit[["scores"]][[{i + 1}]])')
                 for i, ct in enumerate(pseudobulk)
             }
             self._score_cols = {
-                ct: [str(x) for x in ro.r(f'colnames({fit_id}_fit[["scores"]][[{i + 1}]])')]
+                ct: _r_chars(f'colnames({fit_id}_fit[["scores"]][[{i + 1}]])')
                 for i, ct in enumerate(pseudobulk)
             }
             # Clean globalenv except the fit (kept for loadings access).
