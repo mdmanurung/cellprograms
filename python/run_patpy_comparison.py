@@ -1,4 +1,5 @@
-"""Run the PATpy metric suite comparison: EBMF (cellprograms) vs built-in methods.
+"""Run the PATpy metric suite comparison on Stephenson PBMC:
+EBMF (cellprograms) vs MOFA vs Pseudobulk vs CellGroupComposition vs RandomVector.
 
 Usage: python run_patpy_comparison.py <adata.h5ad> <outdir>
 """
@@ -30,6 +31,8 @@ RNG = np.random.default_rng(2026)
 N_BOOTSTRAP = 200
 BOOTSTRAP_FRACTION = 0.8
 
+SEVERITY_ORDER = ["Healthy", "Asymptomatic", "Mild", "Moderate", "Severe", "Critical ", "Death"]
+
 
 def pseudobulk_target(adata, sample_key, col):
     """Per-sample value of an obs column (first non-NA per sample)."""
@@ -37,7 +40,6 @@ def pseudobulk_target(adata, sample_key, col):
 
 
 def run_metrics(distances, targets, label):
-    """Run the metric suite on one distance matrix against several targets."""
     rows = []
     for target_name, (target, method, params) in targets.items():
         t0 = time.time()
@@ -48,14 +50,15 @@ def run_metrics(distances, targets, label):
                 "score": res.get("score"), "p_value": res.get("p_value"),
                 "n_observations": res.get("n_observations"), "runtime_s": round(time.time() - t0, 1),
             })
-        except Exception as e:  # noqa: BLE001 - record and continue
+            print(f"  {target_name}: {res.get('score')}", flush=True)
+        except Exception as e:  # noqa: BLE001
             rows.append({"method": label, "metric": target_name, "eval_method": method,
                          "score": np.nan, "error": str(e)[:200], "runtime_s": round(time.time() - t0, 1)})
+            print(f"  {target_name}: ERROR {str(e)[:120]}", flush=True)
     return rows
 
 
 def bootstrap_ci(distances, target, method, params, n_boot=N_BOOTSTRAP, frac=BOOTSTRAP_FRACTION):
-    """Bootstrap score distribution over donor subsets (resample without replacement)."""
     n = distances.shape[0]
     k = max(10, int(round(frac * n)))
     scores = []
@@ -78,21 +81,28 @@ def main(adata_path, outdir):
 
     os.makedirs(outdir, exist_ok=True)
     adata = ad.read_h5ad(adata_path)
-    print("adata:", adata.shape)
+    print("adata:", adata.shape, flush=True)
 
-    # Column detection (Stephenson processed schema).
-    sample_key = next(c for c in adata.obs.columns if c.lower() in ("sample", "patient", "donor", "patient_id", "sample_id"))
-    cell_group_key = next(c for c in adata.obs.columns if c.lower() in ("cell_type", "celltype", "annotation", "cell_types"))
-    disease_key = next(c for c in adata.obs.columns if c.lower() in ("disease", "status", "outcome", "condition"))
-    print(f"sample_key={sample_key} cell_group_key={cell_group_key} disease_key={disease_key}")
+    # Stephenson schema; drop Non-covid (other infections) for a clean Covid-vs-Healthy task.
+    sample_key, cell_group_key, disease_key = "sample_id", "author_cell_type", "Status"
+    keep = ~adata.obs[sample_key].isin(
+        adata.obs.loc[adata.obs[disease_key] == "Non_covid", sample_key].unique()
+    )
+    adata = adata[keep.values].copy()
+    print("after dropping Non_covid samples:", adata.shape, "| samples:", adata.obs[sample_key].nunique(), flush=True)
 
+    per_sample = adata.obs.groupby(sample_key).agg(
+        status=(disease_key, lambda s: s.dropna().iloc[0]),
+        severity=("Worst_Clinical_Status", lambda s: s.dropna().iloc[0] if s.notna().any() else np.nan),
+    )
     targets_full = {
-        "knn_disease": (pseudobulk_target(adata, sample_key, disease_key), "knn", {"task": "classification"}),
-        "silhouette_disease": (pseudobulk_target(adata, sample_key, disease_key), "silhouette", {}),
-        "permanova_disease": (pseudobulk_target(adata, sample_key, disease_key), "permanova", {"permutations": 999}),
-        "distances_disease": (pseudobulk_target(adata, sample_key, disease_key), "distances",
-                              {"control_level": sorted(pseudobulk_target(adata, sample_key, disease_key).dropna().unique())[0],
-                               "normalization_type": "total"}),
+        "knn_disease": (per_sample["status"], "knn", {"task": "classification"}),
+        "silhouette_disease": (per_sample["status"], "silhouette", {}),
+        "permanova_disease": (per_sample["status"], "permanova", {"permutations": 999}),
+        "distances_disease": (per_sample["status"], "distances",
+                              {"control_level": "Healthy", "normalization_type": "total"}),
+        "knn_severity": (per_sample["severity"].map({v: i for i, v in enumerate(SEVERITY_ORDER)}),
+                         "knn", {"task": "regression"}),
     }
 
     methods = {
@@ -112,8 +122,7 @@ def main(adata_path, outdir):
             m.prepare_anndata(adata)
             D = m.calculate_distance_matrix()
             print(f"fit+distances: {time.time() - t0:.0f}s, D={D.shape}", flush=True)
-            rows = run_metrics(D, targets_full, name)
-            all_rows.extend(rows)
+            all_rows.extend(run_metrics(D, targets_full, name))
             # Bootstrap CIs for the primary metric (knn disease).
             target = targets_full["knn_disease"][0]
             mask = target.notna().values
@@ -121,9 +130,10 @@ def main(adata_path, outdir):
                                           {"task": "classification"})
             boot_rows.append({"method": name, "metric": "knn_disease", "mean": mean_b,
                               "ci_low": lo, "ci_high": hi, "n_boot": N_BOOTSTRAP})
-            print(f"{name} knn_disease = {mean_b:.3f} [{lo:.3f}, {hi:.3f}]", flush=True)
+            print(f"{name} knn_disease bootstrap = {mean_b:.3f} [{lo:.3f}, {hi:.3f}]", flush=True)
         except Exception as e:  # noqa: BLE001
-            print(f"{name} FAILED: {e}", flush=True)
+            import traceback
+            traceback.print_exc()
             all_rows.append({"method": name, "metric": "FAILED", "error": str(e)[:300]})
         pd.DataFrame(all_rows).to_csv(os.path.join(outdir, "metrics_full.csv"), index=False)
         pd.DataFrame(boot_rows).to_csv(os.path.join(outdir, "metrics_bootstrap.csv"), index=False)

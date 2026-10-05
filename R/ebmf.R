@@ -62,7 +62,19 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     # columns and they carry no factor signal.
     keep_cols <- colSums(abs(Y)) > 0
     if (!any(keep_cols)) {
-      cli::cli_abort("All genes are degenerate (zero after preprocessing) in cell type {.val {ct}}.")
+      # No informative genes in this cell type (e.g. a pseudobulk profile that
+      # is constant across samples): record an empty fit (K=0) instead of
+      # failing the whole analysis. Downstream, canonicalize_programs() and
+      # the scores/loadings extraction handle K=0 cell types.
+      cli::cli_inform("All genes are degenerate (zero after preprocessing) in cell type {.val {ct}}; recording K=0 fit.")
+      fits[[ct]] <- list(
+        flash = list(L_pm = NULL, F_pm = NULL),
+        Y_used = Y,
+        genes = character(0),
+        elapsed_secs = 0,
+        skipped = TRUE
+      )
+      next
     }
     if (!all(keep_cols)) {
       cli::cli_inform("Dropping {sum(!keep_cols)} zero-variance gene(s) in cell type {.val {ct}}.")
@@ -175,6 +187,12 @@ canonicalize_programs <- function(fit) {
   canon <- list()
   for (ct in fit$cell_types) {
     f <- fit$fits[[ct]]$flash
+    if (is.null(f$L_pm) || is.null(f$F_pm)) {
+      # Skipped (fully degenerate) cell type: K=0.
+      canon[[ct]] <- list(scale_multiplier = numeric(0),
+                          sign_multiplier = numeric(0))
+      next
+    }
     Z <- as.matrix(f$L_pm)  # observations x K (sample-side posterior mean)
     W <- as.matrix(f$F_pm)  # genes x K (gene-side posterior mean)
     K <- ncol(Z)
@@ -211,7 +229,9 @@ canonicalize_programs <- function(fit) {
     Y_used <- fit$fits[[ct]]$Y_used
     genes_ct <- fit$fits[[ct]]$genes
     K <- if (is.null(canon[[ct]]$Z)) 0L else ncol(canon[[ct]]$Z)
-    prog_names <- paste0(ct, "_", seq_len(K))
+    # NB: paste0(ct, "_", seq_len(0)) returns ct_" " (length 1), not
+    # character(0) — paste() treats zero-length args as "". Guard K=0.
+    prog_names <- if (K > 0L) paste0(ct, "_", seq_len(K)) else character(0)
     Z <- matrix(0, nrow = nrow(Y_used), ncol = K,
                 dimnames = list(rownames(Y_used), prog_names))
     W <- matrix(0, nrow = length(genes_ct), ncol = K,

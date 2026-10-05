@@ -21,3 +21,17 @@ test_that("fit_celltype_programs runs flashier end-to-end and canonicalizes", {
   expect_lt(max(abs(tcrossprod(S, W) -
                      tcrossprod(as.matrix(raw$L_pm), as.matrix(raw$F_pm)))), 1e-8)
 })
+
+test_that("fully degenerate cell type yields K=0 fit instead of error", {
+  set.seed(7)
+  g <- 20
+  Y1 <- matrix(rnorm(10 * g), 10, g, dimnames = list(paste0("s", 1:10), paste0("g", 1:g)))
+  # cell type B: every row identical -> all genes constant -> zero after centering
+  Y2 <- matrix(rep(rnorm(g), each = 10), 10, g, dimnames = list(paste0("s", 1:10), paste0("g", 1:g)))
+  cpd <- as_cell_program_data(list(A = Y1, B = Y2))
+  fit <- canonicalize_programs(fit_celltype_programs(cpd, seed = 1))
+  expect_true(isTRUE(fit$fits$B$skipped))
+  expect_equal(ncol(fit$scores$B), 0)
+  expect_equal(nrow(fit$scores$B), 10)
+  expect_equal(ncol(fit$scores$A) >= 0, TRUE)
+})

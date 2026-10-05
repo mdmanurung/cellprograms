@@ -129,10 +129,7 @@ class EBMF(SampleRepresentationMethod):
             raise ValueError(f"cell_group_key='{self.cell_group_key}' is required for EBMF.")
 
         X = self._get_data()
-        if hasattr(X, "toarray"):
-            X = X.toarray()
-        X = np.asarray(X, dtype=np.float64)
-
+        sparse = hasattr(X, "tocsr")
         obs = pd.DataFrame(
             {
                 "sample": adata.obs[self.sample_key].astype(str).values,
@@ -142,15 +139,34 @@ class EBMF(SampleRepresentationMethod):
         )
         genes = np.asarray(adata.var_names.astype(str))
 
-        # Pseudobulk: mean expression per (sample, cell type).
+        # Pseudobulk: mean expression per (sample, cell type). Sparse-aware:
+        # indicator-matrix product avoids densifying the full cell matrix.
+        sample_labels = sorted(obs["sample"].unique())
+        sample_pos = {s: i for i, s in enumerate(sample_labels)}
         pseudobulk: dict[str, pd.DataFrame] = {}
-        sample_labels = obs["sample"].values
         for ct in sorted(obs["cell_type"].unique()):
             mask = (obs["cell_type"] == ct).values
-            sub = pd.DataFrame(X[mask], index=sample_labels[mask])
-            grouped = sub.groupby(level=0).mean()
-            grouped.columns = genes
-            pseudobulk[ct] = grouped
+            sub = X[mask]
+            rows = np.array([sample_pos[s] for s in obs["sample"].values[mask]])
+            n_s = len(sample_labels)
+            if sparse:
+                from scipy import sparse as _sp
+
+                A = _sp.csr_matrix(
+                    (np.ones(mask.sum()), (rows, np.arange(mask.sum()))),
+                    shape=(n_s, mask.sum()),
+                )
+                agg = A @ sub  # sums per sample
+                counts = np.bincount(rows, minlength=n_s)
+                agg = agg.toarray() / np.maximum(counts, 1)[:, None]
+            else:
+                agg = np.zeros((n_s, X.shape[1]))
+                np.add.at(agg, rows, np.asarray(sub))
+                counts = np.bincount(rows, minlength=n_s)
+                agg = agg / np.maximum(counts, 1)[:, None]
+            keep = counts > 0
+            mat = pd.DataFrame(agg[keep], index=np.array(sample_labels)[keep], columns=genes)
+            pseudobulk[ct] = mat
 
         self._fit_in_r(pseudobulk)
         self._fitted = True
