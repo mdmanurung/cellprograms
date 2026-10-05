@@ -58,7 +58,7 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     else if (scale) Y <- scale(Y, center = FALSE, scale = TRUE)
 
     args <- modifyList(list(
-      Y = Y,
+      data = Y,
       ebnm_fn = list(ebnm::ebnm_normal, prior_fn),
       var_type = var_type,
       greedy_Kmax = max_factors,
@@ -177,5 +177,25 @@ canonicalize_programs <- function(fit) {
     )
   }
   fit$canonicalization <- canon
+  # Populate the documented `scores` / `loadings` components with the
+  # canonicalized matrices, labelled by observation / gene / program IDs.
+  fit$scores <- list()
+  fit$loadings <- list()
+  for (ct in fit$cell_types) {
+    Y_used <- fit$fits[[ct]]$Y_used
+    genes_ct <- fit$fits[[ct]]$genes
+    K <- if (is.null(canon[[ct]]$Z)) 0L else ncol(canon[[ct]]$Z)
+    prog_names <- paste0(ct, "_", seq_len(K))
+    Z <- matrix(0, nrow = nrow(Y_used), ncol = K,
+                dimnames = list(rownames(Y_used), prog_names))
+    W <- matrix(0, nrow = length(genes_ct), ncol = K,
+                dimnames = list(genes_ct, prog_names))
+    if (K > 0L) {
+      Z[] <- canon[[ct]]$Z
+      W[] <- canon[[ct]]$W
+    }
+    fit$scores[[ct]] <- Z
+    fit$loadings[[ct]] <- W
+  }
   fit
 }

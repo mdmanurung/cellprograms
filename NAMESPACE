@@ -2,6 +2,8 @@
 
 export(as_cell_program_data)
 export(validate_cell_program_data)
+export(fit_celltype_programs)
+export(canonicalize_programs)
 export(simulate_pseudobulk)
 S3method(print, cell_program_data)
 S3method(summary, cell_program_data)
