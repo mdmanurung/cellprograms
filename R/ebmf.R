@@ -57,6 +57,19 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     if (center) Y <- scale(Y, center = TRUE, scale = scale)
     else if (scale) Y <- scale(Y, center = FALSE, scale = TRUE)
 
+    # Drop genes that are identically zero after preprocessing (silent in this
+    # cell type, or constant and centered away): flashier rejects all-zero
+    # columns and they carry no factor signal.
+    keep_cols <- colSums(abs(Y)) > 0
+    if (!any(keep_cols)) {
+      cli::cli_abort("All genes are degenerate (zero after preprocessing) in cell type {.val {ct}}.")
+    }
+    if (!all(keep_cols)) {
+      cli::cli_inform("Dropping {sum(!keep_cols)} zero-variance gene(s) in cell type {.val {ct}}.")
+      Y <- Y[, keep_cols, drop = FALSE]
+      genes <- genes[keep_cols]
+    }
+
     args <- modifyList(list(
       data = Y,
       ebnm_fn = list(ebnm::ebnm_normal, prior_fn),

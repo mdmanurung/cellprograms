@@ -10,3 +10,4 @@ S3method(summary, cell_program_data)
 
 import(stats)
 import(utils)
+export(as_mofacellular_input)
