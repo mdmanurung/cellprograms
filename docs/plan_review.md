@@ -41,10 +41,18 @@ corrections and clarifications, not structural objections.
    matrices. State explicitly that matched-input applies to pseudobulk methods;
    distributional methods get the same sample filters and a standard cell-level
    PCA embedding.
-2. **Comparator availability risk.** mc-ASTRA/MOFA-FLEX and EV-BIDIFAC may not
-   be publicly/legally usable. Define the fallback now: MOFA2 with explicit
-   grouped views as the joint-factorization comparator; keep EV-BIDIFAC
-   optional (as the plan already does).
+2. **Comparator availability risk — RESOLVED.** The joint multicellular
+   factorization comparator is concretely installable via `MOFAcellulaR`
+   (saezlab), which repurposes MOFA/MOFA+ on pseudobulk multi-view data with
+   one view per cell type and exposes tidy factor/gene-weight extraction
+   (`get_tidy_factors`, `get_geneweights`, `get_associations`). Its input
+   contract (pseudobulk counts + `donor_id`/`cell_type`/`cell_counts`
+   metadata) aligns almost 1:1 with `cellprograms`' data contract, making a
+   matched-input comparison straightforward. Notes for fairness regime B
+   (author-recommended preprocessing): TMM normalization via edgeR, HVG
+   selection per cell type via scran, and the vignette disables
+   `spikeslab_weights`. Dependency caveat: MOFA2 requires the `mofapy2`
+   Python backend (reticulate). EV-BIDIFAC remains optional.
 3. **No uncertainty on benchmark conclusions.** Add bootstrap CIs (over
    samples) or per-dataset sign tests for the headline local-EBMF vs
    mc-ASTRA comparisons, so the Section 20 regime map is statistically
