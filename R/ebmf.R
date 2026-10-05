@@ -1,0 +1,181 @@
+# cellprograms: first-stage EBMF backend (flashier) + canonicalization
+#
+# Implements plan Sections 9-12:
+#   Y_c = Z_c W_c' + E_c per cell type, flashier backend,
+#   RMS-scale + sign canonicalization that preserves reconstruction exactly.
+
+#' Fit cell-type-specific programs with flashier
+#'
+#' @param x A `cell_program_data` object.
+#' @param loading_prior Gene-side EBNM prior family: "point_normal" (default),
+#'   "point_laplace", or "unimodal".
+#' @param max_factors Maximum candidate factors per cell type (greedy_Kmax).
+#' @param center Center genes within each cell type (default TRUE).
+#' @param scale Unit-variance scale genes (default FALSE; not recommended).
+#' @param features Feature selection mode: "all", "variable", or a named list
+#'   of gene ID vectors per cell type.
+#' @param n_variable_genes Number of most-variable genes when
+#'   `features = "variable"`.
+#' @param var_type flashier variance type (default 2 = constant variance).
+#' @param backfit Run flashier backfitting (default TRUE).
+#' @param nullcheck Run flashier nullcheck (default TRUE).
+#' @param seed Random seed for reproducibility.
+#' @param flash_control Optional list overriding flashier::flash arguments.
+#'
+#' @return The input object augmented with class `cell_program_fit` and
+#'   components `fits`, `programs`, `scores`, `loadings`, `preprocessing`,
+#'   `provenance`.
+#'
+#' @export
+fit_celltype_programs <- function(x, loading_prior = "point_laplace",
+                                  max_factors = 30, center = TRUE,
+                                  scale = FALSE, features = "all",
+                                  n_variable_genes = 2000, var_type = 1,
+                                  backfit = TRUE, nullcheck = TRUE,
+                                  seed = 1, flash_control = list()) {
+  stopifnot(inherits(x, "cell_program_data"))
+  if (!requireNamespace("flashier", quietly = TRUE) ||
+      !requireNamespace("ebnm", quietly = TRUE)) {
+    cli::cli_abort("Packages {.pkg flashier} and {.pkg ebnm} are required.")
+  }
+
+  prior_fn <- switch(
+    loading_prior,
+    point_normal = ebnm::ebnm_point_normal,
+    point_laplace = ebnm::ebnm_point_laplace,
+    unimodal = ebnm::ebnm_unimodal,
+    cli::cli_abort("Unknown {.arg loading_prior}: {.val {loading_prior}}.")
+  )
+
+  feature_sets <- .select_features(x, features, n_variable_genes)
+
+  fits <- list()
+  for (ct in x$cell_types) {
+    Y <- as.matrix(x$pseudobulk[[ct]])
+    genes <- feature_sets[[ct]]
+    Y <- Y[, genes, drop = FALSE]
+    if (center) Y <- scale(Y, center = TRUE, scale = scale)
+    else if (scale) Y <- scale(Y, center = FALSE, scale = TRUE)
+
+    args <- modifyList(list(
+      Y = Y,
+      ebnm_fn = list(ebnm::ebnm_normal, prior_fn),
+      var_type = var_type,
+      greedy_Kmax = max_factors,
+      backfit = backfit,
+      nullcheck = nullcheck,
+      verbose = 0L
+    ), flash_control)
+
+    t0 <- Sys.time()
+    set.seed(seed)
+    fit <- do.call(flashier::flash, args)
+    elapsed <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
+
+    fits[[ct]] <- list(
+      flash = fit,
+      Y_used = Y,
+      genes = genes,
+      elapsed_secs = elapsed
+    )
+  }
+
+  x$fits <- fits
+  x$preprocessing <- list(
+    centered = center, scaled = scale,
+    feature_sets = feature_sets,
+    loading_prior = loading_prior,
+    max_factors = max_factors, var_type = var_type,
+    backfit = backfit, nullcheck = nullcheck
+  )
+  x$provenance <- list(
+    seed = seed,
+    timestamp = Sys.time(),
+    r_version = R.version.string,
+    flashier_version = as.character(utils::packageVersion("flashier")),
+    ebnm_version = as.character(utils::packageVersion("ebnm"))
+  )
+  x$canonicalization <- NULL
+  x$stability <- NULL
+
+  class(x) <- c("cell_program_fit", "cell_program_data", "list")
+  x
+}
+
+# Feature selection: independent per cell type; never uses outcomes.
+.select_features <- function(x, features, n_variable_genes) {
+  if (is.list(features)) {
+    missing_ct <- setdiff(x$cell_types, names(features))
+    if (length(missing_ct)) {
+      cli::cli_abort("{.arg features} list lacks cell type(s): {.val {missing_ct}}.")
+    }
+    return(lapply(x$cell_types, function(ct) {
+      g <- features[[ct]]
+      avail <- colnames(x$pseudobulk[[ct]])
+      unknown <- setdiff(g, avail)
+      if (length(unknown)) {
+        cli::cli_abort("{length(unknown)} requested gene(s) absent from {.val {ct}}.")
+      }
+      g
+    }) |> stats::setNames(x$cell_types))
+  }
+  out <- list()
+  for (ct in x$cell_types) {
+    genes <- colnames(x$pseudobulk[[ct]])
+    if (identical(features, "all")) {
+      out[[ct]] <- genes
+    } else if (identical(features, "variable")) {
+      v <- apply(as.matrix(x$pseudobulk[[ct]]), 2, stats::var)
+      k <- min(n_variable_genes, length(v))
+      out[[ct]] <- names(sort(v, decreasing = TRUE))[seq_len(k)]
+    } else {
+      cli::cli_abort("{.arg features} must be {.val all}, {.val variable}, or a named list.")
+    }
+  }
+  out
+}
+
+#' Canonicalize program scale and sign
+#'
+#' RMS-scales sample scores to unit root-mean-square with the compensating
+#' factor applied to gene loadings (reconstruction preserved exactly), and
+#' orients each factor so its largest-|loading| gene is positive.
+#'
+#' @param fit A `cell_program_fit` object.
+#'
+#' @export
+canonicalize_programs <- function(fit) {
+  stopifnot(inherits(fit, "cell_program_fit"))
+  canon <- list()
+  for (ct in fit$cell_types) {
+    f <- fit$fits[[ct]]$flash
+    Z <- as.matrix(f$L_pm)  # observations x K (sample-side posterior mean)
+    W <- as.matrix(f$F_pm)  # genes x K (gene-side posterior mean)
+    K <- ncol(Z)
+    if (K == 0L) {
+      canon[[ct]] <- list(scale_multiplier = numeric(0),
+                          sign_multiplier = numeric(0))
+      next
+    }
+    s_k <- sqrt(colMeans(Z^2))                       # RMS of each score column
+    s_k[s_k == 0] <- 1                               # degenerate guard
+    # sign: gene with largest |loading|; ties broken by gene name (deterministic)
+    sign_k <- apply(W, 2, function(w) {
+      am <- which(abs(w) == max(abs(w)))
+      am <- am[order(fit$fits[[ct]]$genes[am], w[am])]
+      sign(w[am[1]])
+    })
+    sign_k[sign_k == 0] <- 1
+    Zc <- sweep(Z, 2, s_k, "/")
+    Wc <- sweep(W, 2, s_k, "*")
+    Zc <- sweep(Zc, 2, sign_k, "*")
+    Wc <- sweep(Wc, 2, sign_k, "*")
+    canon[[ct]] <- list(
+      Z = Zc, W = Wc,
+      scale_multiplier = unname(s_k),
+      sign_multiplier = unname(sign_k)
+    )
+  }
+  fit$canonicalization <- canon
+  fit
+}

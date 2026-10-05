@@ -1,0 +1,10 @@
+# cellprograms NAMESPACE (managed; roxygen not required for v0.1)
+
+export(as_cell_program_data)
+export(validate_cell_program_data)
+export(simulate_pseudobulk)
+S3method(print, cell_program_data)
+S3method(summary, cell_program_data)
+
+import(stats)
+import(utils)

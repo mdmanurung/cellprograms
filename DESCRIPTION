@@ -1,0 +1,28 @@
+Package: cellprograms
+Type: Package
+Title: Cell-Type-Specific Transcriptional Programs via Empirical-Bayes Matrix Factorization
+Version: 0.1.0
+Authors@R: person("Mikhael Dito", "Manurung", email = "mikhael@example.org", role = c("aut", "cre"))
+Description: Discover cell-type-specific transcriptional programs from
+    pseudobulk single-cell RNA-seq data using empirical-Bayes matrix
+    factorization ('flashier'), with canonicalization, stability assessment,
+    and tidy export. Programs are discovered locally within each cell type;
+    cross-cell-type coordination is investigated subsequently, never assumed.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Depends:
+    R (>= 4.1)
+Imports:
+    Matrix,
+    stats,
+    utils,
+    cli,
+    rlang
+Suggests:
+    testthat (>= 3.0.0),
+    ggplot2,
+    data.table,
+    flashier,
+    ebnm
+Config/testthat/edition: 3
+RoxygenNote: 7.3.1
