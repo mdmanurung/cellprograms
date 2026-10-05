@@ -82,7 +82,20 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
 
     t0 <- Sys.time()
     set.seed(seed)
-    fit <- do.call(flashier::flash, args)
+    fit <- tryCatch(
+      do.call(flashier::flash, args),
+      error = function(e) {
+        # point_laplace's nlm solver can fail numerically on some pseudobulk
+        # profiles; degrade gracefully to point_normal and record it.
+        if (identical(prior_fn, ebnm::ebnm_point_laplace)) {
+          cli::cli_warn("EBNM solver failed with point_laplace in cell type {.val {ct}}; retrying with point_normal.")
+          args$ebnm_fn <- list(ebnm::ebnm_normal, ebnm::ebnm_point_normal)
+          do.call(flashier::flash, args)
+        } else {
+          cli::cli_abort("flashier failed in cell type {.val {ct}}: {conditionMessage(e)}")
+        }
+      }
+    )
     elapsed <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
 
     fits[[ct]] <- list(
