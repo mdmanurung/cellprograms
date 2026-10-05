@@ -90,3 +90,14 @@ def test_loadings_access(fitted):
     assert set(W.keys()) == {"CTA", "CTB"}
     for ct, w in W.items():
         assert w.shape[0] == 80  # n_genes
+
+def test_hyphenated_cell_type_names():
+    """Cell-type labels that are invalid R symbols (hyphens) must not break the bridge."""
+    adata = make_adata(seed=0)
+    adata.obs["cell_type"] = adata.obs["cell_type"].replace({"CTA": "B_non-switched_memory", "CTB": "CD8.TE"})
+    m = EBMF(sample_key="sample", cell_group_key="cell_type", seed=1)
+    m.prepare_anndata(adata)
+    D = m.calculate_distance_matrix()
+    assert D.shape == (adata.obs["sample"].nunique(),) * 2
+    W = m.get_loadings()
+    assert set(W.keys()) == {"B_non-switched_memory", "CD8.TE"}

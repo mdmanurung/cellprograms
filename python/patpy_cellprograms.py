@@ -184,21 +184,25 @@ class EBMF(SampleRepresentationMethod):
         with (ro.default_converter + numpy2ri.converter + pandas2ri.converter).context():
             ro.r(f'.libPaths(c("{lib_paths}", .libPaths())); suppressMessages(library(cellprograms))')
             ro.globalenv[f"{fit_id}_cts"] = ro.StrVector(list(pseudobulk.keys()))
-            for ct, mat in pseudobulk.items():
-                ro.globalenv[f"{fit_id}_Y_{ct}"] = mat.values
-                ro.globalenv[f"{fit_id}_obs_{ct}"] = ro.StrVector(mat.index.tolist())
-                ro.globalenv[f"{fit_id}_genes_{ct}"] = ro.StrVector(mat.columns.tolist())
+            # Index-based variable names (1-aligned with R's seq_along below):
+            # cell-type labels can contain hyphens or other characters that
+            # are invalid in R symbols.
+            for i, (ct, mat) in enumerate(pseudobulk.items()):
+                ro.globalenv[f"{fit_id}_Y_{i + 1}"] = mat.values
+                ro.globalenv[f"{fit_id}_obs_{i + 1}"] = ro.StrVector(mat.index.tolist())
+                ro.globalenv[f"{fit_id}_genes_{i + 1}"] = ro.StrVector(mat.columns.tolist())
             ro.r(
                 f"""
                 {fit_id} <- list()
-                for (ct in {fit_id}_cts) {{
-                    Y <- get(paste0("{fit_id}_Y_", ct))
+                for (i in seq_along({fit_id}_cts)) {{
+                    Y <- get(paste0("{fit_id}_Y_", i))
                     dimnames(Y) <- list(
-                        get(paste0("{fit_id}_obs_", ct)),
-                        get(paste0("{fit_id}_genes_", ct))
+                        get(paste0("{fit_id}_obs_", i)),
+                        get(paste0("{fit_id}_genes_", i))
                     )
-                    {fit_id}[[ct]] <- Y
+                    {fit_id}[[i]] <- Y
                 }}
+                names({fit_id}) <- {fit_id}_cts
                 {fit_id}_data <- as_cell_program_data({fit_id})
                 {fit_id}_fit <- canonicalize_programs(fit_celltype_programs(
                     {fit_id}_data,
@@ -213,16 +217,21 @@ class EBMF(SampleRepresentationMethod):
                 ))
                 """
             )
+            # Positional [[...]] access: `$`-chaining breaks on cell-type
+            # names that are not valid R symbols (e.g. "B_non-switched_memory"
+            # parses `$B_non-switched_memory` as subtraction).
             self._scores = {
-                ct: pd.DataFrame(np.asarray(ro.r(f"{fit_id}_fit$scores${ct}")))
-                for ct in pseudobulk
+                ct: pd.DataFrame(np.asarray(ro.r(f'{fit_id}_fit[["scores"]][[{i + 1}]]')))
+                for i, ct in enumerate(pseudobulk)
             }
             # Recover labels: R matrix dimnames survive conversion.
             self._score_index = {
-                ct: [str(x) for x in ro.r(f"rownames({fit_id}_fit$scores${ct})")] for ct in pseudobulk
+                ct: [str(x) for x in ro.r(f'rownames({fit_id}_fit[["scores"]][[{i + 1}]])')]
+                for i, ct in enumerate(pseudobulk)
             }
             self._score_cols = {
-                ct: [str(x) for x in ro.r(f"colnames({fit_id}_fit$scores${ct})")] for ct in pseudobulk
+                ct: [str(x) for x in ro.r(f'colnames({fit_id}_fit[["scores"]][[{i + 1}]])')]
+                for i, ct in enumerate(pseudobulk)
             }
             # Clean globalenv except the fit (kept for loadings access).
             ro.r(f"rm(list = ls()[grepl('{fit_id}_(Y|obs|genes|cts)', ls())])")
@@ -282,9 +291,10 @@ class EBMF(SampleRepresentationMethod):
 
         out = {}
         with (ro.default_converter + numpy2ri.converter + pandas2ri.converter).context():
-            for ct in self._scores:
-                W = np.asarray(ro.r(f"{self._r_fit_id}_fit$loadings${ct}"))
-                genes = [str(x) for x in ro.r(f"rownames({self._r_fit_id}_fit$loadings${ct})")]
-                cols = [str(x) for x in ro.r(f"colnames({self._r_fit_id}_fit$loadings${ct})")]
+            for i, ct in enumerate(self._scores):
+                ref = f'{self._r_fit_id}_fit[["loadings"]][[{i + 1}]]'
+                W = np.asarray(ro.r(ref))
+                genes = [str(x) for x in ro.r(f"rownames({ref})")]
+                cols = [str(x) for x in ro.r(f"colnames({ref})")]
                 out[ct] = pd.DataFrame(W, index=genes, columns=cols)
         return out
