@@ -95,7 +95,7 @@ class EBMF(SampleRepresentationMethod):
         layer: str | None = None,
         seed: int = 67,
         loading_prior: str = "point_laplace",
-        max_factors: int = 30,
+        max_factors: int = 10,
         var_type: int = 1,
         backfit: bool = True,
         nullcheck: bool = True,

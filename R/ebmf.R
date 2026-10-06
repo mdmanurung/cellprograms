@@ -10,13 +10,18 @@
 #' @param loading_prior Gene-side EBNM prior family: "point_normal" (default),
 #'   "point_laplace", or "unimodal".
 #' @param max_factors Maximum candidate factors per cell type (greedy_Kmax).
+#'   Default 10: benchmarked on COMBAT pseudobulk (32-config factorial),
+#'   K=10 dominated all prior/variance/backfit combinations; K >= 30
+#'   overfits and collapses disease-signal recovery.
 #' @param center Center genes within each cell type (default TRUE).
 #' @param scale Unit-variance scale genes (default FALSE; not recommended).
 #' @param features Feature selection mode: "all", "variable", or a named list
 #'   of gene ID vectors per cell type.
 #' @param n_variable_genes Number of most-variable genes when
 #'   `features = "variable"`.
-#' @param var_type flashier variance type (default 2 = constant variance).
+#' @param var_type flashier residual-variance type (default 1 = one variance
+#'   per row/donor; 0 = constant, 2 = per-gene - unstable on log-normalized
+#'   pseudobulk).
 #' @param backfit Run flashier backfitting (default TRUE).
 #' @param nullcheck Run flashier nullcheck (default TRUE).
 #' @param seed Random seed for reproducibility.
@@ -28,7 +33,7 @@
 #'
 #' @export
 fit_celltype_programs <- function(x, loading_prior = "point_laplace",
-                                  max_factors = 30, center = TRUE,
+                                  max_factors = 10, center = TRUE,
                                   scale = FALSE, features = "all",
                                   n_variable_genes = 2000, var_type = 1,
                                   backfit = TRUE, nullcheck = TRUE,
