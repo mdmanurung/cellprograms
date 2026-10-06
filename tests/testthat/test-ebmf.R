@@ -35,3 +35,31 @@ test_that("fully degenerate cell type yields K=0 fit instead of error", {
   expect_equal(nrow(fit$scores$B), 10)
   expect_equal(ncol(fit$scores$A) >= 0, TRUE)
 })
+
+
+test_that("var_type validation rejects invalid specs", {
+  skip_if_not_installed("flashier")
+  g <- 20
+  Y <- matrix(rnorm(10 * g), 10, g, dimnames = list(paste0("s", 1:10), paste0("g", 1:g)))
+  cpd <- as_cell_program_data(list(CT1 = Y))
+  expect_error(fit_celltype_programs(cpd, var_type = 3), "var_type")
+  expect_error(fit_celltype_programs(cpd, var_type = c(0, 1)), "var_type")
+  expect_error(fit_celltype_programs(cpd, var_type = "1"), "var_type")
+})
+
+test_that("var_type = c(1, 2) Kronecker fits end-to-end and is recorded", {
+  skip_if_not_installed("flashier")
+  n <- 12
+  g <- 30
+  Y <- matrix(rnorm(n * g), n, g, dimnames = list(paste0("s", seq_len(n)), paste0("g", seq_len(g))))
+  Y[1:6, 1:5] <- Y[1:6, 1:5] + 3
+  cpd <- as_cell_program_data(list(CT1 = Y),
+                              sample_metadata = data.frame(observation_id = rownames(Y)))
+  fit <- canonicalize_programs(fit_celltype_programs(cpd, var_type = c(1, 2), seed = 1))
+  S <- fit$scores$CT1
+  W <- fit$loadings$CT1
+  expect_true(is.matrix(S))
+  expect_equal(rownames(S), rownames(Y))
+  expect_equal(ncol(S), ncol(W))
+  expect_equal(fit$preprocessing$var_type, c(1, 2))
+})

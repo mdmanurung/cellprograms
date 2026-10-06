@@ -71,8 +71,11 @@ class EBMF(SampleRepresentationMethod):
         ``"point_normal"``, or ``"unimodal"``.
     max_factors : int
         Maximum candidate factors per cell type (greedy_Kmax).
-    var_type : int
-        flashier variance type (locked default 1).
+    var_type : int or sequence of int
+        flashier residual-variance type: 0 = constant, 1 = per-donor
+        (default), 2 = per-gene (unstable on log-normalized pseudobulk),
+        or the pair (1, 2) = Kronecker rank-one structure (most flexible,
+        substantially slower).
     backfit, nullcheck : bool
         flashier refinement options (locked defaults True).
     features : {"all", "variable"}
@@ -110,6 +113,14 @@ class EBMF(SampleRepresentationMethod):
             raise ValueError(f"block_scale must be 'z' or 'none', got {block_scale!r}")
         self.loading_prior = loading_prior
         self.max_factors = max_factors
+        if isinstance(var_type, (int, np.integer)):
+            var_type = (int(var_type),)
+        else:
+            var_type = tuple(int(v) for v in var_type)
+        if var_type not in ((0,), (1,), (2,), (1, 2)):
+            raise ValueError(
+                f"var_type must be 0, 1, 2, or the pair (1, 2) (Kronecker), got {var_type!r}"
+            )
         self.var_type = var_type
         self.backfit = backfit
         self.nullcheck = nullcheck
@@ -120,6 +131,12 @@ class EBMF(SampleRepresentationMethod):
         self.r_lib_paths = r_lib_paths
         self.sample_representation: pd.DataFrame | None = None
         self._r_fit_id: str | None = None
+
+    def _r_var_type(self) -> str:
+        """Render var_type as R code: scalar or c(1, 2)."""
+        if len(self.var_type) == 1:
+            return str(self.var_type[0])
+        return "c(" + ", ".join(str(v) for v in self.var_type) + ")"
 
     # ------------------------------------------------------------------ fit
     def prepare_anndata(self, adata) -> None:
@@ -208,7 +225,7 @@ class EBMF(SampleRepresentationMethod):
                     {fit_id}_data,
                     loading_prior = "{self.loading_prior}",
                     max_factors = {int(self.max_factors)},
-                    var_type = {int(self.var_type)},
+                    var_type = {self._r_var_type()},
                     backfit = {r_backfit},
                     nullcheck = {r_nullcheck},
                     features = "{self.features}",

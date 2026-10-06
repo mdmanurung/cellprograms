@@ -19,9 +19,10 @@
 #'   of gene ID vectors per cell type.
 #' @param n_variable_genes Number of most-variable genes when
 #'   `features = "variable"`.
-#' @param var_type flashier residual-variance type (default 1 = one variance
-#'   per row/donor; 0 = constant, 2 = per-gene - unstable on log-normalized
-#'   pseudobulk).
+#' @param var_type flashier residual-variance type: 0 = constant, 1 = one
+#'   variance per row/donor (default), 2 = per-gene (unstable on
+#'   log-normalized pseudobulk), or `c(1, 2)` = Kronecker rank-one structure
+#'   s_ij = a_i * b_j (most flexible; substantially slower).
 #' @param backfit Run flashier backfitting (default TRUE).
 #' @param nullcheck Run flashier nullcheck (default TRUE).
 #' @param seed Random seed for reproducibility.
@@ -42,6 +43,11 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
   if (!requireNamespace("flashier", quietly = TRUE) ||
       !requireNamespace("ebnm", quietly = TRUE)) {
     cli::cli_abort("Packages {.pkg flashier} and {.pkg ebnm} are required.")
+  }
+  if (!is.numeric(var_type) || length(var_type) > 2L ||
+      !all(var_type %in% c(0, 1, 2)) ||
+      (length(var_type) == 2L && !setequal(var_type, c(1, 2)))) {
+    cli::cli_abort("{.arg var_type} must be 0, 1, 2, or c(1, 2) (Kronecker).")
   }
 
   prior_fn <- switch(

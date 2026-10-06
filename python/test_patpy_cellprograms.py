@@ -101,3 +101,25 @@ def test_hyphenated_cell_type_names():
     assert D.shape == (adata.obs["sample"].nunique(),) * 2
     W = m.get_loadings()
     assert set(W.keys()) == {"B_non-switched_memory", "CD8.TE"}
+
+
+def test_var_type_validation():
+    import pytest
+    adata = make_adata(n_samples=4, n_cells_per_sample_ct=10, n_genes=30)
+    m = EBMF(sample_key="sample", cell_group_key="cell_type", seed=1, var_type=(1, 2))
+    assert m.var_type == (1, 2)
+    assert m._r_var_type() == "c(1, 2)"
+    m2 = EBMF(sample_key="sample", cell_group_key="cell_type", seed=1, var_type=2)
+    assert m2.var_type == (2,) and m2._r_var_type() == "2"
+    with pytest.raises(ValueError):
+        EBMF(sample_key="sample", cell_group_key="cell_type", seed=1, var_type=(0, 1))
+    with pytest.raises(ValueError):
+        EBMF(sample_key="sample", cell_group_key="cell_type", seed=1, var_type=3)
+
+
+def test_kronecker_var_type_end_to_end():
+    adata = make_adata(n_samples=6, n_cells_per_sample_ct=15, n_genes=40)
+    m = EBMF(sample_key="sample", cell_group_key="cell_type", seed=1, var_type=(1, 2))
+    m.prepare_anndata(adata)
+    D = m.calculate_distance_matrix()
+    assert D.shape[0] == 6
