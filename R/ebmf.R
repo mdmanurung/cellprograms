@@ -25,6 +25,13 @@
 #'   s_ij = a_i * b_j (most flexible; substantially slower).
 #' @param backfit Run flashier backfitting (default TRUE).
 #' @param nullcheck Run flashier nullcheck (default TRUE).
+#' @param covariates Optional sample-level covariates to regress out of each
+#'   cell type's pseudobulk (genes x samples fit separately per cell type, over
+#'   the donors observed in that cell type) before factorization: a character
+#'   vector of `sample_metadata` column names or a one-sided formula, e.g.
+#'   `~ age + sex + batch`. Programs are then fit to the residuals. Do not
+#'   include the outcome you plan to test. Variable-gene selection is done
+#'   before adjustment.
 #' @param seed Random seed for reproducibility.
 #' @param flash_control Optional list overriding flashier::flash arguments.
 #'
@@ -38,7 +45,8 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
                                   scale = FALSE, features = "all",
                                   n_variable_genes = 2000, var_type = 1,
                                   backfit = TRUE, nullcheck = TRUE,
-                                  seed = 1, flash_control = list()) {
+                                  covariates = NULL, seed = 1,
+                                  flash_control = list()) {
   stopifnot(inherits(x, "cell_program_data"))
   if (!requireNamespace("flashier", quietly = TRUE) ||
       !requireNamespace("ebnm", quietly = TRUE)) {
@@ -65,6 +73,7 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     Y <- as.matrix(x$pseudobulk[[ct]])
     genes <- feature_sets[[ct]]
     Y <- Y[, genes, drop = FALSE]
+    if (!is.null(covariates)) Y <- .residualize(Y, x$sample_metadata, covariates, ct)
     if (center) Y <- scale(Y, center = TRUE, scale = scale)
     else if (scale) Y <- scale(Y, center = FALSE, scale = TRUE)
 
@@ -135,7 +144,8 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     feature_sets = feature_sets,
     loading_prior = loading_prior,
     max_factors = max_factors, var_type = var_type,
-    backfit = backfit, nullcheck = nullcheck
+    backfit = backfit, nullcheck = nullcheck,
+    covariates = covariates
   )
   x$provenance <- list(
     seed = seed,
@@ -149,6 +159,30 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
 
   class(x) <- c("cell_program_fit", "cell_program_data", "list")
   x
+}
+
+# Residualize Y (obs x genes) on sample-level covariates, intercept included.
+# lm.fit pivots, so covariate levels absent from this cell type's donors are
+# dropped rather than erroring; only too few donors or NA covariates abort.
+.residualize <- function(Y, meta, covariates, ct) {
+  f <- if (inherits(covariates, "formula")) covariates
+       else stats::reformulate(covariates)
+  vars <- all.vars(f)
+  absent <- setdiff(vars, names(meta))
+  if (length(absent)) {
+    cli::cli_abort("{.arg covariates} not in {.field sample_metadata}: {.val {absent}}.")
+  }
+  m <- meta[match(rownames(Y), meta$observation_id), vars, drop = FALSE]
+  if (anyNA(m)) {
+    cli::cli_abort("Missing covariate values among donors of cell type {.val {ct}}; impute or drop them first.")
+  }
+  X <- stats::model.matrix(f, m)
+  if (nrow(X) <= qr(X)$rank + 1L) {
+    cli::cli_abort("Too few donors ({nrow(X)}) in {.val {ct}} for {qr(X)$rank} covariate column(s).")
+  }
+  R <- stats::lm.fit(X, Y)$residuals
+  dimnames(R) <- dimnames(Y)
+  R
 }
 
 # Feature selection: independent per cell type; never uses outcomes.
