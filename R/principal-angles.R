@@ -52,7 +52,15 @@
   list(U = U, Vsinvi = Vsinvi, rank = r)
 }
 
-.pa_engine <- function(Ma, Mb, n_perm, seed) {
+## permute row indices within strata (all rows if strata is NULL)
+.perm_within <- function(n, strata) {
+  if (is.null(strata)) return(sample.int(n))
+  idx <- seq_len(n)
+  for (g in split(idx, strata)) idx[g] <- g[sample.int(length(g))]
+  idx
+}
+
+.pa_engine <- function(Ma, Mb, n_perm, seed, strata = NULL) {
   sa <- .subspace(Ma); sb <- .subspace(Mb)
   if (sa$rank == 0L || sb$rank == 0L) .stopf("Degenerate (rank-0) subspace.")
   s <- svd(crossprod(sa$U, sb$U))
@@ -64,7 +72,7 @@
     if (!is.null(seed)) set.seed(seed)
     null_sigma <- matrix(NA_real_, nrow = n_perm, ncol = length(sigma))
     for (p in seq_len(n_perm)) {
-      Mb_p <- Mb[sample.int(nrow(Mb)), , drop = FALSE]
+      Mb_p <- Mb[.perm_within(nrow(Mb), strata), , drop = FALSE]
       sb_p <- .subspace(Mb_p)
       d_p <- svd(crossprod(sa$U, sb_p$U))$d
       null_sigma[p, seq_along(d_p)] <- pmin(d_p, 1)
@@ -128,14 +136,22 @@
 #' @param weight Loadings space only: `"none"` or `"residual_sd"` whitening.
 #' @param n_perm Permutations for the label-permutation null (0 skips).
 #' @param seed Random seed for permutations.
+#' @param strata Scores space only: named vector (names = observation ids) of
+#'   stratum labels, e.g. batch or institute. Observations of `ct_b` are
+#'   permuted only within strata, so the null preserves stratum-level
+#'   structure shared by both cell types (blocked permutation).
 #' @return An object of class `principal_angles`.
 #' @export
 principal_angles <- function(fit, ct_a, ct_b,
                              space = c("scores", "loadings"),
                              weight = c("none", "residual_sd"),
-                             n_perm = 200L, seed = NULL) {
+                             n_perm = 200L, seed = NULL, strata = NULL) {
   space <- match.arg(space)
   weight <- match.arg(weight)
+  if (!is.null(strata) && space != "scores") {
+    .stopf("`strata` applies to scores space only.")
+  }
+  strata_ids <- NULL
 
   if (space == "scores") {
     Za <- fit$scores[[ct_a]]; Zb <- fit$scores[[ct_b]]
@@ -150,6 +166,13 @@ principal_angles <- function(fit, ct_a, ct_b,
     }
     Ma <- Za[ids, , drop = FALSE]; Mb <- Zb[ids, , drop = FALSE]
     eff_dim <- length(ids)
+    if (!is.null(strata)) {
+      if (is.null(names(strata)) || !all(ids %in% names(strata))) {
+        .stopf("`strata` must be a named vector covering all %d shared observations.", length(ids))
+      }
+      strata_ids <- strata[ids]
+      if (anyNA(strata_ids)) .stopf("`strata` has NA for shared observations.")
+    }
     if (weight != "none") {
       .warnf("`weight` applies to loadings space only; ignored for scores.")
     }
@@ -175,7 +198,7 @@ principal_angles <- function(fit, ct_a, ct_b,
     eff_dim <- g_inter
   }
 
-  eng <- .pa_engine(Ma, Mb, n_perm, seed)
+  eng <- .pa_engine(Ma, Mb, n_perm, seed, strata_ids)
   k_a <- eng$ranks["a"]; k_b <- eng$ranks["b"]
   asymptotic_ref <- (sqrt(k_a) + sqrt(k_b)) / sqrt(max(eff_dim, 1))
   ## sharing requires BOTH beating the permutation null AND a minimum effect
@@ -239,7 +262,7 @@ print.principal_angles <- function(x, ...) {
 #'   pairs, `max(999, 40 * #pairs)`, so that the permutation floor `1/(n_perm+1)`
 #'   is below the BH level of a single true pair (`0.05 / #pairs`); a smaller
 #'   value warns. Pairs get distinct seeds derived from `seed`.
-#' @param ... Passed to `principal_angles`.
+#' @param ... Passed to `principal_angles` (e.g. `seed`, `strata`).
 #' @return Per-pair `principal_angles` objects plus a summary table. `p_pair` is
 #'   a single permutation p-value per pair (statistic sum of squared cosines);
 #'   `z_pair` and `excess_frac` are graded effect sizes against the
