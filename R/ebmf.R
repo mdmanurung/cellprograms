@@ -192,7 +192,8 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     loading_prior = loading_prior,
     max_factors = max_factors, var_type = var_type,
     backfit = backfit, nullcheck = nullcheck,
-    covariates = covariates, covariate_mode = covariate_mode
+    covariates = covariates, covariate_mode = covariate_mode,
+    flash_control = flash_control
   )
   x$provenance <- list(
     seed = seed,

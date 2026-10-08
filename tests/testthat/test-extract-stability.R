@@ -21,3 +21,23 @@ test_that("assess_program_stability recovers the strong planted program", {
   expect_equal(st$program_id, program_metadata(fit)$program_id)
   expect_gt(max(st$recovery_freq), 0.8)
 })
+
+test_that("stability refits keep covariate_mode and flash_control", {
+  skip_if_not_installed("flashier"); skip_if_not_installed("ebnm")
+  fit <- canonicalize_programs(fit_celltype_programs(.toy(), covariates = ~ batch,
+                                                     covariate_mode = "fixed", max_factors = 3,
+                                                     flash_control = list(backfit = FALSE), seed = 1))
+  seen <- list()
+  orig <- fit_celltype_programs
+  assign("fit_celltype_programs", function(...) {
+    a <- list(...); seen[[length(seen) + 1L]] <<- a[c("covariate_mode", "flash_control")]
+    orig(...)
+  }, envir = globalenv())
+  on.exit(assign("fit_celltype_programs", orig, envir = globalenv()))
+  assess_program_stability(fit, n_boot = 2, seed = 1, progress = FALSE)
+  expect_length(seen, 2L)
+  for (s in seen) {
+    expect_identical(s$covariate_mode, "fixed")
+    expect_identical(s$flash_control, list(backfit = FALSE))
+  }
+})

@@ -47,7 +47,8 @@ assess_program_stability <- function(fit, n_boot = 100L,
         x_b, loading_prior = pre$loading_prior, max_factors = pre$max_factors,
         center = pre$centered, scale = pre$scaled, features = pre$feature_sets,
         var_type = pre$var_type, backfit = pre$backfit, nullcheck = pre$nullcheck,
-        covariates = pre$covariates, seed = fit$provenance$seed + b
+        covariates = pre$covariates, covariate_mode = pre$covariate_mode,
+        flash_control = pre$flash_control, seed = fit$provenance$seed + b
       ) |> canonicalize_programs(),
       error = function(e) NULL
     )
