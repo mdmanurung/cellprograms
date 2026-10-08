@@ -1,0 +1,8 @@
+"role","label","mean_abs_diff","n_cells_lt_0.03","n_departures"
+"top5_by_mad","comp=none pca=none dist=euclid knn=lowclass NA=keep donors=122",0.00981901738917725,28,2
+"top5_by_mad","comp=none pca=none dist=euclid knn=lowclass NA=drop donors=122",0.0141491475735295,26,1
+"top5_by_mad","comp=none pca=none dist=euclid knn=random NA=keep donors=122",0.0152730568079186,26,1
+"top5_by_mad","comp=none pca=none dist=euclid knn=random_useall NA=keep donors=122",0.0154027500129429,25,2
+"top5_by_mad","comp=none pca=none dist=euclid knn=nearest NA=keep donors=122",0.0189411407119948,23,2
+"headline_simplest(=class::knn.cv default, no z-scoring)","comp=none pca=none dist=euclid knn=random_useall NA=drop donors=122",0.0199493920137045,23,1
+"current_02_metrics.R","comp=z pca=zbefore dist=euclid knn=random_useall NA=drop donors=122",0.0560295965949272,9,3

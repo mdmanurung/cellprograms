@@ -1,0 +1,41 @@
+combat: dataset ebc2e1ff-c8f9-466a-acf4-9d291afaf8b3 (836148, 36306)
+B                    got=109 ref=109 OK
+CD4                  got=121 ref=121 OK
+CD8                  got=119 ref=119 OK
+DC                   got=67 ref=67 OK
+DP                   got=57 ref=57 OK
+GDT                  got=50 ref=50 OK
+NK                   got=118 ref=118 OK
+PB                   got=52 ref=52 OK
+cMono                got=120 ref=120 OK
+ncMono               got=105 ref=105 OK
+  streamed 100000/836148
+  streamed 200000/836148
+  streamed 300000/836148
+  streamed 400000/836148
+  streamed 500000/836148
+  streamed 600000/836148
+  streamed 700000/836148
+  streamed 800000/836148
+  streamed 836148/836148
+B: (109, 3000)
+CD4: (121, 3000)
+CD8: (119, 3000)
+DC: (67, 3000)
+DP: (57, 3000)
+GDT: (50, 3000)
+NK: (118, 3000)
+PB: (52, 3000)
+cMono: (120, 3000)
+ncMono: (105, 3000)
+/exports/para-lipg-hpc/mdmanurung/cellprograms/benchmarks/biomni_replication/01_pseudobulk.py:161: FutureWarning: Downcasting behavior in `replace` is deprecated and will be removed in a future version. To retain the old behavior, explicitly call `result.infer_objects(copy=False)`. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  o[c] = o[c].astype(object).replace({"nan": np.nan})
+/exports/para-lipg-hpc/mdmanurung/cellprograms/benchmarks/biomni_replication/01_pseudobulk.py:161: FutureWarning: Downcasting behavior in `replace` is deprecated and will be removed in a future version. To retain the old behavior, explicitly call `result.infer_objects(copy=False)`. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  o[c] = o[c].astype(object).replace({"nan": np.nan})
+/exports/para-lipg-hpc/mdmanurung/cellprograms/benchmarks/biomni_replication/01_pseudobulk.py:161: FutureWarning: Downcasting behavior in `replace` is deprecated and will be removed in a future version. To retain the old behavior, explicitly call `result.infer_objects(copy=False)`. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  o[c] = o[c].astype(object).replace({"nan": np.nan})
+/exports/para-lipg-hpc/mdmanurung/cellprograms/benchmarks/biomni_replication/01_pseudobulk.py:161: FutureWarning: Downcasting behavior in `replace` is deprecated and will be removed in a future version. To retain the old behavior, explicitly call `result.infer_objects(copy=False)`. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  o[c] = o[c].astype(object).replace({"nan": np.nan})
+/exports/para-lipg-hpc/mdmanurung/cellprograms/benchmarks/biomni_replication/01_pseudobulk.py:161: FutureWarning: Downcasting behavior in `replace` is deprecated and will be removed in a future version. To retain the old behavior, explicitly call `result.infer_objects(copy=False)`. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  o[c] = o[c].astype(object).replace({"nan": np.nan})
+done

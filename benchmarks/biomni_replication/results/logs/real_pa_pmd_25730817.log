@@ -1,0 +1,15 @@
+[raw] PA: 40/45 pairs shared (3s)
+MCP01: objective 41.358, perm p = 0.010, rho = 0.50, active CTs: 10
+MCP02: objective 39.371, perm p = 0.010, rho = 0.70, active CTs: 10
+MCP03: objective 40.556, perm p = 0.010, rho = 0.30, active CTs: 10
+MCP04: objective 37.592, perm p = 0.010, rho = 0.70, active CTs: 10
+MCP05: objective 32.611, perm p = 0.010, rho = 0.70, active CTs: 10
+[raw] PMD: 5 MCPs, 45/45 pairs shared (1105s)
+[resid] PA: 40/45 pairs shared (2s)
+MCP01: objective 39.945, perm p = 0.010, rho = 0.50, active CTs: 10
+MCP02: objective 38.086, perm p = 0.010, rho = 0.30, active CTs: 10
+MCP03: objective 37.609, perm p = 0.010, rho = 0.70, active CTs: 10
+MCP04: objective 32.566, perm p = 0.010, rho = 0.50, active CTs: 10
+MCP05: objective 22.748, perm p = 0.010, rho = 0.50, active CTs: 10
+[resid] PMD: 5 MCPs, 45/45 pairs shared (1078s)
+done

@@ -25,6 +25,21 @@
 #'   s_ij = a_i * b_j (most flexible; substantially slower).
 #' @param backfit Run flashier backfitting (default TRUE).
 #' @param nullcheck Run flashier nullcheck (default TRUE).
+#' @param covariates Optional sample-level covariates to regress out of each
+#'   cell type's pseudobulk (genes x samples fit separately per cell type, over
+#'   the donors observed in that cell type) before factorization: a character
+#'   vector of `sample_metadata` column names or a one-sided formula, e.g.
+#'   `~ age + sex + batch`. Programs are then fit to the residuals. Do not
+#'   include the outcome you plan to test. Variable-gene selection is done
+#'   before adjustment.
+#' @param covariate_mode How `covariates` are handled: `"residualize"`
+#'   (default; hard adjustment: regress out of `Y` before factorization) or
+#'   `"fixed"` (soft, SOFA-style: the covariate design columns enter flashier as
+#'   fixed sample-side factors with unshrunk gene effects, and the K free
+#'   programs are fit jointly with them; free programs can still share
+#'   variance with a covariate. Requires `center = TRUE`, ignores
+#'   `flash_control`). Fixed columns are not returned as programs;
+#'   `Y_used` is `Y` minus the fitted covariate part.
 #' @param seed Random seed for reproducibility.
 #' @param flash_control Optional list overriding flashier::flash arguments.
 #'
@@ -38,8 +53,14 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
                                   scale = FALSE, features = "all",
                                   n_variable_genes = 2000, var_type = 1,
                                   backfit = TRUE, nullcheck = TRUE,
+                                  covariates = NULL,
+                                  covariate_mode = c("residualize", "fixed"),
                                   seed = 1, flash_control = list()) {
   stopifnot(inherits(x, "cell_program_data"))
+  covariate_mode <- match.arg(covariate_mode)
+  if (covariate_mode == "fixed" && !is.null(covariates) && !center) {
+    cli::cli_abort("{.code covariate_mode = \"fixed\"} requires {.code center = TRUE}.")
+  }
   if (!requireNamespace("flashier", quietly = TRUE) ||
       !requireNamespace("ebnm", quietly = TRUE)) {
     cli::cli_abort("Packages {.pkg flashier} and {.pkg ebnm} are required.")
@@ -65,8 +86,14 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     Y <- as.matrix(x$pseudobulk[[ct]])
     genes <- feature_sets[[ct]]
     Y <- Y[, genes, drop = FALSE]
+    if (!is.null(covariates) && covariate_mode == "residualize") {
+      Y <- .residualize(Y, x$sample_metadata, covariates, ct)
+    }
     if (center) Y <- scale(Y, center = TRUE, scale = scale)
     else if (scale) Y <- scale(Y, center = FALSE, scale = TRUE)
+    Xc <- if (!is.null(covariates) && covariate_mode == "fixed") {
+      .cov_design(rownames(Y), x$sample_metadata, covariates, ct, intercept = FALSE)
+    }
 
     # Drop genes that are identically zero after preprocessing (silent in this
     # cell type, or constant and centered away): flashier rejects all-zero
@@ -105,27 +132,47 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
 
     t0 <- Sys.time()
     set.seed(seed)
-    fit <- tryCatch(
-      do.call(flashier::flash, args),
-      error = function(e) {
-        # point_laplace's nlm solver can fail numerically on some pseudobulk
-        # profiles; degrade gracefully to point_normal and record it.
-        if (identical(prior_fn, ebnm::ebnm_point_laplace)) {
-          cli::cli_warn("EBNM solver failed with point_laplace in cell type {.val {ct}}; retrying with point_normal.")
-          args$ebnm_fn <- list(ebnm::ebnm_normal, ebnm::ebnm_point_normal)
-          do.call(flashier::flash, args)
-        } else {
-          cli::cli_abort("flashier failed in cell type {.val {ct}}: {conditionMessage(e)}")
-        }
+    run_flash <- function(args) {
+      if (is.null(Xc)) do.call(flashier::flash, args) else .flash_fixed(args, Xc)
+    }
+    # Fallback ladder for numerical failures in flashier: point_laplace's nlm
+    # solver can fail on some pseudobulk profiles (-> point_normal), and the
+    # nullcheck can hit a NaN ELBO when K approaches the residual degrees of
+    # freedom (-> rerun without nullcheck). Every fallback is warned about and
+    # recorded in fits[[ct]]$fallback.
+    attempts <- list(list(label = "none", args = args))
+    if (identical(prior_fn, ebnm::ebnm_point_laplace)) {
+      a2 <- args; a2$ebnm_fn <- list(ebnm::ebnm_normal, ebnm::ebnm_point_normal)
+      attempts[[length(attempts) + 1L]] <- list(label = "point_normal", args = a2)
+    }
+    if (isTRUE(args$nullcheck)) {
+      for (at in attempts) {
+        a3 <- at$args; a3$nullcheck <- FALSE
+        attempts[[length(attempts) + 1L]] <- list(
+          label = if (at$label == "none") "no_nullcheck" else paste0(at$label, "+no_nullcheck"),
+          args = a3)
       }
-    )
+    }
+    fit <- NULL; fallback <- "none"; last_err <- NULL
+    for (at in attempts) {
+      fit <- tryCatch(run_flash(at$args), error = function(e) { last_err <<- e; NULL })
+      if (!is.null(fit)) { fallback <- at$label; break }
+    }
+    if (is.null(fit)) {
+      cli::cli_abort("flashier failed in cell type {.val {ct}}: {conditionMessage(last_err)}")
+    }
+    if (fallback != "none") {
+      cli::cli_warn("flashier needed fallback {.val {fallback}} in cell type {.val {ct}}.")
+    }
     elapsed <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
 
+    if (!is.null(fit$fixed_L)) Y <- Y - fit$fixed_L %*% t(fit$fixed_F)
     fits[[ct]] <- list(
       flash = fit,
       Y_used = Y,
       genes = genes,
-      elapsed_secs = elapsed
+      elapsed_secs = elapsed,
+      fallback = fallback
     )
   }
 
@@ -135,7 +182,8 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     feature_sets = feature_sets,
     loading_prior = loading_prior,
     max_factors = max_factors, var_type = var_type,
-    backfit = backfit, nullcheck = nullcheck
+    backfit = backfit, nullcheck = nullcheck,
+    covariates = covariates, covariate_mode = covariate_mode
   )
   x$provenance <- list(
     seed = seed,
@@ -149,6 +197,88 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
 
   class(x) <- c("cell_program_fit", "cell_program_data", "list")
   x
+}
+
+# Design matrix of sample-level covariates for the donors in `ids`.
+# Terms constant across this cell type's donors (e.g. a site with no donors
+# here) cannot be adjusted for and model.matrix() errors on one-level factors,
+# so they are dropped for this cell type only. NULL if nothing is left.
+# intercept = FALSE: centered, unit-variance, full-rank columns (fixed mode).
+.cov_design <- function(ids, meta, covariates, ct, intercept = TRUE) {
+  f <- if (inherits(covariates, "formula")) covariates
+       else stats::reformulate(covariates)
+  vars <- all.vars(f)
+  absent <- setdiff(vars, names(meta))
+  if (length(absent)) {
+    cli::cli_abort("{.arg covariates} not in {.field sample_metadata}: {.val {absent}}.")
+  }
+  m <- meta[match(ids, meta$observation_id), vars, drop = FALSE]
+  if (anyNA(m)) {
+    cli::cli_abort("Missing covariate values among donors of cell type {.val {ct}}; impute or drop them first.")
+  }
+  const <- vapply(vars, function(v) length(unique(m[[v]])) < 2L, logical(1L))
+  if (all(const)) {
+    cli::cli_inform("Covariate(s) {.val {vars}} constant in cell type {.val {ct}}; not adjusted.")
+    return(NULL)
+  }
+  if (any(const)) {
+    cli::cli_inform("Covariate(s) {.val {vars[const]}} constant in cell type {.val {ct}}; dropped for this cell type.")
+    f <- stats::drop.terms(stats::terms(f), which(attr(stats::terms(f), "term.labels") %in% vars[const]),
+                           keep.response = FALSE)
+    m <- m[, vars[!const], drop = FALSE]
+  }
+  X <- stats::model.matrix(f, m)
+  if (nrow(X) <= qr(X)$rank + 1L) {
+    cli::cli_abort("Too few donors ({nrow(X)}) in {.val {ct}} for {qr(X)$rank} covariate column(s).")
+  }
+  if (!intercept) {
+    X <- X[, colnames(X) != "(Intercept)", drop = FALSE]
+    X <- scale(X)
+    q <- qr(X)
+    X <- X[, sort(q$pivot[seq_len(q$rank)]), drop = FALSE]
+    attr(X, "scaled:center") <- attr(X, "scaled:scale") <- NULL
+  }
+  X
+}
+
+# Residualize Y (obs x genes) on sample-level covariates, intercept included.
+.residualize <- function(Y, meta, covariates, ct) {
+  X <- .cov_design(rownames(Y), meta, covariates, ct)
+  if (is.null(X)) return(Y)
+  R <- stats::lm.fit(X, Y)$residuals
+  dimnames(R) <- dimnames(Y)
+  R
+}
+
+# Soft adjustment (SOFA-style): covariate columns enter flashier as FIXED
+# sample-side factors with unshrunk (wide fixed-scale normal) gene effects,
+# initialised at OLS; free programs are then added greedily and everything but
+# the fixed sample-side columns is backfit. Returns a flash-like list holding
+# only the free factors, plus fixed_L / fixed_F for the covariate part.
+.flash_fixed <- function(args, Xc) {
+  Y <- args$data; q <- ncol(Xc)
+  F0 <- t(solve(crossprod(Xc), crossprod(Xc, Y)))
+  fl <- flashier::flash_init(Y, var_type = args$var_type) |>
+    flashier::flash_set_verbose(args$verbose) |>
+    flashier::flash_factors_init(
+      list(Xc, F0),
+      ebnm_fn = flashier::flash_ebnm(prior_family = "normal", mode = 0, scale = 10)) |>
+    flashier::flash_factors_fix(kset = seq_len(q), which_dim = "loadings") |>
+    flashier::flash_greedy(Kmax = args$greedy_Kmax, ebnm_fn = args$ebnm_fn)
+  free <- function(fl) setdiff(seq_len(fl$n_factors), seq_len(q))
+  if (args$backfit) fl <- flashier::flash_backfit(fl, verbose = args$verbose)
+  if (args$nullcheck && length(free(fl))) {
+    fl <- flashier::flash_nullcheck(fl, kset = free(fl), verbose = args$verbose)
+  }
+  k <- free(fl)
+  out <- list(
+    n_factors = length(k), elbo = fl$elbo, residuals_sd = fl$residuals_sd,
+    L_pm = fl$L_pm[, k, drop = FALSE], F_pm = fl$F_pm[, k, drop = FALSE],
+    F_lfsr = if (!is.null(fl$F_lfsr)) fl$F_lfsr[, k, drop = FALSE],
+    fixed_L = Xc, fixed_F = fl$F_pm[, seq_len(q), drop = FALSE]
+  )
+  if (length(k) == 0L) { out$L_pm <- NULL; out$F_pm <- NULL }
+  out
 }
 
 # Feature selection: independent per cell type; never uses outcomes.

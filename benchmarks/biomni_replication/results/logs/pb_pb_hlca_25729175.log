@@ -1,0 +1,12 @@
+hlca: dataset 066943a2-fdac-4b29-b348-40cede398e4e (584944, 27402)
+AM                   got=54 ref=54 OK
+AT2                  got=51 ref=51 OK
+CD8                  got=48 ref=48 OK
+DC                   got=51 ref=51 OK
+EMac                 got=51 ref=51 OK
+MCC                  got=69 ref=69 OK
+RBC                  got=40 ref=40 OK
+VEC                  got=42 ref=42 OK
+cMono                got=54 ref=54 OK
+  streamed 100000/584944
+slurmstepd: error: *** JOB 25729175 ON res-hpc-exe059 CANCELLED AT 2026-10-07T20:25:08 ***

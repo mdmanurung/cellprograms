@@ -1,0 +1,38 @@
+variants: 300 
+20 40 60 80 100 120 140 160 180 200 220 240 260 280 300 
+current implementation:
+    mean_abs_diff n_cells_lt_0.03
+983    0.06341598              10
+top 15:
+ vid comp_scale pca_scale   dist           knn    f1   na donors mean_abs_diff
+ 118       none      none cosine       nearest truth keep    122    0.03259663
+ 118       none      none cosine       nearest union keep    122    0.03259663
+ 259       none      none cosine       nearest truth keep    124    0.03268136
+ 259       none      none cosine       nearest union keep    124    0.03268136
+ 127       none      none euclid      lowclass truth keep    122    0.03367161
+ 127       none      none euclid      lowclass union keep    122    0.03367161
+ 100       none      none cosine        random truth keep    122    0.03444644
+ 100       none      none cosine        random union keep    122    0.03444644
+ 154       none      none cosine random_useall truth keep    122    0.03451899
+ 154       none      none cosine random_useall union keep    122    0.03451899
+ 145       none      none euclid random_useall truth keep    122    0.03454191
+ 145       none      none euclid random_useall union keep    122    0.03454191
+  91       none      none euclid        random truth keep    122    0.03534994
+  91       none      none euclid        random union keep    122    0.03534994
+ 136       none      none cosine      lowclass truth keep    122    0.03565895
+ n_cells_lt_0.03 n_departures
+              19            3
+              19            4
+              19            4
+              19            5
+              18            2
+              18            3
+              16            2
+              16            3
+              16            3
+              16            4
+              16            2
+              16            3
+              15            1
+              15            2
+              16            3

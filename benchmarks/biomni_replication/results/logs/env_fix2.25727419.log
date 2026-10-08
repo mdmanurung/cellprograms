@@ -1,0 +1,52 @@
+trying URL 'https://cloud.r-project.org/src/contrib/ebnm_1.1-42.tar.gz'
+Content type 'application/x-gzip' length 599438 bytes (585 KB)
+==================================================
+downloaded 585 KB
+
+trying URL 'https://cloud.r-project.org/src/contrib/flashier_1.0.7.tar.gz'
+Content type 'application/x-gzip' length 883732 bytes (863 KB)
+==================================================
+downloaded 863 KB
+
+begin installing package ‘ebnm’
+* installing *source* package ‘ebnm’ ...
+** package ‘ebnm’ successfully unpacked and MD5 sums checked
+** using staged installation
+** R
+** data
+*** moving datasets to lazyload DB
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** installing vignettes
+** testing if installed package can be loaded from temporary location
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (ebnm)
+begin installing package ‘flashier’
+* installing *source* package ‘flashier’ ...
+** package ‘flashier’ successfully unpacked and MD5 sums checked
+** using staged installation
+** R
+** data
+*** moving datasets to lazyload DB
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** installing vignettes
+** testing if installed package can be loaded from temporary location
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (flashier)
+
+The downloaded source packages are in
+	‘/tmp/RtmpGvRdUB/downloaded_packages’
+Updating HTML index of packages in '.Library'
+Making 'packages.html' ... done
+Loading required package: ebnm
+Loading required package: magrittr
+OK

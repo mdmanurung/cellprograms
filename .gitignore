@@ -2,3 +2,11 @@
 .Rhistory
 .RData
 *.Rproj
+
+# benchmarks/biomni_replication: large/regenerable artifacts
+benchmarks/biomni_replication/data/
+benchmarks/biomni_replication/results/fits/
+benchmarks/biomni_replication/results/synth_data/
+benchmarks/biomni_replication/results/synth_out/
+benchmarks/biomni_replication/**/*.rds
+biomni/*.zip

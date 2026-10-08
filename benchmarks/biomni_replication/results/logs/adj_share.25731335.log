@@ -1,0 +1,6 @@
+Covariate(s) "Institute" constant in cell type "DC"; dropped for this cell
+type.
+Warning messages:
+1: In log(tau) : NaNs produced
+2: flashier needed fallback "point_normal+no_nullcheck" in cell type "DC". 
+covariates=Institute,Outcome fit 9.4 min; pairs 45 underpowered 6 shared 39

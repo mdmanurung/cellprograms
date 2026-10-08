@@ -1,0 +1,11 @@
+cell_program_fit
+    B_Mem         3 programs  (pve: 0.03, 0.02, 0.01)
+    B_Naive      10 programs  (pve: 0.03, 0.01, 0.01, 0.01, 0, 0, 0, 0, 0, 0)
+    CD14_Mono     7 programs  (pve: 0.03, 0.02, 0.01, 0, 0.01, 0, 0)
+    CD4_CM       10 programs  (pve: 0.03, 0.03, 0.02, 0.02, 0.01, 0.01, 0, 0.01, 0.01, 0)
+    CD4_EM        3 programs  (pve: 0.02, 0.02, 0.01)
+    CD4_Naive    10 programs  (pve: 0.04, 0.02, 0.02, 0.01, 0.01, 0.01, 0, 0, 0, 0)
+    CD8_EM       10 programs  (pve: 0.04, 0.01, 0.01, 0.01, 0.01, 0.01, 0, 0, 0, 0)
+    CD8_Naive     7 programs  (pve: 0.04, 0.01, 0.01, 0.02, 0, 0, 0)
+    NK           10 programs  (pve: 0.03, 0.01, 0.01, 0.01, 0.01, 0.01, 0, 0, 0, 0)
+saved results/fits/onek1k_repo_K10.rds (2.3 min)

@@ -1,0 +1,20 @@
+[seed 9] S1 missing=0.0
+[seed 9] S1 missing=0.3
+[seed 9] S2 missing=0.0
+[seed 9] S2 missing=0.3
+[seed 9] S3 missing=0.0
+  --Estimate of factor 3 is numerically zero!
+[seed 9] S3 missing=0.3
+[seed 9] S4 missing=0.0
+[seed 9] S4 missing=0.3
+[seed 9] S5 missing=0.0
+[seed 9] S5 missing=0.3
+[seed 9] S6 missing=0.0
+[seed 9] S6 missing=0.3
+[seed 9] S7 missing=0.0
+[seed 9] S7 missing=0.3
+[seed 9] S8 missing=0.0
+[seed 9] S8 missing=0.3
+[seed 9] S9 missing=0.0
+[seed 9] S9 missing=0.3
+done: /exports/para-lipg-hpc/mdmanurung/cellprograms/benchmarks/biomni_replication/results/sim/seed9.csv

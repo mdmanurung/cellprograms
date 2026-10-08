@@ -1,0 +1,30 @@
+hlca: dataset 066943a2-fdac-4b29-b348-40cede398e4e (584944, 27402)
+AM                   got=54 ref=54 OK
+AT2                  got=51 ref=51 OK
+CD8                  got=48 ref=48 OK
+DC                   got=51 ref=51 OK
+EMac                 got=51 ref=51 OK
+MCC                  got=69 ref=69 OK
+RBC                  got=40 ref=40 OK
+VEC                  got=42 ref=42 OK
+cMono                got=54 ref=54 OK
+  streamed 100000/584944
+  streamed 200000/584944
+  streamed 300000/584944
+  streamed 400000/584944
+  streamed 500000/584944
+  streamed 584944/584944
+AM: (54, 3000)
+AT2: (51, 3000)
+CD8: (48, 3000)
+DC: (51, 3000)
+EMac: (51, 3000)
+MCC: (69, 3000)
+RBC: (40, 3000)
+VEC: (42, 3000)
+cMono: (54, 3000)
+/exports/para-lipg-hpc/mdmanurung/cellprograms/benchmarks/biomni_replication/01_pseudobulk.py:153: FutureWarning: Downcasting behavior in `replace` is deprecated and will be removed in a future version. To retain the old behavior, explicitly call `result.infer_objects(copy=False)`. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  o[c] = o[c].astype(object).replace({"nan": np.nan})
+/exports/para-lipg-hpc/mdmanurung/cellprograms/benchmarks/biomni_replication/01_pseudobulk.py:153: FutureWarning: Downcasting behavior in `replace` is deprecated and will be removed in a future version. To retain the old behavior, explicitly call `result.infer_objects(copy=False)`. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  o[c] = o[c].astype(object).replace({"nan": np.nan})
+done

@@ -1,0 +1,9 @@
+Covariate(s) "Institute" constant in cell type "DC"; dropped for this cell
+type.
+Error in if (obj.diff >= -tol) { : missing value where TRUE/FALSE needed
+Calls: canonicalize_programs ... do.call -> <Anonymous> -> flash_nullcheck -> nullcheck.factor
+In addition: Warning messages:
+1: EBNM solver failed with point_laplace in cell type "DC"; retrying with
+point_normal. 
+2: In log(tau) : NaNs produced
+Execution halted

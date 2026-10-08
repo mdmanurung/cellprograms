@@ -1,0 +1,24 @@
+Package: cellprograms
+Type: Package
+Title: Cell-Type-Specific Transcriptional Programs from Pseudobulk Single-Cell RNA-seq
+Version: 0.1.0
+Authors@R: person("Mikhael", "Manurung", role = c("aut", "cre"),
+    email = "mikhael@example.org")
+Description: Discovers cell-type-specific transcriptional programs from
+    pseudobulk single-cell RNA-seq data using empirical-Bayes matrix
+    factorization (flashier). Programs are discovered locally within each
+    cell type; coordination across cell types is investigated subsequently
+    through a principled borrowing ladder: shared EBNM priors (L1),
+    initialization borrowing (L2), structured joint decomposition via
+    block EBMF or EV-BIDIFAC (L3), and principal-angle program alignment
+    (L4). Sharing is an output, not an assumption.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Imports:
+    flashier (>= 1.0.0),
+    ebnm (>= 1.0.0),
+    ashr
+Suggests:
+    fastICA,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
