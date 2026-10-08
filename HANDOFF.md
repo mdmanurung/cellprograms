@@ -1,6 +1,6 @@
 # Handoff — Biomni review, replication, package follow-ups
 
-**Date:** 2026-10-08 · **Branch:** feat/covariates-and-sharing-tools @ 44f20a6 (8 commits ahead of main b97fcad, not pushed) · **Status:** covariates, calibrated sharing test, effect size, stability/extract all in the package and tested; first adjusted-COMBAT result in; nothing from `benchmarks/` or `biomni/` committed
+**Date:** 2026-10-08 · **Branch:** feat/covariates-and-sharing-tools (12 commits ahead of main b97fcad, not pushed) · **Status:** covariates, calibrated sharing test, effect size, stability/extract all in the package and tested; first adjusted-COMBAT result in; `benchmarks/`, `biomni/` and this file committed
 
 ## Goal
 Decide what from Biomni's `cellprograms` fork to bring into this repo, backed by a replication that can be trusted. Done = covariate-adjusted programs + calibrated sharing test + stability/extract ported with tests. (Core of that is done; remaining work is evaluation and the items below.)
@@ -39,13 +39,13 @@ Decide what from Biomni's `cellprograms` fork to bring into this repo, backed by
 7. **Extensions:** reference mapping, case-control mixed models (dreamlet-style), cross-cohort matching with a null for |cosine|.
 8. **Comparators not yet run:** MOFAcell, scITD, DIALOGUE, mc-ASTRA/MOFA-FLEX, SOFA.
 9. **Not done from the replication:** `fit_joint_block` at K=10, GloScope/PILOT, cross-cohort matching; Stephenson/HLCA/OneK1K cp numbers vs Biomni (Biomni used K=25, we ran K=30).
-10. **Commit** `benchmarks/`, `biomni/`, `HANDOFF.md`, `.gitignore` change (user's call; `.gitignore` already excludes `data/`, `results/fits/`, 26 GB of h5ad); push/PR the branch (user's call).
+10. **Push / open a PR** for the branch (user's call). Committed: `benchmarks/`, `biomni/`, `.gitignore` (excludes `data/`, `results/fits/`, `*.rds`, `biomni/*.zip`). The two `biomni/Biomni_lab_downloads_*.zip` (96 MB) are on disk but deliberately not in git.
 
 ## Next action
-Pick one of: (a) commit `benchmarks/` + `biomni/` on the branch (item 10), (b) `assess_program_stability` on `results/sharing/combat_repo_Institute_Outcome_fit.rds` (item 6, small K prune), (c) run SOFA as external comparator on the sim harness (item 1/8).
+Pick one of: (a) push the branch / open a PR (item 10), (b) `assess_program_stability` on `results/sharing/combat_repo_Institute_Outcome_fit.rds` (item 6, small K prune), (c) run SOFA as external comparator on the sim harness (item 1/8).
 
 ## State
-- Branch `feat/covariates-and-sharing-tools`; uncommitted: `M .gitignore`; untracked `HANDOFF.md`, `benchmarks/`, `biomni/`
+- Branch `feat/covariates-and-sharing-tools`; working tree clean (except this edit if not yet committed). Sharing fits (`results/sharing/*_fit.rds`) are git-ignored, regenerate with `07_adjusted_sharing.sbatch`
 - Running: nothing of mine. Unrelated jobs of other users/projects in the queue (ejm-proj-seq, array, xbench-v2-final) are not mine to touch.
 - SLURM: use `--partition=all` (QOS on `medium` caps 4 cpu/8G)
 
