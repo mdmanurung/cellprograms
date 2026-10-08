@@ -38,3 +38,13 @@ test_that("sharing_spectrum applies BH over callable pairs and flags underpowere
   expect_false(ss$shared[2])
   expect_equal(ss$q_pair[1:2], stats::p.adjust(ss$p_pair[1:2], "BH"))
 })
+
+test_that("effect size is ~0 under independence and large under sharing", {
+  set.seed(5); n <- 60
+  Za <- .rand_scores(n, 3, "A"); Zb <- .rand_scores(n, 3, "B")
+  null <- principal_angles(.fake_fit(Za, Zb), "A", "B", n_perm = 299, seed = 1)
+  expect_lt(abs(null$z_pair), 3); expect_lt(abs(null$excess_frac), 0.3)
+  Zb[, 1:2] <- Za[, 1:2] + rnorm(n * 2, sd = 0.3)
+  sh <- principal_angles(.fake_fit(Za, Zb), "A", "B", n_perm = 299, seed = 1)
+  expect_gt(sh$z_pair, 10); expect_gt(sh$excess_frac, 0.5); expect_lte(sh$excess_frac, 1 + 1e-8)
+})

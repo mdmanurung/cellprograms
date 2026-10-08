@@ -59,6 +59,7 @@
   sigma <- pmin(pmax(s$d, 0), 1)
 
   null_sigma <- NULL; p_values <- NULL; p_pair <- NA_real_
+  z_pair <- excess_frac <- NA_real_
   if (n_perm > 0L) {
     if (!is.null(seed)) set.seed(seed)
     null_sigma <- matrix(NA_real_, nrow = n_perm, ncol = length(sigma))
@@ -75,13 +76,19 @@
     ## no multiplicity over directions), same permutation null
     t_null <- rowSums(null_sigma^2, na.rm = TRUE)
     p_pair <- (1 + sum(t_null >= sum(sigma^2))) / (n_perm + 1)
+    ## graded effect size, informative where p saturates at 1/(n_perm+1):
+    ## z = (T - mean null) / sd null; excess_frac = (T - E0) / (min(ka,kb) - E0)
+    ## is 0 at chance and 1 when the smaller subspace is fully contained
+    t_obs <- sum(sigma^2); e0 <- mean(t_null)
+    z_pair <- (t_obs - e0) / stats::sd(t_null)
+    excess_frac <- (t_obs - e0) / (min(sa$rank, sb$rank) - e0)
   }
 
   list(
     cosines = sigma,
     angles = acos(sigma),
     p_values = p_values,
-    p_pair = p_pair,
+    p_pair = p_pair, z_pair = z_pair, excess_frac = excess_frac,
     null_mean = if (!is.null(null_sigma)) colMeans(null_sigma, na.rm = TRUE) else NULL,
     null_q95 = if (!is.null(null_sigma)) apply(null_sigma, 2L, stats::quantile, 0.95, na.rm = TRUE) else NULL,
     n_shared_05 = if (!is.null(p_values)) sum(p_values < 0.05) else NA_integer_,
@@ -183,7 +190,7 @@ principal_angles <- function(fit, ct_a, ct_b,
     ct_a = ct_a, ct_b = ct_b, space = space,
     cosines = eng$cosines, angles = eng$angles,
     p_values = eng$p_values,
-    p_pair = eng$p_pair,
+    p_pair = eng$p_pair, z_pair = eng$z_pair, excess_frac = eng$excess_frac,
     underpowered = unname(asymptotic_ref >= 1),
     null_mean = eng$null_mean, null_q95 = eng$null_q95,
     asymptotic_ref = asymptotic_ref,
@@ -208,6 +215,7 @@ print.principal_angles <- function(x, ...) {
     cat("  perm p :", paste(round(x$p_values, 3), collapse = ", "), "\n")
     cat(sprintf("  shared directions (p < 0.05): %d  [asymptotic null ref %.3f]\n",
                 x$n_shared_05, x$asymptotic_ref))
+    cat(sprintf("  effect: z = %.1f, excess fraction = %.2f (0 chance, 1 nested)\n", x$z_pair, x$excess_frac))
     cat(sprintf("  pair-level p (sum cos^2): %.4f%s\n", x$p_pair,
                 if (isTRUE(x$underpowered)) "  [UNDERPOWERED: chance cosine >= 1, not callable]" else ""))
   }
@@ -222,7 +230,9 @@ print.principal_angles <- function(x, ...) {
 #' @param ... Passed to `principal_angles`.
 #' @return Per-pair `principal_angles` objects plus a summary table. `p_pair` is
 #'   a single permutation p-value per pair (statistic sum of squared cosines);
-#'   `q_pair` is BH across callable pairs; `underpowered` marks pairs whose
+#'   `z_pair` and `excess_frac` are graded effect sizes against the
+#'   permutation null (z-score of the statistic; fraction of the smaller
+#'   subspace's dimensions shared beyond chance); `q_pair` is BH across callable pairs; `underpowered` marks pairs whose
 #'   chance-level cosine `(sqrt(ka)+sqrt(kb))/sqrt(n)` is >= 1 (excluded from
 #'   BH, never called); `shared` = `q_pair < 0.05`. Needs `n_perm > 0`.
 #' @export
@@ -240,7 +250,8 @@ sharing_spectrum <- function(fit, pairs = NULL, space = c("scores", "loadings"),
                effective_dim = unname(r$dims["effective_dim"]),
                min_angle_deg = round(min(r$angles) * 180 / pi, 1),
                n_shared_05 = r$n_shared_05,
-               p_pair = r$p_pair, underpowered = r$underpowered,
+               p_pair = r$p_pair, z_pair = r$z_pair, excess_frac = r$excess_frac,
+               underpowered = r$underpowered,
                stringsAsFactors = FALSE)
   }))
   ## BH over the pairs that can be called; underpowered pairs (chance-level
