@@ -78,7 +78,9 @@ simulate_pseudobulk <- function(scenario = "mixed", n_samples = 150,
         add("CD8NK_shared", shared_g_cd8, shared_z)
       }
       if (ct %in% c("B", "CD4", "NK", "Mono")) {
-        add("global_IFN", sample(n_genes, program_size), rnorm(n_samples, 0, signal_sd))
+        # one shared activity across its member cell types, cell-type-specific genes
+        if (ct == "B") ifn_z <- rnorm(n_samples, 0, signal_sd)
+        add("global_IFN", sample(n_genes, program_size), ifn_z)
       }
     } else if (scenario == "same_genes_independent") {
       # B and Mono share the SAME gene set (IFN-like) but have INDEPENDENT
