@@ -58,7 +58,7 @@
   s <- svd(crossprod(sa$U, sb$U))
   sigma <- pmin(pmax(s$d, 0), 1)
 
-  null_sigma <- NULL; p_values <- NULL
+  null_sigma <- NULL; p_values <- NULL; p_pair <- NA_real_
   if (n_perm > 0L) {
     if (!is.null(seed)) set.seed(seed)
     null_sigma <- matrix(NA_real_, nrow = n_perm, ncol = length(sigma))
@@ -71,12 +71,17 @@
     p_values <- vapply(seq_along(sigma), function(i) {
       (1 + sum(null_sigma[, i] >= sigma[i], na.rm = TRUE)) / (n_perm + 1)
     }, numeric(1L))
+    ## one pair-level test: T = sum(cos^2) = ||Ua'Ub||_F^2 (rotation-invariant;
+    ## no multiplicity over directions), same permutation null
+    t_null <- rowSums(null_sigma^2, na.rm = TRUE)
+    p_pair <- (1 + sum(t_null >= sum(sigma^2))) / (n_perm + 1)
   }
 
   list(
     cosines = sigma,
     angles = acos(sigma),
     p_values = p_values,
+    p_pair = p_pair,
     null_mean = if (!is.null(null_sigma)) colMeans(null_sigma, na.rm = TRUE) else NULL,
     null_q95 = if (!is.null(null_sigma)) apply(null_sigma, 2L, stats::quantile, 0.95, na.rm = TRUE) else NULL,
     n_shared_05 = if (!is.null(p_values)) sum(p_values < 0.05) else NA_integer_,
@@ -178,6 +183,8 @@ principal_angles <- function(fit, ct_a, ct_b,
     ct_a = ct_a, ct_b = ct_b, space = space,
     cosines = eng$cosines, angles = eng$angles,
     p_values = eng$p_values,
+    p_pair = eng$p_pair,
+    underpowered = unname(asymptotic_ref >= 1),
     null_mean = eng$null_mean, null_q95 = eng$null_q95,
     asymptotic_ref = asymptotic_ref,
     n_shared_05 = eng$n_shared_05,
@@ -201,6 +208,8 @@ print.principal_angles <- function(x, ...) {
     cat("  perm p :", paste(round(x$p_values, 3), collapse = ", "), "\n")
     cat(sprintf("  shared directions (p < 0.05): %d  [asymptotic null ref %.3f]\n",
                 x$n_shared_05, x$asymptotic_ref))
+    cat(sprintf("  pair-level p (sum cos^2): %.4f%s\n", x$p_pair,
+                if (isTRUE(x$underpowered)) "  [UNDERPOWERED: chance cosine >= 1, not callable]" else ""))
   }
   invisible(x)
 }
@@ -211,7 +220,11 @@ print.principal_angles <- function(x, ...) {
 #' @param pairs Optional list of length-2 cell-type vectors; default all pairs.
 #' @param space Passed to `principal_angles` (default `"scores"`).
 #' @param ... Passed to `principal_angles`.
-#' @return Per-pair `principal_angles` objects plus a summary matrix.
+#' @return Per-pair `principal_angles` objects plus a summary table. `p_pair` is
+#'   a single permutation p-value per pair (statistic sum of squared cosines);
+#'   `q_pair` is BH across callable pairs; `underpowered` marks pairs whose
+#'   chance-level cosine `(sqrt(ka)+sqrt(kb))/sqrt(n)` is >= 1 (excluded from
+#'   BH, never called); `shared` = `q_pair < 0.05`. Needs `n_perm > 0`.
 #' @export
 sharing_spectrum <- function(fit, pairs = NULL, space = c("scores", "loadings"), ...) {
   space <- match.arg(space)
@@ -227,8 +240,16 @@ sharing_spectrum <- function(fit, pairs = NULL, space = c("scores", "loadings"),
                effective_dim = unname(r$dims["effective_dim"]),
                min_angle_deg = round(min(r$angles) * 180 / pi, 1),
                n_shared_05 = r$n_shared_05,
+               p_pair = r$p_pair, underpowered = r$underpowered,
                stringsAsFactors = FALSE)
   }))
+  ## BH over the pairs that can be called; underpowered pairs (chance-level
+  ## cosine >= 1) get q = NA and are never called shared
+  summ$q_pair <- NA_real_
+  ok <- !summ$underpowered & !is.na(summ$p_pair)
+  summ$q_pair[ok] <- stats::p.adjust(summ$p_pair[ok], "BH")
+  summ$shared <- ok & summ$q_pair < 0.05 & !is.na(summ$q_pair)
+  rownames(summ) <- NULL
   list(pairs = res, summary = summ, space = space)
 }
 
