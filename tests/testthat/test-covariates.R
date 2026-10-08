@@ -8,3 +8,18 @@ test_that("covariates= residualizes Y_used orthogonally to the covariates", {
   expect_identical(fit$preprocessing$covariates, ~ batch + age)
   expect_error(fit_celltype_programs(x, covariates = "nope"), "not in")
 })
+
+test_that("a covariate constant within one cell type is skipped there, not an error", {
+  skip_if_not_installed("flashier"); skip_if_not_installed("ebnm")
+  x <- .toy()
+  site <- ifelse(x$sample_metadata$batch == "a", "s1", "s2")
+  x$sample_metadata$site <- site
+  # cell type B only keeps donors from site s1 -> `site` is constant there
+  keep <- rownames(x$pseudobulk$B)[site == "s1"]
+  x$pseudobulk$B <- x$pseudobulk$B[keep, ]
+  fit <- fit_celltype_programs(x, covariates = ~ site + age, max_factors = 2, seed = 1)
+  XA <- cbind(1, site == "s2", x$sample_metadata$age)
+  expect_lt(max(abs(crossprod(XA, fit$fits$A$Y_used))), 1e-8)     # A adjusted for site and age
+  ageB <- x$sample_metadata$age[match(keep, x$sample_metadata$observation_id)]
+  expect_lt(max(abs(crossprod(cbind(1, ageB), fit$fits$B$Y_used))), 1e-8)  # B: age only
+})

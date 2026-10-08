@@ -176,6 +176,20 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
   if (anyNA(m)) {
     cli::cli_abort("Missing covariate values among donors of cell type {.val {ct}}; impute or drop them first.")
   }
+  # A covariate constant across this cell type's donors (e.g. a site with no
+  # donors here) cannot be adjusted for; model.matrix() errors on one-level
+  # factors, so drop such terms from the design for this cell type only.
+  const <- vapply(vars, function(v) length(unique(m[[v]])) < 2L, logical(1L))
+  if (all(const)) {
+    cli::cli_inform("Covariate(s) {.val {vars}} constant in cell type {.val {ct}}; not adjusted.")
+    return(Y)
+  }
+  if (any(const)) {
+    cli::cli_inform("Covariate(s) {.val {vars[const]}} constant in cell type {.val {ct}}; dropped for this cell type.")
+    f <- stats::drop.terms(stats::terms(f), which(attr(stats::terms(f), "term.labels") %in% vars[const]),
+                           keep.response = FALSE)
+    m <- m[, vars[!const], drop = FALSE]
+  }
   X <- stats::model.matrix(f, m)
   if (nrow(X) <= qr(X)$rank + 1L) {
     cli::cli_abort("Too few donors ({nrow(X)}) in {.val {ct}} for {qr(X)$rank} covariate column(s).")
