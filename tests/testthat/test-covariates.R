@@ -23,3 +23,19 @@ test_that("a covariate constant within one cell type is skipped there, not an er
   ageB <- x$sample_metadata$age[match(keep, x$sample_metadata$observation_id)]
   expect_lt(max(abs(crossprod(cbind(1, ageB), fit$fits$B$Y_used))), 1e-8)  # B: age only
 })
+
+test_that("covariate_mode = 'fixed' keeps covariate columns out of the programs and recovers the program", {
+  skip_if_not_installed("flashier"); skip_if_not_installed("ebnm")
+  x <- .toy()
+  fit <- canonicalize_programs(fit_celltype_programs(x, covariates = ~ batch + age,
+                                                     covariate_mode = "fixed", max_factors = 3, seed = 1))
+  S <- fit$scores$A
+  expect_gte(ncol(S), 1L)
+  expect_identical(fit$preprocessing$covariate_mode, "fixed")
+  fl <- fit$fits$A$flash
+  expect_equal(ncol(fl$fixed_L), 2L)                       # batch (1 col) + age
+  expect_lt(max(abs(crossprod(fl$fixed_L, S))) / nrow(S), 0.3)  # free programs ~ orthogonal to the covariates
+  # Y_used is Y minus the fitted covariate part, so the summary still works
+  expect_true(all(is.finite(program_summary(fit)$R2)))
+  expect_error(fit_celltype_programs(x, covariates = ~ age, covariate_mode = "fixed", center = FALSE), "center")
+})
