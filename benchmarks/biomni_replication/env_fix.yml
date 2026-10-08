@@ -1,0 +1,17 @@
+name: cellprograms-r
+channels: [conda-forge, bioconda]
+dependencies:
+  - r-base=4.4
+  - r-ashr
+  - r-pma
+  - r-testthat
+  - r-pkgload
+  - r-data.table
+  - r-matrix
+  - r-cli
+  - r-rlang
+  - r-class
+  - r-remotes
+  - bioconductor-edger
+  - compilers
+  - make

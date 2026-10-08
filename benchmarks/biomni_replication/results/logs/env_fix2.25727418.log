@@ -1,0 +1,25 @@
+Installing packages into ‘/exports/para-lipg-hpc/mdmanurung/R/4.4’
+(as ‘lib’ is unspecified)
+trying URL 'https://cloud.r-project.org/src/contrib/ebnm_1.1-42.tar.gz'
+Content type 'application/x-gzip' length 599438 bytes (585 KB)
+==================================================
+downloaded 585 KB
+
+trying URL 'https://cloud.r-project.org/src/contrib/flashier_1.0.7.tar.gz'
+Content type 'application/x-gzip' length 883732 bytes (863 KB)
+==================================================
+downloaded 863 KB
+
+begin installing package ‘ebnm’
+make: *** [Makefile:4: ebnm.ts] Error 3
+make: Target 'all' not remade because of errors.
+ERROR: failed to lock directory ‘/exports/para-lipg-hpc/mdmanurung/R/4.4’ for modifying
+Try removing ‘/exports/para-lipg-hpc/mdmanurung/R/4.4/00LOCK-ebnm’
+
+The downloaded source packages are in
+	‘/tmp/Rtmpvvf24X/downloaded_packages’
+Warning message:
+In install.packages(c("ebnm", "flashier")) :
+  installation of 2 packages failed:  ‘ebnm’, ‘flashier’
+Error in library(flashier) : there is no package called ‘flashier’
+Execution halted

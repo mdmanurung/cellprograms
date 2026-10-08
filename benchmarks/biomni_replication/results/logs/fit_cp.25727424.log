@@ -1,0 +1,6 @@
+cell_program_fit
+    B             2 programs  (pve: 0.44, 0.24)
+    CD4           2 programs  (pve: 0.38, 0.23)
+    Mono          2 programs  (pve: 0.56, 0.08)
+    NK            2 programs  (pve: 0.43, 0.3)
+saved /exports/para-lipg-hpc/mdmanurung/cellprograms/benchmarks/biomni_replication/results/synth_out/sbatch_test.rds (0.0 min)

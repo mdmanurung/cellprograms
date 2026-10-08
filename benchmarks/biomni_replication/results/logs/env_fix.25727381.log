@@ -1,0 +1,69 @@
+warning  libmamba 'repo.anaconda.com', a commercial channel hosted by Anaconda.com, is used.
+    
+warning  libmamba Please make sure you understand Anaconda Terms of Services.
+    
+warning  libmamba See: https://legal.anaconda.com/policies/en/
+⚠ Shard Index for pkgs/main/linux-64 not available, falling back to flat repodata
+Using Flat Repodata for pkgs/main/linux-64                                                      ✔ Starting
+Using Flat Repodata for pkgs/main/linux-64                                                ✔ Done (0.8 sec)
+⚠ Shard Index for pkgs/main/noarch not available, falling back to flat repodata
+Using Flat Repodata for pkgs/main/noarch                                                        ✔ Starting
+Using Flat Repodata for pkgs/main/noarch                                                  ✔ Done (0.1 sec)
+⚠ Shard Index for pkgs/r/linux-64 not available, falling back to flat repodata
+Using Flat Repodata for pkgs/r/linux-64                                                         ✔ Starting
+Using Flat Repodata for pkgs/r/linux-64                                                   ✔ Done (0.1 sec)
+⚠ Shard Index for pkgs/r/noarch not available, falling back to flat repodata
+Using Flat Repodata for pkgs/r/noarch                                                           ✔ Starting
+Using Flat Repodata for pkgs/r/noarch                                                     ✔ Done (0.2 sec)
+Using Cached Shard Index for conda-forge/linux-64                                                   ✔ Done
+Using Cached Shard Index for conda-forge/noarch                                                     ✔ Done
+Fetching and Parsing Packages' Shards                                                           ⧖ Starting
+Fetching and Parsing Packages' Shards                                                     ✔ Done (4.4 sec)
+Using Cached Shard Index for bioconda/linux-64                                                      ✔ Done
+Using Cached Shard Index for bioconda/noarch                                                        ✔ Done
+Fetching and Parsing Packages' Shards                                                           ⧖ Starting
+Fetching and Parsing Packages' Shards                                                     ✔ Done (0.8 sec)
+Using Cached Shard Index for pytorch/linux-64                                                       ✔ Done
+Using Cached Shard Index for pytorch/noarch                                                         ✔ Done
+Fetching and Parsing Packages' Shards                                                           ⧖ Starting
+Fetching and Parsing Packages' Shards                                                     ✔ Done (0.0 sec)
+Using Cached Shard Index for pytorch/noarch                                                         ✔ Done
+Using Cached Shard Index for pytorch/linux-64                                                       ✔ Done
+Fetching and Parsing Packages' Shards                                                           ⧖ Starting
+Fetching and Parsing Packages' Shards                                                     ✔ Done (0.0 sec)
+Using Flat Repodata for pytorch/noarch                                                          ✔ Starting
+Using Flat Repodata for pytorch/noarch                                                    ✔ Done (0.1 sec)
+Using Cached Shard Index for nvidia/linux-64                                                        ✔ Done
+Using Cached Shard Index for nvidia/noarch                                                          ✔ Done
+Fetching and Parsing Packages' Shards                                                           ⧖ Starting
+Fetching and Parsing Packages' Shards                                                     ✔ Done (0.0 sec)
+Using Cached Shard Index for conda-forge/linux-64                                                   ✔ Done
+Using Cached Shard Index for conda-forge/noarch                                                     ✔ Done
+Fetching and Parsing Packages' Shards                                                           ⧖ Starting
+Fetching and Parsing Packages' Shards                                                     ✔ Done (5.5 sec)
+Using Cached Shard Index for bioconda/linux-64                                                      ✔ Done
+Using Cached Shard Index for bioconda/noarch                                                        ✔ Done
+Fetching and Parsing Packages' Shards                                                           ⧖ Starting
+Fetching and Parsing Packages' Shards                                                     ✔ Done (0.8 sec)
+Using Cached Shard Index for pytorch/linux-64                                                       ✔ Done
+Using Cached Shard Index for pytorch/noarch                                                         ✔ Done
+Fetching and Parsing Packages' Shards                                                           ⧖ Starting
+Fetching and Parsing Packages' Shards                                                     ✔ Done (0.0 sec)
+Using Cached Shard Index for pytorch/noarch                                                         ✔ Done
+Using Cached Shard Index for pytorch/linux-64                                                       ✔ Done
+Fetching and Parsing Packages' Shards                                                           ⧖ Starting
+Fetching and Parsing Packages' Shards                                                     ✔ Done (0.0 sec)
+Using Flat Repodata for pytorch/noarch                                                          ✔ Starting
+Using Flat Repodata for pytorch/noarch                                                    ✔ Done (0.0 sec)
+Using Cached Shard Index for nvidia/linux-64                                                        ✔ Done
+Using Cached Shard Index for nvidia/noarch                                                          ✔ Done
+Fetching and Parsing Packages' Shards                                                           ⧖ Starting
+Fetching and Parsing Packages' Shards                                                     ✔ Done (0.0 sec)
+Parsing Packages' Records                                                                ✔ Done (14.6 sec)
+
+Resolving Environment                                                                           ⧖ Starting
+Resolving Environment                                                                     ✔ Done (3.1 sec)
+error    libmamba Could not set lock (Resource temporarily unavailable)
+warning  libmamba Cannot lock '/exports/archive/hg-funcgenom-research/mdmanurung/conda/pkgs'
+    Waiting for other mamba process to finish
+slurmstepd: error: *** JOB 25727381 ON res-hpc-exe102 CANCELLED AT 2026-10-07T14:28:57 ***

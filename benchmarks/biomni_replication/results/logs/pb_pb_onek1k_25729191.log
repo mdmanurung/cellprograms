@@ -1,0 +1,35 @@
+onek1k: dataset 3faad104-2ab8-4434-816d-474d8d2641db (1248980, 35528)
+B_Mem                got=43 ref=43 OK
+B_Naive              got=157 ref=157 OK
+CD14_Mono            got=72 ref=68 MISMATCH
+CD4_CM               got=300 ref=300 OK
+CD4_EM               got=52 ref=54 MISMATCH
+CD4_Naive            got=292 ref=290 MISMATCH
+CD8_EM               got=265 ref=259 MISMATCH
+CD8_Naive            got=114 ref=105 MISMATCH
+NK                   got=280 ref=281 MISMATCH
+  streamed 100000/1248980
+  streamed 200000/1248980
+  streamed 300000/1248980
+  streamed 400000/1248980
+  streamed 500000/1248980
+  streamed 600000/1248980
+  streamed 700000/1248980
+  streamed 800000/1248980
+  streamed 900000/1248980
+  streamed 1000000/1248980
+  streamed 1100000/1248980
+  streamed 1200000/1248980
+  streamed 1248980/1248980
+B_Mem: (43, 3000)
+B_Naive: (157, 3000)
+CD14_Mono: (72, 3000)
+CD4_CM: (300, 3000)
+CD4_EM: (52, 3000)
+CD4_Naive: (292, 3000)
+CD8_EM: (265, 3000)
+CD8_Naive: (114, 3000)
+NK: (280, 3000)
+/exports/para-lipg-hpc/mdmanurung/cellprograms/benchmarks/biomni_replication/01_pseudobulk.py:161: FutureWarning: Downcasting behavior in `replace` is deprecated and will be removed in a future version. To retain the old behavior, explicitly call `result.infer_objects(copy=False)`. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  o[c] = o[c].astype(object).replace({"nan": np.nan})
+done

@@ -1,0 +1,4 @@
+Error in `contrasts<-`(`*tmp*`, value = contr.funs[1 + isOF[nn]]) : 
+  contrasts can be applied only to factors with 2 or more levels
+Calls: canonicalize_programs ... .residualize -> <Anonymous> -> model.matrix.default -> contrasts<-
+Execution halted

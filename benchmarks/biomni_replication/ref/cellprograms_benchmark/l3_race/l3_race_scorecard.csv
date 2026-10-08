@@ -1,0 +1,9 @@
+criterion,block_S,block_E,evb_S,evb_E
+"shared-state recovery (S2/S4/S6)","0.994-0.999 all shared states","0.996-0.999 all shared states","0.992-0.999 all shared states","0.95-0.998 ONLY with 4-5x iteration budget; global module SPLITS into overlapping partials at default budget (reproduced in authors' reference code)"
+"false sharing: S1 (all private)","none (clean)","none; 10/10 privates correct","none (clean)","none; 10/10 privates correct (0.6 min)"
+"false sharing: S5 (correlated distinct)","flags B+Mono (0.929) - inherent scores-space confound","ROBUST: separates by gene usage (both private, 0.995-0.997)","flags B+Mono (0.925) - inherent scores-space confound","none - ROBUST like block-E (5/5 privates, 2.8 min)"
+"false sharing: S7 (same genes, indep. activity)","none (clean)","none; 5/5 privates correct","none (clean)","none; 5/5 privates correct (0.5 min)"
+"private recovery (S1/S4)","n/a (private = stage-1 programs by construction)","10/10 (S1), 2/2 (S4) at 0.996-0.999","n/a (private modules do not survive at scores level)","recovered (B, Mono privates correct)"
+"partial-sharing membership (S3/S4)","exact (CD8+NK)","exact (CD8+NK)","exact (CD8+NK)","exact (CD8+NK)"
+"runtime on S4 (approx.)","~1 s","~2 s","~5 s","structure-dependent: 0.5-2.8 min on null/private-only data; 6.6 min (S4 default, unconverged) / 75 min (S4 converged)"
+"convergence sensitivity","robust (greedy+backfit EBMF)","robust","robust at scores level","SENSITIVE: needs max_iter >= 1000 at expression level when strong global structure present"

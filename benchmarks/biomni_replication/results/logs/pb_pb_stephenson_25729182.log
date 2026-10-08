@@ -1,0 +1,47 @@
+stephenson: dataset c7775e88-49bf-4ba2-a03b-93f00447c958 (647366, 24245)
+B_immature           got=34 ref=34 OK
+B_naive              got=111 ref=111 OK
+B_switched_memory    got=52 ref=52 OK
+CD14_mono            got=63 ref=63 OK
+CD16_mono            got=54 ref=54 OK
+CD4.CM               got=104 ref=104 OK
+CD4.IL22             got=79 ref=79 OK
+CD4.Naive            got=109 ref=109 OK
+CD4.Tfh              got=56 ref=56 OK
+CD8.EM               got=89 ref=89 OK
+CD8.Naive            got=96 ref=96 OK
+CD8.TE               got=95 ref=95 OK
+CD83_CD14_mono       got=91 ref=91 OK
+MAIT                 got=70 ref=70 OK
+NK_16hi              got=118 ref=118 OK
+NK_56hi              got=71 ref=71 OK
+NK_prolif            got=31 ref=31 OK
+Platelets            got=84 ref=84 OK
+gdT                  got=80 ref=80 OK
+  streamed 100000/647366
+  streamed 200000/647366
+  streamed 300000/647366
+  streamed 400000/647366
+  streamed 500000/647366
+  streamed 600000/647366
+  streamed 647366/647366
+B_immature: (34, 3000)
+B_naive: (111, 3000)
+B_switched_memory: (52, 3000)
+CD14_mono: (63, 3000)
+CD16_mono: (54, 3000)
+CD4.CM: (104, 3000)
+CD4.IL22: (79, 3000)
+CD4.Naive: (109, 3000)
+CD4.Tfh: (56, 3000)
+CD8.EM: (89, 3000)
+CD8.Naive: (96, 3000)
+CD8.TE: (95, 3000)
+CD83_CD14_mono: (91, 3000)
+MAIT: (70, 3000)
+NK_16hi: (118, 3000)
+NK_56hi: (71, 3000)
+NK_prolif: (31, 3000)
+Platelets: (84, 3000)
+gdT: (80, 3000)
+done
