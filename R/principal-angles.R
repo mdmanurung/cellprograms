@@ -80,7 +80,8 @@
     ## z = (T - mean null) / sd null; excess_frac = (T - E0) / (min(ka,kb) - E0)
     ## is 0 at chance and 1 when the smaller subspace is fully contained
     t_obs <- sum(sigma^2); e0 <- mean(t_null)
-    z_pair <- (t_obs - e0) / stats::sd(t_null)
+    sd0 <- stats::sd(t_null)
+    z_pair <- if (is.finite(sd0) && sd0 > 0) (t_obs - e0) / sd0 else NA_real_   # degenerate null: no z
     excess_frac <- (t_obs - e0) / (min(sa$rank, sb$rank) - e0)
   }
 
@@ -114,7 +115,8 @@
   s <- pmin(ifelse(is.na(wa), Inf, wa), ifelse(is.na(wb), Inf, wb))
   s[!is.finite(s)] <- stats::median(s[is.finite(s)], na.rm = TRUE)
   s[s < 1e-8] <- 1e-8
-  1 / s
+  w <- 1 / s
+  pmin(w, 10 * stats::median(w))   # cap: one near-perfectly fitted gene must not dominate the angles
 }
 
 #' Principal angles between the program subspaces of two cell types
@@ -222,11 +224,21 @@ print.principal_angles <- function(x, ...) {
   invisible(x)
 }
 
+# Deterministic per-pair seed from a master seed and the pair's cell-type names.
+.pair_seed <- function(seed, pair) {
+  h <- sum(utf8ToInt(paste(pair, collapse = "\r")) * seq_len(nchar(paste(pair, collapse = "\r"))))
+  as.integer((as.numeric(seed) + h) %% .Machine$integer.max)
+}
+
 #' Pairwise sharing spectra across all cell types
 #'
 #' @param fit A `cell_program_fit` object.
 #' @param pairs Optional list of length-2 cell-type vectors; default all pairs.
 #' @param space Passed to `principal_angles` (default `"scores"`).
+#' @param n_perm Permutations per pair. Default (NULL) scales with the number of
+#'   pairs, `max(999, 40 * #pairs)`, so that the permutation floor `1/(n_perm+1)`
+#'   is below the BH level of a single true pair (`0.05 / #pairs`); a smaller
+#'   value warns. Pairs get distinct seeds derived from `seed`.
 #' @param ... Passed to `principal_angles`.
 #' @return Per-pair `principal_angles` objects plus a summary table. `p_pair` is
 #'   a single permutation p-value per pair (statistic sum of squared cosines);
@@ -236,12 +248,23 @@ print.principal_angles <- function(x, ...) {
 #'   chance-level cosine `(sqrt(ka)+sqrt(kb))/sqrt(n)` is >= 1 (excluded from
 #'   BH, never called); `shared` = `q_pair < 0.05`. Needs `n_perm > 0`.
 #' @export
-sharing_spectrum <- function(fit, pairs = NULL, space = c("scores", "loadings"), ...) {
+sharing_spectrum <- function(fit, pairs = NULL, space = c("scores", "loadings"),
+                             n_perm = NULL, ...) {
   space <- match.arg(space)
   cts <- names(fit$loadings)
   cts <- cts[vapply(fit$loadings, function(W) ncol(W) > 0L, logical(1L))]
   if (is.null(pairs)) pairs <- utils::combn(cts, 2L, simplify = FALSE)
-  res <- lapply(pairs, function(pr) principal_angles(fit, pr[1L], pr[2L], space = space, ...))
+  if (is.null(n_perm)) n_perm <- max(999L, 40L * length(pairs))
+  if (n_perm > 0L && 1 / (n_perm + 1) > 0.05 / length(pairs)) {
+    .warnf("n_perm = %d gives a permutation floor of %.4f, above the BH level of one true pair among %d (%.4f); BH can only call pairs if many hit the floor. Use n_perm >= %d.",
+           n_perm, 1 / (n_perm + 1), length(pairs), 0.05 / length(pairs), 20L * length(pairs))
+  }
+  dots <- list(...)
+  res <- lapply(pairs, function(pr) {
+    a <- dots
+    if (!is.null(a$seed)) a$seed <- .pair_seed(a$seed, pr)   # distinct stream per pair
+    do.call(principal_angles, c(list(fit, pr[1L], pr[2L], space = space, n_perm = n_perm), a))
+  })
   names(res) <- vapply(pairs, paste, character(1L), collapse = " vs ")
 
   summ <- do.call(rbind, lapply(res, function(r) {
@@ -290,8 +313,11 @@ align_programs <- function(fit, reference = NULL, space = c("scores", "loadings"
 #'
 #' @param fit_a,fit_b `cell_program_fit` objects.
 #' @param cell_type Cell type to match (must exist in both fits).
-#' @param method `"subspace"` (principal-angle-informed; default) or
-#'   `"correlation"` (greedy loading-cosine matching).
+#' @param method `"subspace"` (default) or `"correlation"`. Factor-level
+#'   `matches` are the same greedy loading-cosine matches in both; `"subspace"`
+#'   additionally returns principal `angles` and a `split_map` (heuristic
+#'   thresholds: cosine > 0.5, |weight| > 0.3; weights carry a singular-value
+#'   scale and are not comparable across cell types).
 #' @param space Subspace geometry for matching: `"loadings"` (default; gene
 #'   identity) or `"scores"` (activity; requires shared observations).
 #' @param sim_threshold Minimum |cosine| to report a factor-level match.

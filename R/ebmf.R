@@ -7,8 +7,8 @@
 #' Fit cell-type-specific programs with flashier
 #'
 #' @param x A `cell_program_data` object.
-#' @param loading_prior Gene-side EBNM prior family: "point_normal" (default),
-#'   "point_laplace", or "unimodal".
+#' @param loading_prior Gene-side EBNM prior family: "point_laplace" (default),
+#'   "point_normal", or "unimodal".
 #' @param max_factors Maximum candidate factors per cell type (greedy_Kmax).
 #'   Default 10: benchmarked on COMBAT pseudobulk (32-config factorial),
 #'   K=10 dominated all prior/variance/backfit combinations; K >= 30
@@ -98,7 +98,8 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     # Drop genes that are identically zero after preprocessing (silent in this
     # cell type, or constant and centered away): flashier rejects all-zero
     # columns and they carry no factor signal.
-    keep_cols <- colSums(abs(Y)) > 0
+    cs <- colSums(abs(Y))
+    keep_cols <- cs > 1e-10 * max(cs, 1)   # tolerance: centered constant genes leave ~1e-16 dust
     if (!any(keep_cols)) {
       # No informative genes in this cell type (e.g. a pseudobulk profile that
       # is constant across samples): record an empty fit (K=0) instead of
@@ -153,13 +154,21 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
           args = a3)
       }
     }
-    fit <- NULL; fallback <- "none"; last_err <- NULL
+    fit <- NULL; fallback <- "none"; first_err <- NULL
     for (at in attempts) {
-      fit <- tryCatch(run_flash(at$args), error = function(e) { last_err <<- e; NULL })
+      set.seed(seed)                       # every attempt starts from the same RNG state
+      fit <- tryCatch(run_flash(at$args), error = function(e) {
+        if (is.null(first_err)) first_err <<- e
+        NULL
+      })
+      if (!is.null(fit) && !.fit_ok(fit)) {   # silent NaN ELBO is a failure too
+        if (is.null(first_err)) first_err <<- simpleError("flashier returned a non-finite ELBO")
+        fit <- NULL
+      }
       if (!is.null(fit)) { fallback <- at$label; break }
     }
     if (is.null(fit)) {
-      cli::cli_abort("flashier failed in cell type {.val {ct}}: {conditionMessage(last_err)}")
+      cli::cli_abort("flashier failed in cell type {.val {ct}}: {conditionMessage(first_err)}")
     }
     if (fallback != "none") {
       cli::cli_warn("flashier needed fallback {.val {fallback}} in cell type {.val {ct}}.")
@@ -199,6 +208,9 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
   x
 }
 
+# A flashier fit is usable if its ELBO (when reported) is finite.
+.fit_ok <- function(fit) is.null(fit$elbo) || all(is.finite(fit$elbo))
+
 # Design matrix of sample-level covariates for the donors in `ids`.
 # Terms constant across this cell type's donors (e.g. a site with no donors
 # here) cannot be adjusted for and model.matrix() errors on one-level factors,
@@ -216,6 +228,7 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
   if (anyNA(m)) {
     cli::cli_abort("Missing covariate values among donors of cell type {.val {ct}}; impute or drop them first.")
   }
+  m[] <- lapply(m, function(v) if (is.factor(v)) droplevels(v) else v)   # unused levels -> all-zero dummies
   const <- vapply(vars, function(v) length(unique(m[[v]])) < 2L, logical(1L))
   if (all(const)) {
     cli::cli_inform("Covariate(s) {.val {vars}} constant in cell type {.val {ct}}; not adjusted.")
@@ -228,8 +241,13 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     m <- m[, vars[!const], drop = FALSE]
   }
   X <- stats::model.matrix(f, m)
-  if (nrow(X) <= qr(X)$rank + 1L) {
-    cli::cli_abort("Too few donors ({nrow(X)}) in {.val {ct}} for {qr(X)$rank} covariate column(s).")
+  rk <- qr(X)$rank
+  if (nrow(X) - rk < 10L) {
+    cli::cli_abort("Too few donors ({nrow(X)}) in {.val {ct}} for {rk} covariate column(s): need >= 10 residual degrees of freedom.")
+  }
+  hat <- rowSums(qr.Q(qr(X))[, seq_len(rk), drop = FALSE]^2)
+  if (any(hat > 0.99)) {
+    cli::cli_warn("{sum(hat > 0.99)} donor(s) in cell type {.val {ct}} have leverage ~1 under the covariate model (e.g. a level with a single donor): their residuals are ~0.")
   }
   if (!intercept) {
     X <- X[, colnames(X) != "(Intercept)", drop = FALSE]
