@@ -3,10 +3,41 @@
 .RData
 *.Rproj
 
-# benchmarks/biomni_replication: large/regenerable artifacts
+# benchmarks: keep the scripts, pre-registrations and summary tables; ignore the
+# regenerable bulk. Everything matched here is reproduced by the tracked scripts
+# (.R, .sbatch, tasks_*.txt) in the same directory.
+#
+# model_selection: per-dataset outputs of run_rep.R. One rep<N>_{ct,pair}.csv per
+# dataset per scenario -- 1764 files and 58 MB for the pilot alone, growing to
+# 900 datasets for the main run.
+benchmarks/model_selection/results/pilot/
+benchmarks/model_selection/results/param/
+benchmarks/model_selection/results/semi/
+benchmarks/model_selection/results/runtime_*/
+benchmarks/model_selection/results/logs/
+
+# ...but keep the pre-registered verdicts summarize.R writes at the results root
+# (its default out_csv), since those are the milestone-M2 deliverable.
+!benchmarks/model_selection/results/decisions*.csv
+
+# biomni_replication: downloaded cohorts, EBMF fits, simulated data
 benchmarks/biomni_replication/data/
 benchmarks/biomni_replication/results/fits/
+benchmarks/biomni_replication/results/fits_rawcounts/
 benchmarks/biomni_replication/results/synth_data/
 benchmarks/biomni_replication/results/synth_out/
-benchmarks/biomni_replication/**/*.rds
+
+# Simulated input matrices (rep<N>_<shared><rho>/{A,B,meta}.csv). The summaries
+# under results/sim_adj*/ one level up are tracked.
+benchmarks/biomni_replication/results/sim_adj4/
+benchmarks/biomni_replication/results/sim_adj5/
+
+# Fits and other per-dataset .rds anywhere under the benchmarks
+benchmarks/**/*.rds
+
+# SLURM logs: stdout from array tasks, no scientific content. Some are already
+# tracked from earlier commits; these rules stop new ones from being added.
+benchmarks/*/results/logs/
+benchmarks/*/results/*/logs/
+
 biomni/*.zip
