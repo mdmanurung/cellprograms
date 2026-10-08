@@ -39,3 +39,15 @@ test_that("covariate_mode = 'fixed' keeps covariate columns out of the programs 
   expect_true(all(is.finite(program_summary(fit)$R2)))
   expect_error(fit_celltype_programs(x, covariates = ~ age, covariate_mode = "fixed", center = FALSE), "center")
 })
+
+test_that("a flashier nullcheck failure falls back to no nullcheck and is recorded", {
+  skip_if_not_installed("flashier"); skip_if_not_installed("ebnm")
+  real <- flashier::flash
+  testthat::local_mocked_bindings(
+    flash = function(...) { if (isTRUE(list(...)$nullcheck)) stop("NaN ELBO") else real(...) },
+    .package = "flashier")
+  fit <- suppressWarnings(fit_celltype_programs(.toy(), max_factors = 2,
+                                                loading_prior = "point_normal", seed = 1))
+  expect_identical(fit$fits$A$fallback, "no_nullcheck")
+  expect_warning(fit_celltype_programs(.toy(), max_factors = 2, loading_prior = "point_normal"), "fallback")
+})

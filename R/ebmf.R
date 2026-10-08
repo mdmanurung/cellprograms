@@ -135,20 +135,35 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     run_flash <- function(args) {
       if (is.null(Xc)) do.call(flashier::flash, args) else .flash_fixed(args, Xc)
     }
-    fit <- tryCatch(
-      run_flash(args),
-      error = function(e) {
-        # point_laplace's nlm solver can fail numerically on some pseudobulk
-        # profiles; degrade gracefully to point_normal and record it.
-        if (identical(prior_fn, ebnm::ebnm_point_laplace)) {
-          cli::cli_warn("EBNM solver failed with point_laplace in cell type {.val {ct}}; retrying with point_normal.")
-          args$ebnm_fn <- list(ebnm::ebnm_normal, ebnm::ebnm_point_normal)
-          run_flash(args)
-        } else {
-          cli::cli_abort("flashier failed in cell type {.val {ct}}: {conditionMessage(e)}")
-        }
+    # Fallback ladder for numerical failures in flashier: point_laplace's nlm
+    # solver can fail on some pseudobulk profiles (-> point_normal), and the
+    # nullcheck can hit a NaN ELBO when K approaches the residual degrees of
+    # freedom (-> rerun without nullcheck). Every fallback is warned about and
+    # recorded in fits[[ct]]$fallback.
+    attempts <- list(list(label = "none", args = args))
+    if (identical(prior_fn, ebnm::ebnm_point_laplace)) {
+      a2 <- args; a2$ebnm_fn <- list(ebnm::ebnm_normal, ebnm::ebnm_point_normal)
+      attempts[[length(attempts) + 1L]] <- list(label = "point_normal", args = a2)
+    }
+    if (isTRUE(args$nullcheck)) {
+      for (at in attempts) {
+        a3 <- at$args; a3$nullcheck <- FALSE
+        attempts[[length(attempts) + 1L]] <- list(
+          label = if (at$label == "none") "no_nullcheck" else paste0(at$label, "+no_nullcheck"),
+          args = a3)
       }
-    )
+    }
+    fit <- NULL; fallback <- "none"; last_err <- NULL
+    for (at in attempts) {
+      fit <- tryCatch(run_flash(at$args), error = function(e) { last_err <<- e; NULL })
+      if (!is.null(fit)) { fallback <- at$label; break }
+    }
+    if (is.null(fit)) {
+      cli::cli_abort("flashier failed in cell type {.val {ct}}: {conditionMessage(last_err)}")
+    }
+    if (fallback != "none") {
+      cli::cli_warn("flashier needed fallback {.val {fallback}} in cell type {.val {ct}}.")
+    }
     elapsed <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
 
     if (!is.null(fit$fixed_L)) Y <- Y - fit$fixed_L %*% t(fit$fixed_F)
@@ -156,7 +171,8 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
       flash = fit,
       Y_used = Y,
       genes = genes,
-      elapsed_secs = elapsed
+      elapsed_secs = elapsed,
+      fallback = fallback
     )
   }
 
