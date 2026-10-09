@@ -8,7 +8,7 @@ out_csv <- if (length(a) >= 2) a[2] else file.path(res_root, "decisions.csv")
 B <- 4000L; set.seed(20260101)
 
 K_ARMS <- c("k_n", "k_20", "k_stab"); R_ARMS <- c("genes_after", "vt_12", "w_S")
-MARGIN <- c(P = 0.10, R = 0.02); GUARD <- c(F = 0.03, R = 0.02, time = 3)
+MARGIN <- c(P = 0.10, R = 0.02); GUARD <- c(F = 0.03, R = 0.02, time = 3, untested = 0.05)  # untested: DEVIATIONS D3
 
 rd <- function(base, kind) {
   f <- list.files(file.path(res_root, base), pattern = paste0("_", kind, "\\.csv$"), recursive = TRUE, full.names = TRUE)
@@ -62,11 +62,18 @@ for (base in c("semi", "param")) {
     }
   }
   tmed <- tapply(pr$R$secs, pr$R$arm, median)
+  ## untested = sharing test produced no row (error or pair absent); worst scenario per arm. Missing column (old results) -> NA -> guard fails.
+  tst <- pr$pair
+  if (!"tested" %in% names(tst)) tst$tested <- NA
+  unt <- tapply(!as.logical(tst$tested), list(tst$arm, tst$scenario), mean)
+  unt_max <- if (all(is.na(unt))) setNames(rep(NA_real_, nrow(unt)), rownames(unt)) else apply(unt, 1L, max)
   for (arm in c(K_ARMS, R_ARMS, "strata")) {
     g_F <- sapply(c("S0", "S7"), function(s) mean_of(pr$F, "F", arm, s) - mean_of(pr$F, "F", "base", s))
     g_R <- if (arm == "strata") 0 else boot(paired(pr$R, "R", arm, c("S1", "S2")))["est"]
     g_t <- unname(tmed[arm] / tmed["base"])
-    guards <- is.finite(g_t) && all(g_F <= GUARD["F"], na.rm = TRUE) && g_R >= -GUARD["R"] && g_t <= GUARD["time"]
+    g_u <- unname(unt_max[arm])
+    guards <- is.finite(g_t) && all(g_F <= GUARD["F"], na.rm = TRUE) && g_R >= -GUARD["R"] && g_t <= GUARD["time"] &&
+      is.finite(g_u) && g_u <= GUARD["untested"]
     if (arm %in% K_ARMS) {
       e <- boot(paired(pr$P, "P", arm, "S3")); thr <- MARGIN["P"]; endpoint <- "dP_S3"
       pass <- is.finite(e["est"]) && e["est"] >= thr && e["lo"] > 0
@@ -81,7 +88,7 @@ for (base in c("semi", "param")) {
     }
     rows[[length(rows) + 1L]] <- data.frame(base = base, arm = arm, endpoint = endpoint, est = e["est"], lo = e["lo"], hi = e["hi"],
       n_reps = e["n"], threshold = thr, effect_pass = pass, guards_pass = guards, dF_S0 = g_F[1], dF_S7 = g_F[2],
-      dR = unname(g_R), time_ratio = g_t, row.names = NULL)
+      dR = unname(g_R), time_ratio = g_t, frac_untested = g_u, frac_untested_base = unname(unt_max["base"]), row.names = NULL)
   }
 }
 if (!length(rows)) stop("no results found under ", res_root)

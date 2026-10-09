@@ -15,3 +15,8 @@ param: S1 0.5 (pilot power 0.60), S2 1.0 (0.60); semi: S1 0.7 (0.45), S2 0.8 (0.
 - `arms.R` `.eval_fit` now writes `tested` and `fail_reason` per pair. Before, a `sharing_spectrum` error set `ss = NULL` and every pair scored `shared = FALSE`, so a failing arm looked perfectly calibrated (F = 0).
 - `tested = FALSE` only when `sharing_spectrum` errored or the pair is absent (a cell type kept no program). Underpowered pairs are tested but not callable.
 - `shared`, `callable` and `F` keep their registered definitions; no registered quantity changes. Touches a file frozen at `prereg-v1`. No benchmark result had been seen (smoke data only).
+
+## D4. Coverage guardrail `frac_untested <= 0.05` (2026-10-09; user decision 2026-10-08)
+- `summarize.R` adds a guardrail: the worst-scenario share of untested (arm, pair) rows must be <= 0.05, and `frac_untested` / `frac_untested_base` columns appear in `decisions.csv`. A missing or NA value fails the guardrail (results written before D3 have no `tested` column).
+- Reason: with D3 an arm that fails to test is visible, but F is deliberately left as registered, so coverage needs its own gate. A broken arm is rejected on coverage, not rewarded with F = 0.
+- Additive and conservative: it can only turn an adoption into a rejection. Touches a file frozen at `prereg-v1`. No benchmark result had been seen.
