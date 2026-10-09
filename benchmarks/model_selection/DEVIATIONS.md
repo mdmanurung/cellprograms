@@ -29,3 +29,6 @@ param: S1 0.5 (pilot power 0.60), S2 1.0 (0.60); semi: S1 0.7 (0.45), S2 0.8 (0.
 - Both exceed the registered 3x time guard in the full-scale runtime pilot (1 dataset per base): `k_stab` 9.73x, `w_S` 4.51x; `k_20` and `vt_12` about 1.25x, `k_n` and `genes_after` under 1x. They could not be adopted whatever their effect. `k_stab` also prunes to K = 0 at the registered amplitudes.
 - Main run: `ARMS=base,strata,none_strata,none,k_n,k_20,vt_12,genes_after`, via the submit-time `ARMS` override in `run.sbatch` / `run_rep.R`; no frozen file changes. About 324 CPU-h instead of about 1006.
 - The dropping criterion (runtime) is independent of the endpoints. Only pilot data had been seen. `K_ARMS` and `R_ARMS` in `summarize.R` still list the two arms; they report NA and are not adopted.
+
+## D7. Main run submitted in array chunks (2026-10-09)
+- The cluster has `MaxArraySize = 125`, so `--array=1-450` is rejected. `run.sbatch` gains an `OFFSET` env (task line = OFFSET + array index) and each 450-line task file is submitted as 5 chunks (OFFSET 0, 100, 200, 300, 400). Same tasks, same seeds, same arms; scheduling only.
