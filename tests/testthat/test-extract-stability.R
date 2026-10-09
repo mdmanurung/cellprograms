@@ -29,11 +29,11 @@ test_that("stability refits keep covariate_mode and flash_control", {
                                                      flash_control = list(backfit = FALSE), seed = 1))
   seen <- list()
   orig <- fit_celltype_programs
-  assign("fit_celltype_programs", function(...) {
+  ## mock inside the package namespace; assigning into globalenv is invisible to package code
+  testthat::local_mocked_bindings(fit_celltype_programs = function(...) {
     a <- list(...); seen[[length(seen) + 1L]] <<- a[c("covariate_mode", "flash_control")]
     orig(...)
-  }, envir = globalenv())
-  on.exit(assign("fit_celltype_programs", orig, envir = globalenv()))
+  })
   assess_program_stability(fit, n_boot = 2, seed = 1, progress = FALSE)
   expect_length(seen, 2L)
   for (s in seen) {

@@ -18,7 +18,7 @@ Decide which fit modifications earn their complexity (model-selection benchmark)
 See "Fix plan" section. Execute in order; validate after each. Then run the M2 main run (see "Main run" section).
 
 ## Current state
-- Tests: full suite green (covariates 14, review-fixes 13, sharing-calibration 13, ebmf 16, data-model 19, extract-stability 7, mofacellular 13, principal-angles 4, simulation 4). Run command in the commit history / this file's earlier version.
+- Tests: full suite green on `pkgload::load_all` with the `cellprograms-r` conda env (covariates 14, review-fixes 13, sharing-calibration 13, ebmf 16, data-model 19, extract-stability 7, mofacellular 13, principal-angles 4, simulation 4). Run command in the commit history / this file's earlier version.
 - `.gitignore` (on main) now excludes regenerable benchmark bulk (per-dataset `rep*.csv`, simulated matrices, fits, SLURM logs) while keeping scripts, pre-regs, and summary tables; `summarize.R`'s `decisions*.csv` at the model_selection results root stays trackable.
 - Running: nothing of mine. Use SLURM `--partition=all`.
 - `feat/sofa-comparator` (5 commits, tip `7efc410`): SOFA comparator, before/after recovery, ordinal severity — **unpushed, no PR** (roadmap D3 / M7 open question).
@@ -48,7 +48,7 @@ The smoke test only prints; its sole failure was an incidental `aggregate` error
 At the preregistered amplitudes (`base` power ≈ 0.5, weak by design) `recovery_freq` is < 0.7 for every program, so `arm_k_stab` legitimately prunes to K=0. Adding a "keep ≥1 program" floor would rescue an arm the prereg defined at 0.7 and change B3's meaning — a deviation not recommended. Correct response is A+B: let it degenerate, report uncovered, reject with stated reason. With `k_stab` dropped from the main run this is moot for M2 but the coverage guardrail still protects other arms.
 
 ## Fix plan (5 commits, validated after each)
-**Status 2026-10-09, on `feat/coordination`, not pushed:** all 5 commits done (`613bc7c`, `1272736`, `1ae3908`, `73bbdd4`, plus the `node_cor` fix; DEVIATIONS D3-D6). The `node_cor` fix: `.perm_rows` now keeps the original row names, so name-indexed callers see permuted values; with it node_cor recovers R100/R50/R20 and all 4 methods return 0 clusters on the null. `test_methods.R` now asserts this and fails on the old code. Smoke re-run: `decisions.csv` written, absent arms degrade to NA / not adopted. Full suite: 1 failure, `test-extract-stability.R` "stability refits keep covariate_mode and flash_control", also fails on the untouched tree (pre-existing; the "suite green" line below is out of date).
+**Status 2026-10-09, on `feat/coordination`, not pushed:** all 5 commits done (`613bc7c`, `1272736`, `1ae3908`, `73bbdd4`, plus the `node_cor` fix; DEVIATIONS D3-D6). The `node_cor` fix: `.perm_rows` now keeps the original row names, so name-indexed callers see permuted values; with it node_cor recovers R100/R50/R20 and all 4 methods return 0 clusters on the null. `test_methods.R` now asserts this and fails on the old code. Smoke re-run: `decisions.csv` written, absent arms degrade to NA / not adopted. Full suite: 155 expectations, 0 failures (the stability test failure was a test bug, fixed in the next commit).
 
 | # | Commit | Files | Nature |
 |---|---|---|---|
