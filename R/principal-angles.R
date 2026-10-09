@@ -276,7 +276,13 @@ sharing_spectrum <- function(fit, pairs = NULL, space = c("scores", "loadings"),
   space <- match.arg(space)
   cts <- names(fit$loadings)
   cts <- cts[vapply(fit$loadings, function(W) ncol(W) > 0L, logical(1L))]
-  if (is.null(pairs)) pairs <- utils::combn(cts, 2L, simplify = FALSE)
+  if (is.null(pairs)) {
+    if (length(cts) < 2L) {
+      stop("sharing_spectrum needs at least 2 cell types that retained a program; found ",
+           length(cts), ".", call. = FALSE)
+    }
+    pairs <- utils::combn(cts, 2L, simplify = FALSE)
+  }
   if (is.null(n_perm)) n_perm <- max(999L, 40L * length(pairs))
   if (n_perm > 0L && 1 / (n_perm + 1) > 0.05 / length(pairs)) {
     .warnf("n_perm = %d gives a permutation floor of %.4f, above the BH level of one true pair among %d (%.4f); BH can only call pairs if many hit the floor. Use n_perm >= %d.",

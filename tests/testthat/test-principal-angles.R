@@ -29,3 +29,13 @@ test_that("strata is validated and accepted", {
   expect_error(principal_angles(fit, "A", "B", n_perm = 5, strata = unname(st)), "named vector")
   expect_error(principal_angles(fit, "A", "B", space = "loadings", n_perm = 5, strata = st), "scores space")
 })
+
+test_that("sharing_spectrum gives a named error when fewer than 2 cell types retain a program", {
+  skip_if_not_installed("flashier"); skip_if_not_installed("ebnm")
+  fit <- canonicalize_programs(fit_celltype_programs(.toy(), max_factors = 3, seed = 1))
+  fit1 <- fit
+  fit1$loadings$B <- fit1$loadings$B[, 0L, drop = FALSE]
+  expect_error(sharing_spectrum(fit1, n_perm = 19), "found 1")
+  for (ct in c("A", "B")) fit$loadings[[ct]] <- fit$loadings[[ct]][, 0L, drop = FALSE]
+  expect_error(sharing_spectrum(fit, n_perm = 19), "found 0")
+})

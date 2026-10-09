@@ -20,3 +20,7 @@ param: S1 0.5 (pilot power 0.60), S2 1.0 (0.60); semi: S1 0.7 (0.45), S2 0.8 (0.
 - `summarize.R` adds a guardrail: the worst-scenario share of untested (arm, pair) rows must be <= 0.05, and `frac_untested` / `frac_untested_base` columns appear in `decisions.csv`. A missing or NA value fails the guardrail (results written before D3 have no `tested` column).
 - Reason: with D3 an arm that fails to test is visible, but F is deliberately left as registered, so coverage needs its own gate. A broken arm is rejected on coverage, not rewarded with F = 0.
 - Additive and conservative: it can only turn an adoption into a rejection. Touches a file frozen at `prereg-v1`. No benchmark result had been seen.
+
+## D5. Named error when fewer than 2 cell types keep a program (2026-10-09)
+- `R/principal-angles.R` `sharing_spectrum` now stops with "needs at least 2 cell types that retained a program; found N" instead of the opaque `n < m` from `combn`. Message only; no numeric effect. Test added in `tests/testthat/test-principal-angles.R`.
+- The benchmark records this message in `fail_reason` (D3).
