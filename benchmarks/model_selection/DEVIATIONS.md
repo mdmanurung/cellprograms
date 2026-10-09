@@ -10,3 +10,8 @@ Each entry: what changed, why, whether any benchmark result had been seen. Only 
 
 ## D2. Chosen amplitudes (2026-10-08, from discarded pilot reps 9001-9020)
 param: S1 0.5 (pilot power 0.60), S2 1.0 (0.60); semi: S1 0.7 (0.45), S2 0.8 (0.50). S3 uses the S2 value, S7 the S1 value (D1). Stored in `amplitudes.csv`, produced by `pilot_amp.R`.
+
+## D3. Untested sharing tests are recorded, not scored as negative (2026-10-09)
+- `arms.R` `.eval_fit` now writes `tested` and `fail_reason` per pair. Before, a `sharing_spectrum` error set `ss = NULL` and every pair scored `shared = FALSE`, so a failing arm looked perfectly calibrated (F = 0).
+- `tested = FALSE` only when `sharing_spectrum` errored or the pair is absent (a cell type kept no program). Underpowered pairs are tested but not callable.
+- `shared`, `callable` and `F` keep their registered definitions; no registered quantity changes. Touches a file frozen at `prereg-v1`. No benchmark result had been seen (smoke data only).

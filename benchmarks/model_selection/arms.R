@@ -85,13 +85,18 @@ ARMS <- c("base", "k_n", "k_20", "k_stab", "genes_after", "vt_12", "w_S", "strat
                best_cor = if (is.null(z)) NA_real_ else .best_cor(S, z[rownames(S)]),
                chance = .chance_cor(S), fit_secs = secs, stringsAsFactors = FALSE)
   }))
+  fail_msg <- ""
   ss <- tryCatch(sharing_spectrum(fit, space = "scores", n_perm = n_perm, seed = 1L,
                                   strata = if (use_strata) d$strata else NULL)$summary,
-                 error = function(e) { message("sharing failed (", arm, "): ", conditionMessage(e)); NULL })
+                 error = function(e) { fail_msg <<- conditionMessage(e); message("sharing failed (", arm, "): ", fail_msg); NULL })
   all_pairs <- utils::combn(fit$cell_types, 2L, function(p) paste(p, collapse = " vs "))
   pair_rows <- data.frame(arm = arm, pair = all_pairs, stringsAsFactors = FALSE)
   m <- if (is.null(ss)) NULL else match(pair_rows$pair, ss$pair)
   get <- function(col, default) if (is.null(m)) rep(default, nrow(pair_rows)) else ifelse(is.na(m), default, ss[[col]][m])
+  ## tested = the sharing test produced a row for this pair. Untested is not a tested negative:
+  ## `shared` stays FALSE (preregistered F unchanged), summarize.R gates on frac_untested.
+  pair_rows$tested <- if (is.null(m)) rep(FALSE, nrow(pair_rows)) else !is.na(m)
+  pair_rows$fail_reason <- if (!is.null(m)) ifelse(is.na(m), "pair absent (a cell type kept no program)", "") else fail_msg
   pair_rows$k_a <- get("k_a", NA_real_); pair_rows$k_b <- get("k_b", NA_real_)
   pair_rows$p_pair <- get("p_pair", NA_real_); pair_rows$q_pair <- get("q_pair", NA_real_)
   pair_rows$excess_frac <- get("excess_frac", NA_real_); pair_rows$z_pair <- get("z_pair", NA_real_)
