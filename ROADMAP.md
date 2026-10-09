@@ -1,6 +1,6 @@
 # cellprograms — inventory and roadmap
 
-**As of 2026-10-08.** Branch `feat/model-benchmark` @ `e524b21` (tag `prereg-v1`), PR #2 (`fix/review-defects`) open, benchmark pilot running.
+**As of 2026-10-09.** PR #1 and #2 merged; harness frozen at tag `prereg-v1`, amplitudes chosen (M0, M1 done). M2 main run not started: 8 arms (`k_stab` and `w_S` dropped for breaching the 3x time guard, see `benchmarks/model_selection/DEVIATIONS.md` D6), about 324 CPU-h. `HANDOFF.md` has the current state; `strata=` and the stability fix are on `main`.
 **Rule for fit changes:** a modification enters `R/` only if it clears its pre-registered rule in `benchmarks/model_selection/PREREG.md`. Everything else keeps the current default.
 
 ## 1. Inventory
@@ -11,12 +11,12 @@ Status: **done** (merged or committed), **open PR**, **gated** (decided by the b
 | Feature | Where | Status |
 |---|---|---|
 | Per-cell-type EBMF fit, hard (residualize) and soft (fixed) covariates | `R/ebmf.R` | done (PR #1) |
-| Fallback ladder, NaN-ELBO failure, per-attempt seed | `R/ebmf.R` | open PR #2 |
-| `droplevels`, 10-df design guard, leverage warning | `R/ebmf.R` | open PR #2 |
+| Fallback ladder, NaN-ELBO failure, per-attempt seed | `R/ebmf.R` | done (PR #2) |
+| `droplevels`, 10-df design guard, leverage warning | `R/ebmf.R` | done (PR #2) |
 | Scores-space sharing test, `z_pair`, `excess_frac`, underpowered flag, BH over callable pairs | `R/principal-angles.R` | done |
-| Per-pair seeds, `n_perm` default scaled to number of pairs | `R/principal-angles.R` | open PR #2 |
-| `strata=` blocked permutation null (D1) | `R/principal-angles.R` | committed on `feat/model-benchmark`, **no PR yet** |
-| Stability refits keep `covariate_mode` / `flash_control` | `R/stability.R` | committed on `feat/model-benchmark`, **no PR yet** |
+| Per-pair seeds, `n_perm` default scaled to number of pairs | `R/principal-angles.R` | done (PR #2) |
+| `strata=` blocked permutation null (D1) | `R/principal-angles.R` | done (on `main`) |
+| Stability refits keep `covariate_mode` / `flash_control` | `R/stability.R` | done (on `main`) |
 | Subsampling stability, `match_programs`, `align_programs`, `canonicalize_programs`, extract helpers, MOFAcellulaR export, simulator | `R/` | done |
 
 ### B. Fit-changing candidates (all gated on the benchmark)
@@ -24,13 +24,13 @@ Status: **done** (merged or committed), **open PR**, **gated** (decided by the b
 |---|---|---|---|
 | B1 | K by n: min(10, floor(n/10)) | `k_n` | dP on S3 ≥ +0.10 |
 | B2 | K_max = 20 | `k_20` | dP on S3 ≥ +0.10 |
-| B3 | K by stability (≥ 0.7 over 10 subsamples) | `k_stab` | dP on S3 ≥ +0.10 |
+| B3 | K by stability (≥ 0.7 over 10 subsamples) | `k_stab` | dP on S3 ≥ +0.10 — **dropped from the main run** (9.7x time) |
 | B4 | Select genes after adjustment (D6) | `genes_after` | dR on S1+S2 ≥ +0.02 |
 | B5 | `var_type = c(1,2)` | `vt_12` | dR on S1+S2 ≥ +0.02 |
-| B6 | Cell-count weights via flashier `S` (D5) | `w_S` | dR on S1+S2 ≥ +0.02 |
+| B6 | Cell-count weights via flashier `S` (D5) | `w_S` | dR on S1+S2 ≥ +0.02 — **dropped from the main run** (4.5x time) |
 | B7 | `strata=Institute` as the default null | `strata` | lowers F on S0 where base F > 0.05, P cost ≤ 0.05 |
 
-All also need: CI excludes 0 on `semi`, same sign on `param`, F ≤ base + 0.03, dR ≥ −0.02, time ≤ 3× base.
+All also need: CI excludes 0 on `semi`, same sign on `param`, F ≤ base + 0.03, dR ≥ −0.02, time ≤ 3× base, and `frac_untested` ≤ 0.05 (DEVIATIONS D4).
 
 ### C. Package features not tied to the fit benchmark
 | ID | Feature | Status | Note |
@@ -46,7 +46,7 @@ All also need: CI excludes 0 on `semi`, same sign on `param`, F ≤ base + 0.03,
 | ID | Item | Status |
 |---|---|---|
 | D1 | Model-selection benchmark (harness, pre-registration, pilot, main run, decisions) | in progress |
-| D2 | COMBAT rerun with final settings: per-pair seeds, per-cell-type K, `strata=Institute`, DC treated as sensitivity | todo, after M4 |
+| D2 | COMBAT rerun with final settings: per-pair seeds, per-cell-type K, `strata=Institute` (only if arm B7 is adopted), DC treated as sensitivity | todo, after M4 |
 | D3 | `feat/sofa-comparator` (5 commits, tip 7efc410): SOFA harness, before/after recovery, ordinal severity | not pushed, no PR |
 | D4 | Untracked results: `sim_adj4/`, SLURM logs under `benchmarks/biomni_replication/results/logs/` | todo (commit data worth keeping, ignore logs) |
 | D5 | PMD comparison | not ported (principal angles ranked as well or better; PMD null rejects everything) |
@@ -60,8 +60,8 @@ Dependencies: M0 → M1 → M2 → (M3) → M4 → M5. M6 and M7 are independent
 
 | # | Milestone | Deliverables | Exit criterion | Gate / depends on |
 |---|---|---|---|---|
-| **M0** | Land the fixes | Merge PR #2. Open PR for `feat/model-benchmark` (strata, stability fix, harness) | Both on `main`; full suite passes | You review the PRs |
-| **M1** | Benchmark ready | Pilot done; `amplitudes.csv` and `DEVIATIONS.md` filled; per-dataset runtime measured | One amplitude per base × scenario chosen by the pre-registered rule; main-run cost confirmed (plan: about 45 min/dataset, 600 CPU-h, 6–10 h wall) | Pilot jobs finishing |
+| **M0** | Land the fixes | Merge PR #2. Open PR for `feat/model-benchmark` (strata, stability fix, harness) | **Done**: both on `main` | — |
+| **M1** | Benchmark ready | Pilot done; `amplitudes.csv` and `DEVIATIONS.md` filled; per-dataset runtime measured | **Done.** One amplitude per base × scenario chosen by the pre-registered rule; main-run cost confirmed (8 arms: about 324 CPU-h, about 1 day wall at `%14`) | — |
 | **M2** | Main run and decisions | 900 datasets (450 per base) complete; `summarize.R` output `decisions.csv` and `decisions_base_calibration.csv` | Every arm has adopt / reject; `base` calibration and the confounder check reported; failed datasets rerun | M1 |
 | **M3** | Confirmation (only if ≥ 2 arms adopted) | Combined winners vs `base` on seeds 10001+ | Same rules pass for the combination; otherwise only the best single arm is ported | M2 |
 | **M4** | Port winners | New arguments or default flips in `R/`; one test each; docs; `HANDOFF.md` updated with locked decisions | Suite passes; benchmark arm reproduces from the new defaults; nothing ported that failed a rule | M2 (M3) |
@@ -71,8 +71,8 @@ Dependencies: M0 → M1 → M2 → (M3) → M4 → M5. M6 and M7 are independent
 
 ### What each milestone costs (rough)
 - M0: minutes of your review time.
-- M1: pilot is running now; picking amplitudes is a short script once it finishes.
-- M2: 6–10 h wall time on partition `all`, depends on queue.
+- M1: done.
+- M2: about 1 day wall on partition `all` (8 arms, about 324 CPU-h), depends on queue.
 - M3: about 1 day wall including a new combined arm in `arms.R`.
 - M4: about half a day per ported feature (code, test, docs).
 - M5: about 10–30 min per COMBAT fit set on `all`, plus write-up.

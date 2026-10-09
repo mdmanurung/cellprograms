@@ -39,9 +39,13 @@ W <- program_loadings(fit) # gene x program loadings
 
 ## Status
 
-v0.1.0 — core data model, flashier backend, canonicalization, and simulation
-utilities. Stability assessment, integration backends (ICA, MOFA-FLEX,
-EV-BIDIFAC), and plotting are on the roadmap (see `docs/final_report.md`).
+v0.1.0 — core data model, flashier backend with hard (residualize) and soft
+(fixed) covariate adjustment, canonicalization, a calibrated cross-cell-type
+sharing test (principal angles in scores space, optional blocked-permutation
+`strata`), subsampling stability, MOFAcellulaR export, and simulation
+utilities. Integration backends such as ICA and EV-BIDIFAC were evaluated and
+rejected; coordinated-program detection across cell types is in development
+(see `ROADMAP.md`).
 
 Default configuration (`point_laplace` gene prior, per-donor residual
 variance, `max_factors = 10`) was selected by a benchmark-first optimization
