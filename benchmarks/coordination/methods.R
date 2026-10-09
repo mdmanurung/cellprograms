@@ -12,8 +12,14 @@
   }))
 }
 
-## permute the rows of M within strata (rows are donors of one cell type)
-.perm_rows <- function(M, strata_ct) M[.perm_within(nrow(M), strata_ct), , drop = FALSE]
+## permute the rows of M within strata (rows are donors of one cell type). Row names keep the
+## ORIGINAL donor order: callers that re-index by donor name (node_cor) must see the permuted
+## values under the original names, else the permutation is undone and the null equals the data.
+.perm_rows <- function(M, strata_ct) {
+  P <- M[.perm_within(nrow(M), strata_ct), , drop = FALSE]
+  rownames(P) <- rownames(M)
+  P
+}
 
 ## Greedy single-linkage on called edges, strongest first; a merge that would put two
 ## nodes of the same cell type in one cluster is skipped.
