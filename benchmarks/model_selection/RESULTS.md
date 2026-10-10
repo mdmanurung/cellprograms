@@ -26,5 +26,5 @@ Harness at commit `584c502` (tag `prereg-v1` plus DEVIATIONS D3-D7). 900 dataset
 ## Untested pairs (D3/D4)
 `param`: 12-27% of (arm, scenario) pairs are untested for every arm, `base` included (a cell type kept no program). `semi`: 0%. The registered absolute guard (<= 0.05) therefore fails every `param` arm, including ones that are otherwise fine. A guard relative to `base` would have been the better design.
 
-## Open decision
-Treat `strata` as rejected (D4 as registered), or report it as adopted under a post-hoc `base`-relative guard, labelled as a deviation made after seeing results. Not decided at the time of writing; this file records the registered outcome.
+## Decision (2026-10-10)
+`strata` stays **rejected** (D4 as registered). No post-hoc `base`-relative guard. Known limit: the absolute guard also fails every `param` arm, so `param` cannot adopt any arm under D4; the `strata` effect on S0 (dF -0.24 `param`, -0.075 `semi`) is reported as an observation only. See D8.

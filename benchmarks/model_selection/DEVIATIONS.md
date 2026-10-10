@@ -32,3 +32,8 @@ param: S1 0.5 (pilot power 0.60), S2 1.0 (0.60); semi: S1 0.7 (0.45), S2 0.8 (0.
 
 ## D7. Main run submitted in array chunks (2026-10-09)
 - The cluster has `MaxArraySize = 125`, so `--array=1-450` is rejected. `run.sbatch` gains an `OFFSET` env (task line = OFFSET + array index) and each 450-line task file is submitted as 5 chunks (OFFSET 0, 100, 200, 300, 400). Same tasks, same seeds, same arms; scheduling only.
+
+## D8. `strata` verdict: rejected as registered (2026-10-10; user decision)
+- Not a deviation from the prereg: the D4 outcome stands. A post-hoc `base`-relative `frac_untested` guard was considered and declined because it would be chosen after seeing that `strata` clears the effect test.
+- Consequence: no arm adopted, M3 not triggered. The design flaw (absolute guard fails `param` for every arm, `base` included) is recorded in `RESULTS.md`; any future benchmark should register the guard relative to `base`.
+- No code or result file changed.
