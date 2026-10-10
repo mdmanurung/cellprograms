@@ -40,16 +40,18 @@ Work `docs/metaprogram_methods_review.md` §5 phase 1 in order. Done: `subspace_
 - Gaussian-z simulator with ICA: unidentifiable; plant non-Gaussian z if ICA is benchmarked.
 
 ## Read first
+- `docs/biomni_cmp_lessons.md` — Biomni CMP benchmark lessons; Part A (ours) done, Part B (theirs) waits on a Biomni retry scheduled 2026-10-11 00:30 (session-only cron `7e52e47d`; first send got HTTP 402) or on downloaded `tusoskill/cmp_v1`, `cmp_v2` files.
 - `docs/metaprogram_methods_review.md` — candidates, per-framework verdicts, staged plan and stopping rule (§5), open design decisions (§6), upstream HVG test (§10).
 - `benchmarks/coordination/PREREG.md` — draft, unregistered; four blockers: method list vs `methods.R`, replicates and paired inference, node-to-truth matching rule, pinned EBMF config.
 - `benchmarks/coordination/methods.R:146-195` (`subspace_sum`; `cummax` + `break` is not a valid step-down), `methods.R:11-17` (`.perm_rows` fix).
 - `benchmarks/model_selection/DEVIATIONS.md` D3-D7, `summarize.R:65-76` (untested guard).
 
 ## Open items
-- `subspace_sum` after deflation (10 toy seeds, 999 perms; script was in scratchpad, not kept): R100 and R50 recovered 10/10, no wrong members, null gives 0 clusters; R20 (2 cell types) recovered only 3/10. The earlier `ct01,ct09` was a 199-perm one-off. Likely a power limit of the max-eigenvalue null, not a bug; not yet investigated.
+- `subspace_sum` after deflation (10 toy seeds, 999 perms; script was in scratchpad, not kept): R100 and R50 recovered 10/10, no wrong members, null gives 0 clusters; R20 (2 cell types) recovered only 3/10. The earlier `ct01,ct09` was a 199-perm one-off. Same toy data, 999 perms, recovery R100/R50/R20: `node_cor` 1/1/1, `gene_match` 1/1/1, `pa_cc` 1/0/0 (merges everything), `subspace_sum` 1/1/0.3. So R20 is detectable and `subspace_sum` is the weak arm (max-eigenvalue null), not the data. Cheaper to drop or demote it than to tune it.
 - Toy finding to verify: stage-2 EBMF on stacked node scores found a 3-cell-type program (10 of 12 seeds) but not a 2-cell-type one with 22% missing donors; complete donors found both (about 90%). Needs a real benchmark arm (`ebmf2`).
 - Count-level simulator (current one is Gaussian), install Seurat, check whether `benchmarks/biomni_replication/data/combat/pb_counts.parquet` is raw counts; HVG before vs after adjustment depends on the `genes_after` result (no effect, so before).
 - `both` label merge rule (groups intersect / contain / overlap threshold); scoring tiers for methods without node output; strata null for external arms.
 - Biomni M4 pre-work if any fit change is ported: `flash_control` vs argument conflict detection (`R/ebmf.R:123-132`), package version in `provenance`, small-n behaviour of a K <= n-q-1 guard (error vs cap).
 - Biomni M2 findings not acted on: confounder check not computed by `summarize.R`; NA passes some guards; no multiplicity control across arms.
 - `feat/sofa-comparator`: open a PR or archive it.
+- From the Biomni CMP benchmark session `sess_a9d08850c561` (sibling effort; I read the final reply and file names only, not the files): (1) K cap 10 truncated real data (4 cell types hit 40 at cap 40; CMPs 13 -> 31) while the simulator screen was flat from 30 to 40, so a sim-flat `k_*` result does not show real data is untruncated; (2) IGHV/IGKV/IGLV/TRBV-dominated programs rose 4 -> 6 (Stephenson) and 1 -> 9 (COMBAT) at the higher cap and the simulator has no such signal: filter them before HVG selection as a separate labelled arm, and check the Seurat `vst` union does not feed them into the gene-reuse label; (3) their dev / held-out seed split and a real-data CMP table (ambient, Ig/TCR, severity, site replication) are worth copying for our real-data stage; (4) never compare runs that changed two things (their COMBAT cap-10 vs cap-40 also changed sex adjustment).
