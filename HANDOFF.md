@@ -1,8 +1,20 @@
 # Handoff — cellprograms: cross-cell-type sharing, model-selection benchmark, coordination methods
 
-**Date:** 2026-10-08 · **Branch:** `main` @ `bdb8c69` (all branches pushed except `feat/sofa-comparator`) · **Status:** M0+M1 done (PR #1,#2 merged; harness, amplitudes, DEVIATIONS on main); M2 main run not yet started; three benchmark defects found by an end-to-end smoke test and diagnosed below, fix plan ready but not yet implemented.
+**Updated:** 2026-10-10 · **Checkout:** `feat/coordination` = local `main` = `origin/main` · **Status:** M0+M1 and all five benchmark fixes complete; **M2 main run finished and summarized (2026-10-10): no arm adopted under the registered rules** (see `benchmarks/model_selection/RESULTS.md`); the `strata` verdict waits on a user decision. `feat/sofa-comparator` and `feat/model-benchmark` remain unpushed.
 
 > Note on this file: an earlier version's "Next action" (push `fix/review-defects`) and the `strata=` blocked-null work are now **complete and on `main`** — see "Recently completed" below. This file was refreshed rather than creating a near-twin `handoff.md`, which would collide on case-insensitive filesystems.
+
+## Revised gene-sharing plan — saved 2026-10-09
+
+The user requested a local revised implementation plan after a source and statistical review. The reviewed progress tracker is [docs/plans/2026-10-09-selective-coupled-ebmf-gene-sharing.md](docs/plans/2026-10-09-selective-coupled-ebmf-gene-sharing.md). It defines a **separate gene-loading recurrence workstream**, preserving independent `fit_celltype_programs()`, the coordination estimand, and the existing `prereg-v1` benchmark plus recorded deviations.
+
+- **Next step for this plan:** GS-00, a specification-only model and selection contract. Exact penalties/precision, sharing thresholds, eligibility, rank/ambiguity rules, recruitment, and reporting must be resolved before the optimizer. GS-05 and later are explicitly blocked on their prerequisites.
+- **First comparison:** include signed EBMF consensus **plus fixed-template residual recruitment** (B1-R); test weak true members and genuine nonmembers. Joint template updating must demonstrate incremental benefit over that comparator before flexible or empirical Bayes extensions.
+- **Compatibility work tracked:** MOFA gene-row alignment, stability success/failure denominators, optimal benchmark assignment, coherent gene-loading clusters, and dependency-enabled package checks. These repairs were reviewed, not implemented in this session.
+- **Review evidence:** dependency-free checks reproduced the adapter/matching/clustering/stability issues; both coordination smoke scripts passed. The R4_51 package-test attempt had 15 skips and one dependency error because `flashier`/`ebnm` were unavailable. No complete passing package suite, hierarchical implementation, calibration, or HPC benchmark result is claimed.
+- **Authorization/state:** this request authorized documentation only. The plan and this note were written; package/benchmark source and the recorded active main run were not changed or resubmitted. Queue counts and runtime state below are historical observations, not refreshed by this documentation update. Keep runtime-source files immutable while existing jobs remain active; future implementation needs its own action request and an isolated checkout.
+
+The reviewed hash `584c50236c78730f4b33fe2d82bfd211b71a5629` is the commit ID; its Git tree is `f975b9ec1e4b074db762359f261db9628e6397bd`. The saved plan is **not yet preregistered**, and no implementation step is complete. Existing operational handoff content below is retained.
 
 ## Goal
 Decide which fit modifications earn their complexity (model-selection benchmark), and land a defensible cross-cell-type sharing/coordinated-program capability (coordination benchmark, roadmap item C1). Both are pre-registered; nothing enters `R/` unless it clears its registered rule.
@@ -14,13 +26,15 @@ Decide which fit modifications earn their complexity (model-selection benchmark)
 - Amplitudes chosen by pilot (`amplitudes.csv`, `DEVIATIONS.md` D1-D2). Pilot runs only `base`; the runtime pilot (all arms) measured per-arm fit time.
 - Coordination simulator `sim_coord.R` + self-check (all pass). Candidate methods `methods.R` committed but `node_cor` broken (defect D below).
 
-## Next action — implement the fix plan (5 commits, then push `main`)
-See "Fix plan" section. Execute in order; validate after each. Then run the M2 main run (see "Main run" section).
+## Next action — decide the `strata` verdict, then pick the metaprogram direction
+M2 is complete: 900 datasets, 8 arms, no failed tasks, `summarize.R` run, `decisions*.csv` and `RESULTS.md` committed. **No arm is adopted** as registered; M3 is not triggered. `strata` clears every rule except the D4 `frac_untested` guard, which fails every `param` arm including `base` (12-27% untested). **Open decision (user):** keep `strata` rejected as registered, or report it as adopted under a post-hoc `base`-relative guard, logged as a deviation made after seeing results. The M5 COMBAT rerun uses `strata=Institute` only if `strata` is adopted. The confounder check passes on `param` (`none` F = 1.0) and fails on `semi` (`none` F = 0.09).
+
+Metaprogram direction: nothing is chosen or implemented in `R/`. Options and the staged plan are in `docs/metaprogram_methods_review.md`; the coordination prereg still needs its four blockers fixed (method list, replicates and paired inference, node-to-truth matching rule, pinned EBMF config). Another session saved a gene-sharing plan above and has a separate clone `.c1-work/` (hidden locally via `.git/info/exclude`) with its own unpushed C1 commits; do not delete it.
 
 ## Current state
-- Tests: full suite green on `pkgload::load_all` with the `cellprograms-r` conda env (covariates 14, review-fixes 13, sharing-calibration 13, ebmf 16, data-model 19, extract-stability 7, mofacellular 13, principal-angles 4, simulation 4). Run command in the commit history / this file's earlier version.
+- Tests: latest Claude run reported 155 expectations, 0 failures after the namespace-mocking fix (`09f1fcc`). The 2026-10-09 progress check validated outputs and logs; it did not rerun package tests.
 - `.gitignore` (on main) now excludes regenerable benchmark bulk (per-dataset `rep*.csv`, simulated matrices, fits, SLURM logs) while keeping scripts, pre-regs, and summary tables; `summarize.R`'s `decisions*.csv` at the model_selection results root stays trackable.
-- Running: nothing of mine. Use SLURM `--partition=all`.
+- Running: nothing of mine (M2 finished 2026-10-10). Use SLURM `--partition=all`.
 - `feat/sofa-comparator` (5 commits, tip `7efc410`): SOFA comparator, before/after recovery, ordinal severity — **unpushed, no PR** (roadmap D3 / M7 open question).
 
 ## M2 smoke-test findings (end-to-end path verified)
@@ -48,7 +62,7 @@ The smoke test only prints; its sole failure was an incidental `aggregate` error
 At the preregistered amplitudes (`base` power ≈ 0.5, weak by design) `recovery_freq` is < 0.7 for every program, so `arm_k_stab` legitimately prunes to K=0. Adding a "keep ≥1 program" floor would rescue an arm the prereg defined at 0.7 and change B3's meaning — a deviation not recommended. Correct response is A+B: let it degenerate, report uncovered, reject with stated reason. With `k_stab` dropped from the main run this is moot for M2 but the coverage guardrail still protects other arms.
 
 ## Fix plan (5 commits, validated after each)
-**Status 2026-10-09, on `feat/coordination`, not pushed:** all 5 commits done (`613bc7c`, `1272736`, `1ae3908`, `73bbdd4`, plus the `node_cor` fix; DEVIATIONS D3-D6). The `node_cor` fix: `.perm_rows` now keeps the original row names, so name-indexed callers see permuted values; with it node_cor recovers R100/R50/R20 and all 4 methods return 0 clusters on the null. `test_methods.R` now asserts this and fails on the old code. Smoke re-run: `decisions.csv` written, absent arms degrade to NA / not adopted. Full suite: 155 expectations, 0 failures (the stability test failure was a test bug, fixed in the next commit).
+**Status 2026-10-09, pushed to `origin/main`:** all 5 commits done (`613bc7c`, `1272736`, `1ae3908`, `73bbdd4`, plus `49dd869`, the `node_cor` fix; DEVIATIONS D3-D6). The `node_cor` fix: `.perm_rows` now keeps the original row names, so name-indexed callers see permuted values; with it node_cor recovers R100/R50/R20 and all 4 methods return 0 clusters on the null. `test_methods.R` now asserts this and fails on the old code. Smoke re-run: `decisions.csv` written, absent arms degrade to NA / not adopted. Full suite: 155 expectations, 0 failures after `09f1fcc` fixed the stability test's namespace mock. `584c502` added the array-chunk offset (D7) and was pushed before launch.
 
 | # | Commit | Files | Nature |
 |---|---|---|---|
@@ -60,10 +74,10 @@ At the preregistered amplitudes (`base` power ≈ 0.5, weak by design) `recovery
 
 Validate after each: full `testthat` suite; `test_methods.R` end-to-end; re-run the M2 smoke to confirm `decisions.csv` still produced and absent arms degrade to `NA`/not-adopted (not an error). Commit and push to `main` only once green.
 
-## Main run (after the fix plan)
-- Submit with `ARMS=base,strata,none_strata,none,k_n,k_20,vt_12,genes_after` (drops `k_stab`, `w_S`).
-- 900 datasets (450 per base). `sbatch --array` per `tasks_param.txt` / `tasks_semi.txt`. Outputs land in gitignored `results/<base>/<scenario>/`.
-- After completion: `summarize.R <results_root>` → `decisions.csv`; report every arm adopt/reject, `base` calibration + Clopper-Pearson CI, and the confounder check (`none` must show inflated F on S0 or the `strata` result is uninformative).
+## Main run (complete)
+- Submitted with `ARMS=base,strata,none_strata,none,k_n,k_20,vt_12,genes_after` (drops `k_stab`, `w_S`).
+- 900 datasets (450 per base), submitted in 10 array chunks (D7), using `tasks_param.txt` / `tasks_semi.txt`. Outputs land in gitignored `benchmarks/model_selection/results/<base>/<scenario>/`.
+- Done: results, `base` calibration with Clopper-Pearson CIs and the confounder check are in `benchmarks/model_selection/RESULTS.md`; per-arm verdicts in `results/decisions.csv`.
 
 ## Locked decisions
 - **Coverage guardrail over redefining F** (user, 2026-10-08): keep preregistered `F`; add `frac_untested ≤ 0.05`.
