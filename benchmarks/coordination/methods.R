@@ -149,6 +149,10 @@ method_pa_cc <- function(fit, strata, n_perm = 999L, seed = 1L) {
 ## ---- subspace_sum: sum of cell-type score projections, generalized eigenproblem ----
 ## M = sum_c U_c U_c' (zero rows for donors a cell type lacks); M v = lambda D v with
 ## D = diag(#cell types observing each donor), so lambda ~ fraction of cell types holding the direction.
+## Sequential test with deflation: direction j is tested against a null built from the scores with
+## directions 1..j-1 projected out of every cell type, then rows permuted within strata. Stop at the
+## first p >= alpha (fixed sequence, FWER <= alpha). Using the all-permuted null for every j (the old
+## cummax + break) ignores the signal already found and is not a valid step-down.
 method_subspace_sum <- function(fit, strata, n_perm = 999L, seed = 1L, alpha = 0.05, J = 15L, min_shared = 20L) {
   set.seed(seed)
   nodes <- .nodes(fit)
@@ -161,39 +165,42 @@ method_subspace_sum <- function(fit, strata, n_perm = 999L, seed = 1L, alpha = 0
   Dd <- numeric(nu); for (ct in cts) Dd[obs[[ct]]] <- Dd[obs[[ct]]] + 1
   Dh <- 1 / sqrt(Dd)
   embed <- function(U, ct) { E <- matrix(0, nu, ncol(U)); E[obs[[ct]], ] <- U; E }
-  spec <- function(Us) {
-    E <- Map(embed, Us, cts)
-    M <- Reduce(`+`, lapply(E, function(e) tcrossprod(e)))
+  deflate <- function(Us, V) {                      # remove span(V) (donor space) from each cell type
+    if (!ncol(V)) return(Us)
+    Map(function(U, ct) { Q <- qr.Q(qr(V[obs[[ct]], , drop = FALSE])); U - Q %*% crossprod(Q, U) }, Us, cts)
+  }
+  top <- function(Us) {                             # top direction, its value and per-cell-type contribution
+    M <- Reduce(`+`, lapply(Map(embed, Us, cts), tcrossprod))
     ev <- eigen(Dh * M * rep(Dh, each = nu), symmetric = TRUE)
-    V <- ev$vectors[, seq_len(J), drop = FALSE] * Dh        # back to donor space
+    v <- ev$vectors[, 1L] * Dh                      # back to donor space
     contrib <- vapply(seq_along(cts), function(k) {
-      o <- obs[[k]]; v <- V[o, , drop = FALSE]
-      colSums((crossprod(E[[k]][o, , drop = FALSE], v))^2) / pmax(colSums(v^2), 1e-12)
-    }, numeric(J))
-    list(values = ev$values[seq_len(J)], V = V, contrib = contrib)   # contrib: J x n_ct
+      o <- obs[[k]]; sum(crossprod(Us[[k]], v[o])^2) / max(sum(v[o]^2), 1e-12)
+    }, numeric(1L))
+    list(value = ev$values[1L], v = v, contrib = contrib)
   }
-  o <- spec(Ub)
-  nl <- matrix(NA_real_, n_perm, J); nc <- array(NA_real_, c(n_perm, J, length(cts)))
-  st <- strata
-  for (b in seq_len(n_perm)) {
-    Up <- Map(function(U, ct) .perm_rows(U, st[rownames(fit$scores[[ct]])]), Ub, cts)
-    s <- spec(Up); nl[b, ] <- s$values; nc[b, , ] <- s$contrib
-  }
-  p <- vapply(seq_len(J), function(j) (1 + sum(nl[, j] >= o$values[j])) / (n_perm + 1), numeric(1L))
-  p <- cummax(p)                                   # step-down: monotone in j
   out <- list(); id <- 0L
+  V <- matrix(0, nu, 0L)
   for (j in seq_len(J)) {
-    if (p[j] >= alpha) break
-    thr <- apply(nc[, j, ], 2L, stats::quantile, 0.95, na.rm = TRUE)
-    mem <- which(o$contrib[j, ] > thr & vapply(obs, length, 1L) >= min_shared)
+    Ud <- deflate(Ub, V)
+    o <- top(Ud)
+    nl <- numeric(n_perm); nc <- matrix(NA_real_, n_perm, length(cts))
+    for (b in seq_len(n_perm)) {
+      s <- top(Map(function(U, ct) .perm_rows(U, strata[rownames(fit$scores[[ct]])]), Ud, cts))
+      nl[b] <- s$value; nc[b, ] <- s$contrib
+    }
+    p <- (1 + sum(nl >= o$value)) / (n_perm + 1)
+    if (p >= alpha) break
+    V <- cbind(V, o$v)
+    thr <- apply(nc, 2L, stats::quantile, 0.95, na.rm = TRUE)
+    mem <- which(o$contrib > thr & vapply(obs, length, 1L) >= min_shared)
     if (length(mem) < 2L) next
-    v <- setNames(o$V[, j], ids)
+    v <- setNames(o$v, ids)
     prog <- vapply(cts[mem], function(ct) {
       Z <- fit$scores[[ct]]
       r <- suppressWarnings(abs(stats::cor(Z, v[rownames(Z)]))); colnames(Z)[which.max(r)]
     }, "")
     id <- id + 1L
-    out[[id]] <- data.frame(cluster = id, cell_type = cts[mem], program_id = unname(prog), stat = o$values[j], fwer_p = p[j],
+    out[[id]] <- data.frame(cluster = id, cell_type = cts[mem], program_id = unname(prog), stat = o$value, fwer_p = p,
                             stringsAsFactors = FALSE)
   }
   list(method = "subspace_sum", n_perm = n_perm, clusters = if (length(out)) do.call(rbind, out) else .empty_clusters())
