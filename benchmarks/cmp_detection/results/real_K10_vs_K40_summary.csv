@@ -1,0 +1,5 @@
+run,n_cmp,n_ge5ct,n_2to4ct,vdj_dominated,ambient_majority,sev_p_lt_1e3
+stephenson_pb_sex,13,11,2,4,4,3
+stephenson_pb_sex_K40,31,24,7,6,3,5
+combat_pb,11,8,3,1,4,3
+combat_pb_sex_K40,30,15,15,9,4,3

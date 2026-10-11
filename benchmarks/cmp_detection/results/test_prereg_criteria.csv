@@ -1,0 +1,12 @@
+criterion,value,pass
+1a F1 > b_node_cor (CI>0),"0.2244 [0.2010, 0.2485]",TRUE
+1b F1 > b_pa_cc (CI>0),"0.2234 [0.2009, 0.2460]",TRUE
+2 null FWER <= 0.10 (param),0.08,TRUE
+2 null FWER <= 0.10 (semi),0,TRUE
+3 ambient decoy <= 0.10 (param),0.08,TRUE
+3 ambient decoy <= 0.10 (semi),0,TRUE
+4 within-ctx false <= 0.10 (param),0.04,TRUE
+4 within-ctx false <= 0.10 (semi),0.02,TRUE
+5 genes_only false <= 0.10 (param),0,TRUE
+5 genes_only false <= 0.10 (semi),0.02,TRUE
+6 s_shuffled F1 < 0.02,1e-04,TRUE

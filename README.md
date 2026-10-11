@@ -90,6 +90,43 @@ Benchmark artifacts (search tables, attribution, cross-dataset validation,
 MOFA-FLEX comparison) and the summary report are available on request; the
 runners live in `python/`.
 
+## Coordinated multicellular programs
+
+`find_coordinated_programs()` finds groups of programs from different cell
+types whose donor-level scores co-vary (coordinated multicellular programs,
+CMPs), with family-wise error control by within-strata donor permutation.
+Gene overlap plays no role in the call; `annotate_cmp_lr()`,
+`annotate_cmp_themes()`, `cmp_gene_overlap()` and `cmp_context_association()`
+annotate called CMPs, each with its own null.
+
+```r
+x <- as_cell_program_data(pseudobulk, sample_metadata = metadata)
+fit <- canonicalize_programs(fit_celltype_programs(x, max_factors = 30, covariates = "site"))
+res <- find_coordinated_programs(fit, strata = "site", ambient = "flag", n_perm = 999)
+cmp_scores(fit, res)                      # donors x CMPs consensus scores
+```
+
+**Use `max_factors = 30` for fits intended for CMP detection.** A CMP can only
+be called if each member program exists upstream. In the pre-registered
+cmp-bench-v1.2 held-out benchmark (seeds 1051-1100; 8 scenarios x 2
+simulation bases; 800 datasets per arm), fitting with `max_factors = 30`
+raised pooled membership F1 from 0.571 to 0.705 (paired difference +0.127,
+95% CI 0.113-0.142), entirely on the semi-synthetic base built from
+Stephenson pseudobulk (0.671 -> 0.934), with every false-call guardrail
+<= 0.06 (null FWER 0.04 / 0.00). The global default stays at 10 because the
+tuning benchmark below optimizes a different target (disease signal in the
+concatenated representation), where K >= 30 overfits.
+`find_coordinated_programs()` prints a one-time message when a fit with
+`max_factors < 30` has a cell type at its cap. On real cohorts (Stephenson,
+COMBAT), cap 30 roughly doubled the number of CMPs; many added CMPs carried
+immunoglobulin/TCR V genes or genes with known donor-genotype variation (e.g.
+GSTM1, HLA-DQ/DR haplotype genes). These may co-vary across cell types for
+genetic rather than biological-coordination reasons; this is unconfirmed
+without genotype data. Use `ambient = "flag"` and inspect
+each CMP's top genes, `cmp_context_association()` and replication before
+interpreting it. Benchmark scripts,
+pre-registrations and result tables are in `benchmarks/cmp_detection/`.
+
 ## License
 
 MIT
