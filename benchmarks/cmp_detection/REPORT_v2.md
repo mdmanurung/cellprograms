@@ -128,6 +128,31 @@ The new narrow Stephenson CMPs (17, 20, 25, 27; 2-3 cell types each) have edge s
 
 This step is needed because the simulation benchmark contains no V(D)J or genotype structure (section 7).
 
+### 5.1 TF footprints and triage of the cap-30 CMPs
+
+Applied `annotate_cmp_tf()` (CollecTRI from OmniPath: 42,601 signed TF-target pairs after merging NF-kB/AP-1 complexes; TFs with >= 5 targets among each program's 2,000 genes; median 300 TFs tested per member) and `cmp_triage()` (severity association adjusted for institute and sex; Stephenson sign replication within Cambridge and Ncl; COMBAT has no second site with >= 15 donors). Outputs: `tusoskill/cmp_v2/interpret/`.
+
+| | Stephenson (27 CMPs) | COMBAT (25 CMPs) |
+|---|---|---|
+| candidate / candidate, severity p < 0.05 | 10 / 6 | 6 / 3 |
+| ambient | 4 | 6 |
+| V(D)J | 1 | 5 |
+| genotype candidate (>= 2 marker genes) | 3 | 4 |
+| platelet / erythrocyte | 2 | 0 |
+| sex chromosome | 1 | 0 |
+| stress (IEG) | 0 | 1 |
+| low within-site replication (soft note) | 7 | n/a |
+
+TF footprints:
+- **IFN CMPs show STAT1/STAT2/IRF9 footprints in both cohorts** (Stephenson CMP1: STAT1 in 10/11 members; COMBAT CMP2: 9/9). This is not an independent positive control: the competitive p-value was switched from a gene-permutation p (floored at 1/1001, which capped BH and called STAT1 in only 5/11 Stephenson CMP1 members, with no shared TF) to the parametric ULM t-test p after these real-data results had been seen. The parametric p assumes independent genes and is more anticonservative for co-regulated blocks.
+- **The ambient monocyte CMP (S3) carries a CEBP/SPI1 footprint in 8/10 members, 7 of its 9 non-myeloid members** (the eighth is DC, which is myeloid), consistent with monocyte transcript leakage into T, B and NK programs.
+- **COMBAT CMP1 (severity p = 3e-4) has a shared RELA/FOS/ATF2/CREB1 footprint** (NF-kB/AP-1 activation with AREG, NFKBIA, CD83).
+- **Stephenson CMP7, labelled genotype candidate (GSTM1 plus V genes), has a strong negative CREB1/ELK1/EGR1/RELA/ATF2 footprint in 8/8 members**, i.e. an immediate-early axis; its footprint anti-correlates with COMBAT CMP17 (stress_ieg) at r = -0.81. The genotype label is likely wrong for this CMP: the marker genes ride along with a stress axis.
+- **COMBAT CMP24 (HLA-DQA1/DRB5, genotype candidate) shows RFX5/RFXAP/CIITA.** This is circular, because the HLA class II genes are those TFs' targets, so it neither supports nor refutes a genotype origin.
+- **Cross-cohort consistency.** For the 7 robust Stephenson-COMBAT matches (section 5), the matched partner has the highest |footprint correlation| among all 25 COMBAT CMPs in every case (|r| 0.59-0.95; S19-C18 is anti-aligned, r = -0.63), vs a 95th percentile of 0.41 over all pairs. Matched CMPs share genes, so this shows reproducibility of footprints, not independent validation.
+
+Caveats: the competitive test treats genes as exchangeable, so co-regulated gene blocks inflate significance; large regulons (NFKB, AP1, SP1) are called more readily; footprints are descriptive, not causal. The triage labels are heuristic, and the genotype list is unvalidated (section 7).
+
 ## 6. Deviations from the pre-registration and plan
 
 1. **Package default kept at 10.** The v1.2 pre-registration says all criteria "must hold to adopt cap 30 as the package default". All held, but the global default is not changed. An earlier repository benchmark (32-config factorial on COMBAT pseudobulk, disease-status kNN and severity endpoints) found that `max_factors >= 30` overfits the concatenated representation (400-600 factors) and collapses disease-signal recovery. The two benchmarks optimize different targets, so the recommendation is scoped to CMP detection: documentation plus a one-time message.

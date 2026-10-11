@@ -127,6 +127,33 @@ each CMP's top genes, `cmp_context_association()` and replication before
 interpreting it. Benchmark scripts,
 pre-registrations and result tables are in `benchmarks/cmp_detection/`.
 
+### Interpreting CMPs: TF footprints and triage
+
+```r
+net <- prepare_collectri(omnipath_collectri_table)   # OmniPath interactions?datasets=collectri
+tf  <- annotate_cmp_tf(fit, cmp, net)                # TF footprint of every member program
+tri <- cmp_triage(fit, cmp, context = "severity", covariates = c("institute", "sex"),
+                  replicate_by = "institute", tf = tf)
+```
+
+`annotate_cmp_tf()` fits a univariate linear model of each member's
+CMP-oriented loadings on each signed CollecTRI regulon. A TF is called in a
+member only if it passes both a competitive test (BH-adjusted ULM, targets vs
+other genes) and a self-contained sign-flip test (targets coherently signed),
+which stops regulons of unloaded genes from looking "depleted" in skewed
+programs. TFs called with one sign in >= 2 members and >= half of the members
+are `shared` (a candidate common upstream driver); `specific` TFs show how one
+cell type reads out the signal. Footprints describe which regulons a program
+resembles; they are not evidence that the TF causes the coordination, and they
+can be circular (HLA-class-II CMPs light up CIITA/RFX5 because the HLA genes
+*are* their targets).
+
+`cmp_triage()` returns one row per CMP with its recurrent top genes, counts of
+nuisance genes (`cmp_nuisance_genes()`: V(D)J, candidate genotype markers, sex
+chromosome, immediate-early genes, platelet/erythrocyte markers), the ambient
+fraction, context association, within-level sign replication and shared TFs,
+plus a heuristic `label` for prioritization.
+
 ## License
 
 MIT
