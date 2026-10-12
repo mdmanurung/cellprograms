@@ -21,6 +21,15 @@
 #'   of gene ID vectors per cell type.
 #' @param n_variable_genes Number of most-variable genes when
 #'   `features = "variable"`.
+#' @param exclude_genes Optional character vector of gene IDs removed from
+#'   every cell type's feature universe BEFORE feature selection, so excluded
+#'   genes do not consume `n_variable_genes` slots (with
+#'   `features = "variable"`) and never enter the fit. Exclusion changes the
+#'   feature panel and is NOT the default; it is intended for artifact-gene
+#'   classes such as V(D)J or common-germline-variation genes -- see
+#'   `artifact_gene_sets` and `artifact_genes()`. With a named-list
+#'   `features`, excluded genes are dropped from the requested vectors after
+#'   validation.
 #' @param var_type flashier residual-variance type: 0 = constant, 1 = one
 #'   variance per row/donor (default), 2 = per-gene (unstable on
 #'   log-normalized pseudobulk), or `c(1, 2)` = Kronecker rank-one structure
@@ -53,13 +62,18 @@
 fit_celltype_programs <- function(x, loading_prior = "point_laplace",
                                   max_factors = 10, center = TRUE,
                                   scale = FALSE, features = "all",
-                                  n_variable_genes = 2000, var_type = 1,
+                                  n_variable_genes = 2000, exclude_genes = NULL,
+                                  var_type = 1,
                                   backfit = TRUE, nullcheck = TRUE,
                                   covariates = NULL,
                                   covariate_mode = c("residualize", "fixed"),
                                   seed = 1, flash_control = list()) {
   stopifnot(inherits(x, "cell_program_data"))
   covariate_mode <- match.arg(covariate_mode)
+  if (!is.null(exclude_genes) &&
+      (!is.character(exclude_genes) || anyNA(exclude_genes))) {
+    cli::cli_abort("{.arg exclude_genes} must be NULL or a character vector of gene IDs.")
+  }
   if (covariate_mode == "fixed" && !is.null(covariates) && !center) {
     cli::cli_abort("{.code covariate_mode = \"fixed\"} requires {.code center = TRUE}.")
   }
@@ -81,7 +95,7 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     cli::cli_abort("Unknown {.arg loading_prior}: {.val {loading_prior}}.")
   )
 
-  feature_sets <- .select_features(x, features, n_variable_genes)
+  feature_sets <- .select_features(x, features, n_variable_genes, exclude_genes)
 
   fits <- list()
   for (ct in x$cell_types) {
@@ -191,6 +205,7 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
   x$preprocessing <- list(
     centered = center, scaled = scale,
     feature_sets = feature_sets,
+    exclude_genes = exclude_genes,
     loading_prior = loading_prior,
     max_factors = max_factors, var_type = var_type,
     backfit = backfit, nullcheck = nullcheck,
@@ -303,7 +318,10 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
 }
 
 # Feature selection: independent per cell type; never uses outcomes.
-.select_features <- function(x, features, n_variable_genes) {
+# `exclude_genes` is applied to the universe BEFORE selection, so excluded
+# genes cannot consume variable-gene slots; with an explicit `features` list
+# they are dropped from the requested vectors after validation.
+.select_features <- function(x, features, n_variable_genes, exclude_genes = NULL) {
   if (is.list(features)) {
     missing_ct <- setdiff(x$cell_types, names(features))
     if (length(missing_ct)) {
@@ -316,16 +334,16 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
       if (length(unknown)) {
         cli::cli_abort("{length(unknown)} requested gene(s) absent from {.val {ct}}.")
       }
-      g
+      setdiff(g, exclude_genes)
     }) |> stats::setNames(x$cell_types))
   }
   out <- list()
   for (ct in x$cell_types) {
-    genes <- colnames(x$pseudobulk[[ct]])
+    genes <- setdiff(colnames(x$pseudobulk[[ct]]), exclude_genes)
     if (identical(features, "all")) {
       out[[ct]] <- genes
     } else if (identical(features, "variable")) {
-      v <- apply(as.matrix(x$pseudobulk[[ct]]), 2, stats::var)
+      v <- apply(as.matrix(x$pseudobulk[[ct]])[, genes, drop = FALSE], 2, stats::var)
       k <- min(n_variable_genes, length(v))
       out[[ct]] <- names(sort(v, decreasing = TRUE))[seq_len(k)]
     } else {

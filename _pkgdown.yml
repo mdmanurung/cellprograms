@@ -1,0 +1,7 @@
+# Minimal pkgdown config. The site builds into docs/pkgdown/ (not the default
+# docs/, which holds hand-written project reports); docs/pkgdown/ is
+# git-ignored so built artifacts are never committed.
+url: ~
+destination: docs/pkgdown
+template:
+  bootstrap: 5

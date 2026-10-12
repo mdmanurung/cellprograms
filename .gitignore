@@ -41,3 +41,7 @@ benchmarks/*/results/logs/
 benchmarks/*/results/*/logs/
 
 biomni/*.zip
+
+# pkgdown site output (docs/ itself holds tracked hand-written reports; only
+# the generated site under docs/pkgdown/ is ignored)
+docs/pkgdown/
