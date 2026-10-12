@@ -50,15 +50,54 @@
 #' @param seed Master seed; each cell-type pair gets a deterministic sub-seed.
 #' @return A data.frame with columns ct_a, prog_a, ct_b, prog_b, cor, p, q,
 #'   sorted by q then -|cor|. Rows with q < alpha are candidate matches.
+# Numerically degenerate programs, two kinds:
+# 1. flashier can retain factors whose loadings underflow to numerical noise
+#    (median |loading| many orders of magnitude below the cell type's strongest
+#    program; e.g. sparse factors whose support is a few genes and whose
+#    remaining entries sit at ~1e-16). Their posterior SDs underflow as well,
+#    producing garbage z-scores, and correlation-based matching is
+#    scale-invariant, so they spuriously match every strong program.
+# 2. Fixed, never-updated factors: real-scale loadings whose posterior SD
+#    column collapsed to machine precision (observed for the smallest cell
+#    type in both real cohorts). Point estimates without usable uncertainty:
+#    mashr cannot assess them.
+# A program is degenerate when median |loading| < `rel_tol` x the cell type's
+# largest, or when its median posterior SD (scaled to the loadings) is <=
+# `sd_floor`.
+.degenerate_programs <- function(fit, rel_tol = 1e-6, sd_floor = 1e-12) {
+  out <- list()
+  for (ct in names(fit$loadings)) {
+    W <- fit$loadings[[ct]]
+    if (!ncol(W)) next
+    sc <- apply(abs(W), 2L, stats::median)
+    bad <- sc < rel_tol * max(sc)
+    if (!is.null(fit$fits[[ct]]$flash$F_psd)) {
+      sdm <- apply(fit$fits[[ct]]$flash$F_psd, 2L, stats::median) *
+        fit$canonicalization[[ct]]$scale_multiplier
+      bad <- bad | (sdm <= sd_floor)
+    }
+    if (any(bad)) out[[ct]] <- colnames(W)[bad]
+  }
+  out
+}
+
 .match_programs_loadings <- function(fit, n_perm = 199L, seed = 1L) {
   .sharing_check_fit(fit, psd = FALSE)
   if (n_perm < 1L) .stopf("`n_perm` must be >= 1.")
   cts <- names(fit$loadings)
   cts <- cts[vapply(fit$loadings, function(W) ncol(W) > 0L, logical(1L))]
   if (length(cts) < 2L) .stopf("Need >= 2 cell types that retained a program; found %d.", length(cts))
+  degen <- .degenerate_programs(fit)
+  if (length(degen)) {
+    .warnf("Excluding %d numerically degenerate program(s) (%s) from matching.",
+           sum(lengths(degen)), paste(unlist(degen), collapse = ", "))
+  }
   rows <- list()
   for (pr in utils::combn(cts, 2L, simplify = FALSE)) {
     Wa <- fit$loadings[[pr[1L]]]; Wb <- fit$loadings[[pr[2L]]]
+    if (pr[1L] %in% names(degen)) Wa <- Wa[, setdiff(colnames(Wa), degen[[pr[1L]]]), drop = FALSE]
+    if (pr[2L] %in% names(degen)) Wb <- Wb[, setdiff(colnames(Wb), degen[[pr[2L]]]), drop = FALSE]
+    if (!ncol(Wa) || !ncol(Wb)) next
     genes <- intersect(rownames(Wa), rownames(Wb))
     if (length(genes) < 10L) {
       .warnf("Gene intersection for %s vs %s is %d (< 10); pair skipped.", pr[1L], pr[2L], length(genes))
@@ -174,6 +213,19 @@
 # (SDs scale like loadings; sign flips leave them unchanged).
 .sharing_matrices <- function(fit, group, min_genes = 50L) {
   .sharing_check_fit(fit, psd = TRUE)
+  degen <- .degenerate_programs(fit)
+  drop_j <- which(vapply(seq_len(nrow(group)), function(j) {
+    ids <- degen[[group$cell_type[j]]]
+    !is.null(ids) && group$program_id[j] %in% ids
+  }, logical(1L)))
+  if (length(drop_j)) {
+    .warnf("Dropping %d matched condition(s) with numerically degenerate programs (%s).",
+           length(drop_j), paste(group$program_id[drop_j], collapse = ", "))
+    group <- group[-drop_j, , drop = FALSE]
+    if (nrow(group) < 2L) {
+      .stopf("Matched group has fewer than 2 non-degenerate programs after dropping degenerate members.")
+    }
+  }
   genes <- Reduce(intersect, lapply(group$cell_type, function(ct) rownames(fit$loadings[[ct]])))
   if (length(genes) < min_genes) {
     .stopf("Shared gene panel for {%s} is %d genes (< %d).",
@@ -190,8 +242,34 @@
     B[, j] <- W[genes, k]
     S[, j] <- fit$fits[[ct]]$flash$F_psd[match(genes, rownames(W)), k] * s_k
   }
-  if (any(!is.finite(S)) || any(S <= 0)) {
-    .stopf("Non-positive or non-finite loading posterior SDs; cannot run mash.")
+  # Degenerate posteriors from the sparse point-laplace prior: genes unused by a member's
+  # program get loadings at the numerical noise floor (1e-16 and below, with an exponential
+  # tail) AND underflowed SDs, which mashr's zero check rejects. Per mashr's own guidance,
+  # set a small positive SE there: z ~ 0 -> lfsr = 1 -> the gene is (correctly) called
+  # inactive in that condition and the panel is preserved. The floor is relative to the
+  # condition's own loading scale (the SD scale itself can be collapsed by underflow).
+  # Entries with a zero SD but a MATERIALLY nonzero loading (relative to that same scale;
+  # an inconsistent posterior) or non-finite values are genuinely broken: drop.
+  tiny <- S <= 1e-12
+  b_scale <- pmax(apply(abs(B), 2L, stats::median), 1e-6)
+  broken <- rowSums(!is.finite(B) | !is.finite(S) |
+                      (tiny & abs(B) > 1e-6 * matrix(b_scale, nrow(B), ncol(B), byrow = TRUE))) > 0L
+  if (any(broken)) {
+    .warnf("Dropping %d/%d shared-panel genes with non-finite or inconsistent loadings/SDs.",
+           sum(broken), length(genes))
+    B <- B[!broken, , drop = FALSE]; S <- S[!broken, , drop = FALSE]
+    genes <- genes[!broken]; tiny <- tiny[!broken, , drop = FALSE]
+  }
+  if (any(tiny)) {
+    s_floor <- b_scale / 100
+    S[tiny] <- matrix(rep(s_floor, each = nrow(S)), nrow(S), ncol(S))[tiny]
+    .warnf(paste0("Set floor SEs on %d zero-SD loading entries (point-laplace noise-floor ",
+                  "posteriors): mashr calls them inactive in those conditions."),
+           sum(tiny))
+  }
+  if (nrow(B) < min_genes) {
+    .stopf("Shared gene panel for {%s} has %d usable genes (< %d) after dropping degenerate entries.",
+           paste(group$cell_type, collapse = ", "), nrow(B), min_genes)
   }
   for (j in seq_len(C)[-1L]) {
     r <- stats::cor(B[, 1L], B[, j])
@@ -280,6 +358,9 @@
 #' @param n_perm,seed Permutation calibration for the matching step.
 #' @param min_genes Minimum shared-panel size per group (default 50).
 #' @param min_null Minimum null genes for V estimation (else identity).
+#' @param z_thresh |z| below this in every condition marks a null gene for V
+#'   estimation (default 1). With many conditions the intersection at 1 can be
+#'   empty; raise to ~1.5 for large matched groups.
 #' @param data_driven Add PCA/ED data-driven covariances to the canonical set
 #'   (default TRUE; skipped with a warning when too few strong genes).
 #' @param npc Number of PCA covariance components (capped at #conditions).
@@ -302,8 +383,8 @@
 #' @export
 program_sharing <- function(fit, matches = NULL, alpha = 0.05, n_top = 50L,
                             lfsr_thresh = 0.05, n_perm = 199L, seed = 1L,
-                            min_genes = 50L, min_null = 20L, data_driven = TRUE,
-                            npc = 3L, verbose = FALSE, ...) {
+                            min_genes = 50L, min_null = 20L, z_thresh = 1,
+                            data_driven = TRUE, npc = 3L, verbose = FALSE, ...) {
   .sharing_check_fit(fit, psd = TRUE)
   if (!.has_mashr()) {
     cli::cli_abort(c("Package {.pkg mashr} is required for {.fn program_sharing}.",
@@ -329,7 +410,7 @@ program_sharing <- function(fit, matches = NULL, alpha = 0.05, n_top = 50L,
   for (gi in seq_along(groups)) {
     g <- groups[[gi]]
     mats <- .sharing_matrices(fit, g, min_genes = min_genes)
-    V <- .estimate_V(fit, g, min_null = min_null)
+    V <- .estimate_V(fit, g, z_thresh = z_thresh, min_null = min_null)
     data <- mashr::mash_set_data(mats$B, mats$S, V = V)
     U <- mashr::cov_canonical(data)
     if (data_driven) {

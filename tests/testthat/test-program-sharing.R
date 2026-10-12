@@ -88,6 +88,58 @@ test_that("program_sharing tells users to refit when F_psd is missing", {
   expect_error(program_sharing(fit), "Refit")
 })
 
+test_that("degenerate zero-SD entries: floored when loading is zero, dropped when inconsistent", {
+  skip_if_not_installed("mashr")
+  # zero loading + zero SD (program does not use the gene): floored, gene kept
+  fit <- .sharing_toy()
+  g5 <- sprintf("G%03d", 41:45)              # null genes for the shared A_1/B_1 pair
+  fit$loadings$A[g5, "A_1"] <- 0; fit$loadings$B[g5, "B_1"] <- 0
+  fit$fits$A$flash$F_psd[g5, ] <- 0; fit$fits$B$flash$F_psd[g5, ] <- 0
+  expect_warning(res <- program_sharing(fit, n_perm = 199, seed = 1), "floor")
+  expect_equal(nrow(res$results$group1$posterior_mean), 300L)
+  expect_equal(res$results$group1$classification, "shared")
+  # nonzero loading + zero SD (inconsistent posterior): dropped
+  fit2 <- .sharing_toy()
+  fit2$fits$A$flash$F_psd[1:5, ] <- 0
+  fit2$fits$B$flash$F_psd[1:5, ] <- 0
+  expect_warning(res2 <- program_sharing(fit2, n_perm = 199, seed = 1), "Dropping")
+  expect_equal(nrow(res2$results$group1$posterior_mean), 295L)
+  # z_thresh pass-through: wider null window finds null genes where z_thresh = 1 finds none.
+  # Scale SDs so null-gene z ~ N(0, 1); at z_thresh = 1 only ~48% of null genes qualify
+  # (both conditions), at 3 nearly all.
+  fit3 <- .sharing_toy(null_rho = 0.5)
+  fit3$fits$A$flash$F_psd <- fit3$fits$A$flash$F_psd * 0.2
+  fit3$fits$B$flash$F_psd <- fit3$fits$B$flash$F_psd * 0.2
+  grp2 <- data.frame(cell_type = c("A", "B"), program_id = c("A_1", "B_1"))
+  V1 <- .estimate_V(fit3, grp2, z_thresh = 1)
+  V2 <- .estimate_V(fit3, grp2, z_thresh = 3)
+  expect_gt(attr(V2, "n_null"), attr(V1, "n_null"))
+})
+
+test_that("numerically degenerate programs are excluded from matching and sharing", {
+  skip_if_not_installed("mashr")
+  # crush A_2 into numerical noise (15 orders below A_1): matching skips it
+  fit <- .sharing_toy()
+  fit$loadings$A[, "A_2"] <- fit$loadings$A[, "A_2"] * 1e-16
+  expect_warning(mt <- .match_programs_loadings(fit), "degenerate")
+  expect_false(any(mt$prog_a == "A_2" | mt$prog_b == "A_2"))
+  expect_true(any(mt$prog_a == "A_1" | mt$prog_b == "A_1"))
+  # an explicitly supplied degenerate member is dropped from the matrices
+  grp <- data.frame(cell_type = c("A", "B", "C"), program_id = c("A_2", "B_1", "C_1"))
+  expect_warning(mats <- .sharing_matrices(fit, grp), "degenerate")
+  expect_equal(ncol(mats$B), 2L)
+  expect_equal(colnames(mats$B), c("B", "C"))
+  # a group reduced to < 2 non-degenerate members is an error
+  grp2 <- data.frame(cell_type = c("A", "B"), program_id = c("A_2", "B_1"))
+  expect_error(.sharing_matrices(fit, grp2), "fewer than 2")
+  # a real-scale program with a collapsed posterior-SD column (fixed factor)
+  # is degenerate too
+  fit4 <- .sharing_toy()
+  fit4$fits$A$flash$F_psd[, "A_2"] <- 1e-20
+  expect_warning(mt4 <- .match_programs_loadings(fit4), "degenerate")
+  expect_false(any(mt4$prog_a == "A_2" | mt4$prog_b == "A_2"))
+})
+
 test_that("end-to-end: planted shared program is shared, private programs are private", {
   skip_if_not_installed("mashr")
   fit <- .sharing_toy()

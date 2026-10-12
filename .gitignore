@@ -45,3 +45,7 @@ biomni/*.zip
 # pkgdown site output (docs/ itself holds tracked hand-written reports; only
 # the generated site under docs/pkgdown/ is ignored)
 docs/pkgdown/
+
+# testthat failure snapshots (regenerated on every failing run)
+tests/testthat/_problems/
+tests/testthat/testthat-problems.rds
