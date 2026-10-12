@@ -12,7 +12,9 @@
 #' @param max_factors Maximum candidate factors per cell type (greedy_Kmax).
 #'   Default 10: benchmarked on COMBAT pseudobulk (32-config factorial),
 #'   K=10 dominated all prior/variance/backfit combinations; K >= 30
-#'   overfits and collapses disease-signal recovery.
+#'   overfits and collapses disease-signal recovery. For coordinated-program
+#'   detection (`find_coordinated_programs()`), use `max_factors = 30`: it
+#'   raised CMP membership F1 in the cmp-bench-v1.2 held-out benchmark.
 #' @param center Center genes within each cell type (default TRUE).
 #' @param scale Unit-variance scale genes (default FALSE; not recommended).
 #' @param features Feature selection mode: "all", "variable", or a named list

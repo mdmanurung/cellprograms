@@ -1,0 +1,7 @@
+cohort,run,max_factors,covariates,n_cmp,n_ge5ct,n_2to4ct,vdj_dominated,ambient_majority,sev_p_lt_1e3,geno_marked,ieg_marked,n_new_vs_K10,n_new_narrow,n_new_vdj,n_new_amb,n_new_geno,n_new_sev,n_lost_vs_K10,cross_cohort_matches_r05_ge3ct
+Stephenson,stephenson_pb_sex,10,institute+sex,13,11,2,4,4,3,1,2,,,,,,,,4
+Stephenson,stephenson_pb_sex_K30,30,institute+sex,27,22,5,2,4,2,8,0,13.0,4.0,1.0,0.0,6.0,1.0,2.0,7
+Stephenson,stephenson_pb_sex_K40,40,institute+sex,31,24,7,6,3,5,9,1,18.0,7.0,5.0,0.0,7.0,1.0,3.0,5
+COMBAT,combat_pb,10,institute,11,8,3,1,4,3,2,0,,,,,,,,4
+COMBAT,combat_pb_sex_K30,30,institute+sex,25,15,10,6,4,5,6,1,13.0,7.0,4.0,0.0,6.0,0.0,2.0,7
+COMBAT,combat_pb_sex_K40,40,institute+sex,30,15,15,9,4,3,11,1,18.0,12.0,6.0,0.0,9.0,1.0,1.0,5
