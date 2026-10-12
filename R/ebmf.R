@@ -123,7 +123,7 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
       # the scores/loadings extraction handle K=0 cell types.
       cli::cli_inform("All genes are degenerate (zero after preprocessing) in cell type {.val {ct}}; recording K=0 fit.")
       fits[[ct]] <- list(
-        flash = list(L_pm = NULL, F_pm = NULL),
+        flash = list(L_pm = NULL, F_pm = NULL, L_psd = NULL, F_psd = NULL),
         Y_used = Y,
         genes = character(0),
         elapsed_secs = 0,
@@ -310,6 +310,8 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
   out <- list(
     n_factors = length(k), elbo = fl$elbo, residuals_sd = fl$residuals_sd,
     L_pm = fl$L_pm[, k, drop = FALSE], F_pm = fl$F_pm[, k, drop = FALSE],
+    L_psd = if (!is.null(fl$L_psd)) fl$L_psd[, k, drop = FALSE],
+    F_psd = if (!is.null(fl$F_psd)) fl$F_psd[, k, drop = FALSE],
     F_lfsr = if (!is.null(fl$F_lfsr)) fl$F_lfsr[, k, drop = FALSE],
     fixed_L = Xc, fixed_F = fl$F_pm[, seq_len(q), drop = FALSE]
   )

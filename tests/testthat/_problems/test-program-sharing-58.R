@@ -1,0 +1,46 @@
+# Extracted from test-program-sharing.R:58
+
+# setup ------------------------------------------------------------------------
+library(testthat)
+test_env <- simulate_test_env(package = "cellprograms", path = "..")
+attach(test_env, warn.conflicts = FALSE)
+
+# prequel ----------------------------------------------------------------------
+.sharing_toy <- function(g = 300, seed = 1, null_rho = 0) {
+  set.seed(seed)
+  genes <- sprintf("G%03d", seq_len(g))
+  cts <- c("A", "B", "C")
+  eff <- list(
+    A = list(c(rnorm(40, sd = 2), rep(0, g - 40)),                 # A_1: shared
+             c(rep(0, 60), rnorm(40, sd = 2), rep(0, g - 100))),   # A_2: private
+    B = list(NULL),
+    C = list(c(rep(0, 120), rnorm(40, sd = 2), rep(0, g - 160)))   # C_1: private
+  )
+  eff$B[[1]] <- eff$A[[1]]                                         # identical shared program
+  loadings <- fits <- canon <- list()
+  for (ct in cts) {
+    K <- length(eff[[ct]])
+    common <- rnorm(g)
+    W <- matrix(rnorm(g * K, sd = 0.05), g, K,
+                dimnames = list(genes, paste0(ct, "_", seq_len(K))))
+    for (k in seq_len(K)) {
+      W[, k] <- W[, k] + eff[[ct]][[k]] + sqrt(null_rho) * 0.05 * common
+    }
+    loadings[[ct]] <- W
+    fits[[ct]] <- list(
+      flash = list(F_pm = W, F_psd = matrix(0.3, g, K, dimnames = dimnames(W))),
+      genes = genes
+    )
+    canon[[ct]] <- list(scale_multiplier = rep(1, K), sign_multiplier = rep(1, K))
+  }
+  structure(list(loadings = loadings, fits = fits, canonicalization = canon,
+                 cell_types = cts),
+            class = c("cell_program_fit", "cell_program_data", "list"))
+}
+
+# test -------------------------------------------------------------------------
+fit <- .sharing_toy(null_rho = 0.5)
+grp <- data.frame(cell_type = c("A", "B"), program_id = c("A_1", "B_1"))
+V <- .estimate_V(fit, grp)
+expect_true(isSymmetric(V))
+expect_equal(diag(V), c(1, 1))
