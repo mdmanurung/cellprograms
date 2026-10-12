@@ -126,3 +126,21 @@ REG_V2 <- list(
 REG_V2$j_r001 <- function(fit, strata, seed) cand_adaptive(.jfilter(fit, 0.001), strata, seed, ks = Inf, n_perm = NP)
 REG_V2$j_r005 <- function(fit, strata, seed) cand_adaptive(.jfilter(fit, 0.005), strata, seed, ks = Inf, n_perm = NP)
 REG_V2$j_r0   <- function(fit, strata, seed) cand_adaptive(fit, strata, seed, ks = Inf, n_perm = NP)
+
+## S: subspace_sum joint-subspace arm (reviewed prototype on winner prep; cand_subspace.R)
+source("cand_subspace.R")
+REG_V2$s_subspace      <- function(fit, strata, seed) cand_subspace(fit, strata, seed, gate = "maxT", n_perm = NP)
+REG_V2$s_subspace_ct95 <- function(fit, strata, seed) cand_subspace(fit, strata, seed, gate = "ct95", n_perm = NP)
+
+## WS1: two-stage pair-gate -> node test (cand_twostage.R) and Cauchy-combination node statistic
+## (cand_cauchy.R); both on the identical n_agg_noanc prep so the comparison isolates the node statistic.
+source("cand_twostage.R")
+source("cand_cauchy.R")
+REG_V2$n_2stage <- function(fit, strata, seed) cand_twostage(fit, strata, seed, n_perm = NP)
+REG_V2$n_cauchy  <- function(fit, strata, seed) cand_cauchy(fit, strata, seed, n_perm = NP)
+
+## WS2.1: score-uncertainty arm (cand_nodeagg_wt.R) -- EB shrinkage of donor scores by flashier
+## L_psd (canonicalized), then the exact n_agg_noanc pipeline; marginal mode only (within mode
+## falls back to the unmodified winner). Isolates uncertainty propagation as a caller arm.
+source("cand_nodeagg_wt.R")
+REG_V2$n_agg_eb <- function(fit, strata, seed) cand_nodeagg_eb(fit, strata, seed, n_perm = NP)
