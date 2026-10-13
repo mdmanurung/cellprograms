@@ -304,6 +304,28 @@ MIT
   : Flag programs or CMPs carrying artifact genes
 - [`match_programs()`](https://mdmanurung.github.io/cellprograms/reference/match_programs.md)
   : Match programs across two fits (bootstrap refits or cohorts)
+- [`plot_alignment()`](https://mdmanurung.github.io/cellprograms/reference/plot_alignment.md)
+  : Plot program alignment (principal angles)
+- [`plot_artifact_flags()`](https://mdmanurung.github.io/cellprograms/reference/plot_artifact_flags.md)
+  : Plot artifact-gene flags
+- [`plot_cmp_network()`](https://mdmanurung.github.io/cellprograms/reference/plot_cmp_network.md)
+  : Plot the coordinated-program network
+- [`plot_cmp_nodes()`](https://mdmanurung.github.io/cellprograms/reference/plot_cmp_nodes.md)
+  : Plot CMP node statistics
+- [`plot_context_association()`](https://mdmanurung.github.io/cellprograms/reference/plot_context_association.md)
+  : Plot CMP context associations
+- [`plot_program_scores()`](https://mdmanurung.github.io/cellprograms/reference/plot_program_scores.md)
+  : Plot program scores across donors
+- [`plot_sharing()`](https://mdmanurung.github.io/cellprograms/reference/plot_sharing.md)
+  : Plot program sharing results
+- [`plot_sharing_spectrum()`](https://mdmanurung.github.io/cellprograms/reference/plot_sharing_spectrum.md)
+  : Plot the sharing spectrum
+- [`plot_stability()`](https://mdmanurung.github.io/cellprograms/reference/plot_stability.md)
+  : Plot program stability
+- [`plot_top_genes()`](https://mdmanurung.github.io/cellprograms/reference/plot_top_genes.md)
+  : Plot top-loaded genes per program
+- [`plot_variance_explained()`](https://mdmanurung.github.io/cellprograms/reference/plot_variance_explained.md)
+  : Plot variance explained per program
 - [`prepare_collectri()`](https://mdmanurung.github.io/cellprograms/reference/prepare_collectri.md)
   : Format an OmniPath CollecTRI table as a signed TF-target network
 - [`principal_angles()`](https://mdmanurung.github.io/cellprograms/reference/principal_angles.md)
@@ -358,3 +380,8 @@ MIT
   cohorts](https://mdmanurung.github.io/cellprograms/articles/real_data_case_study.md):
 - [Case study: DIVAS COVID-19 multi-omics reanalysis with
   cellprograms](https://mdmanurung.github.io/cellprograms/articles/divas_case_study.md):
+
+### Comparisons
+
+- [Compared to MOFAcellulaR: local-first vs joint multicellular factor
+  analysis](https://mdmanurung.github.io/cellprograms/articles/mofacellular_comparison.md):

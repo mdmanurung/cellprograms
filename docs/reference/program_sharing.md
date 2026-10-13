@@ -123,7 +123,7 @@ scores.
 ## Examples
 
 ``` r
-sim <- simulate_pseudobulk(n_samples = 24, n_genes = 200, program_size = 20, seed = 1)
+sim <- simulate_pseudobulk(n_samples = 20, n_genes = 150, program_size = 20, seed = 1)
 x <- as_cell_program_data(sim$pseudobulk)
 fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 100)
 fit <- canonicalize_programs(fit)
@@ -135,18 +135,18 @@ if (requireNamespace("mashr", quietly = TRUE)) {
   res$summary
 }
 #> Warning: Only 0 null genes (|z| < 1 in all 2 conditions); using V = identity.
-#>  - Computing 53 x 281 likelihood matrix.
-#>  - Likelihood calculations took 0.00 seconds.
-#>  - Fitting model with 281 mixture components.
-#>  - Model fitting took 0.13 seconds.
+#>  - Computing 73 x 341 likelihood matrix.
+#>  - Likelihood calculations took 0.01 seconds.
+#>  - Fitting model with 341 mixture components.
+#>  - Model fitting took 0.39 seconds.
 #>  - Computing posterior matrices.
 #>  - Computation allocated took 0.00 seconds.
 #>   program_id cell_type group_id n_conditions classification frac_top_shared
 #> 1        B_1         B       NA            1        private              NA
 #> 2        B_2         B       NA            1        private              NA
 #> 3      CD4_1       CD4       NA            1        private              NA
-#> 4      CD8_1       CD8        1            2         shared            0.75
-#> 5       NK_1        NK        1            2         shared            0.75
+#> 4      CD8_1       CD8        1            2        private             0.1
+#> 5       NK_1        NK        1            2        private             0.1
 #> 6       NK_2        NK       NA            1        private              NA
 #> 7     Mono_1      Mono       NA            1        private              NA
 #> 8     Mono_2      Mono       NA            1        private              NA
@@ -154,8 +154,8 @@ if (requireNamespace("mashr", quietly = TRUE)) {
 #> 1               NA           NA no_significant_match
 #> 2               NA           NA no_significant_match
 #> 3               NA           NA no_significant_match
-#> 4             0.15   0.05338305                mashr
-#> 5             0.15   0.05338305                mashr
+#> 4             0.85   0.05969732                mashr
+#> 5             0.85   0.05969732                mashr
 #> 6               NA           NA no_significant_match
 #> 7               NA           NA no_significant_match
 #> 8               NA           NA no_significant_match

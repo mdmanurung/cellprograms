@@ -1,0 +1,298 @@
+---
+title: "Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Compared to MOFAcellulaR: local-first vs joint factor analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>",
+                      fig.width = 7, fig.height = 5, dpi = 150)
+has_mofa <- requireNamespace("MOFA2", quietly = TRUE) &&
+  requireNamespace("MOFAcellulaR", quietly = TRUE)
+```
+
+[MOFAcellulaR](https://saezlab.github.io/MOFAcellulaR/) fits a **joint**
+multicellular factor analysis: the pseudobulk profiles of all cell types
+are stacked as MOFA2 views (one per cell type), and MOFA estimates a
+single latent space shared across views. Each factor is by construction a
+*multicellular* program — a linear combination of gene weights from every
+cell type.
+
+`cellprograms` takes the **local-first** route: one empirical-Bayes
+matrix factorization per cell type, with cross-cell-type coordination
+(CMPs) and sharing (mashr) as separate, explicitly tested post-hoc
+questions.
+
+This vignette runs both on the **same simulated data with known ground
+truth**, aligns their outputs, and states where each is expected to win.
+It complements the [MOFAcellulaR get-started
+tutorial](https://saezlab.github.io/MOFAcellulaR/articles/get-started.html)
+and the [liana
+notebook](https://liana.readthedocs.io/en/stable/tutorials/notebooks/mofacellular.html)
+on metadata associations — the same questions, asked of both models.
+
+```{r pkgs}
+library(cellprograms)
+if (!requireNamespace("MOFA2", quietly = TRUE) ||
+    !requireNamespace("MOFAcellulaR", quietly = TRUE)) {
+  message("MOFA2/MOFAcellulaR not installed; skipping the comparison sections.")
+}
+```
+
+## The data: planted multicellular programs
+
+`simulate_pseudobulk(scenario = "mixed")` plants three kinds of structure
+whose donor scores and gene sets are known exactly:
+
+- **`global_IFN`** — coordinated donor activity across B, CD4, NK and
+  Mono (the *same* donor score vector planted in each cell type) with
+  **different genes in each cell type**. A pure activity-coordination
+  program: gene overlap carries no signal.
+- **`CD8NK_shared`** — coordinated activity *and* identical genes across
+  CD8 and NK.
+- **Private programs** (`B_private`, `Mono_private`) — single-cell-type
+  decoys that should *not* be called multicellular.
+
+```{r data}
+sim <- simulate_pseudobulk(scenario = "mixed", n_samples = 60,
+                           n_genes = 800, program_size = 40, seed = 1)
+x <- as_cell_program_data(sim$pseudobulk)
+
+## a donor context variable for the association analyses: high vs low
+## donor score of the planted global_IFN program (as "severity" would be
+## in a real cohort)
+z_ifn <- sim$truth$B[[which(vapply(sim$truth$B, function(t) t$label == "global_IFN", TRUE))]]$z
+md <- data.frame(observation_id = paste0("obs", seq_along(z_ifn)),
+                 ifn_high = factor(z_ifn > median(z_ifn), c(FALSE, TRUE), c("low", "high")))
+x <- as_cell_program_data(sim$pseudobulk, sample_metadata = md)
+```
+
+## cellprograms: local fits, then explicit coordination tests
+
+```{r fit}
+fit <- fit_celltype_programs(x, loading_prior = "point_laplace",
+                             max_factors = 6, features = "variable",
+                             n_variable_genes = 400, seed = 1)
+fit <- canonicalize_programs(fit)
+program_summary(fit)
+```
+
+Coordination (score space, permutation FWER) and sharing (loading space,
+mashr):
+
+```{r cmp}
+cmp <- find_coordinated_programs(fit, n_perm = 999, seed = 1, min_donors = 20)
+cmp
+plot_cmp_network(cmp)
+```
+
+Only one CMP is called — why not the planted CD8–NK pair? Both local fits
+*did* recover it (CD8_1 and NK_1 correlate r > 0.99 with the planted donor
+scores), but the default ambient guard (`ambient = "drop"`, threshold 0.3)
+removed both members before testing: their loadings look like they track
+genes more highly expressed in B cells (ambient scores 0.45 and 0.39). On
+simulated data there is no ambient RNA by construction, so these are false
+positives of the guard. Re-running with `ambient = "flag"` (flag, don't
+drop) recovers both planted CMPs exactly — and the CD8–NK edge turns out
+to be the strongest edge in the entire analysis:
+
+```{r ambient-guard}
+amb <- ambient_program_scores(fit)
+amb[order(-amb$ambient_score), ][1:4, ]
+cmp_flag <- find_coordinated_programs(fit, n_perm = 999, seed = 1,
+                                      min_donors = 20, ambient = "flag")
+cmp_flag
+plot_cmp_network(cmp_flag)
+```
+
+The practical lesson: when the contamination status of a dataset is
+unknown, `ambient = "flag"` is the safer choice — the guard stays visible
+(`ambient_flag` in the membership table) instead of silently removing
+programs. This episode is itself part of the comparison: explicit guards
+can misfire, but they are inspectable and configurable in a way a joint
+model's implicit assumptions are not.
+
+```{r sharing}
+shr <- program_sharing(fit, n_perm = 999, seed = 1)
+plot_sharing(shr)
+```
+
+## MOFAcellulaR: one joint latent space
+
+`as_mofacellular_input()` exports the same pseudobulk as the
+`(counts, coldata)` pair `MOFAcellulaR::create_init_exp()` expects,
+guaranteeing both models see identical inputs. MOFAcellulaR's QC chain
+(`filt_profiles`, `tmm_trns`, ...) targets *raw-count* pseudobulk; the
+simulated profiles are already continuous, so we hand the views to MOFA2
+directly (with real data, run their full preprocessing first):
+
+```{r mofa, eval = has_mofa}
+mofa_in <- as_mofacellular_input(x)          # counts + coldata (the interop adapter)
+views <- lapply(sim$pseudobulk, t)           # genes x donors, one view per cell type
+mo <- MOFA2::create_mofa(views)
+mo_opts <- MOFA2::get_default_model_options(mo)
+mo_opts$num_factors <- 8
+mo_opts$spikeslab_weights <- FALSE           # as in the MOFAcellulaR tutorial
+tr_opts <- MOFA2::get_default_training_options(mo)
+tr_opts$seed <- 1
+mo <- MOFA2::prepare_mofa(mo, model_options = mo_opts, training_options = tr_opts)
+mofa_model <- MOFA2::run_mofa(mo, outfile = tempfile(fileext = ".hdf5"), save_data = FALSE)
+Z_mofa <- MOFA2::get_factors(mofa_model)$group1   # donors x factors
+dim(Z_mofa)
+```
+
+## Aligning the two models
+
+Both models return donor-level scores — cellprograms per cell type
+(`fit$scores`), MOFA shared across views. The natural alignment is a
+donor-score correlation between every cellprograms program and every MOFA
+factor:
+
+```{r align, eval = has_mofa}
+progs <- do.call(cbind, fit$scores)
+r_mat <- cor(progs, Z_mofa)
+df <- data.frame(program = rep(rownames(r_mat), ncol(r_mat)),
+                 factor = rep(colnames(r_mat), each = nrow(r_mat)),
+                 r = as.vector(r_mat))
+ggplot2::ggplot(df, ggplot2::aes(factor, program, fill = r)) +
+  ggplot2::geom_tile(color = "white") +
+  ggplot2::scale_fill_gradient2(low = "#2166AC", mid = "#F7F7F7", high = "#B2182B",
+                                midpoint = 0, limits = c(-1, 1), name = "Pearson r") +
+  ggplot2::labs(x = "MOFA factor", y = "cellprograms program",
+                title = "Donor-score concordance between the two models") +
+  ggplot2::theme_bw()
+```
+
+Reading it: programs that appear in both models light up a MOFA factor;
+MOFA factors with no cellprograms counterpart are typically
+cell-type-specific or artifact directions that the local fits + CMP test
+separated out.
+
+## Ground-truth recovery
+
+For each planted program and each cell type it was planted in: the best
+|correlation| between the planted donor scores and any recovered program
+(factor) of that cell type, plus gene-set recovery (Jaccard of the top-40
+|loadings| against the planted genes):
+
+```{r recovery, eval = has_mofa}
+## planted programs as (cell type, label, donor scores, planted gene names)
+planted <- unlist(lapply(names(sim$truth), function(ct) {
+  lapply(seq_along(sim$truth[[ct]]), function(k) {
+    list(ct = ct, t = sim$truth[[ct]][[k]],
+         genes = colnames(sim$pseudobulk[[ct]])[sim$truth[[ct]][[k]]$gene_idx])
+  })
+}), recursive = FALSE)
+
+## per planted program: best |cor| of donor scores against any recovered
+## program/factor of that cell type, and Jaccard of the top-40 |loading|
+## genes against the planted genes
+recover <- function(scores, loadings) {
+  do.call(rbind, lapply(planted, function(p) {
+    S <- scores[[p$ct]]; W <- loadings[[p$ct]]
+    if (is.null(S) || ncol(S) == 0) return(NULL)
+    r_best <- suppressWarnings(max(abs(cor(S, p$t$z)), na.rm = TRUE))
+    top <- apply(abs(W), 2, function(w) rownames(W)[order(-abs(w))][seq_len(40)])
+    j <- apply(as.matrix(top), 2, function(g) length(intersect(g, p$genes)) / 40)
+    data.frame(label = p$t$label, cell_type = p$ct, best_r = r_best, gene_jaccard = max(j))
+  }))
+}
+rec_cp <- recover(fit$scores, fit$loadings)
+## MOFA2 suffixes feature names with the view name when views share genes
+## (G1 -> G1_B); strip it before matching planted gene names
+w_mofa <- lapply(names(sim$pseudobulk), function(ct) {
+  W <- as.matrix(MOFA2::get_weights(mofa_model, views = ct)[[1]])
+  rownames(W) <- sub(paste0("_", ct, "$"), "", rownames(W))
+  W
+})
+names(w_mofa) <- names(sim$pseudobulk)
+rec_mf <- recover(setNames(rep(list(Z_mofa), length(sim$pseudobulk)), names(sim$pseudobulk)),
+                  w_mofa)
+knitr::kable(rbind(cbind(model = "cellprograms", rec_cp),
+                   cbind(model = "MOFA2", rec_mf)),
+             digits = 2, caption = "Best donor-score |r| and top-gene Jaccard per planted program")
+```
+
+What to expect: the two models tie on raw recovery — every planted
+program's donor activity comes back at best |r| ≥ 0.9 in both, with
+comparable partial gene-set recovery (top-40 Jaccard 0.7–0.85; the local
+fits use the 400 most variable genes, so a few planted genes are not in
+play). The differences this comparison is designed to expose are in the
+*statements* each model can make about that recovery — calibrated
+uncertainty, membership decisions, artifact handling — in the sections
+below.
+
+## Coordination: explicit test vs by construction
+
+- In MOFA2, every factor is multicellular by construction; deciding
+  *whether* a factor genuinely coordinates cell types (vs being driven by
+  one view) is left to downstream inspection (variance decomposition per
+  view, `plot_MOFA_hmap`).
+- `find_coordinated_programs()` tests each candidate against a
+  within-strata permutation null with max-T family-wise error control,
+  and reports which programs are members.
+
+On this data, with the ambient guard set to flag rather than drop,
+cellprograms recovers both planted multicellular programs exactly —
+membership, sign, and a calibrated per-program p-value (all node
+p = 0.001) — and correctly leaves both private decoys uncalled (node
+p = 1). MOFA2 recovers the planted donor activity in its factors but
+offers no calibrated answer to "is this factor genuinely multicellular?":
+every factor is multicellular by construction, so the private decoys also
+come back as factors with weights in every view.
+
+The default run above illustrates the flip side of the local-first
+philosophy's explicit guards: the ambient filter, doing its job on a
+signal it cannot verify, silently removed a true shared program. The guard
+is inspectable (`ambient_program_scores()`) and configurable
+(`ambient = "flag"`), which is why flagging is the recommended setting
+when contamination status is unknown. MOFA2 has no analogous guard — and
+no analogous false positive; its risks sit elsewhere (view-dominant
+factors, no FWER control on "is this shared?").
+
+## Metadata associations
+
+The MOFAcellulaR tutorial associates factor scores with sample metadata
+(`get_associations`: ANOVA for categorical, linear for continuous). The
+cellprograms counterpart is `cmp_context_association()` on CMP consensus
+scores:
+
+```{r assoc, eval = has_mofa}
+## cellprograms: CMP scores vs the planted context
+ca <- cmp_context_association(fit, cmp, "ifn_high")
+ca[order(ca$p), ]
+
+## MOFAcellulaR: factor scores vs the same context
+md_f <- data.frame(sample = rownames(Z_mofa), ifn_high = md$ifn_high[match(rownames(Z_mofa), md$observation_id)])
+ga <- MOFAcellulaR::get_associations(model = mofa_model, metadata = md_f,
+                                     sample_id_column = "sample",
+                                     test_variable = "ifn_high",
+                                     test_type = "categorical", group = FALSE)
+ga[order(ga$p.value), ]
+```
+
+Both should flag the factors/programs aligned with the planted
+`global_IFN` donor scores (the sign of the estimate is arbitrary — program
+and factor directions are identified only up to sign). The cellprograms
+result is restricted to permutation-validated CMPs; the MOFA result covers
+all factors including view-specific ones.
+
+## When to use which
+
+| Question | cellprograms | MOFAcellulaR |
+|---|---|---|
+| Programs within one cell type | per-cell-type EBMF, sparse point-Laplace loadings | factor weights per view (shared latent space) |
+| Cross-cell-type coordination | CMP test: permutation null, max-T FWER, per-program p | by construction; inspect per-view variance |
+| Shared gene effects | mashr layer (lfsr, shared/partial/private) | factor weights are implicitly shared |
+| Artifact handling | V(D)J/genotype masking + flagging | manual gene veto (`filt_gex_bybckgrnd`) |
+| Variance decomposition | per-program PVE per cell type | per-factor, per-view R2 (built in) |
+| Uncertainty | loading/score posterior SDs, lfsr | none (point estimates) |
+| Fit philosophy | local-first; integrate only what replicates | joint from the start |
+
+The two are complementary: `as_mofacellular_input()` exists precisely so
+the same pseudobulk can be pushed through both, with
+`principal_angles()`/`align_programs()` quantifying program-to-factor
+geometry when both are fit.

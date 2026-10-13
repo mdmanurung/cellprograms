@@ -4,6 +4,7 @@
 <url><loc>https://mdmanurung.github.io/cellprograms/articles/divas_case_study.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/articles/index.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/articles/model_mechanisms.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/articles/mofacellular_comparison.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/articles/quickstart.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/articles/real_data_case_study.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/authors.html</loc></url>
@@ -34,6 +35,17 @@
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/flag_artifact_genes.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/index.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/match_programs.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/plot_alignment.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/plot_artifact_flags.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/plot_cmp_network.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/plot_cmp_nodes.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/plot_context_association.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/plot_program_scores.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/plot_sharing.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/plot_sharing_spectrum.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/plot_stability.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/plot_top_genes.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/plot_variance_explained.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/prepare_collectri.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/principal_angles.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/print.cell_program_data.html</loc></url>

@@ -4,9 +4,10 @@ pkgdown_sha: ~
 articles:
   articles/divas_case_study: divas_case_study.html
   articles/model_mechanisms: model_mechanisms.html
+  articles/mofacellular_comparison: mofacellular_comparison.html
   quickstart: quickstart.html
   articles/real_data_case_study: real_data_case_study.html
-last_built: 2026-10-13T22:47Z
+last_built: 2026-10-13T23:31Z
 urls:
   reference: https://mdmanurung.github.io/cellprograms/reference
   article: https://mdmanurung.github.io/cellprograms/articles

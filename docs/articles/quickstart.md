@@ -89,6 +89,32 @@ one call away:
 `#> [1] 60  8`\
 `#> NULL`
 
+The same views as figures — donor x program score heatmap (with the
+planted context as an annotation strip), top loadings, and per-program
+variance explained:
+
+\
+`sev`` ``<-`` ``sim``$``truth``$``B``[[``1``]``]``$``z`` ``>`` `[`median`](https://rdrr.io/r/stats/median.html)`(``sim``$``truth``$``B``[[``1``]``]``$``z``)`\
+`md`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``observation_id ``=`` `[`paste0`](https://rdrr.io/r/base/paste.html)`(``"obs"``, `[`seq_along`](https://rdrr.io/r/base/seq.html)`(``sev``)``)``,`\
+`                 planted ``=`` `[`factor`](https://rdrr.io/r/base/factor.html)`(``sev``, `[`c`](https://rdrr.io/r/base/c.html)`(``FALSE``, ``TRUE``)``, `[`c`](https://rdrr.io/r/base/c.html)`(``"low"``, ``"high"``)``)``)`\
+`fit_ann`` ``<-`` `[`as_cell_program_data`](https://mdmanurung.github.io/cellprograms/reference/as_cell_program_data.md)`(``sim``$``pseudobulk``, sample_metadata ``=`` ``md``)`\
+`fit_ann`` ``<-`` `[`canonicalize_programs`](https://mdmanurung.github.io/cellprograms/reference/canonicalize_programs.md)`(`[`fit_celltype_programs`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)`(``fit_ann``, loading_prior ``=`` ``"point_laplace"``,`\
+`                                                       max_factors ``=`` ``6``, features ``=`` ``"variable"``,`\
+`                                                       n_variable_genes ``=`` ``400``)``)`\
+[`plot_program_scores`](https://mdmanurung.github.io/cellprograms/reference/plot_program_scores.md)`(``fit_ann``, annotation ``=`` ``"planted"``)`
+
+![](quickstart_files/figure-html/viz-inspect-1.png)
+
+\
+[`plot_top_genes`](https://mdmanurung.github.io/cellprograms/reference/plot_top_genes.md)`(``fit``, `[`c`](https://rdrr.io/r/base/c.html)`(``"B_1"``, ``"CD4_1"``)``, n ``=`` ``8``)`
+
+![](quickstart_files/figure-html/viz-inspect-2.png)
+
+\
+[`plot_variance_explained`](https://mdmanurung.github.io/cellprograms/reference/plot_variance_explained.md)`(``fit``)`
+
+![](quickstart_files/figure-html/viz-inspect-3.png)
+
 ## Stability
 
 [`assess_program_stability()`](https://mdmanurung.github.io/cellprograms/reference/assess_program_stability.md)
@@ -116,7 +142,10 @@ recovered.
 `#> 5                1        0.9047619`\
 `#> 6                1        1.0000000`\
 `#> 7                1        0.9047619`\
-`#> 8                1        1.0000000`
+`#> 8                1        1.0000000`\
+[`plot_stability`](https://mdmanurung.github.io/cellprograms/reference/plot_stability.md)`(``fit``)`
+
+![](quickstart_files/figure-html/stability-1.png)
 
 ## Coordinated multicellular programs (CMPs)
 
@@ -131,6 +160,19 @@ plays no role in the call.
 `#> <cmp_result> 1 coordinated multicellular program(s) at FWER 0.05 (mode: marginal, ambient: drop)`\
 `#>   CMP 1: B_1, CD4_1 (-), NK_2 (-), Mono_1 (-)`
 
+The coordination network (node size = pooled evidence A_v, edge width =
+\|T\|, color = CMP membership) and the per-program node statistics:
+
+\
+[`plot_cmp_network`](https://mdmanurung.github.io/cellprograms/reference/plot_cmp_network.md)`(``cmp``)`
+
+![](quickstart_files/figure-html/viz-cmp-1.png)
+
+\
+[`plot_cmp_nodes`](https://mdmanurung.github.io/cellprograms/reference/plot_cmp_nodes.md)`(``cmp``)`
+
+![](quickstart_files/figure-html/viz-cmp-2.png)
+
 ## Shared vs specific programs
 
 [`program_sharing()`](https://mdmanurung.github.io/cellprograms/reference/program_sharing.md)
@@ -143,9 +185,10 @@ do not imply shared effects.
 `if`` ``(`[`requireNamespace`](https://rdrr.io/r/base/ns-load.html)`(``"mashr"``, quietly ``=`` ``TRUE``)``)`` ``{`\
 `  ``shr`` ``<-`` `[`program_sharing`](https://mdmanurung.github.io/cellprograms/reference/program_sharing.md)`(``fit``, n_perm ``=`` ``99``, seed ``=`` ``1``)`\
 `  ``shr`\
-`}`\
-`#> program_sharing: 0 matched group(s), 8 program(s) assessed`\
-`#>   8 unmatched program(s): private (no significant match)`
+`  `[`plot_sharing`](https://mdmanurung.github.io/cellprograms/reference/plot_sharing.md)`(``shr``)``   ``# pre-screen correlations x mashr classification`\
+`}`
+
+![](quickstart_files/figure-html/sharing-1.png)
 
 ## Artifact genes
 
@@ -153,6 +196,11 @@ Immunoglobulin/TCR V(D)J segments, known donor-genotype markers, and
 sex-chromosome genes can dominate programs for technical or genetic
 rather than biological reasons. Flag them in existing fits, or exclude
 them at fit time (exclusion happens before variable-gene selection):
+
+\
+[`plot_artifact_flags`](https://mdmanurung.github.io/cellprograms/reference/plot_artifact_flags.md)`(`[`flag_artifact_genes`](https://mdmanurung.github.io/cellprograms/reference/flag_artifact_genes.md)`(``fit``)``)`
+
+![](quickstart_files/figure-html/viz-artifacts-1.png)
 
 \
 [`flag_artifact_genes`](https://mdmanurung.github.io/cellprograms/reference/flag_artifact_genes.md)`(``fit``)`\

@@ -91,7 +91,7 @@ detection, [find_coordinated_programs()]) is a separate axis and a separate
 workstream; a shared program need not have correlated donor scores.
 }
 \examples{
-sim <- simulate_pseudobulk(n_samples = 24, n_genes = 200, program_size = 20, seed = 1)
+sim <- simulate_pseudobulk(n_samples = 20, n_genes = 150, program_size = 20, seed = 1)
 x <- as_cell_program_data(sim$pseudobulk)
 fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 100)
 fit <- canonicalize_programs(fit)
