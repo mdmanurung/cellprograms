@@ -32,3 +32,8 @@ articles:
   contents:
   - articles/real_data_case_study
   - articles/divas_case_study
+
+- title: Comparisons
+  navbar: ~
+  contents:
+  - articles/mofacellular_comparison

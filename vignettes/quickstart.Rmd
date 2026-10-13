@@ -67,6 +67,23 @@ W <- program_loadings(fit)  # genes x all programs
 dim(Z); dim(W)
 ```
 
+The same views as figures — donor x program score heatmap (with the planted
+context as an annotation strip), top loadings, and per-program variance
+explained:
+
+```{r viz-inspect, fig.width = 8, fig.height = 5.5}
+sev <- sim$truth$B[[1]]$z > median(sim$truth$B[[1]]$z)
+md <- data.frame(observation_id = paste0("obs", seq_along(sev)),
+                 planted = factor(sev, c(FALSE, TRUE), c("low", "high")))
+fit_ann <- as_cell_program_data(sim$pseudobulk, sample_metadata = md)
+fit_ann <- canonicalize_programs(fit_celltype_programs(fit_ann, loading_prior = "point_laplace",
+                                                       max_factors = 6, features = "variable",
+                                                       n_variable_genes = 400))
+plot_program_scores(fit_ann, annotation = "planted")
+plot_top_genes(fit, c("B_1", "CD4_1"), n = 8)
+plot_variance_explained(fit)
+```
+
 ## Stability
 
 `assess_program_stability()` refits on donor subsamples and reports how often
@@ -76,6 +93,7 @@ each program is recovered.
 fit <- assess_program_stability(fit, n_boot = 4, resample_frac = 0.7,
                                 seed = 1, progress = FALSE)
 fit$stability$per_program
+plot_stability(fit)
 ```
 
 ## Coordinated multicellular programs (CMPs)
@@ -89,6 +107,14 @@ cmp <- find_coordinated_programs(fit, n_perm = 199, seed = 1)
 cmp
 ```
 
+The coordination network (node size = pooled evidence A_v, edge width = |T|,
+color = CMP membership) and the per-program node statistics:
+
+```{r viz-cmp, fig.width = 7, fig.height = 5.5}
+plot_cmp_network(cmp)
+plot_cmp_nodes(cmp)
+```
+
 ## Shared vs specific programs
 
 `program_sharing()` goes the other way: it matches programs across cell types
@@ -100,6 +126,7 @@ alone do not imply shared effects.
 if (requireNamespace("mashr", quietly = TRUE)) {
   shr <- program_sharing(fit, n_perm = 99, seed = 1)
   shr
+  plot_sharing(shr)   # pre-screen correlations x mashr classification
 }
 ```
 
@@ -110,7 +137,8 @@ sex-chromosome genes can dominate programs for technical or genetic rather
 than biological reasons. Flag them in existing fits, or exclude them at fit
 time (exclusion happens before variable-gene selection):
 
-```{r artifacts}
+```{r viz-artifacts, fig.width = 7, fig.height = 4}
+plot_artifact_flags(flag_artifact_genes(fit))
 flag_artifact_genes(fit)
 
 # fit-time masking:

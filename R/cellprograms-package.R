@@ -11,3 +11,14 @@
 #' @keywords internal
 #' @import stats utils
 "_PACKAGE"
+
+## ggplot2 data-column references in R/plots.R (NSE; not global variables)
+utils::globalVariables(c(
+  "a", "ambient", "b", "cell_type", "cmp_lab", "direction", "donor",
+  "estimate", "fraction", "gene", "lab", "label", "loading",
+  "median_score_cor", "min_angle_deg", "n_shared_05", "node_stat", "p",
+  "pair", "program", "pve", "recovery_freq", "score", "se", "set",
+  "sign_consistency", "sig", "stat", "top_gene_jaccard", "underpowered",
+  "value", "weight", "x", "x0", "x1", "y", "y0", "y1"
+))
+

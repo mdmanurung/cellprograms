@@ -38,6 +38,7 @@
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -155,13 +156,32 @@ one call away:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">Z</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">W</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 60  8</span></span>
 <span><span class="co">#&gt; NULL</span></span></code></pre></div>
+<p>The same views as figures — donor x program score heatmap (with the
+planted context as an annotation strip), top loadings, and per-program
+variance explained:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sev</span> <span class="op">&lt;-</span> <span class="va">sim</span><span class="op">$</span><span class="va">truth</span><span class="op">$</span><span class="va">B</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">z</span> <span class="op">&gt;</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">truth</span><span class="op">$</span><span class="va">B</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">z</span><span class="op">)</span></span>
+<span><span class="va">md</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>observation_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"obs"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">sev</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                 planted <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">sev</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">FALSE</span>, <span class="cn">TRUE</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"low"</span>, <span class="st">"high"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">fit_ann</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_cell_program_data.html">as_cell_program_data</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">pseudobulk</span>, sample_metadata <span class="op">=</span> <span class="va">md</span><span class="op">)</span></span>
+<span><span class="va">fit_ann</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/canonicalize_programs.html">canonicalize_programs</a></span><span class="op">(</span><span class="fu"><a href="../reference/fit_celltype_programs.html">fit_celltype_programs</a></span><span class="op">(</span><span class="va">fit_ann</span>, loading_prior <span class="op">=</span> <span class="st">"point_laplace"</span>,</span>
+<span>                                                       max_factors <span class="op">=</span> <span class="fl">6</span>, features <span class="op">=</span> <span class="st">"variable"</span>,</span>
+<span>                                                       n_variable_genes <span class="op">=</span> <span class="fl">400</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_program_scores.html">plot_program_scores</a></span><span class="op">(</span><span class="va">fit_ann</span>, annotation <span class="op">=</span> <span class="st">"planted"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="quickstart_files/figure-html/viz-inspect-1.png" class="r-plt" alt="" width="1200"></p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_top_genes.html">plot_top_genes</a></span><span class="op">(</span><span class="va">fit</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"B_1"</span>, <span class="st">"CD4_1"</span><span class="op">)</span>, n <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span></code></pre></div>
+<p><img src="quickstart_files/figure-html/viz-inspect-2.png" class="r-plt" alt="" width="1200"></p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_variance_explained.html">plot_variance_explained</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
+<p><img src="quickstart_files/figure-html/viz-inspect-3.png" class="r-plt" alt="" width="1200"></p>
 </div>
 <div class="section level2">
 <h2 id="stability">Stability<a class="anchor" aria-label="anchor" href="#stability"></a>
 </h2>
 <p><code><a href="../reference/assess_program_stability.html">assess_program_stability()</a></code> refits on donor subsamples
 and reports how often each program is recovered.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/assess_program_stability.html">assess_program_stability</a></span><span class="op">(</span><span class="va">fit</span>, n_boot <span class="op">=</span> <span class="fl">4</span>, resample_frac <span class="op">=</span> <span class="fl">0.7</span>,</span>
 <span>                                seed <span class="op">=</span> <span class="fl">1</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">stability</span><span class="op">$</span><span class="va">per_program</span></span>
@@ -182,7 +202,9 @@ and reports how often each program is recovered.</p>
 <span><span class="co">#&gt; 5                1        0.9047619</span></span>
 <span><span class="co">#&gt; 6                1        1.0000000</span></span>
 <span><span class="co">#&gt; 7                1        0.9047619</span></span>
-<span><span class="co">#&gt; 8                1        1.0000000</span></span></code></pre></div>
+<span><span class="co">#&gt; 8                1        1.0000000</span></span>
+<span><span class="fu"><a href="../reference/plot_stability.html">plot_stability</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
+<p><img src="quickstart_files/figure-html/stability-1.png" class="r-plt" alt="" width="900"></p>
 </div>
 <div class="section level2">
 <h2 id="coordinated-multicellular-programs-cmps">Coordinated multicellular programs (CMPs)<a class="anchor" aria-label="anchor" href="#coordinated-multicellular-programs-cmps"></a>
@@ -191,11 +213,19 @@ and reports how often each program is recovered.</p>
 <em>different</em> cell types co-vary across donors, with family-wise
 error control by permutation. Gene overlap plays no role in the
 call.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/find_coordinated_programs.html">find_coordinated_programs</a></span><span class="op">(</span><span class="va">fit</span>, n_perm <span class="op">=</span> <span class="fl">199</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">cmp</span></span>
 <span><span class="co">#&gt; &lt;cmp_result&gt; 1 coordinated multicellular program(s) at FWER 0.05 (mode: marginal, ambient: drop)</span></span>
 <span><span class="co">#&gt;   CMP 1: B_1, CD4_1 (-), NK_2 (-), Mono_1 (-)</span></span></code></pre></div>
+<p>The coordination network (node size = pooled evidence A_v, edge width
+= |T|, color = CMP membership) and the per-program node statistics:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_cmp_network.html">plot_cmp_network</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">)</span></span></code></pre></div>
+<p><img src="quickstart_files/figure-html/viz-cmp-1.png" class="r-plt" alt="" width="1050"></p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_cmp_nodes.html">plot_cmp_nodes</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">)</span></span></code></pre></div>
+<p><img src="quickstart_files/figure-html/viz-cmp-2.png" class="r-plt" alt="" width="1050"></p>
 </div>
 <div class="section level2">
 <h2 id="shared-vs-specific-programs">Shared vs specific programs<a class="anchor" aria-label="anchor" href="#shared-vs-specific-programs"></a>
@@ -205,13 +235,13 @@ programs across cell types by loading correlation
 (permutation-calibrated), then asks with ‘mashr’ whether the matched
 programs share their gene <em>effects</em> — correlated loadings alone
 do not imply shared effects.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"mashr"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">shr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/program_sharing.html">program_sharing</a></span><span class="op">(</span><span class="va">fit</span>, n_perm <span class="op">=</span> <span class="fl">99</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span>  <span class="va">shr</span></span>
-<span><span class="op">}</span></span>
-<span><span class="co">#&gt; program_sharing: 0 matched group(s), 8 program(s) assessed</span></span>
-<span><span class="co">#&gt;   8 unmatched program(s): private (no significant match)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="../reference/plot_sharing.html">plot_sharing</a></span><span class="op">(</span><span class="va">shr</span><span class="op">)</span>   <span class="co"># pre-screen correlations x mashr classification</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p><img src="quickstart_files/figure-html/sharing-1.png" class="r-plt" alt="" width="900"></p>
 </div>
 <div class="section level2">
 <h2 id="artifact-genes">Artifact genes<a class="anchor" aria-label="anchor" href="#artifact-genes"></a>
@@ -220,7 +250,10 @@ do not imply shared effects.</p>
 sex-chromosome genes can dominate programs for technical or genetic
 rather than biological reasons. Flag them in existing fits, or exclude
 them at fit time (exclusion happens before variable-gene selection):</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_artifact_flags.html">plot_artifact_flags</a></span><span class="op">(</span><span class="fu"><a href="../reference/flag_artifact_genes.html">flag_artifact_genes</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="quickstart_files/figure-html/viz-artifacts-1.png" class="r-plt" alt="" width="1050"></p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/flag_artifact_genes.html">flag_artifact_genes</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   cell_type program_id vdj_frac vdj_flag genotype_marker_frac</span></span>
 <span><span class="co">#&gt; 1         B        B_1        0    FALSE                    0</span></span>

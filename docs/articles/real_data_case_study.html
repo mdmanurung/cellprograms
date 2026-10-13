@@ -38,6 +38,7 @@
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -122,6 +123,18 @@ classify every program as <strong>shared</strong>,
 <code class="sourceCode R"><span><span class="va">share</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/program_sharing.html">program_sharing</a></span><span class="op">(</span><span class="va">fit</span>, n_perm <span class="op">=</span> <span class="fl">199</span>, seed <span class="op">=</span> <span class="fl">1</span>, z_thresh <span class="op">=</span> <span class="fl">1.5</span><span class="op">)</span></span>
 <span><span class="va">share</span><span class="op">$</span><span class="va">summary</span>   <span class="co"># per-program classification</span></span>
 <span><span class="va">share</span><span class="op">$</span><span class="va">groups</span>    <span class="co"># sharing groups (lists of cell-type programs)</span></span></code></pre></div>
+<p>The sharing structure at cohort scale — the strongest cross-cell-type
+pre-screen correlation per cell-type pair (per-program heatmaps become
+unreadable beyond a few dozen programs, hence the
+<code>level = "cell_type"</code> aggregate):</p>
+<div class="float">
+<img src="figures/fig_sharing_celltypes.png" alt="Strongest cross-cell-type program correlation per cell-type pair (Stephenson, unmasked)"><div class="figcaption">Strongest cross-cell-type program correlation
+per cell-type pair (Stephenson, unmasked)</div>
+</div>
+<p>The near-uniform dark map is the V(D)J artifact speaking: every
+cell-type pair has some program pair correlating at r &gt; 0.7, which is
+why the per-program classification below is dominated by artifact-driven
+sharing groups.</p>
 <table class="table">
 <thead><tr class="header">
 <th>Cohort</th>
@@ -280,17 +293,39 @@ budgets.</p>
 </h2>
 <p><code><a href="../reference/find_coordinated_programs.html">find_coordinated_programs()</a></code> detects coordinated
 multi-cell-type programs (CMPs) — donor-level score covariation across
-cell types that permutation tests against donor-label shuffling:</p>
+cell types that permutation tests against donor-label shuffling. Run on
+the masked fits (the recommended workflow), with severity context
+association adjusting for institute and sex:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/find_coordinated_programs.html">find_coordinated_programs</a></span><span class="op">(</span><span class="va">fit</span>, n_perm <span class="op">=</span> <span class="fl">999</span>, seed <span class="op">=</span> <span class="fl">1</span>, min_donors <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/find_coordinated_programs.html">find_coordinated_programs</a></span><span class="op">(</span><span class="va">fit_masked</span>, n_perm <span class="op">=</span> <span class="fl">999</span>, seed <span class="op">=</span> <span class="fl">1</span>, min_donors <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span>
 <span><span class="va">cmp</span><span class="op">$</span><span class="va">cmps</span>          <span class="co"># per-CMP member programs and consensus scores</span></span>
-<span><span class="fu"><a href="../reference/cmp_context_association.html">cmp_context_association</a></span><span class="op">(</span><span class="va">cmp</span>, <span class="va">fit</span>, context <span class="op">=</span> <span class="st">"severity"</span><span class="op">)</span></span></code></pre></div>
-<p>Both cohorts yield <strong>6 CMPs</strong> under the marginal mode.
-CMP membership overlaps the sharing groups but is not identical: sharing
-(mashr) is a loading-space statement, coordination is a score-space
-statement, and the two views agree on the biology (interferon, cell
-cycle) while disagreeing on program-level details — which is precisely
-the information the two-test workflow is designed to surface.</p>
+<span><span class="fu"><a href="../reference/cmp_context_association.html">cmp_context_association</a></span><span class="op">(</span><span class="va">fit_masked</span>, <span class="va">cmp</span>, <span class="st">"severity"</span>,</span>
+<span>                        covariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"institute"</span>, <span class="st">"sex"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>The masked refits yield <strong>24 CMPs</strong> over 598 significant
+edges (Stephenson) and <strong>21 CMPs</strong> over 255 edges (COMBAT);
+the unmasked cap-30 fits give 27 and 25 (see
+<code>benchmarks/cmp_detection/results/real_K10_K30_K40_summary.csv</code>
+for the full cap-10/30/40 grid). The network view — node size = pooled
+evidence A_v, edge width = |T|, color = CMP membership:</p>
+<div class="float">
+<img src="figures/fig_cmp_network.png" alt="Coordinated-program network, masked Stephenson fit (60 strongest edges shown)"><div class="figcaption">Coordinated-program network, masked Stephenson
+fit (60 strongest edges shown)</div>
+</div>
+<p>Severity association per CMP (linear model on CMP consensus scores,
+adjusting for institute and sex; solid red = p &lt; 0.05):</p>
+<div class="float">
+<img src="figures/fig_cmp_context.png" alt="CMP score association with COVID-19 severity, masked Stephenson fit"><div class="figcaption">CMP score association with COVID-19 severity,
+masked Stephenson fit</div>
+</div>
+<p>Several CMPs are significantly severity-associated (strongest around
+|estimate| ~ 0.2-0.3), while most are not — the coordination structure
+carries both disease-relevant and disease-irrelevant multicellular
+programs. CMP membership overlaps the sharing groups but is not
+identical: sharing (mashr) is a loading-space statement, coordination is
+a score-space statement, and the two views agree on the biology
+(interferon, cell cycle) while disagreeing on program-level details —
+which is precisely the information the two-test workflow is designed to
+surface.</p>
 </div>
 <div class="section level2">
 <h2 id="reproducing">Reproducing<a class="anchor" aria-label="anchor" href="#reproducing"></a>

@@ -69,6 +69,22 @@ share$summary   # per-program classification
 share$groups    # sharing groups (lists of cell-type programs)
 ```
 
+The sharing structure at cohort scale — the strongest cross-cell-type
+pre-screen correlation per cell-type pair (per-program heatmaps become
+unreadable beyond a few dozen programs, hence the `level = "cell_type"`
+aggregate):
+
+```{r sharingfig, eval = FALSE, echo = FALSE}
+# knitr::include_graphics("figures/fig_sharing_celltypes.png")
+```
+
+![Strongest cross-cell-type program correlation per cell-type pair (Stephenson, unmasked)](figures/fig_sharing_celltypes.png)
+
+The near-uniform dark map is the V(D)J artifact speaking: every cell-type
+pair has some program pair correlating at r > 0.7, which is why the
+per-program classification below is dominated by artifact-driven sharing
+groups.
+
 | Cohort | Programs | Sharing groups | Shared | Partial | Private |
 |---|---|---|---|---|---|
 | Stephenson | 318 | 39 | 284 | 0 | 34 |
@@ -167,20 +183,48 @@ Matching is stable at realistic permutation budgets.
 
 `find_coordinated_programs()` detects coordinated multi-cell-type
 programs (CMPs) — donor-level score covariation across cell types that
-permutation tests against donor-label shuffling:
+permutation tests against donor-label shuffling. Run on the masked fits
+(the recommended workflow), with severity context association adjusting
+for institute and sex:
 
 ```{r cmp, eval = FALSE}
-cmp <- find_coordinated_programs(fit, n_perm = 999, seed = 1, min_donors = 20)
+cmp <- find_coordinated_programs(fit_masked, n_perm = 999, seed = 1, min_donors = 20)
 cmp$cmps          # per-CMP member programs and consensus scores
-cmp_context_association(cmp, fit, context = "severity")
+cmp_context_association(fit_masked, cmp, "severity",
+                        covariates = c("institute", "sex"))
 ```
 
-Both cohorts yield **6 CMPs** under the marginal mode. CMP membership
-overlaps the sharing groups but is not identical: sharing (mashr) is a
-loading-space statement, coordination is a score-space statement, and the
-two views agree on the biology (interferon, cell cycle) while
-disagreeing on program-level details — which is precisely the information
-the two-test workflow is designed to surface.
+The masked refits yield **24 CMPs** over 598 significant edges
+(Stephenson) and **21 CMPs** over 255 edges (COMBAT); the unmasked cap-30
+fits give 27 and 25 (see
+`benchmarks/cmp_detection/results/real_K10_K30_K40_summary.csv` for the
+full cap-10/30/40 grid). The network view — node size = pooled evidence
+A_v, edge width = |T|, color = CMP membership:
+
+```{r cmpnetfig, eval = FALSE, echo = FALSE}
+# knitr::include_graphics("figures/fig_cmp_network.png")
+```
+
+![Coordinated-program network, masked Stephenson fit (60 strongest edges shown)](figures/fig_cmp_network.png)
+
+Severity association per CMP (linear model on CMP consensus scores,
+adjusting for institute and sex; solid red = p < 0.05):
+
+```{r cmpctxfig, eval = FALSE, echo = FALSE}
+# knitr::include_graphics("figures/fig_cmp_context.png")
+```
+
+![CMP score association with COVID-19 severity, masked Stephenson fit](figures/fig_cmp_context.png)
+
+Several CMPs are significantly severity-associated (strongest around
+|estimate| ~ 0.2-0.3), while most are not — the coordination structure
+carries both disease-relevant and disease-irrelevant multicellular
+programs. CMP membership overlaps the sharing groups but is not
+identical: sharing (mashr) is a loading-space statement, coordination is
+a score-space statement, and the two views agree on the biology
+(interferon, cell cycle) while disagreeing on program-level details —
+which is precisely the information the two-test workflow is designed to
+surface.
 
 ## Reproducing
 
