@@ -130,10 +130,13 @@ improve the ELBO.</li>
 <strong>Sparsity via empirical Bayes.</strong> Each factor’s
 loadings get a point-Laplace prior (a spike at zero plus a Laplace
 slab), fitted by <code><a href="https://rdrr.io/pkg/ebnm/man/ebnm_point_laplace.html" class="external-link">ebnm::ebnm_point_laplace</a></code>. The spike
-shrinks small loadings exactly to zero — programs are sparse gene sets,
-not dense vectors — while the slab admits large effects.
-<code>point_normal</code> (Gaussian slab) and <code>unimodal</code> are
-available alternatives.</li>
+shrinks small loadings strongly toward zero while the slab admits large
+effects, giving programs a sparse <em>character</em> — but the stored
+posterior means are small nonzero values, not exact zeros. Extract gene
+sets with an explicit loading threshold or the lfsr
+(<code>top_genes(..., by = "lfsr")</code>), not by filtering on exact
+zeros. <code>point_normal</code> (Gaussian slab) and
+<code>unimodal</code> are available alternatives.</li>
 <li>
 <strong>Noise model.</strong> <code>var_type</code> controls the
 residual variance structure: <code>0</code> = one variance for
@@ -227,9 +230,12 @@ leakage) are dropped (<code>ambient = "drop"</code>) or flagged
 <code><a href="../reference/ambient_program_scores.html">ambient_program_scores()</a></code>.</li>
 <li>
 <strong>Edge statistic.</strong> For every cross-cell-type program
-pair (over the donors the two cell types share), <span class="math inline">T = \tanh^{-1}(r)\sqrt{n-3}</span> with <span class="math inline">r</span> the Spearman correlation of donor scores.
-Edges with <span class="math inline">|T| \ge</span>
-<code>link_threshold</code> (default 3) link the programs.</li>
+pair (over the donors the two cell types share), <span class="math inline">T = \tanh^{-1}(r)\sqrt{n-3}</span> where <span class="math inline">r</span> is the <strong>Pearson correlation of the
+residualized Gaussian-rank scores</strong> from step 1. With no strata
+this is close to a Spearman correlation of donor scores (Pearson on
+ranks), but residualization after the rank transform makes the
+distinction material when strata are present. Edges with <span class="math inline">|T| \ge</span> <code>link_threshold</code> (default
+3) link the programs.</li>
 <li>
 <strong>Node statistic.</strong> A program’s evidence is pooled
 across partner cell types: <span class="math inline">A_v = \sum_c
@@ -280,11 +286,20 @@ data-driven set is numerically non-positive-semi-definite (small
 condition counts), the fit falls back to canonical-only with a
 warning.</li>
 <li>
-<strong>Classification</strong>: each program’s top genes are
-classified by mashr’s lfsr as shared (same sign in most conditions),
-private (driven by one condition), or partial; the summary reports
-<code>frac_top_shared</code> / <code>frac_top_private</code> and whether
-the call is mashr-based or correlation-based.</li>
+<strong>Classification</strong>: for each matched group, the
+<code>n_top</code> genes with the largest posterior-mean effects are
+counted. A gene counts as shared when its lfsr &lt;
+<code>lfsr_thresh</code> in at least two conditions (signs are not
+compared), and as private when significant in exactly one. The group is
+classified <code>shared</code> when &gt;= half its top genes are shared,
+<code>private</code> when &gt;= half are private, else
+<code>partial</code>. Programs with no significant cross-cell-type match
+are labeled <code>private</code> without a mashr fit
+(<code>evidence = "no_significant_match"</code>). The summary reports
+<code>frac_top_shared</code> / <code>frac_top_private</code> and the
+evidence source. Note the criterion is significance-based, not
+sign-based: a gene significant in two conditions with opposite posterior
+signs still counts as shared.</li>
 </ul>
 </div>
 <div class="section level2">
@@ -292,7 +307,9 @@ the call is mashr-based or correlation-based.</li>
 </h2>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">flags</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/flag_artifact_genes.html">flag_artifact_genes</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>          <span class="co"># post-hoc: which programs look artifactual</span></span>
-<span><span class="va">excl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/artifact_genes.html">artifact_genes</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">W</span><span class="op">)</span><span class="op">)</span>        <span class="co"># gene set: V(D)J + genotype markers</span></span>
+<span><span class="co"># gene universe: union of the per-cell-type loading row names</span></span>
+<span><span class="va">universe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="../reference/program_loadings.html">program_loadings</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, <span class="va">rownames</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">excl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/artifact_genes.html">artifact_genes</a></span><span class="op">(</span><span class="va">universe</span><span class="op">)</span>           <span class="co"># gene set: V(D)J + genotype markers</span></span>
 <span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_celltype_programs.html">fit_celltype_programs</a></span><span class="op">(</span><span class="va">x</span>, exclude_genes <span class="op">=</span> <span class="va">excl</span><span class="op">)</span>  <span class="co"># fit-time masking</span></span></code></pre></div>
 <p>Programs whose top genes are immunoglobulin/TCR V(D)J segments or
 known donor-genotype markers (e.g. GSTM1, HLA haplotype genes) can arise

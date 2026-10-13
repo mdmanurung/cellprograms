@@ -60,8 +60,11 @@ empirical-Bayes matrix factorization:
 - **Sparsity via empirical Bayes.** Each factor’s loadings get a
   point-Laplace prior (a spike at zero plus a Laplace slab), fitted by
   [`ebnm::ebnm_point_laplace`](https://rdrr.io/pkg/ebnm/man/ebnm_point_laplace.html).
-  The spike shrinks small loadings exactly to zero — programs are sparse
-  gene sets, not dense vectors — while the slab admits large effects.
+  The spike shrinks small loadings strongly toward zero while the slab
+  admits large effects, giving programs a sparse *character* — but the
+  stored posterior means are small nonzero values, not exact zeros.
+  Extract gene sets with an explicit loading threshold or the lfsr
+  (`top_genes(..., by = "lfsr")`), not by filtering on exact zeros.
   `point_normal` (Gaussian slab) and `unimodal` are available
   alternatives.
 - **Noise model.** `var_type` controls the residual variance structure:
@@ -136,9 +139,13 @@ overlap plays no role in the call. The procedure:
     dropped (`ambient = "drop"`) or flagged (`ambient = "flag"`), using
     [`ambient_program_scores()`](https://mdmanurung.github.io/cellprograms/reference/ambient_program_scores.md).
 3.  **Edge statistic.** For every cross-cell-type program pair (over the
-    donors the two cell types share), T = \tanh^{-1}(r)\sqrt{n-3} with r
-    the Spearman correlation of donor scores. Edges with \|T\| \ge
-    `link_threshold` (default 3) link the programs.
+    donors the two cell types share), T = \tanh^{-1}(r)\sqrt{n-3} where
+    r is the **Pearson correlation of the residualized Gaussian-rank
+    scores** from step 1. With no strata this is close to a Spearman
+    correlation of donor scores (Pearson on ranks), but residualization
+    after the rank transform makes the distinction material when strata
+    are present. Edges with \|T\| \ge `link_threshold` (default 3) link
+    the programs.
 4.  **Node statistic.** A program’s evidence is pooled across partner
     cell types: A_v = \sum_c \max(0, \max_u \|T\_{vu}\| - \tau)^2 — a
     program correlated with many partners is stronger evidence than one
@@ -182,17 +189,26 @@ never assuming them:
   from PCA of strong effects (`npc`); if the data-driven set is
   numerically non-positive-semi-definite (small condition counts), the
   fit falls back to canonical-only with a warning.
-- **Classification**: each program’s top genes are classified by mashr’s
-  lfsr as shared (same sign in most conditions), private (driven by one
-  condition), or partial; the summary reports `frac_top_shared` /
-  `frac_top_private` and whether the call is mashr-based or
-  correlation-based.
+- **Classification**: for each matched group, the `n_top` genes with the
+  largest posterior-mean effects are counted. A gene counts as shared
+  when its lfsr \< `lfsr_thresh` in at least two conditions (signs are
+  not compared), and as private when significant in exactly one. The
+  group is classified `shared` when \>= half its top genes are shared,
+  `private` when \>= half are private, else `partial`. Programs with no
+  significant cross-cell-type match are labeled `private` without a
+  mashr fit (`evidence = "no_significant_match"`). The summary reports
+  `frac_top_shared` / `frac_top_private` and the evidence source. Note
+  the criterion is significance-based, not sign-based: a gene
+  significant in two conditions with opposite posterior signs still
+  counts as shared.
 
 ## 6. Artifact masking
 
 \
 `flags`` ``<-`` `[`flag_artifact_genes`](https://mdmanurung.github.io/cellprograms/reference/flag_artifact_genes.md)`(``fit``)``          ``# post-hoc: which programs look artifactual`\
-`excl`` ``<-`` `[`artifact_genes`](https://mdmanurung.github.io/cellprograms/reference/artifact_genes.md)`(`[`rownames`](https://rdrr.io/r/base/colnames.html)`(``W``)``)``        ``# gene set: V(D)J + genotype markers`\
+`# gene universe: union of the per-cell-type loading row names`\
+`universe`` ``<-`` `[`unique`](https://rdrr.io/r/base/unique.html)`(`[`unlist`](https://rdrr.io/r/base/unlist.html)`(`[`lapply`](https://rdrr.io/r/base/lapply.html)`(`[`program_loadings`](https://mdmanurung.github.io/cellprograms/reference/program_loadings.md)`(``fit``)``, ``rownames``)``)``)`\
+`excl`` ``<-`` `[`artifact_genes`](https://mdmanurung.github.io/cellprograms/reference/artifact_genes.md)`(``universe``)``           ``# gene set: V(D)J + genotype markers`\
 `fit2`` ``<-`` `[`fit_celltype_programs`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)`(``x``, exclude_genes ``=`` ``excl``)``  ``# fit-time masking`
 
 Programs whose top genes are immunoglobulin/TCR V(D)J segments or known
