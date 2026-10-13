@@ -1,7 +1,32 @@
-# Minimal pkgdown config. The site builds into docs/pkgdown/ (not the default
-# docs/, which holds hand-written project reports); docs/pkgdown/ is
-# git-ignored so built artifacts are never committed.
-url: ~
+# pkgdown config styled after DiseaseNeurogenomics/dreamlet:
+# Bootstrap 5 + Flatly, README-driven homepage, katex, organized articles.
+# The site builds into docs/pkgdown/ (not the default docs/, which holds
+# hand-written project reports); docs/pkgdown/ is git-ignored so built
+# artifacts are never committed.
+url: https://mdmanurung.github.io/cellprograms
+
 destination: docs/pkgdown
+
+authors:
+  "Mikhael Dito Manurung":
+    href: https://github.com/mdmanurung
+
 template:
   bootstrap: 5
+  bootswatch: flatly
+  math-rendering: katex
+
+search:
+  exclude: ['news/index.html']
+
+articles:
+- title: Getting started
+  navbar: ~
+  contents:
+  - quickstart
+
+- title: Case studies
+  navbar: ~
+  contents:
+  - articles/real_data_case_study
+  - articles/divas_case_study

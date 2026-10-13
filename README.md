@@ -2,17 +2,29 @@
 
 [![R-CMD-check](https://github.com/mdmanurung/cellprograms/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/mdmanurung/cellprograms/actions/workflows/R-CMD-check.yaml)
 
-An R package for discovering **cell-type-specific transcriptional programs** from
-pseudobulk single-cell RNA-seq data using empirical-Bayes matrix factorization
-(`flashier`), then optionally integrating those programs into higher-order
-multicellular states.
+Discover cell-type-specific transcriptional programs from pseudobulk single-cell RNA-seq, and integrate them into higher-order multicellular states.
 
-**Discover, don't map.** Unlike reference-projection tools, `cellprograms`
-identifies programs de novo within each cell type. The design principle is
-*factorize locally first; integrate later only when scientifically useful* —
-a B-cell program is discoverable because it explains B-cell expression,
-regardless of whether anything analogous happens in other cell types.
-Cross-cell-type coordination is investigated subsequently, never assumed.
+The cellprograms package fits empirical-Bayes matrix factorizations
+(`flashier`) independently within each cell type, then — only when
+scientifically useful — investigates how the recovered programs coordinate
+across cell types, share their gene loadings, and associate with context.
+
+Major functionality of the cellprograms package:
+
+- `as_cell_program_data()` Build the validated pseudobulk data object (named list of observations x genes matrices, one per cell type)
+- `fit_celltype_programs()` Fit per-cell-type programs with the EBMF backend (hard residualization or soft fixed covariate adjustment)
+- `canonicalize_programs()` Align program sign, scale and labels across cell types
+- `program_scores()` Sample x program activity matrix across all cell types
+- `program_loadings()` Gene x program loading matrix
+- `top_genes()` Top-loaded genes of a single program, with optional lfsr
+- `program_summary()` Per-cell-type summary: number of programs, R2, ELBO
+- `find_coordinated_programs()` Detect coordinated multicellular programs (CMPs) with family-wise error control by within-strata donor permutation
+- `cmp_scores()` Donor x CMP consensus scores
+- `annotate_cmp_tf()` TF footprint of every member program from CollecTRI regulons (competitive + self-contained tests)
+- `cmp_triage()` One-row-per-CMP triage: recurrent genes, nuisance counts, context association, replication, shared TFs
+- `program_sharing()` Classify matched programs as shared, partial, or private (mashr on loading posteriors)
+- `artifact_genes()` / `flag_artifact_genes()` Mask V(D)J and donor-genotype artifact genes
+- `simulate_pseudobulk()` Simulation with planted programs and ground truth
 
 ## Installation
 
@@ -38,6 +50,21 @@ fit <- canonicalize_programs(fit)
 Z <- program_scores(fit)   # sample x cellular-program activity matrix
 W <- program_loadings(fit) # gene x program loadings
 ```
+
+## Motivation
+
+**Discover, don't map.** Unlike reference-projection tools, `cellprograms`
+identifies programs de novo within each cell type. The design principle is
+*factorize locally first; integrate later only when scientifically useful* —
+a B-cell program is discoverable because it explains B-cell expression,
+regardless of whether anything analogous happens in other cell types.
+Cross-cell-type coordination is investigated subsequently, never assumed.
+
+## Resources
+
+- Case studies: [real-data case study](https://mdmanurung.github.io/cellprograms/articles/real_data_case_study.html) (Stephenson + COMBAT COVID cohorts) and [DIVAS multi-omics reanalysis](https://mdmanurung.github.io/cellprograms/articles/divas_case_study.html)
+- Pre-registered held-out benchmarks: `benchmarks/cmp_detection/` (CMP detection, 800 datasets per arm) and `benchmarks/divas_comparison/` (DIVAS comparison)
+- Default-configuration tuning benchmark: see [Tuning benchmark](#tuning-benchmark-why-max_factors--10)
 
 ## Status
 
