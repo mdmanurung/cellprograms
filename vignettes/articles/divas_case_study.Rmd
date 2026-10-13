@@ -134,9 +134,11 @@ knitr::include_graphics("figures/fig_effect_agreement.png")
 
 Because 29 patients contribute two timepoints, we checked the headline
 coordination calls with (i) a T1-only refit (57 samples, no repeated
-measures) and (ii) a patient-blocked permutation null (all samples of a
-patient permuted together). See
-`benchmarks/divas_comparison/REPORT.md` for the numbers.
+measures): 50/148 full-cohort edges reproduce and both runs find 6 CMPs;
+and (ii) a patient-blocked permutation null (all samples of a patient
+permuted together, 999 permutations): 121/148 edges (82%) remain
+significant at p < 0.05. The coordination structure is largely robust to
+the repeated-measures concern.
 
 ## Reproducing
 
