@@ -23,6 +23,7 @@ Suggests:
     ggplot2,
     data.table,
     flashier,
-    ebnm
+    ebnm,
+    mashr
 Config/testthat/edition: 3
 RoxygenNote: 7.3.1
