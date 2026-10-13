@@ -22,6 +22,11 @@ articles:
   contents:
   - quickstart
 
+- title: Methods
+  navbar: ~
+  contents:
+  - articles/model_mechanisms
+
 - title: Case studies
   navbar: ~
   contents:

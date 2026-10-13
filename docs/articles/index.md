@@ -5,6 +5,11 @@
 - [Quick start: from pseudobulk to shared
   programs](https://mdmanurung.github.io/cellprograms/articles/quickstart.md):
 
+### Methods
+
+- [How the model works: mechanisms of
+  cellprograms](https://mdmanurung.github.io/cellprograms/articles/model_mechanisms.md):
+
 ### Case studies
 
 - [Case study: cross-cell-type programs in COVID-19 PBMC
