@@ -1,11 +1,8 @@
 # pkgdown config styled after DiseaseNeurogenomics/dreamlet:
 # Bootstrap 5 + Flatly, README-driven homepage, katex, organized articles.
-# The site builds into docs/pkgdown/ (not the default docs/, which holds
-# hand-written project reports); docs/pkgdown/ is git-ignored so built
-# artifacts are never committed.
+# The site builds to the default docs/ directory, committed so GitHub Pages
+# can serve it (https://mdmanurung.github.io/cellprograms).
 url: https://mdmanurung.github.io/cellprograms
-
-destination: docs/pkgdown
 
 authors:
   "Mikhael Dito Manurung":

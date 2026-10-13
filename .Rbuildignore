@@ -1,0 +1,10 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^_pkgdown\.yml$
+^docs$
+^benchmarks$
+^biomni$
+^reports$
+^CITATION\.cff$
+^ROADMAP\.md$
+^HANDOFF\.md$

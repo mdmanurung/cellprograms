@@ -25,7 +25,7 @@ confounders**, not coordination.
 2. **Missing donors are zero-filled** (`align_donors`). Only 9/124 COMBAT donors have all
    10 cell types, so kNN neighbours partly encode which cell types a donor lacks (tracks
    abundance, hence disease; PB and DC). Larger effect for cp (more blocks). Contradicts
-   `docs/plan_review.md` A.4 (available-case rule). Applies to every Panel A/B number.
+   `reports/plan_review.md` A.4 (available-case rule). Applies to every Panel A/B number.
 3. **Superseded defaults.** Benchmark used K = 30 (COMBAT) / 25 (rollout) with the fork's
    `point_normal`, `var_type = 2` defaults. Repo commit `0c3baef` replaced these (K = 10,
    `point_laplace`, `var_type = 1`); the repo's own result is Stephenson disease kNN

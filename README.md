@@ -78,13 +78,13 @@ confirmed by two pre-registered held-out benchmarks
 (`program_sharing()`, mashr-based) and artifact-gene masking
 (`artifact_genes()`, `flag_artifact_genes()`, fit-time `exclude_genes`) are
 included. Integration backends such as ICA and EV-BIDIFAC were evaluated and
-rejected (see `ROADMAP.md`).
+rejected (see `reports/ROADMAP.md`).
 
 Default configuration (`point_laplace` gene prior, per-donor residual
 variance, `max_factors = 10`) was selected by a benchmark-first optimization
 loop against simulation ground-truth recovery and refined by a pseudobulk
-tuning benchmark (below); see `docs/plan_review.md` and
-`docs/final_report.md`.
+tuning benchmark (below); see `reports/plan_review.md` and
+`reports/final_report.md`.
 
 ## Tuning benchmark: why `max_factors = 10`?
 

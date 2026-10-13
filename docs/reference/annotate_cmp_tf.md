@@ -1,0 +1,136 @@
+# Transcription-factor footprints of coordinated programs
+
+For each CMP member program, a univariate linear model (decoupler-style
+ULM) of its signed loadings on each TF's signed regulon (\`mor\` for
+targets, 0 otherwise) within the program's gene universe. Loadings are
+multiplied by the member's CMP sign, so a positive \`t\` means the TF's
+targets go up in donors with a high CMP score; with \`use_lfsr\`,
+loadings are shrunk by (1 - lfsr). \`p\` is the ULM t-test p-value (what
+a gene-label permutation converges to, without its 1/(n_perm + 1) floor,
+which would otherwise stop BH from reaching significance over hundreds
+of TFs), \`padj\` is BH within the member, and \`p_fwer\` uses the
+gene-permutation maximum of \|t\| over all TFs tested for that member.
+This competitive test asks whether targets are more (or less) loaded
+than random genes. Because loadings have a natural zero, a regulon of
+unloaded genes in a program skewed to one sign would look "depleted"; a
+TF is therefore called (\`sig\`) only if it also passes a self-contained
+sign-flip test (\`p_self \< q_self\`: the mor-signed target loadings are
+coherently non-zero) in the same direction as \`t\`.
+
+## Usage
+
+``` r
+annotate_cmp_tf(
+  fit,
+  cmp,
+  net,
+  min_size = 5L,
+  n_perm = 1000L,
+  q = 0.05,
+  q_self = 0.05,
+  use_lfsr = TRUE,
+  seed = 1L
+)
+```
+
+## Arguments
+
+- fit:
+
+  A canonicalized \`cell_program_fit\`.
+
+- cmp:
+
+  A \`cmp_result\` or its \`cmps\` table.
+
+- net:
+
+  Data frame with \`source\` (TF), \`target\` and \`mor\` (+1/-1), e.g.
+  from \`prepare_collectri()\`.
+
+- min_size:
+
+  Minimum regulon targets within the program's genes (default 5).
+
+- n_perm:
+
+  Permutations for \`p_fwer\` and \`p_self\` (default 1000; 0 for normal
+  approximations).
+
+- q:
+
+  Threshold on the competitive \`padj\` (default 0.05).
+
+- q_self:
+
+  Threshold on the self-contained \`p_self\` (default 0.05).
+
+- use_lfsr:
+
+  Shrink loadings by (1 - lfsr) when available (default TRUE).
+
+- seed:
+
+  Random seed.
+
+## Value
+
+List of class \`cmp_tf\`: \`members\` (one row per member and tested TF:
+\`cmp\`, \`cell_type\`, \`program_id\`, \`tf\`, \`n_targets\`, \`t\`,
+\`p\`, \`padj\`, \`p_fwer\`, \`p_self\`, \`mean_target_loading\` (mean
+mor-signed target loading, scaled by the member's maximum \|loading\|),
+\`sig\`, \`tf_loading\` = the TF gene's own oriented loading scaled by
+the member's maximum \|loading\|, NA if absent) and \`summary\` (one row
+per CMP and TF significant in at least one member: \`cmp\`, \`tf\`,
+\`n_tested\`, \`n_up\`, \`n_down\`, \`z\`, \`class\`, \`members_sig\`).
+
+## Details
+
+Members are then summarized per CMP and TF. A TF is \`"shared"\` if it
+is called (\`sig\`) with the same sign in at least two members and at
+least half of the members it was tested in; \`"specific"\` if
+significant in exactly one member; and \`"mixed"\` otherwise
+(significant in several members with discordant signs or in fewer than
+half). \`z\` is the Stouffer combination of member t-statistics
+(converted to normal scores), used for ranking only: members share genes
+and priors, so it is not a calibrated test.
+
+The gene-permutation null treats genes as exchangeable. Co-regulated
+genes violate that assumption, so \`padj\` is anticonservative when a
+large block of correlated genes drives a program; large, promiscuous
+regulons (e.g. NFKB, AP1, SP1, MYC) reach significance more readily. A
+footprint says which regulons a program resembles, not which TF caused
+the coordination.
+
+## Examples
+
+``` r
+# Toy canonicalized fit: program 1 of cell types A and B shares donor
+# activity z (a planted coordinated program) and top genes G1-G15.
+set.seed(1)
+ids <- paste0("d", seq_len(40))
+genes <- paste0("G", seq_len(100))
+z <- rnorm(40)
+mk <- function(ct) {
+  S <- matrix(rnorm(40 * 2), 40, 2, dimnames = list(ids, paste0(ct, "_", 1:2)))
+  S[, 1] <- z + rnorm(40, sd = 0.3)
+  W <- matrix(rnorm(length(genes) * 2, sd = 0.1), length(genes), 2,
+              dimnames = list(genes, colnames(S)))
+  W[1:15, 1] <- W[1:15, 1] + 1
+  list(S = S, W = W)
+}
+ta <- mk("A"); tb <- mk("B")
+fit <- structure(list(
+  scores = list(A = ta$S, B = tb$S), loadings = list(A = ta$W, B = tb$W),
+  cell_types = c("A", "B"), observation_ids = ids,
+  sample_metadata = data.frame(observation_id = ids,
+                               group = rep(c("ctrl", "stim"), each = 20))),
+  class = c("cell_program_fit", "cell_program_data", "list"))
+res <- find_coordinated_programs(fit, n_perm = 99, ambient = "none")
+net <- rbind(data.frame(source = "TF1", target = paste0("G", 1:15), mor = 1),
+             data.frame(source = "TF2", target = paste0("G", 20:34), mor = 1))
+tf <- annotate_cmp_tf(fit, res, net, n_perm = 99)
+tf$summary
+#>   cmp  tf n_tested n_up n_down        z  class members_sig
+#> 1   1 TF1        2    2      0 22.50606 shared       A+,B+
+```
