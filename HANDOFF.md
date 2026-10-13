@@ -1,5 +1,21 @@
 # Handoff — cellprograms: metaprogram repair phase; learning from the Biomni CMP benchmark
 
+## Update 2026-10-13 — publication-prep closure (v0.2.0)
+
+**Branch:** `feat/artifacts-sharing-bench` @ `51d6f76` (PR #4, open) + local publication work to land as `feat/publication-prep`.
+
+**Done since the entry below:**
+- Artifact workflow: `artifact_gene_sets()` (data), `flag_artifact_genes()`, `exclude_genes=` refits; real-data masked refits for both cohorts (flags 78%/73% -> 0%; asymmetric classification flips: Stephenson 68 shared->private, COMBAT 23 private->shared).
+- `program_sharing()`: mashr-based loading-space sharing with permutation-tested matching, degenerate-program filter, V estimation with identity fallback. Sensitivities: classifications invariant across `z_thresh` in {1.5, 2, 2.5, 3} (0 flips in 320 group-fits); matching stable at n_perm 199 vs 1999 (group ARI 0.85/0.89, edge Jaccard 0.78/0.82).
+- CMP detection landed (C1): `find_coordinated_programs()` + annotation/triage family; real data: 6 CMPs per cohort.
+- Docs: full roxygen pass (41 man pages, NAMESPACE roxygen-managed), `vignettes/quickstart.Rmd` (knits), `vignettes/articles/real_data_case_study.Rmd` (precomputed case study), `NEWS.md` 0.2.0, `CITATION.cff`, README refresh. Runnable `@examples` on all 31 exports (33/33 Rd examples execute, ~2 min total).
+- Tests: 313 expectations, 0 failures (baseline for the publication prep).
+- **SOFA branch (`feat/sofa-comparator` @ `7efc410`) archived by user decision (2026-10-13): no PR, kept as a local branch only** (M7 closed as "documented as archived").
+- In progress: R CMD check --as-cran (A4), DIVAS case-study comparison (`benchmarks/divas_comparison/`).
+
+**Not done / next:** pkgdown site build, commit + push of the publication-prep branch (after PR #4 merges), CRAN submission decision.
+
+
 **Date:** 2026-10-11 · **Branch:** `feat/coordination` @ `f21fc79` (`origin/main` @ `b0c6986`, 5 commits behind) · **Status:** M0, M1, fix plan, M2 done, no arm adopted; `strata` rejected; `subspace_sum` repaired; Biomni lessons doc partly filled.
 
 ## Goal

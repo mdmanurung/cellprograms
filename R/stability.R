@@ -19,6 +19,14 @@
 #' @return The fit with `fit$stability` populated: per-program recovery
 #'   frequency, median score correlation, median loading cosine, sign
 #'   consistency, and top-gene Jaccard.
+#' @examples
+#' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
+#' x <- as_cell_program_data(sim$pseudobulk)
+#' fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 150)
+#' fit <- canonicalize_programs(fit)
+#' # few subsamples for a quick example; use more (e.g. 100) in practice
+#' fit <- assess_program_stability(fit, n_boot = 2, seed = 1, progress = FALSE)
+#' fit$stability$per_program
 #' @export
 assess_program_stability <- function(fit, n_boot = 100L,
                                      match_method = c("subspace", "correlation"),

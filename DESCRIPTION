@@ -1,7 +1,7 @@
 Package: cellprograms
 Type: Package
 Title: Cell-Type-Specific Transcriptional Programs via Empirical-Bayes Matrix Factorization
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: person("Mikhael Dito", "Manurung", email = "mikhael@example.org", role = c("aut", "cre"))
 Description: Discover cell-type-specific transcriptional programs from
     pseudobulk single-cell RNA-seq data using empirical-Bayes matrix
@@ -13,12 +13,13 @@ Encoding: UTF-8
 Depends:
     R (>= 4.1)
 Imports:
-    Matrix,
     stats,
     utils,
-    cli,
-    rlang
+    cli
+VignetteBuilder: knitr
 Suggests:
+    knitr,
+    rmarkdown,
     testthat (>= 3.2.0),
     ggplot2,
     data.table,
@@ -26,4 +27,4 @@ Suggests:
     ebnm,
     mashr
 Config/testthat/edition: 3
-RoxygenNote: 7.3.1
+Config/roxygen2/version: 8.1.1

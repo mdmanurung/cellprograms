@@ -1,5 +1,16 @@
 # cellprograms — inventory and roadmap
 
+## Update 2026-10-13 — milestone closure
+
+- **M2 (main run + decisions): done.** Adopted arm: Cap 30 + node-aggregate (`n_agg_noanc`); `strata` rejected (locked 2026-10-10); `k_stab`/`w_S` dropped at M1.
+- **M3 (confirmation): done.** Winner vs comparators on held-out seeds 1051-1100, prereg v1.2, 7/7 criteria passed (`benchmarks/cmp_detection/`).
+- **M4 (port winners): done.** K=30 cap + node-aggregate statistic in `R/coordination.R`; suite green.
+- **M6 (optional features): C1 done** (CMP detection + annotation family, benchmarked in `benchmarks/cmp_detection/`). C2: greedy matching kept (optimal matching not ported). C4: not ported (guard never binds at operating points).
+- **M7 (housekeeping): SOFA branch archived without PR (user decision 2026-10-13)**; benchmark results committed under `benchmarks/`; logs ignored.
+- **M5 (COMBAT final analysis): superseded** by the real-data sharing + masking analysis in `vignettes/articles/real_data_case_study.Rmd` and `benchmarks/cmp_detection/` (COMBAT rerun with final settings incl. sharing + CMPs).
+- **New:** DIVAS COVID-19 case-study comparison (`benchmarks/divas_comparison/`) — cellprograms vs DIVAS on the 6-block Su et al. multi-omics analysis; in progress.
+
+
 **As of 2026-10-09.** PR #1 and #2 merged; harness frozen at tag `prereg-v1`, amplitudes chosen (M0, M1 done). M2 main run not started: 8 arms (`k_stab` and `w_S` dropped for breaching the 3x time guard, see `benchmarks/model_selection/DEVIATIONS.md` D6), about 324 CPU-h. `HANDOFF.md` has the current state; `strata=` and the stability fix are on `main`.
 **Rule for fit changes:** a modification enters `R/` only if it clears its pre-registered rule in `benchmarks/model_selection/PREREG.md`. Everything else keeps the current default.
 

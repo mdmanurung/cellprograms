@@ -32,6 +32,12 @@
 #'   use it. Log-normalized pseudobulk is fine for the factor analysis itself
 #'   but not for TMM.
 #'
+#' @examples
+#' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
+#' x <- as_cell_program_data(sim$pseudobulk)
+#' mofa_in <- as_mofacellular_input(x)
+#' dim(mofa_in$counts)
+#' head(mofa_in$coldata)
 #' @export
 as_mofacellular_input <- function(x, cell_counts = NULL) {
   stopifnot(inherits(x, "cell_program_data"))

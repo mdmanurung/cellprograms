@@ -58,6 +58,13 @@
 #'   components `fits`, `programs`, `scores`, `loadings`, `preprocessing`,
 #'   `provenance`.
 #'
+#' @examples
+#' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
+#' x <- as_cell_program_data(sim$pseudobulk)
+#' fit <- fit_celltype_programs(x, max_factors = 3, features = "variable",
+#'                              n_variable_genes = 150)
+#' fit <- canonicalize_programs(fit)
+#' program_summary(fit)
 #' @export
 fit_celltype_programs <- function(x, loading_prior = "point_laplace",
                                   max_factors = 10, center = TRUE,
@@ -363,6 +370,13 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
 #'
 #' @param fit A `cell_program_fit` object.
 #'
+#' @examples
+#' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
+#' x <- as_cell_program_data(sim$pseudobulk)
+#' fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 150)
+#' fit <- canonicalize_programs(fit)
+#' head(fit$scores$B[, 1])     # canonicalized donor scores of program B_1
+#' head(fit$loadings$B[, 1])   # canonicalized gene loadings of B_1
 #' @export
 canonicalize_programs <- function(fit) {
   stopifnot(inherits(fit, "cell_program_fit"))
