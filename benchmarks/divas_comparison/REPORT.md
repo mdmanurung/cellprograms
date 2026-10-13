@@ -43,22 +43,29 @@ Scripts in `scripts/` (run in order):
 
 ### Program-level concordance
 
-30 of 91 DIVAS components have a cellprograms counterpart at
-|Spearman| > 0.5 (score correlation across the 114 samples). All 30
-mutual-best matched pairs land on cellprograms programs that the sharing
-analysis classifies as **shared** across cell types
-(`taxonomy_agreement.csv`): 26 DIVAS partial components and 4 DIVAS
-individual components map to shared cellprograms programs. The single DIVAS
-joint component (spanning all 6 blocks) has a strong best match
-(CD4_5, |rho| = 0.78; 9 cellprograms programs above 0.5) but is not
-mutual-best.
+23 of 91 DIVAS components have a cellprograms counterpart at
+|Spearman| > 0.5 (score correlation across the 114 samples); in the reverse
+direction, 51 of 180 cellprograms scores have a DIVAS counterpart at
+|Spearman| > 0.5. 42 component-program pairs are mutual best matches
+(19 of them above 0.5). Every one of the 120 gene-block programs is
+classified **shared** across cell types by the mashr analysis, and their
+best-matching DIVAS components span all taxonomy classes: 96 partial,
+18 individual, and all 6... (6 joint; `taxonomy_agreement.csv`). The single
+DIVAS joint component has a strong best match (CD4_5, |rho| = 0.78) but is
+not mutual-best.
 
 Concordance increases with DIVAS pattern breadth: the median best-match
-correlation rises from 0.37 (components private to 1 block) through 0.47
-(2-3 blocks) and 0.55 (4 blocks) to 0.80 (5 blocks); the joint component
+correlation rises from 0.38 (components private to 1 block) through 0.46-0.47
+(2-3 blocks) and 0.56 (4 blocks) to 0.80 (5 blocks); the joint component
 reaches 0.78 (`fig_breadth_concordance.png`). Cross-block structure - the
 part of the biology DIVAS highlights - is recovered at least as well by
 cellprograms' shared programs.
+
+Score-level agreement does not extend to gene-level loadings: for the 40
+mutual-best gene-block pairs, the top-100 loading Jaccard is low (median
+0.16, IQR 0.14-0.22; `loading_overlap_top100.csv`) - the two factorizations
+recover the same sample-level axes but assign genes to programs
+differently.
 
 Unique structure: 5 DIVAS components have no counterpart (all individual,
 best |cor| < 0.3), and 13 cellprograms programs have no DIVAS counterpart -
@@ -134,5 +141,3 @@ calls were checked two ways (`07_sensitivity_pairing.R`):
 - The severity-only baseline's high R2 reflects the near-deterministic
   relationship between `wos` and the 3-level severity band, not a
   limitation of either method.
-- The sandbox lacks pdflatex by default; the PDF manual check is
-  environmental and unrelated to this analysis.

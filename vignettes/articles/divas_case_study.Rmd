@@ -42,12 +42,16 @@ colCent = FALSE, rowCent = TRUE, seed = 123)`); its precomputed results
 ## Fitting at DIVAS parity
 
 ```{r fit, eval = FALSE}
-x <- as_cell_program_data(list(
-  CD4_T = read_block("Combined_CD4.csv"), CD8_T = read_block("Combined_CD8.csv"),
-  CD14_Monocyte = read_block("Combined_CD14.csv"), NK = read_block("Combined_NK.csv"),
-  proteomics = read_block("Combined_proteomics.csv"),
-  metabolomics = read_block("Combined_metabolomics.csv")
-))
+# each block CSV: features x samples -> transpose to samples x features
+read_block <- function(path) {
+  t(as.matrix(read.csv(path, row.names = 1, check.names = FALSE)))
+}
+blocks <- c("CD4", "CD8", "CD14", "NK", "proteomics", "metabolomics")
+pseudobulk <- lapply(blocks, function(b)
+  read_block(file.path(data_dir, "input", paste0("Combined_", b, ".csv"))))
+names(pseudobulk) <- c("CD4_T", "CD8_T", "CD14_Monocyte", "NK",
+                       "proteomics", "metabolomics")
+x <- as_cell_program_data(pseudobulk, sample_metadata = sample_metadata)
 fit <- fit_celltype_programs(x, loading_prior = "point_laplace",
                              max_factors = 30, center = TRUE, scale = FALSE,
                              var_type = 1, backfit = TRUE, nullcheck = TRUE,
@@ -86,25 +90,28 @@ sharing <- program_sharing(gene_fit, n_perm = 199, seed = 1, z_thresh = 1.5)
 # cellprograms score across the 114 samples
 ```
 
-30 of 91 DIVAS components have a cellprograms counterpart at
-|Spearman| > 0.5. All 30 mutual-best matched pairs land on cellprograms
-programs classified as **shared** across cell types (26 from DIVAS
-partial components, 4 from individual components). The single DIVAS
-joint component has a strong best match (CD4_5, |rho| = 0.78) but is not
-mutual-best.
+23 of 91 DIVAS components have a cellprograms counterpart at
+|Spearman| > 0.5 (51/180 in the reverse direction); 42 component-program
+pairs are mutual best matches (19 above 0.5). All 120 gene-block programs
+are classified **shared** across cell types, and their best-matching DIVAS
+components span all taxonomy classes (96 partial, 18 individual, 6 joint).
+The single DIVAS joint component has a strong best match
+(CD4_5, |rho| = 0.78) but is not mutual-best. Score-level agreement does
+not extend to loadings: median top-100 loading Jaccard for the 40
+mutual-best gene-block pairs is 0.16 (IQR 0.14-0.22).
 
 Concordance rises with DIVAS pattern breadth - the median best-match
-correlation increases from 0.37 (components private to 1 block) to 0.80
+correlation increases from 0.38 (components private to 1 block) to 0.80
 (components spanning 5 blocks):
 
-```{r fig-breadth, eval = FALSE, fig.cap="Best-match concordance by DIVAS pattern breadth."}
+```{r fig-breadth, eval = TRUE, fig.cap="Best-match concordance by DIVAS pattern breadth."}
 knitr::include_graphics("figures/fig_breadth_concordance.png")
 ```
 
 The full concordance landscape (DIVAS components x cellprograms scores,
 row-split by DIVAS taxonomy class):
 
-```{r fig-heatmap, eval = FALSE, fig.cap="DIVAS component patterns vs cellprograms score concordance."}
+```{r fig-heatmap, eval = TRUE, fig.cap="DIVAS component patterns vs cellprograms score concordance."}
 knitr::include_graphics("figures/fig_concordance_heatmap.png")
 ```
 
@@ -126,7 +133,7 @@ scores capture ~50% more `wos` variance. Effect-size agreement across the
 either method is significant sit mostly above the diagonal - the
 cellprograms counterpart carries as much or more `wos` signal:
 
-```{r fig-effect, eval = FALSE, fig.cap="Clinical effect-size agreement for matched pairs."}
+```{r fig-effect, eval = TRUE, fig.cap="Clinical effect-size agreement for matched pairs."}
 knitr::include_graphics("figures/fig_effect_agreement.png")
 ```
 

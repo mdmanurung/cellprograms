@@ -132,7 +132,7 @@ cp_top <- do.call(rbind, lapply(fit$cell_types, function(ct) {
 # mutual best matches: forward and reverse argmax agree
 fwd_prog <- setNames(concord$best_cp_program, concord$divas_component)
 rev_comp <- setNames(rev$best_divas_component, rev$cp_program)
-mutual <- names(fwd_prog)[fwd_prog == unname(rev_comp[names(fwd_prog)])]
+mutual <- names(fwd_prog)[names(fwd_prog) == unname(rev_comp[unname(fwd_prog)])]  # comp -> prog -> comp round-trip
 mutual <- mutual[!is.na(mutual)]
 
 ov <- lapply(mutual, function(comp) {
@@ -157,7 +157,7 @@ cat(sprintf("top-100 loading Jaccard for %d mutual-best gene-block pairs: median
 cat("== taxonomy agreement\n")
 cp_class <- share$summary[, c("program_id", "cell_type", "classification", "n_conditions")]
 cp_class$cp_program <- paste0(BLOCK_LABEL[cp_class$cell_type], "_",
-                              sub("^[^_]+_", "", cp_class$program_id))
+                              sub(".*_", "", cp_class$program_id))  # strip "<celltype>_" prefix
 tax <- merge(cp_class[, c("cp_program", "classification", "n_conditions")], rev,
              by = "cp_program")
 tax <- merge(tax, dv_annot[, c("component", "n_blocks", "divas_class")],
