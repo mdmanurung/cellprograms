@@ -458,7 +458,7 @@ Append future entries with date, step ID, exact command/source versions, artifac
 
 ## 13. Primary sources and version requirements
 
-Local compatibility and estimand sources: [EBMF backend](../../R/ebmf.R), [data model](../../R/data-model.R), [MOFA adapter](../../R/mofacellular.R), [stability](../../R/stability.R), [matching and geometry](../../R/principal-angles.R), [utilities](../../R/utils.R), [package simulator](../../R/simulation.R), [model-selection preregistration](../../benchmarks/model_selection/PREREG.md), [deviations](../../benchmarks/model_selection/DEVIATIONS.md), [parametric generator](../../benchmarks/model_selection/sim_param.R), [coordination workstream](../../benchmarks/coordination/PREREG.md), and [roadmap](../../ROADMAP.md).
+Local compatibility and estimand sources: [EBMF backend](../../R/ebmf.R), [data model](../../R/data-model.R), [MOFA adapter](../../R/mofacellular.R), [stability](../../R/stability.R), [matching and geometry](../../R/principal-angles.R), [utilities](../../R/utils.R), [package simulator](../../R/simulation.R), [model-selection preregistration](../../benchmarks/model_selection/PREREG.md), [deviations](../../benchmarks/model_selection/DEVIATIONS.md), [parametric generator](../../benchmarks/model_selection/sim_param.R), [coordination workstream](../../benchmarks/coordination/PREREG.md), and [roadmap](../ROADMAP.md).
 
 Method sources:
 
