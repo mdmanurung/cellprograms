@@ -36,34 +36,21 @@
   invisible(fit)
 }
 
-#' Candidate cross-cell-type program matches from loading correlation
-#'
-#' For every pair of cell types, correlates (absolute Pearson) each program's
-#' canonicalized loading vector over the shared gene universe (intersection of
-#' the two feature sets) and calibrates the statistic against a permutation
-#' null: gene labels are permuted within each cell type's loading matrix
-#' (`n_perm` permutations; per-pair p = (1 + exceedances) / (n_perm + 1)).
-#' `q` is BH across all tested program pairs.
-#'
-#' @param fit A canonicalized `cell_program_fit`.
-#' @param n_perm Permutations for the null (default 199; >= 1 required).
-#' @param seed Master seed; each cell-type pair gets a deterministic sub-seed.
-#' @return A data.frame with columns ct_a, prog_a, ct_b, prog_b, cor, p, q,
-#'   sorted by q then -|cor|. Rows with q < alpha are candidate matches.
-# Numerically degenerate programs, two kinds:
-# 1. flashier can retain factors whose loadings underflow to numerical noise
-#    (median |loading| many orders of magnitude below the cell type's strongest
-#    program; e.g. sparse factors whose support is a few genes and whose
-#    remaining entries sit at ~1e-16). Their posterior SDs underflow as well,
-#    producing garbage z-scores, and correlation-based matching is
-#    scale-invariant, so they spuriously match every strong program.
-# 2. Fixed, never-updated factors: real-scale loadings whose posterior SD
-#    column collapsed to machine precision (observed for the smallest cell
-#    type in both real cohorts). Point estimates without usable uncertainty:
-#    mashr cannot assess them.
-# A program is degenerate when median |loading| < `rel_tol` x the cell type's
-# largest, or when its median posterior SD (scaled to the loadings) is <=
-# `sd_floor`.
+#' Numerically degenerate programs, two kinds:
+#' 1. flashier can retain factors whose loadings underflow to numerical noise
+#'    (median |loading| many orders of magnitude below the cell type's strongest
+#'    program; e.g. sparse factors whose support is a few genes and whose
+#'    remaining entries sit at ~1e-16). Their posterior SDs underflow as well,
+#'    producing garbage z-scores, and correlation-based matching is
+#'    scale-invariant, so they spuriously match every strong program.
+#' 2. Fixed, never-updated factors: real-scale loadings whose posterior SD
+#'    column collapsed to machine precision (observed for the smallest cell
+#'    type in both real cohorts). Point estimates without usable uncertainty:
+#'    mashr cannot assess them.
+#' A program is degenerate when median |loading| < `rel_tol` x the cell type's
+#' largest, or when its median posterior SD (scaled to the loadings) is <=
+#' `sd_floor`.
+#' @keywords internal
 .degenerate_programs <- function(fit, rel_tol = 1e-6, sd_floor = 1e-12) {
   out <- list()
   for (ct in names(fit$loadings)) {
@@ -81,6 +68,21 @@
   out
 }
 
+
+#' Candidate cross-cell-type program matches from loading correlation
+#'
+#' For every pair of cell types, correlates (absolute Pearson) each program's
+#' canonicalized loading vector over the shared gene universe (intersection of
+#' the two feature sets) and calibrates the statistic against a permutation
+#' null: gene labels are permuted within each cell type's loading matrix
+#' (`n_perm` permutations; per-pair p = (1 + exceedances) / (n_perm + 1)).
+#' `q` is BH across all tested program pairs.
+#'
+#' @param fit A canonicalized `cell_program_fit`.
+#' @param n_perm Permutations for the null (default 199; >= 1 required).
+#' @param seed Master seed; each cell-type pair gets a deterministic sub-seed.
+#' @return A data.frame with columns ct_a, prog_a, ct_b, prog_b, cor, p, q,
+#'   sorted by q then -|cor|. Rows with q < alpha are candidate matches.
 .match_programs_loadings <- function(fit, n_perm = 199L, seed = 1L) {
   .sharing_check_fit(fit, psd = FALSE)
   if (n_perm < 1L) .stopf("`n_perm` must be >= 1.")
@@ -298,6 +300,7 @@
 #' @param min_null Minimum number of null genes for a usable estimate.
 #' @return The shrunk C x C correlation matrix (dimnames = cell types), with
 #'   attributes `n_null` and `lambda`.
+#' @keywords internal
 .estimate_V <- function(fit, matches, z_thresh = 1, min_null = 20L) {
   group <- .as_group(matches)
   mats <- .sharing_matrices(fit, group, min_genes = 10L)
@@ -380,6 +383,18 @@
 #'     0.5, else "partial"), and the full `mash` result;
 #'   * `summary`: one row per program. Programs in no matched group are
 #'     classified "private" with evidence "no_significant_match".
+#' @examples
+#' sim <- simulate_pseudobulk(n_samples = 20, n_genes = 150, program_size = 20, seed = 1)
+#' x <- as_cell_program_data(sim$pseudobulk)
+#' fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 100)
+#' fit <- canonicalize_programs(fit)
+#' # Assess one matched set explicitly (skips the permutation matching step);
+#' # with matches = NULL, candidate matches are data-driven.
+#' if (requireNamespace("mashr", quietly = TRUE)) {
+#'   grp <- data.frame(cell_type = c("CD8", "NK"), program_id = c("CD8_1", "NK_1"))
+#'   res <- program_sharing(fit, matches = grp, n_top = 20)
+#'   res$summary
+#' }
 #' @export
 program_sharing <- function(fit, matches = NULL, alpha = 0.05, n_top = 50L,
                             lfsr_thresh = 0.05, n_perm = 199L, seed = 1L,
@@ -428,12 +443,24 @@ program_sharing <- function(fit, matches = NULL, alpha = 0.05, n_top = 50L,
         U
       })
     }
-    run <- function() mashr::mash(data, Ulist = U, ...)
-    res <- if (verbose) run() else suppressMessages(run())
+    run <- function(Ulist) {
+      if (verbose) mashr::mash(data, Ulist = Ulist, ...) else suppressMessages(mashr::mash(data, Ulist = Ulist, ...))
+    }
+    # Data-driven covariances can be numerically non-PSD when the number of
+    # conditions is small (e.g. 4 blocks, npc = 3 leaves one ~0 eigenvalue that
+    # rounds negative); fall back to canonical-only in that case.
+    res <- tryCatch(run(U), error = function(e) {
+      if (!data_driven) stop(e)
+      .warnf("mash fit with data-driven covariances failed (%s); refitting with canonical covariances only.",
+             conditionMessage(e))
+      run(mashr::cov_canonical(data))
+    })
     # Posterior accessors: CRAN mashr (<= 0.2.x) does not export get_pm/get_lfsr;
     # the $result fields are stable across versions, with accessor fallback.
-    pm <- if ("get_pm" %in% getNamespaceExports("mashr")) mashr::get_pm(res) else res$result$PosteriorMean
-    lf <- if ("get_lfsr" %in% getNamespaceExports("mashr")) mashr::get_lfsr(res) else res$result$lfsr
+    pm <- if ("get_pm" %in% getNamespaceExports("mashr"))
+      get("get_pm", envir = asNamespace("mashr"))(res) else res$result$PosteriorMean
+    lf <- if ("get_lfsr" %in% getNamespaceExports("mashr"))
+      get("get_lfsr", envir = asNamespace("mashr"))(res) else res$result$lfsr
     pw <- res$posterior_weights
     ee <- grep("^equal_effects", colnames(pw))
     p_ee <- if (length(ee)) rowSums(pw[, ee, drop = FALSE]) else rep(0, nrow(pw))
@@ -456,7 +483,9 @@ program_sharing <- function(fit, matches = NULL, alpha = 0.05, n_top = 50L,
       classification = class_g, mash = res
     )
   }
-  names(results) <- paste0("group", seq_along(results))
+  # NB: paste0() treats zero-length args as "" (see canonicalize_programs), so
+  # guard the no-groups case: paste0("group", integer(0)) would return "group".
+  if (length(results)) names(results) <- paste0("group", seq_along(results))
 
   allp <- .program_table(fit)
   summ <- do.call(rbind, lapply(seq_len(nrow(allp)), function(i) {
@@ -487,6 +516,11 @@ program_sharing <- function(fit, matches = NULL, alpha = 0.05, n_top = 50L,
   out
 }
 
+#' Print a program-sharing summary
+#'
+#' @param x A `program_sharing` object from [program_sharing()].
+#' @param ... Ignored.
+#' @return `x`, invisibly.
 #' @export
 print.program_sharing <- function(x, ...) {
   cat(sprintf("program_sharing: %d matched group(s), %d program(s) assessed\n",

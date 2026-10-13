@@ -14,6 +14,16 @@
 #'   `source_genesymbol`, `target_genesymbol`, `consensus_stimulation`,
 #'   `consensus_inhibition`).
 #' @return Data frame with `source`, `target`, `mor`.
+#' @examples
+#' # `raw` mimics the OmniPath interactions endpoint (datasets=collectri)
+#' raw <- data.frame(
+#'   source = c("P1", "COMPLEX:P2_P3", "P4"),
+#'   source_genesymbol = c("STAT1", "JUN_FOS", "MYC"),
+#'   target_genesymbol = c("IRF1", "MMP1", "CDKN1A"),
+#'   consensus_stimulation = c(TRUE, TRUE, FALSE),
+#'   consensus_inhibition = c(FALSE, FALSE, TRUE)
+#' )
+#' prepare_collectri(raw)
 #' @export
 prepare_collectri <- function(raw) {
   need <- c("source", "source_genesymbol", "target_genesymbol", "consensus_stimulation", "consensus_inhibition")
@@ -103,6 +113,33 @@ prepare_collectri <- function(raw) {
 #'   by the member's maximum |loading|, NA if absent) and `summary` (one row per
 #'   CMP and TF significant in at least one member: `cmp`, `tf`, `n_tested`,
 #'   `n_up`, `n_down`, `z`, `class`, `members_sig`).
+#' @examples
+#' # Toy canonicalized fit: program 1 of cell types A and B shares donor
+#' # activity z (a planted coordinated program) and top genes G1-G15.
+#' set.seed(1)
+#' ids <- paste0("d", seq_len(40))
+#' genes <- paste0("G", seq_len(100))
+#' z <- rnorm(40)
+#' mk <- function(ct) {
+#'   S <- matrix(rnorm(40 * 2), 40, 2, dimnames = list(ids, paste0(ct, "_", 1:2)))
+#'   S[, 1] <- z + rnorm(40, sd = 0.3)
+#'   W <- matrix(rnorm(length(genes) * 2, sd = 0.1), length(genes), 2,
+#'               dimnames = list(genes, colnames(S)))
+#'   W[1:15, 1] <- W[1:15, 1] + 1
+#'   list(S = S, W = W)
+#' }
+#' ta <- mk("A"); tb <- mk("B")
+#' fit <- structure(list(
+#'   scores = list(A = ta$S, B = tb$S), loadings = list(A = ta$W, B = tb$W),
+#'   cell_types = c("A", "B"), observation_ids = ids,
+#'   sample_metadata = data.frame(observation_id = ids,
+#'                                group = rep(c("ctrl", "stim"), each = 20))),
+#'   class = c("cell_program_fit", "cell_program_data", "list"))
+#' res <- find_coordinated_programs(fit, n_perm = 99, ambient = "none")
+#' net <- rbind(data.frame(source = "TF1", target = paste0("G", 1:15), mor = 1),
+#'              data.frame(source = "TF2", target = paste0("G", 20:34), mor = 1))
+#' tf <- annotate_cmp_tf(fit, res, net, n_perm = 99)
+#' tf$summary
 #' @export
 annotate_cmp_tf <- function(fit, cmp, net, min_size = 5L, n_perm = 1000L, q = 0.05, q_self = 0.05,
                             use_lfsr = TRUE, seed = 1L) {
@@ -179,6 +216,11 @@ annotate_cmp_tf <- function(fit, cmp, net, min_size = 5L, n_perm = 1000L, q = 0.
   structure(list(members = mem, summary = summ), class = "cmp_tf")
 }
 
+#' Print a CMP transcription-factor triage result
+#'
+#' @param x A `cmp_tf` from [annotate_cmp_tf()].
+#' @param ... Ignored.
+#' @return `x`, invisibly.
 #' @export
 print.cmp_tf <- function(x, ...) {
   s <- x$summary
@@ -201,6 +243,9 @@ print.cmp_tf <- function(x, ...) {
 #' data; extend or replace it for your cohort.
 #'
 #' @return Named character vector of regular expressions.
+#' @examples
+#' cmp_nuisance_genes()
+#' grep(cmp_nuisance_genes()["vdj"], c("IGHV1-2", "IGKC", "GAPDH"), value = TRUE)
 #' @export
 cmp_nuisance_genes <- function() {
   c(vdj = "^(IG[HKL]V|IG[KL]C|IGH[GAMDE]|JCHAIN|TR[ABGD]V)",
@@ -248,6 +293,30 @@ cmp_nuisance_genes <- function() {
 #' @param max_ambient_frac,max_vdj_frac,min_marker_genes,min_concordance Flag thresholds.
 #' @param min_level_donors Minimum donors per `replicate_by` level (default 15).
 #' @return Data frame, one row per CMP.
+#' @examples
+#' # Toy canonicalized fit: program 1 of cell types A and B shares donor
+#' # activity z (a planted coordinated program) and top genes G1-G15.
+#' set.seed(1)
+#' ids <- paste0("d", seq_len(40))
+#' genes <- paste0("G", seq_len(100))
+#' z <- rnorm(40)
+#' mk <- function(ct) {
+#'   S <- matrix(rnorm(40 * 2), 40, 2, dimnames = list(ids, paste0(ct, "_", 1:2)))
+#'   S[, 1] <- z + rnorm(40, sd = 0.3)
+#'   W <- matrix(rnorm(length(genes) * 2, sd = 0.1), length(genes), 2,
+#'               dimnames = list(genes, colnames(S)))
+#'   W[1:15, 1] <- W[1:15, 1] + 1
+#'   list(S = S, W = W)
+#' }
+#' ta <- mk("A"); tb <- mk("B")
+#' fit <- structure(list(
+#'   scores = list(A = ta$S, B = tb$S), loadings = list(A = ta$W, B = tb$W),
+#'   cell_types = c("A", "B"), observation_ids = ids,
+#'   sample_metadata = data.frame(observation_id = ids,
+#'                                group = rep(c("ctrl", "stim"), each = 20))),
+#'   class = c("cell_program_fit", "cell_program_data", "list"))
+#' res <- find_coordinated_programs(fit, n_perm = 99, ambient = "none")
+#' cmp_triage(fit, res, context = "group", replicate_by = "group")
 #' @export
 cmp_triage <- function(fit, cmp, context = NULL, covariates = NULL, replicate_by = NULL, tf = NULL,
                        nuisance = cmp_nuisance_genes(), top_n = 15L, n_recurrent = 12L,

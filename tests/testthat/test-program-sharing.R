@@ -178,3 +178,21 @@ test_that("fit_celltype_programs stores loading posterior SDs (both modes)", {
   expect_false(is.null(flf$F_psd))
   expect_equal(ncol(flf$F_psd), ncol(flf$F_pm))
 })
+
+test_that("program_sharing with zero sharing groups returns an all-private summary", {
+  # Cell types A and C share no planted program (A_1/A_2 vs C_1 unrelated), so
+  # matching finds zero significant pairs. Regression: names(results) <-
+  # paste0("group", seq_along(results)) crashed on the empty results list
+  # (paste0 treats integer(0) as "" -> length-1 names on a length-0 list).
+  fit <- .sharing_toy()
+  fit$loadings <- fit$loadings[c("A", "C")]
+  fit$fits <- fit$fits[c("A", "C")]
+  fit$canonicalization <- fit$canonicalization[c("A", "C")]
+  fit$cell_types <- c("A", "C")
+  res <- program_sharing(fit, n_perm = 199, seed = 1)
+  expect_length(res$groups, 0L)
+  expect_length(res$results, 0L)
+  expect_true(all(res$summary$classification == "private"))
+  expect_true(all(res$summary$evidence == "no_significant_match"))
+  expect_equal(nrow(res$summary), 3L)   # A_1, A_2, C_1
+})

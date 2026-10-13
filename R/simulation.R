@@ -21,6 +21,10 @@
 #'   matrices), `truth` (per-cell-type list of true score vectors, loading
 #'   indices, and program labels), and `scenario`.
 #'
+#' @examples
+#' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
+#' names(sim$pseudobulk)
+#' dim(sim$pseudobulk$B)
 #' @export
 simulate_pseudobulk <- function(scenario = "mixed", n_samples = 150,
                                 n_genes = 1500, program_size = 50,
@@ -70,23 +74,28 @@ simulate_pseudobulk <- function(scenario = "mixed", n_samples = 150,
         add("Mono_private", sample(n_genes, program_size), rnorm(n_samples, 0, signal_sd))
       }
       if (ct %in% c("CD8", "NK")) {
-        # shared program: same activity vector, cell-type-specific genes
-        if (ct == "CD8") {
+        # shared program: same activity vector, cell-type-specific genes;
+        # the first present member (in cell_types order) creates the objects
+        if (ct == cell_types[cell_types %in% c("CD8", "NK")][1]) {
           shared_z <- rnorm(n_samples, 0, signal_sd)
-          shared_g_cd8 <- sample(n_genes, program_size)
+          shared_g <- sample(n_genes, program_size)
         }
-        add("CD8NK_shared", shared_g_cd8, shared_z)
+        add("CD8NK_shared", shared_g, shared_z)
       }
       if (ct %in% c("B", "CD4", "NK", "Mono")) {
         # one shared activity across its member cell types, cell-type-specific genes
-        if (ct == "B") ifn_z <- rnorm(n_samples, 0, signal_sd)
+        if (ct == cell_types[cell_types %in% c("B", "CD4", "NK", "Mono")][1]) {
+          ifn_z <- rnorm(n_samples, 0, signal_sd)
+        }
         add("global_IFN", sample(n_genes, program_size), ifn_z)
       }
     } else if (scenario == "same_genes_independent") {
       # B and Mono share the SAME gene set (IFN-like) but have INDEPENDENT
       # sample activities; other cell types get unrelated programs.
       if (ct %in% c("B", "Mono")) {
-        if (ct == "B") ifn_genes <- sample(n_genes, program_size)
+        if (ct == cell_types[cell_types %in% c("B", "Mono")][1]) {
+          ifn_genes <- sample(n_genes, program_size)
+        }
         add("IFN_like", ifn_genes, rnorm(n_samples, 0, signal_sd))
       } else {
         add(paste0(ct, "_P1"), sample(n_genes, program_size), rnorm(n_samples, 0, signal_sd))

@@ -1,0 +1,127 @@
+---
+title: "Quick start: from pseudobulk to shared programs"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Quick start: from pseudobulk to shared programs}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6,
+                      fig.height = 4, dpi = 150)
+```
+
+`cellprograms` discovers transcriptional programs **de novo within each cell
+type** from pseudobulk single-cell RNA-seq, then investigates cross-cell-type
+coordination and sharing afterwards — never assuming it. This vignette runs
+the whole pipeline on a small simulated dataset.
+
+## Simulate pseudobulk data
+
+`simulate_pseudobulk()` plants private and shared programs with known ground
+truth. The result is a named list of observations x genes matrices, one per
+cell type.
+
+```{r simulate}
+library(cellprograms)
+
+sim <- simulate_pseudobulk(scenario = "mixed", n_samples = 60,
+                           n_genes = 800, program_size = 40, seed = 1)
+str(sim$pseudobulk, max.level = 1)
+```
+
+## Build the data object and fit programs
+
+```{r fit}
+x <- as_cell_program_data(sim$pseudobulk)
+validate_cell_program_data(x)
+
+fit <- fit_celltype_programs(x, loading_prior = "point_laplace",
+                             max_factors = 6, features = "variable",
+                             n_variable_genes = 400)
+fit <- canonicalize_programs(fit)
+fit
+```
+
+`fit_celltype_programs()` fits one empirical-Bayes matrix factorization per
+cell type ('flashier'); `canonicalize_programs()` resolves sign and scale
+ambiguity so programs are comparable downstream. Real-data fits should
+additionally pass `covariates` (e.g. `c("site", "sex")`) and use
+`max_factors = 30` when the goal is CMP detection (see the CMP benchmark note
+in `README`).
+
+## Inspect programs
+
+```{r inspect}
+program_summary(fit)          # one row per cell type: K, R2, ELBO
+top_genes(fit, "B_1", n = 8)  # top loadings of program B_1
+```
+
+Scores (donor x program activities) and loadings (gene x program) are one call
+away:
+
+```{r extract}
+Z <- program_scores(fit)    # donors x all programs (wide matrix)
+W <- program_loadings(fit)  # genes x all programs
+dim(Z); dim(W)
+```
+
+## Stability
+
+`assess_program_stability()` refits on donor subsamples and reports how often
+each program is recovered.
+
+```{r stability}
+fit <- assess_program_stability(fit, n_boot = 4, resample_frac = 0.7,
+                                seed = 1, progress = FALSE)
+fit$stability$per_program
+```
+
+## Coordinated multicellular programs (CMPs)
+
+`find_coordinated_programs()` tests whether programs from *different* cell
+types co-vary across donors, with family-wise error control by permutation.
+Gene overlap plays no role in the call.
+
+```{r cmp}
+cmp <- find_coordinated_programs(fit, n_perm = 199, seed = 1)
+cmp
+```
+
+## Shared vs specific programs
+
+`program_sharing()` goes the other way: it matches programs across cell types
+by loading correlation (permutation-calibrated), then asks with 'mashr'
+whether the matched programs share their gene *effects* — correlated loadings
+alone do not imply shared effects.
+
+```{r sharing}
+if (requireNamespace("mashr", quietly = TRUE)) {
+  shr <- program_sharing(fit, n_perm = 99, seed = 1)
+  shr
+}
+```
+
+## Artifact genes
+
+Immunoglobulin/TCR V(D)J segments, known donor-genotype markers, and
+sex-chromosome genes can dominate programs for technical or genetic rather
+than biological reasons. Flag them in existing fits, or exclude them at fit
+time (exclusion happens before variable-gene selection):
+
+```{r artifacts}
+flag_artifact_genes(fit)
+
+# fit-time masking:
+# excl <- artifact_genes(colnames(sim$pseudobulk$B))
+# fit_masked <- fit_celltype_programs(x, exclude_genes = excl, ...)
+```
+
+## Next steps
+
+* The real-data case-study article (pkgdown site) walks through the
+  Stephenson and COMBAT COVID cohorts, including the artifact-masking
+  sensitivity analysis.
+* `benchmarks/` contains the pre-registered simulation benchmarks behind the
+  default settings and the CMP caller.

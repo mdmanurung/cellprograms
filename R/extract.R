@@ -11,6 +11,12 @@
 
 #' Program metadata table (one row per program)
 #' @param fit A canonicalized `cell_program_fit`.
+#' @examples
+#' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
+#' x <- as_cell_program_data(sim$pseudobulk)
+#' fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 150)
+#' fit <- canonicalize_programs(fit)
+#' program_metadata(fit)
 #' @export
 program_metadata <- function(fit) .program_table(fit)
 
@@ -19,6 +25,14 @@ program_metadata <- function(fit) .program_table(fit)
 #' @param fit A canonicalized `cell_program_fit`.
 #' @param format `"wide"` (observation x program, NA where a cell type was not
 #'   observed; never imputed), `"long"`, or `"list"` (per-cell-type matrices).
+#' @examples
+#' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
+#' x <- as_cell_program_data(sim$pseudobulk)
+#' fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 150)
+#' fit <- canonicalize_programs(fit)
+#' Z <- program_scores(fit)   # observations x programs, NA where unobserved
+#' dim(Z)
+#' head(program_scores(fit, "long"))
 #' @export
 program_scores <- function(fit, format = c("wide", "long", "list")) {
   format <- match.arg(format)
@@ -42,6 +56,13 @@ program_scores <- function(fit, format = c("wide", "long", "list")) {
 #' Program loading matrices
 #' @param fit A canonicalized `cell_program_fit`.
 #' @param format `"list"` (gene x program per cell type) or `"long"`.
+#' @examples
+#' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
+#' x <- as_cell_program_data(sim$pseudobulk)
+#' fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 150)
+#' fit <- canonicalize_programs(fit)
+#' W <- program_loadings(fit)
+#' sapply(W, dim)
 #' @export
 program_loadings <- function(fit, format = c("list", "long")) {
   format <- match.arg(format)
@@ -57,6 +78,12 @@ program_loadings <- function(fit, format = c("list", "long")) {
 
 #' Summary of programs per cell type (n, K, R2 of the reconstruction, ELBO)
 #' @param fit A canonicalized `cell_program_fit`.
+#' @examples
+#' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
+#' x <- as_cell_program_data(sim$pseudobulk)
+#' fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 150)
+#' fit <- canonicalize_programs(fit)
+#' program_summary(fit)
 #' @export
 program_summary <- function(fit) {
   do.call(rbind, lapply(names(fit$fits), function(ct) {
@@ -81,6 +108,12 @@ program_summary <- function(fit) {
 #' @param n Number of genes.
 #' @param by Rank by `"abs_loading"` or `"lfsr"` (flashier local false sign
 #'   rate; needs the fit's gene-side lfsr).
+#' @examples
+#' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
+#' x <- as_cell_program_data(sim$pseudobulk)
+#' fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 150)
+#' fit <- canonicalize_programs(fit)
+#' top_genes(fit, "B_1", n = 5)
 #' @export
 top_genes <- function(fit, program, n = 20L, by = c("abs_loading", "lfsr")) {
   by <- match.arg(by)

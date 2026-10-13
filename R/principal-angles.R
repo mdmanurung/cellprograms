@@ -141,6 +141,14 @@
 #'   permuted only within strata, so the null preserves stratum-level
 #'   structure shared by both cell types (blocked permutation).
 #' @return An object of class `principal_angles`.
+#' @examples
+#' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
+#' x <- as_cell_program_data(sim$pseudobulk)
+#' fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 150)
+#' fit <- canonicalize_programs(fit)
+#' # CD8 and NK share a planted donor-activity program in this simulation
+#' pa <- principal_angles(fit, "CD8", "NK", n_perm = 99, seed = 1)
+#' pa
 #' @export
 principal_angles <- function(fit, ct_a, ct_b,
                              space = c("scores", "loadings"),
@@ -230,6 +238,11 @@ principal_angles <- function(fit, ct_a, ct_b,
   out
 }
 
+#' Print a principal-angles summary
+#'
+#' @param x A `principal_angles` object from [principal_angles()].
+#' @param ... Ignored.
+#' @return `x`, invisibly.
 #' @export
 print.principal_angles <- function(x, ...) {
   cat(sprintf("principal_angles (%s space): %s vs %s\n", x$space, x$ct_a, x$ct_b))
@@ -270,6 +283,13 @@ print.principal_angles <- function(x, ...) {
 #'   subspace's dimensions shared beyond chance); `q_pair` is BH across callable pairs; `underpowered` marks pairs whose
 #'   chance-level cosine `(sqrt(ka)+sqrt(kb))/sqrt(n)` is >= 1 (excluded from
 #'   BH, never called); `shared` = `q_pair < 0.05`. Needs `n_perm > 0`.
+#' @examples
+#' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
+#' x <- as_cell_program_data(sim$pseudobulk)
+#' fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 150)
+#' fit <- canonicalize_programs(fit)
+#' ss <- sharing_spectrum(fit, n_perm = 199, seed = 1)
+#' ss$summary
 #' @export
 sharing_spectrum <- function(fit, pairs = NULL, space = c("scores", "loadings"),
                              n_perm = NULL, ...) {
@@ -322,6 +342,14 @@ sharing_spectrum <- function(fit, pairs = NULL, space = c("scores", "loadings"),
 #' @param reference Reference cell type (default: most programs).
 #' @param space Passed to `principal_angles` (default `"scores"`).
 #' @param ... Passed to `principal_angles`.
+#' @examples
+#' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
+#' x <- as_cell_program_data(sim$pseudobulk)
+#' fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 150)
+#' fit <- canonicalize_programs(fit)
+#' al <- align_programs(fit, n_perm = 99, seed = 1)
+#' attr(al, "reference")
+#' al[[1]]$cosines
 #' @export
 align_programs <- function(fit, reference = NULL, space = c("scores", "loadings"), ...) {
   space <- match.arg(space)
@@ -350,6 +378,16 @@ align_programs <- function(fit, reference = NULL, space = c("scores", "loadings"
 #' @param space Subspace geometry for matching: `"loadings"` (default; gene
 #'   identity) or `"scores"` (activity; requires shared observations).
 #' @param sim_threshold Minimum |cosine| to report a factor-level match.
+#' @examples
+#' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
+#' x <- as_cell_program_data(sim$pseudobulk)
+#' fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 150)
+#' fit <- canonicalize_programs(fit)
+#' # a second fit of the same data (different seed) stands in for a bootstrap refit
+#' fit2 <- fit_celltype_programs(x, max_factors = 3, features = "variable",
+#'                               n_variable_genes = 150, seed = 2)
+#' fit2 <- canonicalize_programs(fit2)
+#' match_programs(fit, fit2, "B")$matches
 #' @export
 match_programs <- function(fit_a, fit_b, cell_type,
                            method = c("subspace", "correlation"),

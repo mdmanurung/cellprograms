@@ -1,5 +1,7 @@
 # cellprograms
 
+[![R-CMD-check](https://github.com/mdmanurung/cellprograms/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/mdmanurung/cellprograms/actions/workflows/R-CMD-check.yaml)
+
 An R package for discovering **cell-type-specific transcriptional programs** from
 pseudobulk single-cell RNA-seq data using empirical-Bayes matrix factorization
 (`flashier`), then optionally integrating those programs into higher-order
@@ -39,13 +41,17 @@ W <- program_loadings(fit) # gene x program loadings
 
 ## Status
 
-v0.1.0 — core data model, flashier backend with hard (residualize) and soft
+v0.2.0 — core data model, flashier backend with hard (residualize) and soft
 (fixed) covariate adjustment, canonicalization, a calibrated cross-cell-type
 sharing test (principal angles in scores space, optional blocked-permutation
 `strata`), subsampling stability, MOFAcellulaR export, and simulation
-utilities. Integration backends such as ICA and EV-BIDIFAC were evaluated and
-rejected; coordinated-program detection across cell types is in development
-(see `ROADMAP.md`).
+utilities. Coordinated multicellular program (CMP) detection is shipped and
+confirmed by two pre-registered held-out benchmarks
+(`benchmarks/cmp_detection/`). Post-hoc shared-vs-specific program assessment
+(`program_sharing()`, mashr-based) and artifact-gene masking
+(`artifact_genes()`, `flag_artifact_genes()`, fit-time `exclude_genes`) are
+included. Integration backends such as ICA and EV-BIDIFAC were evaluated and
+rejected (see `ROADMAP.md`).
 
 Default configuration (`point_laplace` gene prior, per-donor residual
 variance, `max_factors = 10`) was selected by a benchmark-first optimization
@@ -153,6 +159,26 @@ nuisance genes (`cmp_nuisance_genes()`: V(D)J, candidate genotype markers, sex
 chromosome, immediate-early genes, platelet/erythrocyte markers), the ambient
 fraction, context association, within-level sign replication and shared TFs,
 plus a heuristic `label` for prioritization.
+
+## Program sharing and artifact masking
+
+`program_sharing()` assesses whether programs matched across cell types share
+their gene loadings (mashr on the stored loading posteriors), classifying each
+matched group as shared, partial, or private — correlated loadings alone do
+not imply shared effects. `flag_artifact_genes()` marks programs whose top
+genes are V(D)J segments or known donor-genotype markers;
+`fit_celltype_programs(..., exclude_genes = artifact_genes(genes))` removes
+them before variable-gene selection.
+
+```r
+res <- program_sharing(fit, n_perm = 199, z_thresh = 1.5)
+flags <- flag_artifact_genes(fit)
+```
+
+On the Stephenson and COMBAT COVID cohorts (K = 30), the broadest cross-cell-type
+"shared" program was the immunoglobulin/V(D)J artifact program (ambient/clonal
+leakage), while interferon and cell-cycle programs replicated as genuinely
+shared across both cohorts — mask artifact genes before interpreting sharing.
 
 ## License
 

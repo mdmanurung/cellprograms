@@ -15,6 +15,10 @@
 #'
 #' @return An object of class `cell_program_data`.
 #'
+#' @examples
+#' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
+#' x <- as_cell_program_data(sim$pseudobulk)
+#' x
 #' @export
 as_cell_program_data <- function(pseudobulk, sample_metadata = NULL,
                                  feature_metadata = NULL) {
@@ -101,6 +105,10 @@ as_cell_program_data <- function(pseudobulk, sample_metadata = NULL,
 #'
 #' @param x A `cell_program_data` object.
 #'
+#' @examples
+#' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
+#' x <- as_cell_program_data(sim$pseudobulk)
+#' validate_cell_program_data(x)
 #' @export
 validate_cell_program_data <- function(x) {
   stopifnot(inherits(x, "cell_program_data"))
@@ -130,6 +138,12 @@ validate_cell_program_data <- function(x) {
 }
 
 #' Print a cell program data object
+#' @param x A `cell_program_data` object.
+#' @param ... Ignored.
+#' @examples
+#' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
+#' x <- as_cell_program_data(sim$pseudobulk)
+#' print(x)
 #' @export
 print.cell_program_data <- function(x, ...) {
   cli::cli_text("{.strong cell_program_data}")
@@ -143,6 +157,12 @@ print.cell_program_data <- function(x, ...) {
 }
 
 #' Summarize a cell program data object
+#' @param object A `cell_program_data` object.
+#' @param ... Ignored.
+#' @examples
+#' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
+#' x <- as_cell_program_data(sim$pseudobulk)
+#' summary(x)
 #' @export
 summary.cell_program_data <- function(object, ...) {
   print(object)

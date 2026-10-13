@@ -46,6 +46,36 @@
 #'   `score`, `p` and, with `donor_check`, `donor_cor`, `donor_p` (Spearman
 #'   test of ligand in sender vs receptor in receiver across shared donors) and
 #'   `n_donors`.
+#' @examples
+#' # Toy canonicalized fit: program 1 of cell types A and B shares donor
+#' # activity z (a planted coordinated program) and top genes G1-G15.
+#' set.seed(1)
+#' ids <- paste0("d", seq_len(40))
+#' genes <- paste0("G", seq_len(600))
+#' z <- rnorm(40)
+#' mk <- function(ct) {
+#'   S <- matrix(rnorm(40 * 2), 40, 2, dimnames = list(ids, paste0(ct, "_", 1:2)))
+#'   S[, 1] <- z + rnorm(40, sd = 0.3)
+#'   W <- matrix(rnorm(length(genes) * 2, sd = 0.1), length(genes), 2,
+#'               dimnames = list(genes, colnames(S)))
+#'   W[1:15, 1] <- W[1:15, 1] + 1
+#'   list(S = S, W = W)
+#' }
+#' ta <- mk("A"); tb <- mk("B")
+#' fit <- structure(list(
+#'   scores = list(A = ta$S, B = tb$S), loadings = list(A = ta$W, B = tb$W),
+#'   cell_types = c("A", "B"), observation_ids = ids,
+#'   sample_metadata = data.frame(observation_id = ids,
+#'                                group = rep(c("ctrl", "stim"), each = 20))),
+#'   class = c("cell_program_fit", "cell_program_data", "list"))
+#' res <- find_coordinated_programs(fit, n_perm = 99, ambient = "none")
+#' # plant a ligand at the top of A_1 and its receptor at the top of B_1
+#' fit$loadings$A["G150", "A_1"] <- 5
+#' fit$loadings$B["G151", "B_1"] <- 5
+#' set.seed(2)
+#' lr <- data.frame(ligand = c("G150", sample(paste0("G", 60:349), 300, replace = TRUE)),
+#'                  receptor = c("G151", sample(paste0("G", 352:600), 300, replace = TRUE)))
+#' annotate_cmp_lr(fit, res, lr, n_perm = 99)
 #' @export
 annotate_cmp_lr <- function(fit, cmp, lr, n_perm = 499L, alpha = 0.05, top = 10L,
                             control = c("fwer", "fdr"), donor_check = TRUE, seed = 1L) {
@@ -149,6 +179,31 @@ annotate_cmp_lr <- function(fit, cmp, lr, n_perm = 499L, alpha = 0.05, top = 10L
 #' @param top Top sets per program (default 3).
 #' @param q BH threshold (default 0.05).
 #' @return Data frame: `cmp`, `cell_type`, `program_id`, `set`, `t`, `padj`.
+#' @examples
+#' # Toy canonicalized fit: program 1 of cell types A and B shares donor
+#' # activity z (a planted coordinated program) and top genes G1-G15.
+#' set.seed(1)
+#' ids <- paste0("d", seq_len(40))
+#' genes <- paste0("G", seq_len(100))
+#' z <- rnorm(40)
+#' mk <- function(ct) {
+#'   S <- matrix(rnorm(40 * 2), 40, 2, dimnames = list(ids, paste0(ct, "_", 1:2)))
+#'   S[, 1] <- z + rnorm(40, sd = 0.3)
+#'   W <- matrix(rnorm(length(genes) * 2, sd = 0.1), length(genes), 2,
+#'               dimnames = list(genes, colnames(S)))
+#'   W[1:15, 1] <- W[1:15, 1] + 1
+#'   list(S = S, W = W)
+#' }
+#' ta <- mk("A"); tb <- mk("B")
+#' fit <- structure(list(
+#'   scores = list(A = ta$S, B = tb$S), loadings = list(A = ta$W, B = tb$W),
+#'   cell_types = c("A", "B"), observation_ids = ids,
+#'   sample_metadata = data.frame(observation_id = ids,
+#'                                group = rep(c("ctrl", "stim"), each = 20))),
+#'   class = c("cell_program_fit", "cell_program_data", "list"))
+#' res <- find_coordinated_programs(fit, n_perm = 99, ambient = "none")
+#' sets <- list(planted = paste0("G", 1:15), other = paste0("G", 50:65))
+#' annotate_cmp_themes(fit, res, sets, min_size = 5)
 #' @export
 annotate_cmp_themes <- function(fit, cmp, sets, min_size = 10L, top = 3L, q = 0.05) {
   tab <- .cmp_table(cmp)
@@ -193,6 +248,30 @@ annotate_cmp_themes <- function(fit, cmp, sets, min_size = 10L, top = 3L, q = 0.
 #' @param top_n Top genes per program (default 100).
 #' @param q BH threshold (default 0.05).
 #' @return Data frame: `cmp`, `n_pairs`, `frac_overlapping`, `class`.
+#' @examples
+#' # Toy canonicalized fit: program 1 of cell types A and B shares donor
+#' # activity z (a planted coordinated program) and top genes G1-G15.
+#' set.seed(1)
+#' ids <- paste0("d", seq_len(40))
+#' genes <- paste0("G", seq_len(100))
+#' z <- rnorm(40)
+#' mk <- function(ct) {
+#'   S <- matrix(rnorm(40 * 2), 40, 2, dimnames = list(ids, paste0(ct, "_", 1:2)))
+#'   S[, 1] <- z + rnorm(40, sd = 0.3)
+#'   W <- matrix(rnorm(length(genes) * 2, sd = 0.1), length(genes), 2,
+#'               dimnames = list(genes, colnames(S)))
+#'   W[1:15, 1] <- W[1:15, 1] + 1
+#'   list(S = S, W = W)
+#' }
+#' ta <- mk("A"); tb <- mk("B")
+#' fit <- structure(list(
+#'   scores = list(A = ta$S, B = tb$S), loadings = list(A = ta$W, B = tb$W),
+#'   cell_types = c("A", "B"), observation_ids = ids,
+#'   sample_metadata = data.frame(observation_id = ids,
+#'                                group = rep(c("ctrl", "stim"), each = 20))),
+#'   class = c("cell_program_fit", "cell_program_data", "list"))
+#' res <- find_coordinated_programs(fit, n_perm = 99, ambient = "none")
+#' cmp_gene_overlap(fit, res, top_n = 20)
 #' @export
 cmp_gene_overlap <- function(fit, cmp, top_n = 100L, q = 0.05) {
   tab <- .cmp_table(cmp)
@@ -225,6 +304,30 @@ cmp_gene_overlap <- function(fit, cmp, top_n = 100L, q = 0.05) {
 #' @param variable A `sample_metadata` column name or a vector named by observation ID.
 #' @param covariates Optional character vector of `sample_metadata` columns to adjust for.
 #' @return Data frame: `cmp`, `term`, `estimate`, `t`, `p`, `n`.
+#' @examples
+#' # Toy canonicalized fit: program 1 of cell types A and B shares donor
+#' # activity z (a planted coordinated program) and top genes G1-G15.
+#' set.seed(1)
+#' ids <- paste0("d", seq_len(40))
+#' genes <- paste0("G", seq_len(100))
+#' z <- rnorm(40)
+#' mk <- function(ct) {
+#'   S <- matrix(rnorm(40 * 2), 40, 2, dimnames = list(ids, paste0(ct, "_", 1:2)))
+#'   S[, 1] <- z + rnorm(40, sd = 0.3)
+#'   W <- matrix(rnorm(length(genes) * 2, sd = 0.1), length(genes), 2,
+#'               dimnames = list(genes, colnames(S)))
+#'   W[1:15, 1] <- W[1:15, 1] + 1
+#'   list(S = S, W = W)
+#' }
+#' ta <- mk("A"); tb <- mk("B")
+#' fit <- structure(list(
+#'   scores = list(A = ta$S, B = tb$S), loadings = list(A = ta$W, B = tb$W),
+#'   cell_types = c("A", "B"), observation_ids = ids,
+#'   sample_metadata = data.frame(observation_id = ids,
+#'                                group = rep(c("ctrl", "stim"), each = 20))),
+#'   class = c("cell_program_fit", "cell_program_data", "list"))
+#' res <- find_coordinated_programs(fit, n_perm = 99, ambient = "none")
+#' cmp_context_association(fit, res, "group")
 #' @export
 cmp_context_association <- function(fit, cmp, variable, covariates = NULL) {
   S <- cmp_scores(fit, cmp)

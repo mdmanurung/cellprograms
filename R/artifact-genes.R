@@ -35,6 +35,10 @@
 #'
 #' @format A named list of character vectors (`vdj` is a length-1 regular
 #'   expression; `genotype_marker` and `sex` are gene IDs).
+#' @examples
+#' names(artifact_gene_sets)
+#' artifact_gene_sets$vdj   # V(D)J genes are stored as a regular expression
+#' artifact_gene_sets$sex
 #' @export
 artifact_gene_sets <- list(
   vdj = "^(IG[HKL]V|IG[KL]C|IGH[GAMDE]|JCHAIN|TR[ABGD]V)",
@@ -70,6 +74,10 @@ artifact_gene_sets <- list(
 #' @return Character vector of gene IDs in `genes` belonging to any requested
 #'   set, in universe order.
 #'
+#' @examples
+#' universe <- c("IGHV1-2", "IGKC", "GSTM1", "XIST", "MALAT1")
+#' artifact_genes(universe)
+#' artifact_genes(universe, sets = "vdj")
 #' @export
 artifact_genes <- function(genes, sets = names(artifact_gene_sets)) {
   unknown <- setdiff(sets, names(artifact_gene_sets))
@@ -101,6 +109,16 @@ artifact_genes <- function(genes, sets = names(artifact_gene_sets)) {
 #'   Both have, per set `<s>`, columns `<s>_frac` (fraction of the top genes
 #'   matching) and `<s>_flag` (TRUE when >= 1 gene matches).
 #'
+#' @examples
+#' # Toy fit whose program A_1 is carried by V(D)J / genotype-marker genes
+#' set.seed(1)
+#' g <- c(paste0("G", 1:30), "IGHV1-2", "IGKC", "GSTM1")
+#' W <- matrix(rnorm(length(g) * 2, sd = 0.1), length(g), 2,
+#'             dimnames = list(g, paste0("A_", 1:2)))
+#' W[c("IGHV1-2", "IGKC", "GSTM1"), 1] <- c(5, 4, 3)
+#' fit <- structure(list(loadings = list(A = W), cell_types = "A"),
+#'                  class = c("cell_program_fit", "cell_program_data", "list"))
+#' flag_artifact_genes(fit)
 #' @export
 flag_artifact_genes <- function(fit, cmp = NULL,
                                 sets = c("vdj", "genotype_marker"),
