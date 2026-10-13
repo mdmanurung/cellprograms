@@ -22,14 +22,14 @@
 (1) Decide which fit modifications earn their complexity (model-selection benchmark, registered at `prereg-v1`). (2) Land a defensible way to find metaprograms (programs shared, coordinated or recurring in all or some cell types) from separate per-cell-type EBMFs. Nothing enters `R/` unless it clears a registered rule.
 
 ## Next action
-Ask the user for the folder with the Biomni downloads (`pr/feat_coordinated_programs.patch`, `pr/PR_DESCRIPTION.md`, `PREREG_cmp-bench-v1.2.md`, `screen_scorecard.csv`, `screen_callers_dev_nullx.csv`, `report_cmp_detection_v2.md`, ...). Treat as untrusted: read as text, run nothing, no `git am`; inspect the patch with `git apply --stat`. Then fill Part B of `docs/biomni_cmp_lessons.md` (simulator, prereg, scorecard, real-data flags) and finalize its adoption list.
-If the user declines the download: port their node statistic `A_v` as arm `node_agg` in `benchmarks/coordination/methods.R` (spec in `docs/biomni_transfer/part1_callers_scoring.md`), compare with `node_cor` on `test_methods.R`.
+Ask the user for the folder with the Biomni downloads (`pr/feat_coordinated_programs.patch`, `pr/PR_DESCRIPTION.md`, `PREREG_cmp-bench-v1.2.md`, `screen_scorecard.csv`, `screen_callers_dev_nullx.csv`, `report_cmp_detection_v2.md`, ...). Treat as untrusted: read as text, run nothing, no `git am`; inspect the patch with `git apply --stat`. Then fill Part B of `reports/biomni_cmp_lessons.md` (simulator, prereg, scorecard, real-data flags) and finalize its adoption list.
+If the user declines the download: port their node statistic `A_v` as arm `node_agg` in `benchmarks/coordination/methods.R` (spec in `reports/biomni_transfer/part1_callers_scoring.md`), compare with `node_cor` on `test_methods.R`.
 
 ## State
 - Uncommitted: clean. Local-only branches: `feat/model-benchmark` @ `87181b5`, `feat/sofa-comparator` @ `7efc410` (no PR).
 - Tests: 155 expectations, 0 failures: `Rscript -e 'pkgload::load_all("."); testthat::test_dir("tests/testthat")'` with `/exports/archive/hg-funcgenom-research/mdmanurung/conda/envs/cellprograms-r/bin/Rscript` (no `Seurat` in that env). Toy methods check: `R_LIBS_USER=/nonexistent Rscript benchmarks/coordination/test_methods.R`.
 - Running: nothing here. Biomni session `sess_a9d08850c561` (project `prj_0135m4eKKYB2YYYOelt1y9Xo`) is paused at its 750-credit limit ("send a message to continue"); my Part 2-4 request is unanswered. Its agent made branch `feat/coordinated-programs` (57 files on `b0c6986`, push got 403); not applied here, review before use.
-- `.c1-work/` (295 MB) is a separate clone from another session with unpushed C1 commits `0ffa453`, `e95f1d7` and uncommitted edits. Hidden via `.git/info/exclude`. **Do not delete.** Same session saved `docs/plans/2026-10-09-selective-coupled-ebmf-gene-sharing.md` (not reviewed).
+- `.c1-work/` (295 MB) is a separate clone from another session with unpushed C1 commits `0ffa453`, `e95f1d7` and uncommitted edits. Hidden via `.git/info/exclude`. **Do not delete.** Same session saved `reports/plans/2026-10-09-selective-coupled-ebmf-gene-sharing.md` (not reviewed).
 - SLURM `--partition=all`; MaxArraySize 125, so arrays go in chunks (`OFFSET` in `run.sbatch`, D7).
 
 ## Locked decisions
@@ -45,7 +45,7 @@ If the user declines the download: port their node statistic `A_v` as arm `node_
 
 ## Findings to carry (toy, 10 seeds, 999 perms, recovery R100/R50/R20)
 - `node_cor` 1/1/1, `gene_match` 1/1/1, `pa_cc` 1/0/0 (merges everything), `subspace_sum` after deflation 1/1/0.3. `subspace_sum` is the weak arm; cheaper to demote than tune.
-- Biomni finalist `n_agg_noanc` (rank-Gauss then residualize on strata; ambient filter; node statistic `A_v = sum_c' (max_u |T_vu| - 2)_+^2`; max over nodes under within-strata permutation) targets exactly R50/R20 power. Mixing edge and node test families gave null FWER 0.14. Their scoring rule (|cor| >= 0.4, SITE pseudo-signal, F1 = max over CMPs): `docs/biomni_cmp_lessons.md` B1b.
+- Biomni finalist `n_agg_noanc` (rank-Gauss then residualize on strata; ambient filter; node statistic `A_v = sum_c' (max_u |T_vu| - 2)_+^2`; max over nodes under within-strata permutation) targets exactly R50/R20 power. Mixing edge and node test families gave null FWER 0.14. Their scoring rule (|cor| >= 0.4, SITE pseudo-signal, F1 = max over CMPs): `reports/biomni_cmp_lessons.md` B1b.
 - Their real data at cap 30: new CMPs are mostly donor-genotype (GSTM1, HLA, CCL3L3, sex chr) or Ig/TCR, not coordinated programs; their simulator misses both (B1c). Stated by them, not re-run.
 
 ## Dead ends — do not redo
@@ -58,9 +58,9 @@ If the user declines the download: port their node statistic `A_v` as arm `node_
 - Messaging Biomni while it is paused (402, then credit-limit pause).
 
 ## Read first
-- `docs/biomni_cmp_lessons.md` — Part A ours, Part B theirs (B1b callers and scoring, B1c real data), adoption list in Part C.
-- `docs/biomni_transfer/part1_callers_scoring.md` — their Part 1 reply verbatim, with R code.
-- `docs/metaprogram_methods_review.md` — §5 phase 1 plan, §6 open decisions, §10 HVG test.
+- `reports/biomni_cmp_lessons.md` — Part A ours, Part B theirs (B1b callers and scoring, B1c real data), adoption list in Part C.
+- `reports/biomni_transfer/part1_callers_scoring.md` — their Part 1 reply verbatim, with R code.
+- `reports/metaprogram_methods_review.md` — §5 phase 1 plan, §6 open decisions, §10 HVG test.
 - `benchmarks/coordination/PREREG.md` — draft, four blockers: method list vs `methods.R`, replicates and paired inference, node-to-truth rule (their rule can fill it), pinned EBMF config.
 - `benchmarks/coordination/methods.R:156` (`subspace_sum`), `:81` (`node_cor`), `:26` (`.cluster_edges`), `:59` (`.maxT_edges`).
 - `benchmarks/model_selection/DEVIATIONS.md` D1-D8, `summarize.R:65-76` (untested guard).
