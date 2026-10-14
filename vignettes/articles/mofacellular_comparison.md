@@ -230,7 +230,7 @@ mofa_model <- MOFA2::run_mofa(mo, outfile = tempfile(fileext = ".hdf5"), save_da
 #> 
 #> Iteration 1: time=0.01, ELBO=-379185.10, deltaELBO=1254653.205 (76.79176074%), Factors=8
 #> Iteration 2: time=0.01, Factors=8
-#> Iteration 3: time=0.02, Factors=8
+#> Iteration 3: time=0.01, Factors=8
 #> Iteration 4: time=0.01, Factors=8
 #> Iteration 5: time=0.01, Factors=8
 #> Iteration 6: time=0.01, ELBO=-376437.50, deltaELBO=2747.604 (0.16816865%), Factors=8
@@ -243,7 +243,7 @@ mofa_model <- MOFA2::run_mofa(mo, outfile = tempfile(fileext = ".hdf5"), save_da
 #> Iteration 13: time=0.01, Factors=8
 #> Iteration 14: time=0.01, Factors=8
 #> Iteration 15: time=0.01, Factors=8
-#> Iteration 16: time=0.02, ELBO=-376188.62, deltaELBO=85.871 (0.00525575%), Factors=8
+#> Iteration 16: time=0.01, ELBO=-376188.62, deltaELBO=85.871 (0.00525575%), Factors=8
 #> Iteration 17: time=0.01, Factors=8
 #> Iteration 18: time=0.01, Factors=8
 #> Iteration 19: time=0.01, Factors=8
@@ -268,7 +268,7 @@ mofa_model <- MOFA2::run_mofa(mo, outfile = tempfile(fileext = ".hdf5"), save_da
 #> Iteration 38: time=0.01, Factors=8
 #> Iteration 39: time=0.01, Factors=8
 #> Iteration 40: time=0.01, Factors=8
-#> Iteration 41: time=0.02, ELBO=-376044.14, deltaELBO=11.990 (0.00073388%), Factors=8
+#> Iteration 41: time=0.01, ELBO=-376044.14, deltaELBO=11.990 (0.00073388%), Factors=8
 #> Iteration 42: time=0.01, Factors=8
 #> Iteration 43: time=0.01, Factors=8
 #> Iteration 44: time=0.01, Factors=8
@@ -299,7 +299,7 @@ mofa_model <- MOFA2::run_mofa(mo, outfile = tempfile(fileext = ".hdf5"), save_da
 #> #######################
 #> 
 #> 
-#> Saving model in /tmp/RtmpjK0AKl/file5f11704ab38.hdf5...
+#> Saving model in /tmp/Rtmp5qKg21/file27272030ca4.hdf5...
 Z_mofa <- MOFA2::get_factors(mofa_model)$group1   # donors x factors
 dim(Z_mofa)
 #> [1] 60  8
@@ -632,7 +632,7 @@ if (!file.exists(excl_path)) {
 has_cache_excl <- file.exists(excl_path)
 if (!has_cache_excl) {
   message("mofacellular_stephenson_cache_excl.rds not found; ",
-          "skipping the sensitivity results (run scripts in benchmarks/ to build it).")
+          "skipping the sensitivity results (see benchmarks/mofacellular_comparison/ to build it).")
 }
 ```
 

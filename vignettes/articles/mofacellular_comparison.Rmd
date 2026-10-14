@@ -418,7 +418,7 @@ if (!file.exists(excl_path)) {
 has_cache_excl <- file.exists(excl_path)
 if (!has_cache_excl) {
   message("mofacellular_stephenson_cache_excl.rds not found; ",
-          "skipping the sensitivity results (run scripts in benchmarks/ to build it).")
+          "skipping the sensitivity results (see benchmarks/mofacellular_comparison/ to build it).")
 }
 ```
 
