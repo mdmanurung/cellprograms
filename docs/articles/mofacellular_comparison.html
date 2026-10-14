@@ -270,7 +270,7 @@ their full preprocessing first):</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ELBO before training: -1633838.31 </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Iteration 1: time=0.01, ELBO=-379185.10, deltaELBO=1254653.205 (76.79176074%), Factors=8</span></span>
+<span><span class="co">#&gt; Iteration 1: time=0.04, ELBO=-379185.10, deltaELBO=1254653.205 (76.79176074%), Factors=8</span></span>
 <span><span class="co">#&gt; Iteration 2: time=0.01, Factors=8</span></span>
 <span><span class="co">#&gt; Iteration 3: time=0.01, Factors=8</span></span>
 <span><span class="co">#&gt; Iteration 4: time=0.01, Factors=8</span></span>
@@ -311,7 +311,7 @@ their full preprocessing first):</p>
 <span><span class="co">#&gt; Iteration 39: time=0.01, Factors=8</span></span>
 <span><span class="co">#&gt; Iteration 40: time=0.01, Factors=8</span></span>
 <span><span class="co">#&gt; Iteration 41: time=0.01, ELBO=-376044.14, deltaELBO=11.990 (0.00073388%), Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 42: time=0.01, Factors=8</span></span>
+<span><span class="co">#&gt; Iteration 42: time=0.02, Factors=8</span></span>
 <span><span class="co">#&gt; Iteration 43: time=0.01, Factors=8</span></span>
 <span><span class="co">#&gt; Iteration 44: time=0.01, Factors=8</span></span>
 <span><span class="co">#&gt; Iteration 45: time=0.01, Factors=8</span></span>
@@ -341,7 +341,7 @@ their full preprocessing first):</p>
 <span><span class="co">#&gt; #######################</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Saving model in /tmp/Rtmp57V1nD/file8d5b1c571376.hdf5...</span></span>
+<span><span class="co">#&gt; Saving model in /tmp/RtmpzLmL1T/fileb4f7ac35e97.hdf5...</span></span>
 <span><span class="va">Z_mofa</span> <span class="op">&lt;-</span> <span class="fu">MOFA2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MOFA2/man/get_factors.html" class="external-link">get_factors</a></span><span class="op">(</span><span class="va">mofa_model</span><span class="op">)</span><span class="op">$</span><span class="va">group1</span>   <span class="co"># donors x factors</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">Z_mofa</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 60  8</span></span></code></pre></div>
@@ -734,6 +734,66 @@ sides for parity — <code>get_associations()</code> fits
 and sex, which is the recommended workflow. Do not over-read the p-value
 gap: CMP consensus scores pool several member programs (denoising),
 whereas each MOFA factor is a single axis.</p>
+</div>
+<div class="section level3">
+<h3 id="artifact-exclusion-sensitivity">Artifact-exclusion sensitivity<a class="anchor" aria-label="anchor" href="#artifact-exclusion-sensitivity"></a>
+</h3>
+<p>Both sides were rerun with the full artifact preset: the cellprograms
+refit uses
+<code>fit_celltype_programs(..., exclude_artifacts = TRUE)</code>
+(exclusion grows from the 274 vdj + genotype-marker genes to 313, adding
+39 canonical identity markers, TCR constant genes, and sex-linked genes;
+everything else identical — point-Laplace, K = 30, 2,000 HVGs, institute
++ sex residualized, seed 1), and MOFAcellulaR gets the same 313-gene
+list vetoed across views plus the refit’s HVG panels.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">excl_path</span> <span class="op">&lt;-</span> <span class="st">"mofacellular_stephenson_cache_excl.rds"</span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">excl_path</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">excl_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"vignettes"</span>, <span class="st">"articles"</span>, <span class="st">"mofacellular_stephenson_cache_excl.rds"</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">has_cache_excl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">excl_path</span><span class="op">)</span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="va">has_cache_excl</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"mofacellular_stephenson_cache_excl.rds not found; "</span>,</span>
+<span>          <span class="st">"skipping the sensitivity results (run scripts in benchmarks/ to build it)."</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">c1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="va">excl_path</span><span class="op">)</span></span>
+<span><span class="va">c0</span> <span class="op">&lt;-</span> <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/exists.html" class="external-link">exists</a></span><span class="op">(</span><span class="st">"cache"</span>, inherit <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="va">cache</span> <span class="kw">else</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="va">cache_path</span><span class="op">)</span></span>
+<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>setting <span class="op">=</span> <span class="st">"default (274 genes)"</span>,</span>
+<span>                       max_r <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">c0</span><span class="op">$</span><span class="va">r_mat</span><span class="op">)</span>, <span class="fl">2</span>, <span class="va">max</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>            <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>setting <span class="op">=</span> <span class="st">"exclude_artifacts (313 genes)"</span>,</span>
+<span>                       max_r <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">c1</span><span class="op">$</span><span class="va">r_mat</span><span class="op">)</span>, <span class="fl">2</span>, <span class="va">max</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">df</span><span class="op">$</span><span class="va">setting</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">setting</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"default (274 genes)"</span>,</span>
+<span>                                            <span class="st">"exclude_artifacts (313 genes)"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">df</span>, <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">max_r</span>, <span class="va">setting</span>, color <span class="op">=</span> <span class="va">setting</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">2.6</span>, position <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/position_dodge.html" class="external-link">position_dodge2</a></span><span class="op">(</span>width <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_vline</a></span><span class="op">(</span>xintercept <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">0.7</span><span class="op">)</span>, linetype <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">2</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"grey40"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"#1B9E77"</span>, <span class="st">"#D95F02"</span><span class="op">)</span>, name <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"strongest local counterpart per factor (max |r|)"</span>, y <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>                title <span class="op">=</span> <span class="st">"Factor-program alignment under both exclusion settings"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">9</span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"top"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="mofacellular_comparison_files/figure-html/excl-align-1.png" class="r-plt" alt="" width="1050"></p>
+<p>Factor labels are not comparable across refits (each model has its
+own axes), so the plot shows the 15 per-factor maxima as distributions
+per setting.</p>
+<p>The headline conclusions are insensitive to the preset. The strongest
+alignments barely move (Plasma_1 at |r| = 0.94, CD4_mem_1 at 0.91,
+CD4_mem_20 at 0.90 under the expanded exclusion, vs 0.93/0.90/0.89
+default); program count drops 284 → 278, CMPs 24 → 25 with 598 → 516
+edges; MOFA view sizes shrink modestly (250–874 genes vs 259–880) and
+total per-view R² spans 18–60% vs 21–63%. Two differences are worth
+noting. First, the number of MOFA factors with no local counterpart
+falls from three to one — the survivor (MF1, max |r| = 0.04) is present
+under both settings and unexplained by either model. Second, the
+severity signal sharpens: the strongest CMP moves from estimate 0.296, p
+= 9e-14 to estimate 0.313, p = 1e-16, while MOFA’s leading factor is
+essentially unchanged (Factor6, p = 1.7e-7 → 4.1e-7). Removing
+identity-marker and sex-linked genes from the panels makes the
+coordinated disease program cleaner rather than diluting it — the preset
+is a guard against artifact-driven programs, not a results-changer.
+MOFAcellulaR’s complexity-artifact QC flag moves from factors 4/8 to
+5/7, i.e. such factors reappear under either panel; they are a
+normalization/coverage property of the data, not of the blacklist.</p>
 </div>
 </div>
 <div class="section level2">
