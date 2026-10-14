@@ -82,6 +82,7 @@ against the pinned `flashier@fd44811` (1.0.60) + `psych`, the suite is clean
 | cellprograms full suite | **438 passed / 0 failed** |
 | flashier-utils full suite | **1132 passed / 0 failed** |
 | cellprograms R CMD check (`--no-manual`) | **Status OK** |
+| Real-data smoke (Stephenson CD4_naive, K=30, institute+sex residualized) | n_factors 25 = 25, ELBO identical, L_pm/F_pm/scores max abs diff ~1e-10 |
 
 ## Known deviations / unsupported settings
 
