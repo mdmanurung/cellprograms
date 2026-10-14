@@ -511,6 +511,204 @@ plot_cmp_nodes <- function(cmp) {
 }
 
 ## ---------------------------------------------------------------------------
+## 8b. CMP membership across settings (alluvial)
+## ---------------------------------------------------------------------------
+
+#' Plot CMP membership across settings
+#'
+#' Alluvial view of how each program's coordination membership changes across
+#' a named list of `cmp_result` objects — typically the same fit run with
+#' different `find_coordinated_programs()` settings, e.g. `ambient = "drop"`
+#' versus `ambient = "flag"`. Strata are membership classes ("CMP k", 
+#' "significant, no CMP", "not significant", "excluded (ambient)"); ribbons
+#' are programs, colored by their destination class, so a setting change that
+#' calls or drops programs shows up as a colored ribbon leaving the grey
+#' baseline.
+#'
+#' @param cmp_list A named list of `cmp_result` objects; the names become the
+#'   x-axis labels, in order.
+#' @param alpha Membership significance level used to classify programs
+#'   (default 0.05; each result's own `settings$alpha` takes precedence).
+#' @param label_programs When TRUE and at most 12 programs are present,
+#'   annotate ribbons whose membership changed with the program IDs carried.
+#' @return A ggplot object.
+#' @examples
+#' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
+#' x <- as_cell_program_data(sim$pseudobulk)
+#' fit <- canonicalize_programs(fit_celltype_programs(x, max_factors = 3, seed = 1))
+#' cmps <- list(
+#'   drop = find_coordinated_programs(fit, n_perm = 200, seed = 1),
+#'   flag = find_coordinated_programs(fit, n_perm = 200, seed = 1, ambient = "flag")
+#' )
+#' plot_cmp_membership(cmps)
+#' @export
+plot_cmp_membership <- function(cmp_list, alpha = 0.05, label_programs = FALSE) {
+  if (!is.list(cmp_list) || is.null(names(cmp_list)) ||
+      any(!nzchar(names(cmp_list))) ||
+      !all(vapply(cmp_list, inherits, TRUE, "cmp_result"))) {
+    .stopf("`cmp_list` must be a named list of cmp_result objects.")
+  }
+  n_s <- length(cmp_list)
+
+  ## -- classify every program of one result
+  classify <- function(cmp) {
+    a <- if (!is.null(cmp$settings$alpha)) cmp$settings$alpha else alpha
+    out <- character(0)
+    if (!is.null(cmp$nodes) && nrow(cmp$nodes)) {
+      k <- paste(cmp$nodes$cell_type, cmp$nodes$program_id, sep = "|")
+      memb <- stats::setNames(as.character(cmp$cmps$cmp), cmp$cmps$program_id)
+      m <- memb[cmp$nodes$program_id]
+      lv <- ifelse(is.na(m), "significant, no CMP", paste("CMP", m))
+      lv[cmp$nodes$node_p >= a] <- "not significant"
+      out[k] <- lv
+    }
+    if (!is.null(cmp$ambient) && nrow(cmp$ambient)) {
+      k <- paste(cmp$ambient$cell_type, cmp$ambient$program_id, sep = "|")
+      thr <- if (!is.null(cmp$settings$ambient_threshold)) cmp$settings$ambient_threshold else 0.3
+      exc <- !k %in% names(out) & cmp$ambient$ambient_score > thr
+      out[k[exc]] <- "excluded (ambient)"
+      out[setdiff(k, names(out))] <- "not tested"
+    }
+    out
+  }
+  cls <- lapply(cmp_list, classify)
+
+  ## -- canonicalize CMP labels across settings by member-set overlap: the
+  ##    CMP index from find_coordinated_programs is arbitrary per run, so a
+  ##    CMP that keeps its members should keep its label
+  prev_members <- list()
+  for (i in seq_len(n_s)) {
+    lv <- cls[[i]]
+    is_cmp <- grepl("^CMP ", lv)
+    raw <- unique(lv[is_cmp])
+    raw <- raw[order(as.integer(sub("CMP ", "", raw)))]
+    mapping <- character(0); used <- character(0)
+    for (k in raw) {
+      mem <- names(lv)[lv == k]
+      best_j <- 0; best <- NA_character_
+      for (lab in names(prev_members)) {
+        if (lab %in% used) next
+        j <- length(intersect(mem, prev_members[[lab]])) /
+          max(length(union(mem, prev_members[[lab]])), 1L)
+        if (j > best_j) { best_j <- j; best <- lab }
+      }
+      if (best_j > 0) {
+        mapping[k] <- best
+      } else {
+        used_nums <- as.integer(sub("CMP ", "", c(names(prev_members), used)))
+        mapping[k] <- paste("CMP", min(setdiff(seq_len(max(c(used_nums, 0L)) + 1L),
+                                               used_nums)))
+      }
+      used <- c(used, mapping[k])
+    }
+    lv[is_cmp] <- mapping[lv[is_cmp]]
+    cls[[i]] <- lv
+    prev_members <- setNames(lapply(mapping, function(k) names(lv)[lv == k]),
+                             mapping)
+  }
+
+  keys <- sort(unique(unlist(lapply(cls, names))))
+  mat <- matrix("not tested", length(keys), n_s,
+                dimnames = list(keys, names(cmp_list)))
+  for (i in seq_len(n_s)) mat[names(cls[[i]]), i] <- cls[[i]]
+
+  cmp_n <- max(as.integer(sub("CMP ", "", grep("^CMP ", mat, value = TRUE))), 0L)
+  lvls <- c(if (cmp_n > 0) paste("CMP", seq_len(cmp_n)), "significant, no CMP",
+            "not significant", "excluded (ambient)", "not tested")
+
+  ## -- strata rectangles per setting (stacked bottom-up in level order)
+  bw <- 0.14
+  rects <- do.call(rbind, lapply(seq_len(n_s), function(i) {
+    tab <- table(factor(mat[, i], levels = lvls))
+    tab <- tab[tab > 0]
+    y0 <- 0
+    do.call(rbind, lapply(names(tab), function(lv) {
+      y1 <- y0 + tab[[lv]]
+      y0 <<- y1
+      data.frame(x = i, ymin = y1 - tab[[lv]], ymax = y1, level = lv,
+                 n = as.integer(tab[[lv]]), stringsAsFactors = FALSE)
+    }))
+  }))
+  y_start <- function(i, lv) {
+    r <- rects[rects$x == i & rects$level == lv, ]
+    if (!nrow(r)) NA_real_ else r$ymin[1]
+  }
+
+  ## -- flow rectangles between consecutive settings, allocated in level order
+  flows <- do.call(rbind, lapply(seq_len(n_s - 1), function(i) {
+    L <- mat[, i]; R <- mat[, i + 1]
+    off_L <- off_R <- numeric(0)
+    do.call(rbind, lapply(lvls, function(lf) {
+      do.call(rbind, lapply(lvls, function(lt) {
+        ks <- names(L)[L == lf & R == lt]
+        n <- length(ks)
+        if (!n) return(NULL)
+        a0 <- y_start(i, lf); b0 <- y_start(i + 1, lt)
+        if (is.na(a0) || is.na(b0)) return(NULL)
+        a1 <- if (is.na(off_L[lf])) a0 else off_L[lf]
+        b1 <- if (is.na(off_R[lt])) b0 else off_R[lt]
+        off_L[lf] <<- a1 + n; off_R[lt] <<- b1 + n
+        data.frame(xmin = i + bw, xmax = i + 1 - bw, ymin = a1, ymax = a1 + n,
+                   ymin2 = b1, ymax2 = b1, from = lf, to = lt,
+                   programs = paste(sub("^[^|]*\\|", "", ks), collapse = ", "),
+                   stringsAsFactors = FALSE)
+      }))
+    }))
+  }))
+
+  ## -- colors: Dark2 for CMPs, greys for the rest
+  has_flows <- !is.null(flows) && nrow(flows) > 0L
+  lvls_present <- lvls[lvls %in% unique(c(rects$level, if (has_flows) flows$to))]
+  n_cmp <- sum(grepl("^CMP ", lvls_present))
+  pal <- c(setNames(grDevices::hcl.colors(max(n_cmp, 1L), "Dark2"),
+                    grep("^CMP ", lvls_present, value = TRUE)),
+           setNames(c("grey72", "grey40", "grey88"),
+                    c("significant, no CMP", "excluded (ambient)", "not tested")))
+  pal <- pal[lvls_present]
+
+  p <- ggplot2::ggplot()
+  if (has_flows) {
+    p <- p +
+      ggplot2::geom_rect(data = flows, ggplot2::aes(xmin = xmin, xmax = xmax,
+                                                    ymin = ymin, ymax = ymax,
+                                                    fill = to), color = NA,
+                         alpha = 0.55) +
+      ggplot2::geom_rect(data = flows, ggplot2::aes(xmin = xmin, xmax = xmax,
+                                                    ymin = ymin2, ymax = ymax2,
+                                                    fill = to), color = NA,
+                         alpha = 0.55)
+  }
+  p <- p +
+    ggplot2::geom_rect(data = rects, ggplot2::aes(xmin = x - bw, xmax = x + bw,
+                                                  ymin = ymin, ymax = ymax,
+                                                  fill = level),
+                       color = "white", linewidth = 0.3) +
+    ggplot2::geom_text(data = rects, ggplot2::aes(x = x, y = (ymin + ymax) / 2,
+                                                  label = paste0(level, " (", n, ")"),
+                                                  hjust = ifelse(x == 1, 1.12, -0.12)),
+                       size = 3.1) +
+    ggplot2::scale_fill_manual(values = pal, breaks = lvls_present, name = NULL) +
+    ggplot2::scale_x_continuous(breaks = seq_len(n_s), labels = names(cmp_list),
+                                expand = ggplot2::expansion(mult = 0.35)) +
+    ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = 0.02)) +
+    ggplot2::labs(x = NULL, y = "programs") +
+    .theme_programs() +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 0, hjust = 0.5),
+                   legend.position = "none",
+                   panel.grid = ggplot2::element_blank())
+  if (label_programs && length(keys) <= 12L && has_flows) {
+    ch <- flows[flows$from != flows$to, ]
+    if (nrow(ch)) {
+      p <- p + ggplot2::geom_text(data = ch, ggplot2::aes(x = (xmin + xmax) / 2,
+                                                          y = (ymin2 + ymax2) / 2,
+                                                          label = programs),
+                                  size = 2.8, hjust = 0.5, vjust = 0.5)
+    }
+  }
+  p
+}
+
+## ---------------------------------------------------------------------------
 ## 9. context association
 ## ---------------------------------------------------------------------------
 

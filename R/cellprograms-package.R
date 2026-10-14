@@ -18,7 +18,9 @@ utils::globalVariables(c(
   "estimate", "fraction", "gene", "lab", "label", "loading",
   "median_score_cor", "min_angle_deg", "n_shared_05", "node_stat", "p",
   "pair", "program", "pve", "recovery_freq", "score", "se", "set",
-  "sign_consistency", "sig", "stat", "top_gene_jaccard", "underpowered",
-  "value", "weight", "x", "x0", "x1", "y", "y0", "y1"
+  "sign_consistency", "sig", "stat", "to", "top_gene_jaccard",
+  "underpowered", "value", "weight", "x", "x0", "x1", "xmax", "xmin",
+  "y", "y0", "y1", "ymax", "ymax2", "ymin", "ymin2", "level", "n",
+  "programs"
 ))
 

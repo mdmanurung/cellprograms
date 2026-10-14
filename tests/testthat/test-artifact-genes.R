@@ -23,7 +23,7 @@
 }
 
 test_that("artifact_gene_sets stores the documented sets and .expand_vdj expands the regex", {
-  expect_named(artifact_gene_sets, c("vdj", "genotype_marker", "sex"))
+  expect_named(artifact_gene_sets, c("vdj", "genotype_marker", "sex", "canonical_marker"))
   expect_length(artifact_gene_sets$vdj, 1L)          # pattern, not a gene list
   expect_setequal(artifact_gene_sets$genotype_marker,
                   c("GSTM1", "GSTT1", "GSTT2", "UTS2", "ERAP2", "CCL3L1", "CCL3L3",
@@ -32,10 +32,18 @@ test_that("artifact_gene_sets stores the documented sets and .expand_vdj expands
   expect_setequal(artifact_gene_sets$sex,
                   c("XIST", "RPS4Y1", "DDX3Y", "UTY", "KDM5D", "EIF1AY",
                     "NLGN4Y", "TMSB4Y", "USP9Y", "ZFY"))
-  universe <- c("IGHV1-2", "IGKC", "IGHG1", "JCHAIN", "TRBV7-2", "GSTM1", "MALAT1")
-  expect_setequal(.expand_vdj(universe), c("IGHV1-2", "IGKC", "IGHG1", "JCHAIN", "TRBV7-2"))
+  expect_setequal(artifact_gene_sets$canonical_marker,
+                  c("CD3D", "CD3E", "CD3G", "CD4", "CD8A", "CD8B",
+                    "CD19", "MS4A1", "CD79A", "CD79B", "MZB1",
+                    "NCAM1", "FCGR3A", "CD14", "LST1",
+                    "CD1C", "FCER1A", "CLEC9A", "PPBP", "PF4",
+                    "HBB", "HBA1", "HBA2"))
+  universe <- c("IGHV1-2", "IGKC", "IGHG1", "JCHAIN", "TRBV7-2", "TRAC", "GSTM1", "MALAT1")
+  expect_setequal(.expand_vdj(universe),
+                  c("IGHV1-2", "IGKC", "IGHG1", "JCHAIN", "TRBV7-2", "TRAC"))
   expect_setequal(artifact_genes(universe, "vdj"), .expand_vdj(universe))
-  expect_setequal(artifact_genes(universe), c("IGHV1-2", "IGKC", "IGHG1", "JCHAIN", "TRBV7-2", "GSTM1"))
+  expect_setequal(artifact_genes(universe),
+                  c("IGHV1-2", "IGKC", "IGHG1", "JCHAIN", "TRBV7-2", "TRAC", "GSTM1"))
   expect_error(artifact_genes(universe, "nope"), "Unknown artifact gene set")
 })
 
@@ -128,4 +136,33 @@ test_that("exclude_genes removes genes from the fitted panel; default unchanged"
   expect_true(all(excl %in% fit0$fits$CT1$genes))
   expect_null(fit0$preprocessing$exclude_genes)
   expect_error(fit_celltype_programs(cpd, exclude_genes = 1:3), "exclude_genes")
+})
+
+test_that("exclude_artifacts applies the preset blacklist; union with exclude_genes", {
+  skip_if_not_installed("flashier")
+  skip_if_not_installed("ebnm")
+  set.seed(5)
+  n <- 24; g <- 40
+  Y <- matrix(rnorm(n * g, sd = 0.5), n, g, dimnames = list(paste0("s", 1:n), paste0("g", 1:g)))
+  colnames(Y)[1:5] <- c("TRAC", "CD3D", "HBB", "XIST", "GSTM1")
+  Y[, 1:5] <- Y[, 1:5] * 6 + 3                        # blacklist genes are highly variable
+  cpd <- as_cell_program_data(list(CT1 = Y))
+  fit <- canonicalize_programs(fit_celltype_programs(
+    cpd, features = "variable", n_variable_genes = 25, exclude_artifacts = TRUE, seed = 1))
+  expect_false(any(c("TRAC", "CD3D", "HBB", "XIST", "GSTM1") %in% fit$fits$CT1$genes))
+  expect_equal(length(fit$fits$CT1$genes), 25L)       # slots reallocated
+  expect_true(fit$preprocessing$exclude_artifacts)
+  # TRAC (TCR constant) is now caught by the vdj regex
+  expect_true("TRAC" %in% artifact_genes(colnames(Y), "vdj"))
+  # canonical_marker set is part of the default preset
+  expect_true(all(c("CD3D", "HBB") %in% artifact_genes(colnames(Y))))
+  # union with explicit exclude_genes; default unchanged
+  fit2 <- canonicalize_programs(fit_celltype_programs(
+    cpd, features = "variable", n_variable_genes = 25,
+    exclude_genes = "g40", exclude_artifacts = TRUE, seed = 1))
+  expect_false(any(c("CD3D", "g40") %in% fit2$fits$CT1$genes))
+  fit0 <- canonicalize_programs(fit_celltype_programs(
+    cpd, features = "variable", n_variable_genes = 25, seed = 1))
+  expect_true(all(c("TRAC", "CD3D", "HBB", "XIST", "GSTM1") %in% fit0$fits$CT1$genes))
+  expect_false(fit0$preprocessing$exclude_artifacts)
 })

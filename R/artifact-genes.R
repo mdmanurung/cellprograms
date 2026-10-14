@@ -17,15 +17,23 @@
 #'
 #' * `vdj`: immunoglobulin and T-cell-receptor V(D)J and constant genes.
 #'   Stored as a single regular expression,
-#'   `^(IG[HKL]V|IG[KL]C|IGH[GAMDE]|JCHAIN|TR[ABGD]V)`, not an enumerated gene
-#'   list, because the full V-gene complement is genome-annotation-dependent;
-#'   expand it against a gene universe with `.expand_vdj()` (or use
-#'   `artifact_genes()`, which expands every set).
+#'   `^(IG[HKL]V|IG[KL]C|IGH[GAMDE]|JCHAIN|TR[ABGD][VC])`, not an enumerated
+#'   gene list, because the full V-gene complement is
+#'   genome-annotation-dependent; expand it against a gene universe with
+#'   `.expand_vdj()` (or use `artifact_genes()`, which expands every set).
 #' * `genotype_marker`: genes with common germline deletion, copy-number or
 #'   HLA-haplotype expression variation (GSTM1/GSTT1 deletions, CCL3L1/CCL4L1
 #'   copy number, HLA-DRB3/4/5 and HLA-DQA/DQB haplotypes, ...).
 #' * `sex`: XIST and the male-specific Y-chromosome genes RPS4Y1, DDX3Y, UTY,
 #'   KDM5D, EIF1AY, NLGN4Y, TMSB4Y, USP9Y, ZFY.
+#' * `canonical_marker`: canonical lineage-identity markers of PBMC
+#'   annotation canons (T: CD3D/CD3E/CD3G/CD4/CD8A/CD8B; B: CD19/MS4A1/
+#'   CD79A/CD79B; plasma: MZB1; NK: NCAM1/FCGR3A; monocyte: CD14/LST1;
+#'   DC: CD1C/FCER1A/CLEC9A; platelet: PPBP/PF4; erythroid: HBB/HBA1/HBA2).
+#'   In the cell type they mark, these genes mostly reflect identity rather
+#'   than state; in every other cell type they are contamination candidates.
+#'   State genes with real biology (GZMB, PRF1, IL7R, ...) are deliberately
+#'   not included.
 #'
 #' Provenance: the `genotype_marker` list is a screening heuristic, not
 #' validated against genotype data; extend or replace it for your cohort. The
@@ -34,20 +42,26 @@
 #' is closed, so it can be subtracted from a feature panel directly.
 #'
 #' @format A named list of character vectors (`vdj` is a length-1 regular
-#'   expression; `genotype_marker` and `sex` are gene IDs).
+#'   expression; the other sets are gene IDs).
 #' @examples
 #' names(artifact_gene_sets)
 #' artifact_gene_sets$vdj   # V(D)J genes are stored as a regular expression
 #' artifact_gene_sets$sex
+#' artifact_gene_sets$canonical_marker
 #' @export
 artifact_gene_sets <- list(
-  vdj = "^(IG[HKL]V|IG[KL]C|IGH[GAMDE]|JCHAIN|TR[ABGD]V)",
+  vdj = "^(IG[HKL]V|IG[KL]C|IGH[GAMDE]|JCHAIN|TR[ABGD][VC])",
   genotype_marker = c("GSTM1", "GSTT1", "GSTT2", "UTS2", "ERAP2",
                       "CCL3L1", "CCL3L3", "CCL4L1", "CCL4L2",
                       "HLA-DRB3", "HLA-DRB4", "HLA-DRB5",
                       "HLA-DQA1", "HLA-DQA2", "HLA-DQB1", "HLA-DQB2"),
   sex = c("XIST", "RPS4Y1", "DDX3Y", "UTY", "KDM5D", "EIF1AY",
-          "NLGN4Y", "TMSB4Y", "USP9Y", "ZFY")
+          "NLGN4Y", "TMSB4Y", "USP9Y", "ZFY"),
+  canonical_marker = c("CD3D", "CD3E", "CD3G", "CD4", "CD8A", "CD8B",
+                       "CD19", "MS4A1", "CD79A", "CD79B", "MZB1",
+                       "NCAM1", "FCGR3A", "CD14", "LST1",
+                       "CD1C", "FCER1A", "CLEC9A", "PPBP", "PF4",
+                       "HBB", "HBA1", "HBA2")
 )
 
 # Expand the V(D)J pattern against a gene universe. The set is stored as a

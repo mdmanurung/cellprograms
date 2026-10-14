@@ -48,6 +48,8 @@
   : Plot program alignment (principal angles)
 - [`plot_artifact_flags()`](https://mdmanurung.github.io/cellprograms/reference/plot_artifact_flags.md)
   : Plot artifact-gene flags
+- [`plot_cmp_membership()`](https://mdmanurung.github.io/cellprograms/reference/plot_cmp_membership.md)
+  : Plot CMP membership across settings
 - [`plot_cmp_network()`](https://mdmanurung.github.io/cellprograms/reference/plot_cmp_network.md)
   : Plot the coordinated-program network
 - [`plot_cmp_nodes()`](https://mdmanurung.github.io/cellprograms/reference/plot_cmp_nodes.md)

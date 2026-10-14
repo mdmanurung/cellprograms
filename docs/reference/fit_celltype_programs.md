@@ -14,6 +14,7 @@ fit_celltype_programs(
   features = "all",
   n_variable_genes = 2000,
   exclude_genes = NULL,
+  exclude_artifacts = FALSE,
   var_type = 1,
   backfit = TRUE,
   nullcheck = TRUE,
@@ -71,6 +72,15 @@ fit_celltype_programs(
   V(D)J or common-germline-variation genes – see \`artifact_gene_sets\`
   and \`artifact_genes()\`. With a named-list \`features\`, excluded
   genes are dropped from the requested vectors after validation.
+
+- exclude_artifacts:
+
+  Convenience preset: when TRUE, union \`artifact_genes()\` (V(D)J,
+  genotype-marker, sex and canonical-marker sets) over the pseudobulk
+  gene universe into \`exclude_genes\`, so the preset blacklist never
+  enters the fit and does not consume \`n_variable_genes\` slots.
+  Default FALSE: exclusion changes the feature panel, so it is opt-in;
+  explicit \`exclude_genes\` entries are kept.
 
 - var_type:
 
