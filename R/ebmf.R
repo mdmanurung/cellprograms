@@ -30,6 +30,12 @@
 #'   `artifact_gene_sets` and `artifact_genes()`. With a named-list
 #'   `features`, excluded genes are dropped from the requested vectors after
 #'   validation.
+#' @param exclude_artifacts Convenience preset: when TRUE, union
+#'   `artifact_genes()` (V(D)J, genotype-marker, sex and canonical-marker
+#'   sets) over the pseudobulk gene universe into `exclude_genes`, so the
+#'   preset blacklist never enters the fit and does not consume
+#'   `n_variable_genes` slots. Default FALSE: exclusion changes the feature
+#'   panel, so it is opt-in; explicit `exclude_genes` entries are kept.
 #' @param var_type flashier residual-variance type: 0 = constant, 1 = one
 #'   variance per row/donor (default), 2 = per-gene (unstable on
 #'   log-normalized pseudobulk), or `c(1, 2)` = Kronecker rank-one structure
@@ -70,6 +76,7 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
                                   max_factors = 10, center = TRUE,
                                   scale = FALSE, features = "all",
                                   n_variable_genes = 2000, exclude_genes = NULL,
+                                  exclude_artifacts = FALSE,
                                   var_type = 1,
                                   backfit = TRUE, nullcheck = TRUE,
                                   covariates = NULL,
@@ -80,6 +87,10 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
   if (!is.null(exclude_genes) &&
       (!is.character(exclude_genes) || anyNA(exclude_genes))) {
     cli::cli_abort("{.arg exclude_genes} must be NULL or a character vector of gene IDs.")
+  }
+  if (isTRUE(exclude_artifacts)) {
+    universe <- unique(unlist(lapply(x$pseudobulk, colnames), use.names = FALSE))
+    exclude_genes <- union(exclude_genes, artifact_genes(universe))
   }
   if (covariate_mode == "fixed" && !is.null(covariates) && !center) {
     cli::cli_abort("{.code covariate_mode = \"fixed\"} requires {.code center = TRUE}.")
@@ -213,6 +224,7 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     centered = center, scaled = scale,
     feature_sets = feature_sets,
     exclude_genes = exclude_genes,
+    exclude_artifacts = isTRUE(exclude_artifacts),
     loading_prior = loading_prior,
     max_factors = max_factors, var_type = var_type,
     backfit = backfit, nullcheck = nullcheck,

@@ -55,21 +55,29 @@ biology, used for flagging called programs and for fit-time exclusion:</p>
     <div class="section level2">
     <h2 id="format">Format<a class="anchor" aria-label="anchor" href="#format"></a></h2>
     <p>A named list of character vectors (`vdj` is a length-1 regular
-  expression; `genotype_marker` and `sex` are gene IDs).</p>
+  expression; the other sets are gene IDs).</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>* `vdj`: immunoglobulin and T-cell-receptor V(D)J and constant genes.
   Stored as a single regular expression,
-  `^(IG[HKL]V|IG[KL]C|IGH[GAMDE]|JCHAIN|TR[ABGD]V)`, not an enumerated gene
-  list, because the full V-gene complement is genome-annotation-dependent;
-  expand it against a gene universe with `.expand_vdj()` (or use
-  `artifact_genes()`, which expands every set).
+  `^(IG[HKL]V|IG[KL]C|IGH[GAMDE]|JCHAIN|TR[ABGD][VC])`, not an enumerated
+  gene list, because the full V-gene complement is
+  genome-annotation-dependent; expand it against a gene universe with
+  `.expand_vdj()` (or use `artifact_genes()`, which expands every set).
 * `genotype_marker`: genes with common germline deletion, copy-number or
   HLA-haplotype expression variation (GSTM1/GSTT1 deletions, CCL3L1/CCL4L1
   copy number, HLA-DRB3/4/5 and HLA-DQA/DQB haplotypes, ...).
 * `sex`: XIST and the male-specific Y-chromosome genes RPS4Y1, DDX3Y, UTY,
-  KDM5D, EIF1AY, NLGN4Y, TMSB4Y, USP9Y, ZFY.</p>
+  KDM5D, EIF1AY, NLGN4Y, TMSB4Y, USP9Y, ZFY.
+* `canonical_marker`: canonical lineage-identity markers of PBMC
+  annotation canons (T: CD3D/CD3E/CD3G/CD4/CD8A/CD8B; B: CD19/MS4A1/
+  CD79A/CD79B; plasma: MZB1; NK: NCAM1/FCGR3A; monocyte: CD14/LST1;
+  DC: CD1C/FCER1A/CLEC9A; platelet: PPBP/PF4; erythroid: HBB/HBA1/HBA2).
+  In the cell type they mark, these genes mostly reflect identity rather
+  than state; in every other cell type they are contamination candidates.
+  State genes with real biology (GZMB, PRF1, IL7R, ...) are deliberately
+  not included.</p>
 <p>Provenance: the `genotype_marker` list is a screening heuristic, not
 validated against genotype data; extend or replace it for your cohort. The
 sets overlap `cmp_nuisance_genes()` (used by `cmp_triage()`); unlike that
@@ -80,12 +88,16 @@ is closed, so it can be subtracted from a feature panel directly.</p>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">artifact_gene_sets</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "vdj"             "genotype_marker" "sex"            </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "vdj"              "genotype_marker"  "sex"              "canonical_marker"</span>
 <span class="r-in"><span><span class="va">artifact_gene_sets</span><span class="op">$</span><span class="va">vdj</span>   <span class="co"># V(D)J genes are stored as a regular expression</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "^(IG[HKL]V|IG[KL]C|IGH[GAMDE]|JCHAIN|TR[ABGD]V)"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "^(IG[HKL]V|IG[KL]C|IGH[GAMDE]|JCHAIN|TR[ABGD][VC])"</span>
 <span class="r-in"><span><span class="va">artifact_gene_sets</span><span class="op">$</span><span class="va">sex</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  [1] "XIST"   "RPS4Y1" "DDX3Y"  "UTY"    "KDM5D"  "EIF1AY" "NLGN4Y" "TMSB4Y"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  [9] "USP9Y"  "ZFY"   </span>
+<span class="r-in"><span><span class="va">artifact_gene_sets</span><span class="op">$</span><span class="va">canonical_marker</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] "CD3D"   "CD3E"   "CD3G"   "CD4"    "CD8A"   "CD8B"   "CD19"   "MS4A1" </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [9] "CD79A"  "CD79B"  "MZB1"   "NCAM1"  "FCGR3A" "CD14"   "LST1"   "CD1C"  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [17] "FCER1A" "CLEC9A" "PPBP"   "PF4"    "HBB"    "HBA1"   "HBA2"  </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -55,6 +55,7 @@
 <span>  features <span class="op">=</span> <span class="st">"all"</span>,</span>
 <span>  n_variable_genes <span class="op">=</span> <span class="fl">2000</span>,</span>
 <span>  exclude_genes <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  exclude_artifacts <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  var_type <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  backfit <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  nullcheck <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -115,6 +116,15 @@ classes such as V(D)J or common-germline-variation genes – see
 `artifact_gene_sets` and `artifact_genes()`. With a named-list
 `features`, excluded genes are dropped from the requested vectors after
 validation.</p></dd>
+
+
+<dt id="arg-exclude-artifacts">exclude_artifacts<a class="anchor" aria-label="anchor" href="#arg-exclude-artifacts"></a></dt>
+<dd><p>Convenience preset: when TRUE, union
+`artifact_genes()` (V(D)J, genotype-marker, sex and canonical-marker
+sets) over the pseudobulk gene universe into `exclude_genes`, so the
+preset blacklist never enters the fit and does not consume
+`n_variable_genes` slots. Default FALSE: exclusion changes the feature
+panel, so it is opt-in; explicit `exclude_genes` entries are kept.</p></dd>
 
 
 <dt id="arg-var-type">var_type<a class="anchor" aria-label="anchor" href="#arg-var-type"></a></dt>

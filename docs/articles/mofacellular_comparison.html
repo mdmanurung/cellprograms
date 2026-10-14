@@ -175,6 +175,10 @@ to be the strongest edge in the entire analysis:</p>
 <span><span class="co">#&gt;   CMP 2: B_1, CD4_1 (-), NK_2 (-), Mono_1 (-)</span></span>
 <span><span class="fu"><a href="../reference/plot_cmp_network.html">plot_cmp_network</a></span><span class="op">(</span><span class="va">cmp_flag</span><span class="op">)</span></span></code></pre></div>
 <p><img src="mofacellular_comparison_files/figure-html/ambient-guard-1.png" class="r-plt" alt="" width="1050"></p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_cmp_membership.html">plot_cmp_membership</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"ambient = drop"</span> <span class="op">=</span> <span class="va">cmp</span>, <span class="st">"ambient = flag"</span> <span class="op">=</span> <span class="va">cmp_flag</span><span class="op">)</span>,</span>
+<span>                    label_programs <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p><img src="mofacellular_comparison_files/figure-html/ambient-guard-2.png" class="r-plt" alt="" width="1050"></p>
 <p>The practical lesson: when the contamination status of a dataset is
 unknown, <code>ambient = "flag"</code> is the safer choice — the guard
 stays visible (<code>ambient_flag</code> in the membership table)
@@ -182,7 +186,7 @@ instead of silently removing programs. This episode is itself part of
 the comparison: explicit guards can misfire, but they are inspectable
 and configurable in a way a joint model’s implicit assumptions are
 not.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">shr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/program_sharing.html">program_sharing</a></span><span class="op">(</span><span class="va">fit</span>, n_perm <span class="op">=</span> <span class="fl">999</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_sharing.html">plot_sharing</a></span><span class="op">(</span><span class="va">shr</span><span class="op">)</span></span></code></pre></div>
 <p><img src="mofacellular_comparison_files/figure-html/sharing-1.png" class="r-plt" alt="" width="1050"></p>
@@ -198,7 +202,7 @@ models see identical inputs. MOFAcellulaR’s QC chain
 <em>raw-count</em> pseudobulk; the simulated profiles are already
 continuous, so we hand the views to MOFA2 directly (with real data, run
 their full preprocessing first):</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mofa_in</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_mofacellular_input.html">as_mofacellular_input</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>          <span class="co"># counts + coldata (the interop adapter)</span></span>
 <span><span class="va">views</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">pseudobulk</span>, <span class="va">t</span><span class="op">)</span>           <span class="co"># genes x donors, one view per cell type</span></span>
 <span><span class="va">mo</span> <span class="op">&lt;-</span> <span class="fu">MOFA2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MOFA2/man/create_mofa.html" class="external-link">create_mofa</a></span><span class="op">(</span><span class="va">views</span><span class="op">)</span></span>
@@ -337,7 +341,7 @@ their full preprocessing first):</p>
 <span><span class="co">#&gt; #######################</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Saving model in /tmp/RtmpcUTu17/file5e372068dee.hdf5...</span></span>
+<span><span class="co">#&gt; Saving model in /tmp/Rtmp57V1nD/file8d5b1c571376.hdf5...</span></span>
 <span><span class="va">Z_mofa</span> <span class="op">&lt;-</span> <span class="fu">MOFA2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MOFA2/man/get_factors.html" class="external-link">get_factors</a></span><span class="op">(</span><span class="va">mofa_model</span><span class="op">)</span><span class="op">$</span><span class="va">group1</span>   <span class="co"># donors x factors</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">Z_mofa</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 60  8</span></span></code></pre></div>
@@ -349,7 +353,7 @@ their full preprocessing first):</p>
 (<code>fit$scores</code>), MOFA shared across views. The natural
 alignment is a donor-score correlation between every cellprograms
 program and every MOFA factor:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">progs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">cbind</span>, <span class="va">fit</span><span class="op">$</span><span class="va">scores</span><span class="op">)</span></span>
 <span><span class="va">r_mat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">progs</span>, <span class="va">Z_mofa</span><span class="op">)</span></span>
 <span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>program <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">r_mat</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">r_mat</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -375,7 +379,7 @@ separated out.</p>
 best |correlation| between the planted donor scores and any recovered
 program (factor) of that cell type, plus gene-set recovery (Jaccard of
 the top-40 |loadings| against the planted genes):</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## planted programs as (cell type, label, donor scores, planted gene names)</span></span>
 <span><span class="va">planted</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">truth</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">ct</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">truth</span><span class="op">[[</span><span class="va">ct</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">k</span><span class="op">)</span> <span class="op">{</span></span>
@@ -583,7 +587,7 @@ shared?”).</p>
 metadata (<code>get_associations</code>: ANOVA for categorical, linear
 for continuous). The cellprograms counterpart is
 <code><a href="../reference/cmp_context_association.html">cmp_context_association()</a></code> on CMP consensus scores:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## cellprograms: CMP scores vs the planted context</span></span>
 <span><span class="va">ca</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cmp_context_association.html">cmp_context_association</a></span><span class="op">(</span><span class="va">fit</span>, <span class="va">cmp</span>, <span class="st">"ifn_high"</span><span class="op">)</span></span>
 <span><span class="va">ca</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">ca</span><span class="op">$</span><span class="va">p</span><span class="op">)</span>, <span class="op">]</span></span>
@@ -614,6 +618,123 @@ arbitrary — program and factor directions are identified only up to
 sign). The cellprograms result is restricted to permutation-validated
 CMPs; the MOFA result covers all factors including view-specific
 ones.</p>
+</div>
+<div class="section level2">
+<h2 id="real-data-stephenson-covid-19-pbmcs">Real data: Stephenson COVID-19 PBMCs<a class="anchor" aria-label="anchor" href="#real-data-stephenson-covid-19-pbmcs"></a>
+</h2>
+<p>The simulation fixes the ground truth; the <a href="real_data_case_study.html">real-data case study</a> shows the
+masked-fit workflow on the Stephenson COVID-19 cohort. Here we run both
+models on that same pseudobulk (119 donors, 12 cell types) and ask the
+same two questions: do the models agree on donor-level structure, and do
+they agree on the severity association?</p>
+<p>The cellprograms side is the masked fit from the case study
+(<code>max_factors = 30</code>, 2,000 variable genes per cell type,
+V(D)J and genotype-marker genes excluded before feature selection,
+institute and sex residualized). MOFAcellulaR gets the identical
+pseudobulk through its own QC chain — profile filtering, edgeR
+expression filter, sample coverage filter, TMM normalization — with two
+parity constraints: its per-view gene panels are restricted to the
+<em>same</em> 2,000-gene panels the local fits used
+(<code>prior_hvg</code>), and the <em>same</em> 274-gene blacklist is
+vetoed from every view via <code>filt_gex_bybckgrnd()</code>. We train
+15 factors (<code>spikeslab_weights = FALSE</code>, seed 1, as in their
+tutorial):</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">## heavy: ~15 min; cached results used below</span></span>
+<span><span class="va">counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">cbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">cts</span>, <span class="kw">function</span><span class="op">(</span><span class="va">ct</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">pseudobulk</span><span class="op">[[</span><span class="va">ct</span><span class="op">]</span><span class="op">]</span><span class="op">[</span>, <span class="va">shared</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">ct_list</span> <span class="op">&lt;-</span> <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu"><a href="https://saezlab.github.io/MOFAcellulaR/reference/create_init_exp.html" class="external-link">create_init_exp</a></span><span class="op">(</span>counts <span class="op">=</span> <span class="va">counts</span>, coldata <span class="op">=</span> <span class="va">coldata</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu"><a href="https://saezlab.github.io/MOFAcellulaR/reference/filt_profiles.html" class="external-link">filt_profiles</a></span><span class="op">(</span>pb_dat <span class="op">=</span> <span class="va">.</span>, cts <span class="op">=</span> <span class="va">cts</span>, ncells <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>                              counts_col <span class="op">=</span> <span class="st">"cell_counts"</span>, ct_col <span class="op">=</span> <span class="st">"cell_type"</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu"><a href="https://saezlab.github.io/MOFAcellulaR/reference/filt_views_bysamples.html" class="external-link">filt_views_bysamples</a></span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, nsamples <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu"><a href="https://saezlab.github.io/MOFAcellulaR/reference/filt_gex_byexpr.html" class="external-link">filt_gex_byexpr</a></span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, min.count <span class="op">=</span> <span class="fl">5</span>, min.prop <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu"><a href="https://saezlab.github.io/MOFAcellulaR/reference/filt_views_bygenes.html" class="external-link">filt_views_bygenes</a></span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, ngenes <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu"><a href="https://saezlab.github.io/MOFAcellulaR/reference/filt_samples_bycov.html" class="external-link">filt_samples_bycov</a></span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, prop_coverage <span class="op">=</span> <span class="fl">0.9</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu"><a href="https://saezlab.github.io/MOFAcellulaR/reference/tmm_trns.html" class="external-link">tmm_trns</a></span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, scale_factor <span class="op">=</span> <span class="fl">1e6</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu"><a href="https://saezlab.github.io/MOFAcellulaR/reference/filt_gex_byhvg.html" class="external-link">filt_gex_byhvg</a></span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, prior_hvg <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">preprocessing</span><span class="op">$</span><span class="va">feature_sets</span>,</span>
+<span>                               var.threshold <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu"><a href="https://saezlab.github.io/MOFAcellulaR/reference/filt_gex_bybckgrnd.html" class="external-link">filt_gex_bybckgrnd</a></span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>,</span>
+<span>                                   prior_mrks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>phantom <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">preprocessing</span><span class="op">$</span><span class="va">exclude_genes</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu"><a href="https://saezlab.github.io/MOFAcellulaR/reference/filt_views_bygenes.html" class="external-link">filt_views_bygenes</a></span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, ngenes <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu"><a href="https://saezlab.github.io/MOFAcellulaR/reference/pb_dat2MOFA.html" class="external-link">pb_dat2MOFA</a></span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, sample_column <span class="op">=</span> <span class="st">"observation_id"</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">MOFA2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MOFA2/man/create_mofa.html" class="external-link">create_mofa</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">## ... then prepare_mofa(num_factors = 15, spikeslab_weights = FALSE, seed = 1) and run_mofa()</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cache_path</span> <span class="op">&lt;-</span> <span class="st">"mofacellular_stephenson_cache.rds"</span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">cache_path</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">cache_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"vignettes"</span>, <span class="st">"articles"</span>, <span class="st">"mofacellular_stephenson_cache.rds"</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">has_cache</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">cache_path</span><span class="op">)</span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="va">has_cache</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"Cached Stephenson MOFA run not found; the real-data results below "</span>,</span>
+<span>          <span class="st">"are skipped. Re-run the previous chunk to regenerate them."</span><span class="op">)</span></span>
+<span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>  <span class="va">cache</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="va">cache_path</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>The QC chain retains 118 of 119 donors (their 0.9-coverage filter
+drops one) and, after MOFAcellulaR’s expression filter, 259–880 genes
+per view of our 2,000-gene panels — their <code>filt_gex_byexpr</code>
+is stricter on this count data than our variability screen.
+MOFAcellulaR’s own QC flags factors 4 and 8 as correlated with per-donor
+feature counts (complexity artifacts); we keep them, as their tutorial
+does, and read the alignment accordingly.</p>
+<div class="section level3">
+<h3 id="donor-score-alignment">Donor-score alignment<a class="anchor" aria-label="anchor" href="#donor-score-alignment"></a>
+</h3>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">r</span> <span class="op">&lt;-</span> <span class="va">cache</span><span class="op">$</span><span class="va">r_mat</span></span>
+<span><span class="va">best_f</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/maxCol.html" class="external-link">max.col</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">ord</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">best_f</span>, <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">r</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span><span class="op">)</span>, <span class="va">best_f</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>program <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span><span class="op">[</span><span class="va">ord</span><span class="op">]</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span><span class="op">[</span><span class="va">ord</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                 factor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span>, each <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                 r <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">r</span><span class="op">[</span><span class="va">ord</span>, <span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in data.frame(program = factor(rownames(r)[ord], levels =</span></span>
+<span><span class="co">#&gt; rev(rownames(r)[ord])), : row names were found from a short variable and have</span></span>
+<span><span class="co">#&gt; been discarded</span></span>
+<span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">df</span>, <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">factor</span>, <span class="va">program</span>, fill <span class="op">=</span> <span class="va">r</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"white"</span>, linewidth <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_gradient.html" class="external-link">scale_fill_gradient2</a></span><span class="op">(</span>low <span class="op">=</span> <span class="st">"#2166AC"</span>, mid <span class="op">=</span> <span class="st">"#F7F7F7"</span>, high <span class="op">=</span> <span class="st">"#B2182B"</span>,</span>
+<span>                                midpoint <span class="op">=</span> <span class="fl">0</span>, limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>, name <span class="op">=</span> <span class="st">"Pearson r"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"MOFA factor"</span>, y <span class="op">=</span> <span class="st">"cellprograms program (grouped by best match)"</span>,</span>
+<span>                title <span class="op">=</span> <span class="st">"Stephenson: donor-score concordance"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">9</span><span class="op">)</span></span></code></pre></div>
+<p><img src="mofacellular_comparison_files/figure-html/real-align-1.png" class="r-plt" alt="" width="1050"></p>
+<p>The picture: most MOFA factors are essentially one local program each
+— MF13 ↔︎ CD4_mem_1 (r = 0.90), MF6 ↔︎ Plasma_1 (r = −0.93), MF5 ↔︎
+NK_dim_2 and MF11 ↔︎ unconv_T_3 (r = 0.89) — while MF1 has no local
+counterpart (max |r| = 0.05) and the two QC-flagged complexity factors
+align only moderately (|r| ≤ 0.53). Total variance explained per view
+ranges from 21% (B_mem) to 63% (NK_dim). This is the expected division
+of labor: the joint model spends factors on the strongest shared axes,
+the local fits keep per-cell-type structure that a 15-factor joint model
+cannot afford a factor for.</p>
+</div>
+<div class="section level3">
+<h3 id="severity-associations-same-test-both-sides">Severity associations, same test both sides<a class="anchor" aria-label="anchor" href="#severity-associations-same-test-both-sides"></a>
+</h3>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ca</span> <span class="op">&lt;-</span> <span class="va">cache</span><span class="op">$</span><span class="va">cmp_assoc</span>   <span class="co"># unadjusted, to match get_associations (no covariates)</span></span>
+<span><span class="va">ga</span> <span class="op">&lt;-</span> <span class="va">cache</span><span class="op">$</span><span class="va">mofa_assoc</span></span>
+<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>model <span class="op">=</span> <span class="st">"cellprograms CMP"</span>, label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"CMP"</span>, <span class="va">ca</span><span class="op">$</span><span class="va">cmp</span><span class="op">)</span>,</span>
+<span>                       p <span class="op">=</span> <span class="va">ca</span><span class="op">$</span><span class="va">p</span><span class="op">)</span>,</span>
+<span>            <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>model <span class="op">=</span> <span class="st">"MOFA2 factor"</span>, label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">"Factor"</span>, <span class="st">"MF"</span>, <span class="va">ga</span><span class="op">$</span><span class="va">Factor</span><span class="op">)</span>,</span>
+<span>                       p <span class="op">=</span> <span class="va">ga</span><span class="op">$</span><span class="va">p.value</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">df</span>, <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log10</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span>, <span class="va">label</span>, fill <span class="op">=</span> <span class="va">model</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col</a></span><span class="op">(</span>width <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_vline</a></span><span class="op">(</span>xintercept <span class="op">=</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log10</a></span><span class="op">(</span><span class="fl">0.05</span><span class="op">)</span>, linetype <span class="op">=</span> <span class="fl">2</span>, color <span class="op">=</span> <span class="st">"grey40"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">model</span>, scales <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="op">-</span><span class="va">log</span><span class="op">[</span><span class="fl">10</span><span class="op">]</span><span class="op">(</span><span class="va">p</span><span class="op">)</span><span class="op">)</span>, y <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>                title <span class="op">=</span> <span class="st">"Severity association, unadjusted"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">9</span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="mofacellular_comparison_files/figure-html/real-severity-1.png" class="r-plt" alt="" width="1050"></p>
+<p>Both models flag severity axes: the strongest CMP (CMP2, estimate
+0.30) at p = 9e-14, with CMP21 at 8e-9; MOFA’s Factor6 at p = 1.7e-7 and
+Factor5 at 1.6e-5. The comparison vignette uses unadjusted tests on both
+sides for parity — <code>get_associations()</code> fits
+<code>value ~ severity</code> with no covariate support — while the <a href="real_data_case_study.html">case study</a> adjusts for institute
+and sex, which is the recommended workflow. Do not over-read the p-value
+gap: CMP consensus scores pool several member programs (denoising),
+whereas each MOFA factor is a single axis.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="when-to-use-which">When to use which<a class="anchor" aria-label="anchor" href="#when-to-use-which"></a>

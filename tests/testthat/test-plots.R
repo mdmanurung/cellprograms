@@ -80,3 +80,22 @@ test_that("plot_cmp_network falls back without igraph", {
   p2 <- plot_cmp_network(cm, max_edges = 1)
   expect_true(inherits(p2, "ggplot"))
 })
+
+test_that("plot_cmp_membership classifies, canonicalizes labels, and degrades", {
+  sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
+  x <- as_cell_program_data(sim$pseudobulk)
+  fit <- canonicalize_programs(fit_celltype_programs(x, max_factors = 3, seed = 1))
+  cmp_d <- find_coordinated_programs(fit, n_perm = 200, seed = 1)
+  cmp_f <- find_coordinated_programs(fit, n_perm = 200, seed = 1, ambient = "flag")
+  p <- plot_cmp_membership(list(drop = cmp_d, flag = cmp_f))
+  expect_s3_class(p, "ggplot")
+  expect_silent(ggplot2::ggplot_build(p))
+  ## degenerate: nothing called -> still a valid plot
+  cmp0 <- find_coordinated_programs(fit, n_perm = 200, seed = 2, tau = 1e5)
+  p0 <- plot_cmp_membership(list(none = cmp0))
+  expect_s3_class(p0, "ggplot")
+  expect_silent(ggplot2::ggplot_build(p0))
+  ## input validation
+  expect_error(plot_cmp_membership(list(cmp_d)), "named list")
+  expect_error(plot_cmp_membership(list(a = fit)), "cmp_result")
+})

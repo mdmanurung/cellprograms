@@ -110,6 +110,12 @@ edge in the entire analysis:
 
 ![](mofacellular_comparison_files/figure-html/ambient-guard-1.png)
 
+\
+[`plot_cmp_membership`](https://mdmanurung.github.io/cellprograms/reference/plot_cmp_membership.md)`(`[`list`](https://rdrr.io/r/base/list.html)`(``"ambient = drop"`` ``=`` ``cmp``, ``"ambient = flag"`` ``=`` ``cmp_flag``)``,`\
+`                    label_programs ``=`` ``TRUE``)`
+
+![](mofacellular_comparison_files/figure-html/ambient-guard-2.png)
+
 The practical lesson: when the contamination status of a dataset is
 unknown, `ambient = "flag"` is the safer choice — the guard stays
 visible (`ambient_flag` in the membership table) instead of silently
@@ -273,7 +279,7 @@ preprocessing first):
 `#> #######################`\
 `#> `\
 `#> `\
-`#> Saving model in /tmp/RtmpcUTu17/file5e372068dee.hdf5...`\
+`#> Saving model in /tmp/Rtmp57V1nD/file8d5b1c571376.hdf5...`\
 `Z_mofa`` ``<-`` ``MOFA2``::`[`get_factors`](https://rdrr.io/pkg/MOFA2/man/get_factors.html)`(``mofa_model``)``$``group1``   ``# donors x factors`\
 [`dim`](https://rdrr.io/r/base/dim.html)`(``Z_mofa``)`\
 `#> [1] 60  8`
@@ -449,6 +455,128 @@ Both should flag the factors/programs aligned with the planted
 program and factor directions are identified only up to sign). The
 cellprograms result is restricted to permutation-validated CMPs; the
 MOFA result covers all factors including view-specific ones.
+
+## Real data: Stephenson COVID-19 PBMCs
+
+The simulation fixes the ground truth; the [real-data case
+study](https://mdmanurung.github.io/cellprograms/articles/real_data_case_study.md)
+shows the masked-fit workflow on the Stephenson COVID-19 cohort. Here we
+run both models on that same pseudobulk (119 donors, 12 cell types) and
+ask the same two questions: do the models agree on donor-level
+structure, and do they agree on the severity association?
+
+The cellprograms side is the masked fit from the case study
+(`max_factors = 30`, 2,000 variable genes per cell type, V(D)J and
+genotype-marker genes excluded before feature selection, institute and
+sex residualized). MOFAcellulaR gets the identical pseudobulk through
+its own QC chain — profile filtering, edgeR expression filter, sample
+coverage filter, TMM normalization — with two parity constraints: its
+per-view gene panels are restricted to the *same* 2,000-gene panels the
+local fits used (`prior_hvg`), and the *same* 274-gene blacklist is
+vetoed from every view via `filt_gex_bybckgrnd()`. We train 15 factors
+(`spikeslab_weights = FALSE`, seed 1, as in their tutorial):
+
+\
+`## heavy: ~15 min; cached results used below`\
+`counts`` ``<-`` `[`do.call`](https://rdrr.io/r/base/do.call.html)`(``cbind``, `[`lapply`](https://rdrr.io/r/base/lapply.html)`(``cts``, ``function``(``ct``)`` `[`t`](https://rdrr.io/r/base/t.html)`(``fit``$``pseudobulk``[[``ct``]``]``[``, ``shared``, drop ``=`` ``FALSE``]``)``)``)`\
+`ct_list`` ``<-`` ``MOFAcellulaR``::`[`create_init_exp`](https://saezlab.github.io/MOFAcellulaR/reference/create_init_exp.html)`(``counts ``=`` ``counts``, coldata ``=`` ``coldata``)`` ``%>%`\
+`  ``MOFAcellulaR``::`[`filt_profiles`](https://saezlab.github.io/MOFAcellulaR/reference/filt_profiles.html)`(``pb_dat ``=`` ``.``, cts ``=`` ``cts``, ncells ``=`` ``0``,`\
+`                              counts_col ``=`` ``"cell_counts"``, ct_col ``=`` ``"cell_type"``)`` ``%>%`\
+`  ``MOFAcellulaR``::`[`filt_views_bysamples`](https://saezlab.github.io/MOFAcellulaR/reference/filt_views_bysamples.html)`(``pb_dat_list ``=`` ``.``, nsamples ``=`` ``2``)`` ``%>%`\
+`  ``MOFAcellulaR``::`[`filt_gex_byexpr`](https://saezlab.github.io/MOFAcellulaR/reference/filt_gex_byexpr.html)`(``pb_dat_list ``=`` ``.``, min.count ``=`` ``5``, min.prop ``=`` ``0.25``)`` ``%>%`\
+`  ``MOFAcellulaR``::`[`filt_views_bygenes`](https://saezlab.github.io/MOFAcellulaR/reference/filt_views_bygenes.html)`(``pb_dat_list ``=`` ``.``, ngenes ``=`` ``15``)`` ``%>%`\
+`  ``MOFAcellulaR``::`[`filt_samples_bycov`](https://saezlab.github.io/MOFAcellulaR/reference/filt_samples_bycov.html)`(``pb_dat_list ``=`` ``.``, prop_coverage ``=`` ``0.9``)`` ``%>%`\
+`  ``MOFAcellulaR``::`[`tmm_trns`](https://saezlab.github.io/MOFAcellulaR/reference/tmm_trns.html)`(``pb_dat_list ``=`` ``.``, scale_factor ``=`` ``1e6``)`` ``%>%`\
+`  ``MOFAcellulaR``::`[`filt_gex_byhvg`](https://saezlab.github.io/MOFAcellulaR/reference/filt_gex_byhvg.html)`(``pb_dat_list ``=`` ``.``, prior_hvg ``=`` ``fit``$``preprocessing``$``feature_sets``,`\
+`                               var.threshold ``=`` ``0``)`` ``%>%`\
+`  ``MOFAcellulaR``::`[`filt_gex_bybckgrnd`](https://saezlab.github.io/MOFAcellulaR/reference/filt_gex_bybckgrnd.html)`(``pb_dat_list ``=`` ``.``,`\
+`                                   prior_mrks ``=`` `[`list`](https://rdrr.io/r/base/list.html)`(``phantom ``=`` ``fit``$``preprocessing``$``exclude_genes``)``)`` ``%>%`\
+`  ``MOFAcellulaR``::`[`filt_views_bygenes`](https://saezlab.github.io/MOFAcellulaR/reference/filt_views_bygenes.html)`(``pb_dat_list ``=`` ``.``, ngenes ``=`` ``15``)`` ``%>%`\
+`  ``MOFAcellulaR``::`[`pb_dat2MOFA`](https://saezlab.github.io/MOFAcellulaR/reference/pb_dat2MOFA.html)`(``pb_dat_list ``=`` ``.``, sample_column ``=`` ``"observation_id"``)`` ``%>%`\
+`  ``MOFA2``::`[`create_mofa`](https://rdrr.io/pkg/MOFA2/man/create_mofa.html)`(``)`\
+`## ... then prepare_mofa(num_factors = 15, spikeslab_weights = FALSE, seed = 1) and run_mofa()`
+
+\
+`cache_path`` ``<-`` ``"mofacellular_stephenson_cache.rds"`\
+`if`` ``(``!`[`file.exists`](https://rdrr.io/r/base/files.html)`(``cache_path``)``)`` ``{`\
+`  ``cache_path`` ``<-`` `[`file.path`](https://rdrr.io/r/base/file.path.html)`(``"vignettes"``, ``"articles"``, ``"mofacellular_stephenson_cache.rds"``)`\
+`}`\
+`has_cache`` ``<-`` `[`file.exists`](https://rdrr.io/r/base/files.html)`(``cache_path``)`\
+`if`` ``(``!``has_cache``)`` ``{`\
+`  `[`message`](https://rdrr.io/r/base/message.html)`(``"Cached Stephenson MOFA run not found; the real-data results below "``,`\
+`          ``"are skipped. Re-run the previous chunk to regenerate them."``)`\
+`}`` ``else`` ``{`\
+`  ``cache`` ``<-`` `[`readRDS`](https://rdrr.io/r/base/readRDS.html)`(``cache_path``)`\
+`}`
+
+The QC chain retains 118 of 119 donors (their 0.9-coverage filter drops
+one) and, after MOFAcellulaR’s expression filter, 259–880 genes per view
+of our 2,000-gene panels — their `filt_gex_byexpr` is stricter on this
+count data than our variability screen. MOFAcellulaR’s own QC flags
+factors 4 and 8 as correlated with per-donor feature counts (complexity
+artifacts); we keep them, as their tutorial does, and read the alignment
+accordingly.
+
+### Donor-score alignment
+
+\
+`r`` ``<-`` ``cache``$``r_mat`\
+`best_f`` ``<-`` `[`max.col`](https://rdrr.io/r/base/maxCol.html)`(`[`abs`](https://rdrr.io/r/base/MathFun.html)`(``r``)``)`\
+`ord`` ``<-`` `[`order`](https://rdrr.io/r/base/order.html)`(``best_f``, ``-`[`abs`](https://rdrr.io/r/base/MathFun.html)`(``r``[`[`cbind`](https://rdrr.io/r/base/cbind.html)`(`[`seq_len`](https://rdrr.io/r/base/seq.html)`(`[`nrow`](https://rdrr.io/r/base/nrow.html)`(``r``)``)``, ``best_f``)``]``)``)`\
+`df`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``program ``=`` `[`factor`](https://rdrr.io/r/base/factor.html)`(`[`rownames`](https://rdrr.io/r/base/colnames.html)`(``r``)``[``ord``]``, levels ``=`` `[`rev`](https://rdrr.io/r/base/rev.html)`(`[`rownames`](https://rdrr.io/r/base/colnames.html)`(``r``)``[``ord``]``)``)``,`\
+`                 factor ``=`` `[`rep`](https://rdrr.io/r/base/rep.html)`(`[`colnames`](https://rdrr.io/r/base/colnames.html)`(``r``)``, each ``=`` `[`nrow`](https://rdrr.io/r/base/nrow.html)`(``r``)``)``,`\
+`                 r ``=`` `[`as.vector`](https://rdrr.io/r/base/vector.html)`(``r``[``ord``, ``]``)``)`\
+`#> Warning in data.frame(program = factor(rownames(r)[ord], levels =`\
+`#> rev(rownames(r)[ord])), : row names were found from a short variable and have`\
+`#> been discarded`\
+`ggplot2``::`[`ggplot`](https://ggplot2.tidyverse.org/reference/ggplot.html)`(``df``, ``ggplot2``::`[`aes`](https://ggplot2.tidyverse.org/reference/aes.html)`(``factor``, ``program``, fill ``=`` ``r``)``)`` ``+`\
+`  ``ggplot2``::`[`geom_tile`](https://ggplot2.tidyverse.org/reference/geom_tile.html)`(``color ``=`` ``"white"``, linewidth ``=`` ``0.1``)`` ``+`\
+`  ``ggplot2``::`[`scale_fill_gradient2`](https://ggplot2.tidyverse.org/reference/scale_gradient.html)`(``low ``=`` ``"#2166AC"``, mid ``=`` ``"#F7F7F7"``, high ``=`` ``"#B2182B"``,`\
+`                                midpoint ``=`` ``0``, limits ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``-``1``, ``1``)``, name ``=`` ``"Pearson r"``)`` ``+`\
+`  ``ggplot2``::`[`labs`](https://ggplot2.tidyverse.org/reference/labs.html)`(``x ``=`` ``"MOFA factor"``, y ``=`` ``"cellprograms program (grouped by best match)"``,`\
+`                title ``=`` ``"Stephenson: donor-score concordance"``)`` ``+`\
+`  ``ggplot2``::`[`theme_bw`](https://ggplot2.tidyverse.org/reference/ggtheme.html)`(``base_size ``=`` ``9``)`
+
+![](mofacellular_comparison_files/figure-html/real-align-1.png)
+
+The picture: most MOFA factors are essentially one local program each —
+MF13 ↔︎ CD4_mem_1 (r = 0.90), MF6 ↔︎ Plasma_1 (r = −0.93), MF5 ↔︎ NK_dim_2
+and MF11 ↔︎ unconv_T_3 (r = 0.89) — while MF1 has no local counterpart
+(max \|r\| = 0.05) and the two QC-flagged complexity factors align only
+moderately (\|r\| ≤ 0.53). Total variance explained per view ranges from
+21% (B_mem) to 63% (NK_dim). This is the expected division of labor: the
+joint model spends factors on the strongest shared axes, the local fits
+keep per-cell-type structure that a 15-factor joint model cannot afford
+a factor for.
+
+### Severity associations, same test both sides
+
+\
+`ca`` ``<-`` ``cache``$``cmp_assoc``   ``# unadjusted, to match get_associations (no covariates)`\
+`ga`` ``<-`` ``cache``$``mofa_assoc`\
+`df`` ``<-`` `[`rbind`](https://rdrr.io/r/base/cbind.html)`(`[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``model ``=`` ``"cellprograms CMP"``, label ``=`` `[`paste0`](https://rdrr.io/r/base/paste.html)`(``"CMP"``, ``ca``$``cmp``)``,`\
+`                       p ``=`` ``ca``$``p``)``,`\
+`            `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``model ``=`` ``"MOFA2 factor"``, label ``=`` `[`sub`](https://rdrr.io/r/base/grep.html)`(``"Factor"``, ``"MF"``, ``ga``$``Factor``)``,`\
+`                       p ``=`` ``ga``$``p.value``)``)`\
+`ggplot2``::`[`ggplot`](https://ggplot2.tidyverse.org/reference/ggplot.html)`(``df``, ``ggplot2``::`[`aes`](https://ggplot2.tidyverse.org/reference/aes.html)`(``-`[`log10`](https://rdrr.io/r/base/Log.html)`(``p``)``, ``label``, fill ``=`` ``model``)``)`` ``+`\
+`  ``ggplot2``::`[`geom_col`](https://ggplot2.tidyverse.org/reference/geom_bar.html)`(``width ``=`` ``0.7``)`` ``+`\
+`  ``ggplot2``::`[`geom_vline`](https://ggplot2.tidyverse.org/reference/geom_abline.html)`(``xintercept ``=`` ``-`[`log10`](https://rdrr.io/r/base/Log.html)`(``0.05``)``, linetype ``=`` ``2``, color ``=`` ``"grey40"``)`` ``+`\
+`  ``ggplot2``::`[`facet_wrap`](https://ggplot2.tidyverse.org/reference/facet_wrap.html)`(``~``model``, scales ``=`` ``"free_y"``)`` ``+`\
+`  ``ggplot2``::`[`labs`](https://ggplot2.tidyverse.org/reference/labs.html)`(``x ``=`` `[`expression`](https://rdrr.io/r/base/expression.html)`(``-``log``[``10``]``(``p``)``)``, y ``=`` ``NULL``,`\
+`                title ``=`` ``"Severity association, unadjusted"``)`` ``+`\
+`  ``ggplot2``::`[`theme_bw`](https://ggplot2.tidyverse.org/reference/ggtheme.html)`(``base_size ``=`` ``9``)`` ``+`` ``ggplot2``::`[`theme`](https://ggplot2.tidyverse.org/reference/theme.html)`(``legend.position ``=`` ``"none"``)`
+
+![](mofacellular_comparison_files/figure-html/real-severity-1.png)
+
+Both models flag severity axes: the strongest CMP (CMP2, estimate 0.30)
+at p = 9e-14, with CMP21 at 8e-9; MOFA’s Factor6 at p = 1.7e-7 and
+Factor5 at 1.6e-5. The comparison vignette uses unadjusted tests on both
+sides for parity — `get_associations()` fits `value ~ severity` with no
+covariate support — while the [case
+study](https://mdmanurung.github.io/cellprograms/articles/real_data_case_study.md)
+adjusts for institute and sex, which is the recommended workflow. Do not
+over-read the p-value gap: CMP consensus scores pool several member
+programs (denoising), whereas each MOFA factor is a single axis.
 
 ## When to use which
 
