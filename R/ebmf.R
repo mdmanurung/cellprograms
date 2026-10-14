@@ -99,6 +99,12 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
       !requireNamespace("ebnm", quietly = TRUE)) {
     cli::cli_abort("Packages {.pkg flashier} and {.pkg ebnm} are required.")
   }
+  # Ordinary fits route through flashier.utils::fit_ebmf() when available
+  # (SYNC-1B); the fixed-covariate path (.flash_fixed) and degenerate sentinels
+  # always use the legacy direct backend. Set
+  # options(cellprograms.use_flashier_utils = FALSE) to force the legacy path.
+  use_fu <- getOption("cellprograms.use_flashier_utils", TRUE) &&
+    requireNamespace("flashier.utils", quietly = TRUE)
   if (!is.numeric(var_type) || length(var_type) > 2L ||
       !all(var_type %in% c(0, 1, 2)) ||
       (length(var_type) == 2L && !setequal(var_type, c(1, 2)))) {
@@ -167,8 +173,16 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
 
     t0 <- Sys.time()
     set.seed(seed)
+    # Ordinary fits (no fixed covariates) go through flashier.utils::fit_ebmf()
+    # when available; the argument mapping below is exact (verified to machine
+    # precision against do.call(flashier::flash, args)). flash_control members
+    # that fit_ebmf() does not expose are rejected explicitly rather than
+    # silently dropped. The fixed-covariate path always uses .flash_fixed().
+    ordinary <- is.null(Xc) && use_fu
     run_flash <- function(args) {
-      if (is.null(Xc)) do.call(flashier::flash, args) else .flash_fixed(args, Xc)
+      if (!is.null(Xc)) return(.flash_fixed(args, Xc))
+      if (ordinary) return(.fit_via_flashier_utils(args, seed))
+      do.call(flashier::flash, args)
     }
     # Fallback ladder for numerical failures in flashier: point_laplace's nlm
     # solver can fail on some pseudobulk profiles (-> point_normal), and the
@@ -336,6 +350,36 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
   )
   if (length(k) == 0L) { out$L_pm <- NULL; out$F_pm <- NULL }
   out
+}
+
+# Route an ordinary fit through flashier.utils::fit_ebmf(). `args` is the
+# cellprograms flash argument list (data, ebnm_fn, var_type, greedy_Kmax,
+# backfit, nullcheck, verbose, plus any flash_control overrides). The mapping
+# to fit_ebmf() is exact; flash_control members that fit_ebmf() does not
+# expose are rejected explicitly so no control is ever silently dropped.
+.fit_via_flashier_utils <- function(args, seed) {
+  # flash_control overrides that fit_ebmf() cannot map: anything beyond the
+  # core argument set. The core set is forwarded explicitly below.
+  core <- c("data", "ebnm_fn", "var_type", "greedy_Kmax", "backfit",
+            "nullcheck", "verbose")
+  extra <- setdiff(names(args), core)
+  if (length(extra)) {
+    cli::cli_abort(c(
+      "flash_control setting(s) {.val {extra}} cannot be mapped through flashier.utils::fit_ebmf().",
+      i = "Set {.code options(cellprograms.use_flashier_utils = FALSE)} to use the legacy backend for this fit."
+    ))
+  }
+  flashier.utils::fit_ebmf(
+    X = args$data,
+    sample_side = "rows",
+    ebnm_fn = args$ebnm_fn,
+    var_type = args$var_type,
+    max_factors = args$greedy_Kmax,
+    backfit = args$backfit,
+    nullcheck = args$nullcheck,
+    seed = seed,
+    verbose = args$verbose
+  )
 }
 
 # Feature selection: independent per cell type; never uses outcomes.
