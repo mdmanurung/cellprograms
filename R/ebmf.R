@@ -453,19 +453,39 @@ canonicalize_programs <- function(fit) {
                           sign_multiplier = numeric(0))
       next
     }
-    s_k <- sqrt(colMeans(Z^2))                       # RMS of each score column
-    s_k[s_k == 0] <- 1                               # degenerate guard
-    # sign: gene with largest |loading|; ties broken by gene name (deterministic)
-    sign_k <- apply(W, 2, function(w) {
-      am <- which(abs(w) == max(abs(w)))
-      am <- am[order(fit$fits[[ct]]$genes[am], w[am])]
-      sign(w[am[1]])
-    })
-    sign_k[sign_k == 0] <- 1
-    Zc <- sweep(Z, 2, s_k, "/")
-    Wc <- sweep(W, 2, s_k, "*")
-    Zc <- sweep(Zc, 2, sign_k, "*")
-    Wc <- sweep(Wc, 2, sign_k, "*")
+    # SYNC-2: ordinary fits carry a native flash object with flashbridge
+    # metadata and route through flashier.utils::standardize_factors("rms"),
+    # which reproduces the inline RMS + sign convention exactly (verified to
+    # 0 difference). .flash_fixed() outputs and legacy objects lack the
+    # metadata and use the inline branch below.
+    use_upstream <- requireNamespace("flashier.utils", quietly = TRUE) &&
+      !is.null(attr(f, "flashbridge_metadata"))
+    if (use_upstream) {
+      rms <- flashier.utils::standardize_factors(
+        f, sample_side = "rows", scaling = "rms", orientation = "anchor_feature")
+      Zc <- as.matrix(rms$activity)
+      Wc <- as.matrix(rms$effects)
+      # preserve the native dimnames so downstream reconstruction/extraction
+      # matches the legacy inline branch exactly
+      dimnames(Zc) <- dimnames(Z)
+      dimnames(Wc) <- dimnames(W)
+      s_k <- unname(rms$manifest$rms_scale)
+      sign_k <- unname(rms$manifest$orientation_sign)
+    } else {
+      s_k <- sqrt(colMeans(Z^2))                       # RMS of each score column
+      s_k[s_k == 0] <- 1                               # degenerate guard
+      # sign: gene with largest |loading|; ties broken by gene name (deterministic)
+      sign_k <- apply(W, 2, function(w) {
+        am <- which(abs(w) == max(abs(w)))
+        am <- am[order(fit$fits[[ct]]$genes[am], w[am])]
+        sign(w[am[1]])
+      })
+      sign_k[sign_k == 0] <- 1
+      Zc <- sweep(Z, 2, s_k, "/")
+      Wc <- sweep(W, 2, s_k, "*")
+      Zc <- sweep(Zc, 2, sign_k, "*")
+      Wc <- sweep(Wc, 2, sign_k, "*")
+    }
     canon[[ct]] <- list(
       Z = Zc, W = Wc,
       scale_multiplier = unname(s_k),
