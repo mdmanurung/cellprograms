@@ -230,7 +230,7 @@ mofa_model <- MOFA2::run_mofa(mo, outfile = tempfile(fileext = ".hdf5"), save_da
 #> 
 #> Iteration 1: time=0.01, ELBO=-379185.10, deltaELBO=1254653.205 (76.79176074%), Factors=8
 #> Iteration 2: time=0.01, Factors=8
-#> Iteration 3: time=0.01, Factors=8
+#> Iteration 3: time=0.02, Factors=8
 #> Iteration 4: time=0.01, Factors=8
 #> Iteration 5: time=0.01, Factors=8
 #> Iteration 6: time=0.01, ELBO=-376437.50, deltaELBO=2747.604 (0.16816865%), Factors=8
@@ -243,7 +243,7 @@ mofa_model <- MOFA2::run_mofa(mo, outfile = tempfile(fileext = ".hdf5"), save_da
 #> Iteration 13: time=0.01, Factors=8
 #> Iteration 14: time=0.01, Factors=8
 #> Iteration 15: time=0.01, Factors=8
-#> Iteration 16: time=0.01, ELBO=-376188.62, deltaELBO=85.871 (0.00525575%), Factors=8
+#> Iteration 16: time=0.02, ELBO=-376188.62, deltaELBO=85.871 (0.00525575%), Factors=8
 #> Iteration 17: time=0.01, Factors=8
 #> Iteration 18: time=0.01, Factors=8
 #> Iteration 19: time=0.01, Factors=8
@@ -268,7 +268,7 @@ mofa_model <- MOFA2::run_mofa(mo, outfile = tempfile(fileext = ".hdf5"), save_da
 #> Iteration 38: time=0.01, Factors=8
 #> Iteration 39: time=0.01, Factors=8
 #> Iteration 40: time=0.01, Factors=8
-#> Iteration 41: time=0.01, ELBO=-376044.14, deltaELBO=11.990 (0.00073388%), Factors=8
+#> Iteration 41: time=0.02, ELBO=-376044.14, deltaELBO=11.990 (0.00073388%), Factors=8
 #> Iteration 42: time=0.01, Factors=8
 #> Iteration 43: time=0.01, Factors=8
 #> Iteration 44: time=0.01, Factors=8
@@ -299,7 +299,7 @@ mofa_model <- MOFA2::run_mofa(mo, outfile = tempfile(fileext = ".hdf5"), save_da
 #> #######################
 #> 
 #> 
-#> Saving model in /tmp/RtmpC71Cms/file6b573807a191.hdf5...
+#> Saving model in /tmp/RtmpjK0AKl/file5f11704ab38.hdf5...
 Z_mofa <- MOFA2::get_factors(mofa_model)$group1   # donors x factors
 dim(Z_mofa)
 #> [1] 60  8
@@ -612,6 +612,74 @@ covariate support — while the [case study](real_data_case_study.html)
 adjusts for institute and sex, which is the recommended workflow. Do not
 over-read the p-value gap: CMP consensus scores pool several member
 programs (denoising), whereas each MOFA factor is a single axis.
+
+### Artifact-exclusion sensitivity
+
+Both sides were rerun with the full artifact preset: the cellprograms
+refit uses `fit_celltype_programs(..., exclude_artifacts = TRUE)`
+(exclusion grows from the 274 vdj + genotype-marker genes to 313, adding
+39 canonical identity markers, TCR constant genes, and sex-linked genes;
+everything else identical — point-Laplace, K = 30, 2,000 HVGs,
+institute + sex residualized, seed 1), and MOFAcellulaR gets the same
+313-gene list vetoed across views plus the refit's HVG panels.
+
+
+``` r
+excl_path <- "mofacellular_stephenson_cache_excl.rds"
+if (!file.exists(excl_path)) {
+  excl_path <- file.path("vignettes", "articles", "mofacellular_stephenson_cache_excl.rds")
+}
+has_cache_excl <- file.exists(excl_path)
+if (!has_cache_excl) {
+  message("mofacellular_stephenson_cache_excl.rds not found; ",
+          "skipping the sensitivity results (run scripts in benchmarks/ to build it).")
+}
+```
+
+
+``` r
+c1 <- readRDS(excl_path)
+c0 <- if (exists("cache", inherit = TRUE)) cache else readRDS(cache_path)
+df <- rbind(data.frame(setting = "default (274 genes)",
+                       max_r = apply(abs(c0$r_mat), 2, max)),
+            data.frame(setting = "exclude_artifacts (313 genes)",
+                       max_r = apply(abs(c1$r_mat), 2, max)))
+df$setting <- factor(df$setting, levels = c("default (274 genes)",
+                                            "exclude_artifacts (313 genes)"))
+ggplot2::ggplot(df, ggplot2::aes(max_r, setting, color = setting)) +
+  ggplot2::geom_point(size = 2.6, position = ggplot2::position_dodge2(width = 0.25)) +
+  ggplot2::geom_vline(xintercept = c(0.3, 0.7), linetype = c(3, 2), color = "grey40") +
+  ggplot2::scale_color_manual(values = c("#1B9E77", "#D95F02"), name = NULL) +
+  ggplot2::labs(x = "strongest local counterpart per factor (max |r|)", y = NULL,
+                title = "Factor-program alignment under both exclusion settings") +
+  ggplot2::theme_bw(base_size = 9) + ggplot2::theme(legend.position = "top")
+```
+
+![plot of chunk excl-align](figure/excl-align-1.png)
+
+Factor labels are not comparable across refits (each model has its own
+axes), so the plot shows the 15 per-factor maxima as distributions per
+setting.
+
+The headline conclusions are insensitive to the preset. The strongest
+alignments barely move (Plasma_1 at |r| = 0.94, CD4_mem_1 at 0.91,
+CD4_mem_20 at 0.90 under the expanded exclusion, vs 0.93/0.90/0.89
+default); program count drops 284 → 278, CMPs 24 → 25 with 598 → 516
+edges; MOFA view sizes shrink modestly (250–874 genes vs 259–880) and
+total per-view R² spans 18–60% vs 21–63%. Two differences are worth
+noting. First, the number of MOFA factors with no local counterpart
+falls from three to one — the survivor (MF1, max |r| = 0.04) is present
+under both settings and unexplained by either model. Second, the
+severity signal sharpens: the strongest CMP moves from estimate 0.296,
+p = 9e-14 to estimate 0.313, p = 1e-16, while MOFA's leading factor is
+essentially unchanged (Factor6, p = 1.7e-7 → 4.1e-7). Removing
+identity-marker and sex-linked genes from the panels makes the
+coordinated disease program cleaner rather than diluting it — the
+preset is a guard against artifact-driven programs, not a
+results-changer. MOFAcellulaR's complexity-artifact QC flag moves from
+factors 4/8 to 5/7, i.e. such factors reappear under either panel; they
+are a normalization/coverage property of the data, not of the
+blacklist.
 
 ## When to use which
 

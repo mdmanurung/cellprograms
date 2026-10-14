@@ -138,7 +138,7 @@ if (requireNamespace("mashr", quietly = TRUE)) {
 #>  - Computing 73 x 341 likelihood matrix.
 #>  - Likelihood calculations took 0.01 seconds.
 #>  - Fitting model with 341 mixture components.
-#>  - Model fitting took 0.39 seconds.
+#>  - Model fitting took 0.49 seconds.
 #>  - Computing posterior matrices.
 #>  - Computation allocated took 0.00 seconds.
 #>   program_id cell_type group_id n_conditions classification frac_top_shared
