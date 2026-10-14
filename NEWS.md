@@ -1,5 +1,18 @@
 # cellprograms 0.2.0
 
+## Backend synchronization (Stage A)
+
+* Ordinary EBMF fits now delegate to `flashier.utils::fit_ebmf()` and
+  canonicalization uses `flashier.utils::standardize_factors(scaling = "rms")`,
+  with numerical parity verified to machine precision against the previous
+  direct `flashier::flash()` backend. The public workflow, output fields, and
+  scientific results are unchanged. `flashier`, `ebnm`, and `flashier.utils`
+  move to `Imports` (R >= 4.3 required); the fixed-covariate path
+  (`covariate_mode = "fixed"`) and degenerate fits remain on the legacy
+  backend. Set `options(cellprograms.use_flashier_utils = FALSE)` to force the
+  legacy backend. See `reports/SYNC_ROADMAP.md` for the version pair, parity
+  evidence, and rollback plan.
+
 ## New features
 
 * `find_coordinated_programs()` and the CMP toolkit: coordinated multicellular

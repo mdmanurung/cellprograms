@@ -11,13 +11,16 @@ permissions: read-all
 jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
-    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }}, ${{ matrix.config.lane }})
     strategy:
       fail-fast: false
       matrix:
         config:
-          - {os: ubuntu-latest, r: 'release'}
-          - {os: macos-latest, r: 'release'}
+          # pinned-compatible lane: exact dependency commits from Remotes
+          - {os: ubuntu-latest, r: 'release', lane: 'pinned'}
+          - {os: macos-latest, r: 'release', lane: 'pinned'}
+          # upstream-main lane: flashier-utils main, to catch upstream drift early
+          - {os: ubuntu-latest, r: 'release', lane: 'upstream-main'}
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
@@ -29,12 +32,19 @@ jobs:
           r-version: ${{ matrix.config.r }}
           use-public-rspm: true
 
-      # Installs Imports/Suggests (incl. flashier and ebnm from CRAN) and
-      # rcmdcheck; packages are cached across runs.
+      # Installs Imports/Suggests and rcmdcheck; packages are cached across runs.
+      # Remotes pins flashier (willwerscheid/flashier@fd44811) and, for the
+      # pinned lane, flashier-utils (mdmanurung/flashier-utils@sync/stage-a).
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck
           needs: check
+
+      # upstream-main lane: replace the pinned flashier-utils with its main branch
+      - name: Install flashier-utils main (upstream-main lane)
+        if: matrix.config.lane == 'upstream-main'
+        shell: Rscript {0}
+        run: remotes::install_github("mdmanurung/flashier-utils@main", upgrade = "never")
 
       - uses: r-lib/actions/check-r-package@v2
         with:

@@ -1,5 +1,10 @@
 # cellprograms — inventory and roadmap
 
+> **Backend synchronization:** the ordinary EBMF backend now delegates to
+> `flashier.utils` (Stage A). See `reports/SYNC_ROADMAP.md` for the supported
+> version pair, parity evidence, and rollback. This roadmap's scientific
+> decisions are unchanged.
+
 ## Update 2026-10-13 — milestone closure
 
 - **M2 (main run + decisions): done.** Adopted arm: Cap 30 + node-aggregate (`n_agg_noanc`); `strata` rejected (locked 2026-10-10); `k_stab`/`w_S` dropped at M1.

@@ -11,11 +11,14 @@ Description: Discover cell-type-specific transcriptional programs from
 License: MIT + file LICENSE
 Encoding: UTF-8
 Depends:
-    R (>= 4.1)
+    R (>= 4.3)
 Imports:
     stats,
     utils,
-    cli
+    cli,
+    flashier,
+    ebnm,
+    flashier.utils
 VignetteBuilder: knitr
 Suggests:
     knitr,
@@ -23,9 +26,11 @@ Suggests:
     testthat (>= 3.2.0),
     ggplot2,
     data.table,
-    flashier,
-    ebnm,
     mashr,
-    igraph
+    igraph,
+    withr
+Remotes:
+    willwerscheid/flashier@fd44811ab22d61ee905e1964175571c452fe7683,
+    mdmanurung/flashier-utils@sync/stage-a
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.1.1
