@@ -31,6 +31,6 @@ Suggests:
     withr
 Remotes:
     willwerscheid/flashier@fd44811ab22d61ee905e1964175571c452fe7683,
-    flashier.utils = mdmanurung/flashier-utils@sync/stage-a
+    flashier.utils=mdmanurung/flashier-utils@sync/stage-a
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.1.1
