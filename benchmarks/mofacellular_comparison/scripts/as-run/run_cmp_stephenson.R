@@ -1,0 +1,8 @@
+# Recompute Stephenson CMPs from the masked fit (for case-study figures)
+pkgload::load_all("/workspace/repo2", quiet = TRUE)
+f <- readRDS("/workspace/stephenson_K30_masked_fit.rds")
+t0 <- Sys.time()
+cmp <- find_coordinated_programs(f, n_perm = 999, seed = 1, min_donors = 20)
+saveRDS(cmp, "/workspace/stephenson_K30_cmp.rds")
+cat("CMP done in", round(as.numeric(difftime(Sys.time(), t0, units = "mins")), 1), "min\n")
+cat("n CMPs:", length(unique(cmp$cmps$cmp)), "| edges:", nrow(cmp$edges), "\n")
