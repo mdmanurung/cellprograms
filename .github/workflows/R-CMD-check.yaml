@@ -35,9 +35,10 @@ jobs:
       # Installs Imports/Suggests and rcmdcheck; packages are cached across runs.
       # Remotes pins flashier (willwerscheid/flashier@fd44811) and, for the
       # pinned lane, flashier-utils (mdmanurung/flashier-utils@sync/stage-a).
+      # any::remotes is needed by the upstream-main lane install step below.
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::rcmdcheck
+          extra-packages: any::rcmdcheck, any::remotes
           needs: check
 
       # upstream-main lane: replace the pinned flashier-utils with its main branch
