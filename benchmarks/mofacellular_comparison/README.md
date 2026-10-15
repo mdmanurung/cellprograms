@@ -65,6 +65,10 @@ The vignette knits with or without the caches: a guard chunk skips the
 real-data results and renders the run-code chunk when a cache is absent, so
 the article always builds.
 
+**Exact provenance:** `scripts/as-run/` preserves the three scripts exactly as
+executed for the sensitivity arm (including the original machine paths); the
+parameterized scripts above are the maintained equivalents.
+
 ## Outputs
 
 | File | Content |

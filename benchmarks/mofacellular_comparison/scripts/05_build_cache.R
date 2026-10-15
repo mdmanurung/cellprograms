@@ -57,6 +57,7 @@ ga <- MOFAcellulaR::get_associations(model = model, metadata = md_f,
                                      test_variable = "severity",
                                      test_type = "continuous", group = FALSE)
 
+is_excl <- isTRUE(f$preprocessing$exclude_artifacts)
 cache <- list(
   Z = Z, r_mat = r_mat, r2_per_factor = r2_pf, r2_total = r2_tot,
   cmp_assoc = ca, mofa_assoc = as.data.frame(ga),
@@ -65,9 +66,12 @@ cache <- list(
   view_dims = view_dims,
   settings = list(num_factors = 15, seed = 1, spikeslab_weights = FALSE,
                   min_count = 5, min_prop = 0.25, prop_coverage = 0.9,
-                  scale_factor = 1e6, prior_hvg = "masked-fit feature sets"),
+                  scale_factor = 1e6,
+                  prior_hvg = if (is_excl) "exclude_artifacts refit feature sets" else
+                    "masked-fit feature sets"),
   session = sessionInfo()
 )
+if (is_excl) cache$blacklist_n_default <- 274L   # default-arm blacklist size
 saveRDS(cache, out_rds)
 cat("cache saved:", out_rds, "| donors:", nrow(Z),
     "| max|r|:", round(max(abs(r_mat)), 3), "\n")
