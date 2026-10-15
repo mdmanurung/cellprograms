@@ -180,6 +180,7 @@ test_that("fit_celltype_programs stores loading posterior SDs (both modes)", {
 })
 
 test_that("program_sharing with zero sharing groups returns an all-private summary", {
+  skip_if_not_installed("mashr")
   # Cell types A and C share no planted program (A_1/A_2 vs C_1 unrelated), so
   # matching finds zero significant pairs. Regression: names(results) <-
   # paste0("group", seq_along(results)) crashed on the empty results list
