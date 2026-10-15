@@ -27,6 +27,8 @@ classification appended to the axis labels.
 sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
 x <- as_cell_program_data(sim$pseudobulk)
 fit <- canonicalize_programs(fit_celltype_programs(x, max_factors = 3, seed = 1))
-share <- program_sharing(fit, n_perm = 200, seed = 1)
-plot_sharing(share)
+if (requireNamespace("mashr", quietly = TRUE)) { # program_sharing needs mashr (Suggests)
+  share <- program_sharing(fit, n_perm = 200, seed = 1)
+  plot_sharing(share)
+}
 }

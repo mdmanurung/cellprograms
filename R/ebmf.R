@@ -99,6 +99,12 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
       !requireNamespace("ebnm", quietly = TRUE)) {
     cli::cli_abort("Packages {.pkg flashier} and {.pkg ebnm} are required.")
   }
+  # Ordinary fits route through flashier.utils::fit_ebmf() when available
+  # (SYNC-1B); the fixed-covariate path (.flash_fixed) and degenerate sentinels
+  # always use the legacy direct backend. Set
+  # options(cellprograms.use_flashier_utils = FALSE) to force the legacy path.
+  use_fu <- getOption("cellprograms.use_flashier_utils", TRUE) &&
+    requireNamespace("flashier.utils", quietly = TRUE)
   if (!is.numeric(var_type) || length(var_type) > 2L ||
       !all(var_type %in% c(0, 1, 2)) ||
       (length(var_type) == 2L && !setequal(var_type, c(1, 2)))) {
@@ -167,8 +173,16 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
 
     t0 <- Sys.time()
     set.seed(seed)
+    # Ordinary fits (no fixed covariates) go through flashier.utils::fit_ebmf()
+    # when available; the argument mapping below is exact (verified to machine
+    # precision against do.call(flashier::flash, args)). flash_control members
+    # that fit_ebmf() does not expose are rejected explicitly rather than
+    # silently dropped. The fixed-covariate path always uses .flash_fixed().
+    ordinary <- is.null(Xc) && use_fu
     run_flash <- function(args) {
-      if (is.null(Xc)) do.call(flashier::flash, args) else .flash_fixed(args, Xc)
+      if (!is.null(Xc)) return(.flash_fixed(args, Xc))
+      if (ordinary) return(.fit_via_flashier_utils(args, seed))
+      do.call(flashier::flash, args)
     }
     # Fallback ladder for numerical failures in flashier: point_laplace's nlm
     # solver can fail on some pseudobulk profiles (-> point_normal), and the
@@ -338,6 +352,36 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
   out
 }
 
+# Route an ordinary fit through flashier.utils::fit_ebmf(). `args` is the
+# cellprograms flash argument list (data, ebnm_fn, var_type, greedy_Kmax,
+# backfit, nullcheck, verbose, plus any flash_control overrides). The mapping
+# to fit_ebmf() is exact; flash_control members that fit_ebmf() does not
+# expose are rejected explicitly so no control is ever silently dropped.
+.fit_via_flashier_utils <- function(args, seed) {
+  # flash_control overrides that fit_ebmf() cannot map: anything beyond the
+  # core argument set. The core set is forwarded explicitly below.
+  core <- c("data", "ebnm_fn", "var_type", "greedy_Kmax", "backfit",
+            "nullcheck", "verbose")
+  extra <- setdiff(names(args), core)
+  if (length(extra)) {
+    cli::cli_abort(c(
+      "flash_control setting(s) {.val {extra}} cannot be mapped through flashier.utils::fit_ebmf().",
+      i = "Set {.code options(cellprograms.use_flashier_utils = FALSE)} to use the legacy backend for this fit."
+    ))
+  }
+  flashier.utils::fit_ebmf(
+    X = args$data,
+    sample_side = "rows",
+    ebnm_fn = args$ebnm_fn,
+    var_type = args$var_type,
+    max_factors = args$greedy_Kmax,
+    backfit = args$backfit,
+    nullcheck = args$nullcheck,
+    seed = seed,
+    verbose = args$verbose
+  )
+}
+
 # Feature selection: independent per cell type; never uses outcomes.
 # `exclude_genes` is applied to the universe BEFORE selection, so excluded
 # genes cannot consume variable-gene slots; with an explicit `features` list
@@ -409,19 +453,39 @@ canonicalize_programs <- function(fit) {
                           sign_multiplier = numeric(0))
       next
     }
-    s_k <- sqrt(colMeans(Z^2))                       # RMS of each score column
-    s_k[s_k == 0] <- 1                               # degenerate guard
-    # sign: gene with largest |loading|; ties broken by gene name (deterministic)
-    sign_k <- apply(W, 2, function(w) {
-      am <- which(abs(w) == max(abs(w)))
-      am <- am[order(fit$fits[[ct]]$genes[am], w[am])]
-      sign(w[am[1]])
-    })
-    sign_k[sign_k == 0] <- 1
-    Zc <- sweep(Z, 2, s_k, "/")
-    Wc <- sweep(W, 2, s_k, "*")
-    Zc <- sweep(Zc, 2, sign_k, "*")
-    Wc <- sweep(Wc, 2, sign_k, "*")
+    # SYNC-2: ordinary fits carry a native flash object with flashbridge
+    # metadata and route through flashier.utils::standardize_factors("rms"),
+    # which reproduces the inline RMS + sign convention exactly (verified to
+    # 0 difference). .flash_fixed() outputs and legacy objects lack the
+    # metadata and use the inline branch below.
+    use_upstream <- requireNamespace("flashier.utils", quietly = TRUE) &&
+      !is.null(attr(f, "flashbridge_metadata"))
+    if (use_upstream) {
+      rms <- flashier.utils::standardize_factors(
+        f, sample_side = "rows", scaling = "rms", orientation = "anchor_feature")
+      Zc <- as.matrix(rms$activity)
+      Wc <- as.matrix(rms$effects)
+      # preserve the native dimnames so downstream reconstruction/extraction
+      # matches the legacy inline branch exactly
+      dimnames(Zc) <- dimnames(Z)
+      dimnames(Wc) <- dimnames(W)
+      s_k <- unname(rms$manifest$rms_scale)
+      sign_k <- unname(rms$manifest$orientation_sign)
+    } else {
+      s_k <- sqrt(colMeans(Z^2))                       # RMS of each score column
+      s_k[s_k == 0] <- 1                               # degenerate guard
+      # sign: gene with largest |loading|; ties broken by gene name (deterministic)
+      sign_k <- apply(W, 2, function(w) {
+        am <- which(abs(w) == max(abs(w)))
+        am <- am[order(fit$fits[[ct]]$genes[am], w[am])]
+        sign(w[am[1]])
+      })
+      sign_k[sign_k == 0] <- 1
+      Zc <- sweep(Z, 2, s_k, "/")
+      Wc <- sweep(W, 2, s_k, "*")
+      Zc <- sweep(Zc, 2, sign_k, "*")
+      Wc <- sweep(Wc, 2, sign_k, "*")
+    }
     canon[[ct]] <- list(
       Z = Zc, W = Wc,
       scale_multiplier = unname(s_k),
