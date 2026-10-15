@@ -1,5 +1,6 @@
 test_that("plot functions return ggplot objects on a standard fit", {
   skip_if_not_installed("ggplot2")
+  skip_if_not_installed("mashr") # program_sharing() below needs mashr (Suggests)
   sim <- simulate_pseudobulk(n_samples = 30, n_genes = 300, program_size = 30, seed = 1)
   z <- sim$truth$B[[1]]$z > median(sim$truth$B[[1]]$z)
   md <- data.frame(observation_id = paste0("obs", seq_along(z)),
