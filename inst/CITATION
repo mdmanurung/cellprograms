@@ -1,0 +1,22 @@
+# R configuration ---------------------------------------------------------
+
+pkg <- packageVersion("cellprograms")
+
+citEntry(
+  entry = "Manual",
+  title = paste0(
+    "cellprograms: Cell-Type-Specific Transcriptional Programs via ",
+    "Empirical-Bayes Matrix Factorization"
+  ),
+  author = "Mikhael Dito Manurung",
+  year = format(Sys.Date(), "%Y"),
+  note = paste0("R package version ", pkg),
+  url = "https://github.com/mdmanurung/cellprograms",
+  textVersion = paste0(
+    "Manurung, Mikhael Dito. ",
+    "cellprograms: Cell-Type-Specific Transcriptional Programs via ",
+    "Empirical-Bayes Matrix Factorization. ",
+    "R package version ", pkg, ". ",
+    "https://github.com/mdmanurung/cellprograms"
+  )
+)
