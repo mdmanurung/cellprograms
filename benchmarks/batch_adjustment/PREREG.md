@@ -78,3 +78,33 @@ all feasible arms; compare program-score associations with age and CMV status
 detects a 0.02 correlation shift at ~0.8 power given the per-seed SD observed
 in prior simulator benchmarks (~0.03); if the observed SD exceeds 0.06, extend
 to 20 seeds before reading the rule (pre-registered extension).
+
+## Amendment batch-adj-v1a: small-batch scenario (registered 2026-10-16)
+
+Motivation: v1 used 150 donors / 4 balanced batches (~37 donors/batch), where
+per-gene batch parameters are well estimated and OLS is the correct generative
+model. ComBat's empirical-Bayes shrinkage is expected to pay off only when
+per-batch donor counts are small (n < 10/batch), the regime where per-gene
+batch-parameter estimates are noisy. This amendment tests that regime with the
+same arms, metrics, and decision rule; only the donor count changes (one
+factor per comparison).
+
+Registered scenarios (all with B = 4 balanced batches, sigma_b as stated,
+confound_a = 0, 10 seeds, cell types B and CD8, arms A0-A3 unchanged):
+
+- S1 (primary): n_samples = 32 (8 donors/batch), sigma_b = 0.375.
+- S1b (secondary): n_samples = 32 (8 donors/batch), sigma_b = 0.75.
+- S2 (severity sweep, descriptive): n_samples = 20 (5 donors/batch),
+  sigma_b = 0.375.
+
+Decision rule: identical to v1, applied per scenario (S1 gates; S1b and S2 are
+reported and must be consistent in direction for adoption). Stability is
+computed with the corrected extraction (mean of
+`$stability$per_program$median_score_cor`, n_boot = 5, sigma_b = 0.375,
+cell type B) and gates as in v1 (no degradation > 0.02).
+
+If the rule fires for A1 (ComBat) in S1: the R/ change is limited to (a) a
+documented small-batch recommendation in the vignette/RESULTS and (b) a
+focused proposal for exposing a batch-adjustment option, committed separately
+with tests; the OLS default for large batches is not changed. If the rule does
+not fire, the default stays and the result is recorded either way.

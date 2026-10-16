@@ -15,6 +15,7 @@ sigma_b <- as.numeric(getarg("--sigma", 0.375))
 nseed <- as.integer(getarg("--nseed", 10))
 outdir <- getarg("--out", paste0("results_s", gsub("\\.", "", sigma_b)))
 confound_a <- as.numeric(getarg("--confound", 0))
+n_samples <- as.integer(getarg("--samples", 150))
 do_stab <- as.integer(getarg("--stability", 1)) == 1L
 cts <- unlist(strsplit(getarg("--cts", "B,CD8"), ","))
 dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
@@ -44,14 +45,15 @@ batch_r2 <- function(fit, ct, batch) {
 
 # --- one seed, one cell type, four arms --------------------------------------
 run_seed_ct <- function(seed, ct) {
-  sim <- simulate_pseudobulk(scenario = "mixed", n_samples = 150,
+  sim <- simulate_pseudobulk(scenario = "mixed", n_samples = n_samples,
                              n_genes = 1500, program_size = 50,
                              signal_sd = 1.5, noise_sd = 1.0, seed = seed)
   bt <- plant_batch(sim, n_batches = 4, sigma_b = sigma_b,
                     confound_a = confound_a, seed = seed + 100L)
   meta <- data.frame(observation_id = names(bt$batch), batch = bt$batch)
   rownames(meta) <- meta$observation_id
-  out <- list(seed = seed, ct = ct, sigma_b = sigma_b, confound_a = confound_a)
+  out <- list(seed = seed, ct = ct, sigma_b = sigma_b, confound_a = confound_a,
+              n_samples = n_samples)
 
   # A0: OLS residualization (default)
   x0 <- as_cell_program_data(bt$pseudobulk[ct], sample_metadata = meta)
