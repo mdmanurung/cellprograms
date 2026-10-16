@@ -16,6 +16,7 @@ Imports:
     stats,
     utils,
     cli,
+    digest,
     flashier,
     ebnm,
     flashier.utils

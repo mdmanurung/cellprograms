@@ -63,6 +63,21 @@
 #'   `Y_used` is `Y` minus the fitted covariate part.
 #' @param seed Random seed for reproducibility.
 #' @param flash_control Optional list overriding flashier::flash arguments.
+#' @param feature_scale Declared measurement units of the pseudobulk
+#'   expression values, recorded in the fit manifest and required for
+#'   `project_programs_to_cells()` (the projection oracle refuses queries
+#'   whose declared units differ from the source fit's). "unknown" (default)
+#'   keeps the fit unprojectable; pass e.g. "logcounts" for
+#'   log-normalized pseudobulk. Only used on the flashier.utils backend.
+#' @param preprocessing_spec Optional frozen preprocessing specification from
+#'   `freeze_preprocessing()` (MR-0). When supplied, the spec governs feature
+#'   selection and adjustment: `features`, `n_variable_genes`,
+#'   `exclude_genes`, `exclude_artifacts`, `covariates`, `covariate_mode`,
+#'   `center`, and `scale` must all be left at their defaults (any explicit
+#'   conflict is an error, so a refit can never silently drift from the
+#'   frozen panel), and the spec's digest is recorded in the fit's
+#'   preprocessing provenance. The spec's cell types must cover `x` and all
+#'   frozen genes must be present in the dataset.
 #'
 #' @return The input object augmented with class `cell_program_fit` and
 #'   components `fits`, `programs`, `scores`, `loadings`, `preprocessing`,
@@ -85,7 +100,9 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
                                   backfit = TRUE, nullcheck = TRUE,
                                   covariates = NULL,
                                   covariate_mode = c("residualize", "fixed"),
-                                  seed = 1, flash_control = list()) {
+                                  seed = 1, flash_control = list(),
+                                  feature_scale = "unknown",
+                                  preprocessing_spec = NULL) {
   stopifnot(inherits(x, "cell_program_data"))
   covariate_mode <- match.arg(covariate_mode)
   if (!is.null(exclude_genes) &&
@@ -123,7 +140,53 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     cli::cli_abort("Unknown {.arg loading_prior}: {.val {loading_prior}}.")
   )
 
-  feature_sets <- .select_features(x, features, n_variable_genes, exclude_genes)
+  # MR-0: a frozen preprocessing specification (freeze_preprocessing) governs
+  # feature selection and adjustment. Conflicting explicit arguments are
+  # refused (fail closed) so a refit can never silently drift from the frozen
+  # panel; the spec digest is recorded in the fit's preprocessing provenance.
+  frozen_digest <- NULL
+  if (!is.null(preprocessing_spec)) {
+    if (!inherits(preprocessing_spec, "cell_program_preproc_spec")) {
+      cli::cli_abort("{.arg preprocessing_spec} must come from freeze_preprocessing().")
+    }
+    provided <- list(features = features, n_variable_genes = n_variable_genes,
+      exclude_genes = exclude_genes, exclude_artifacts = exclude_artifacts,
+      covariates = covariates, covariate_mode = covariate_mode,
+      center = center, scale = scale)
+    defaults <- list(features = "all", n_variable_genes = 2000, exclude_genes = NULL,
+      exclude_artifacts = FALSE, covariates = NULL, covariate_mode = "residualize",
+      center = TRUE, scale = FALSE)
+    conflicts <- names(provided)[vapply(names(provided),
+      function(n) !identical(provided[[n]], defaults[[n]]), logical(1))]
+    if (length(conflicts)) {
+      cli::cli_abort("{.arg preprocessing_spec} is frozen: leave {conflicts} at their defaults; the spec governs.")
+    }
+    absent_ct <- setdiff(x$cell_types, names(preprocessing_spec$feature_sets))
+    if (length(absent_ct)) {
+      cli::cli_abort("Frozen spec lacks cell type(s): {.val {absent_ct}}.")
+    }
+    missing_genes <- setdiff(
+      unique(unlist(preprocessing_spec$feature_sets)),
+      unique(unlist(lapply(x$pseudobulk, colnames), use.names = FALSE)))
+    if (length(missing_genes)) {
+      cli::cli_abort("{length(missing_genes)} frozen gene(s) absent from this dataset, e.g. {.val {missing_genes[1]}}.")
+    }
+    feature_sets <- preprocessing_spec$feature_sets[x$cell_types]
+    exclude_genes <- preprocessing_spec$exclude_genes
+    covariates <- .spec_covariates(preprocessing_spec$covariates)
+    covariate_mode <- preprocessing_spec$covariate_mode
+    center <- preprocessing_spec$center
+    scale <- preprocessing_spec$scale
+    frozen_digest <- preprocessing_spec$digest
+  }
+
+  # Without a frozen spec, resolve the feature panel from the arguments.
+  # With one, feature_sets was already taken from the spec above: re-running
+  # .select_features() here would clobber a frozen "variable"-mode panel,
+  # because the conflict check pins features/n_variable_genes at defaults.
+  if (is.null(preprocessing_spec)) {
+    feature_sets <- .select_features(x, features, n_variable_genes, exclude_genes)
+  }
 
   fits <- list()
   for (ct in x$cell_types) {
@@ -133,13 +196,28 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     Xres <- if (!is.null(covariates) && covariate_mode == "residualize") {
       .cov_design(rownames(Y), x$sample_metadata, covariates, ct)
     } else NULL
+    # MR-1 replay record: the exact adjustment applied to this cell type's
+    # pseudobulk, so project_programs_to_cells() can put single-cell query
+    # data into the same space (residualization coefficients, then the
+    # centering/scale values actually used here).
+    replay <- list(center = rep(0, ncol(Y)), scale = rep(1, ncol(Y)),
+                   residualize_coefficients = NULL, design_columns = NULL)
     if (!is.null(Xres)) {
-      R <- stats::lm.fit(Xres, Y)$residuals
+      res <- stats::lm.fit(Xres, Y)
+      R <- res$residuals
       dimnames(R) <- dimnames(Y)
       Y <- R
+      replay$residualize_coefficients <- res$coefficients
+      replay$design_columns <- colnames(Xres)
     }
-    if (center) Y <- scale(Y, center = TRUE, scale = scale)
-    else if (scale) Y <- scale(Y, center = FALSE, scale = TRUE)
+    if (center) {
+      Y <- scale(Y, center = TRUE, scale = scale)
+      replay$center <- unname(attr(Y, "scaled:center"))
+      if (!is.null(attr(Y, "scaled:scale"))) replay$scale <- unname(attr(Y, "scaled:scale"))
+    } else if (scale) {
+      Y <- scale(Y, center = FALSE, scale = TRUE)
+      replay$scale <- unname(attr(Y, "scaled:scale"))
+    }
     Xc <- if (!is.null(covariates) && covariate_mode == "fixed") {
       .cov_design(rownames(Y), x$sample_metadata, covariates, ct, intercept = FALSE)
     }
@@ -160,7 +238,8 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
         Y_used = Y,
         genes = character(0),
         elapsed_secs = 0,
-        skipped = TRUE
+        skipped = TRUE,
+        preproc_replay = replay
       )
       next
     }
@@ -210,7 +289,7 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     ordinary <- is.null(Xc) && use_fu
     run_flash <- function(args) {
       if (!is.null(Xc)) return(.flash_fixed(args, Xc))
-      if (ordinary) return(.fit_via_flashier_utils(args, seed))
+      if (ordinary) return(.fit_via_flashier_utils(args, seed, feature_scale))
       do.call(flashier::flash, args)
     }
     # Fallback ladder for numerical failures in flashier: point_laplace's nlm
@@ -258,7 +337,8 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
       Y_used = Y,
       genes = genes,
       elapsed_secs = elapsed,
-      fallback = fallback
+      fallback = fallback,
+      preproc_replay = replay
     )
   }
 
@@ -272,7 +352,9 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     max_factors = max_factors, var_type = var_type,
     backfit = backfit, nullcheck = nullcheck,
     covariates = covariates, covariate_mode = covariate_mode,
-    flash_control = flash_control
+    flash_control = flash_control,
+    feature_scale = feature_scale,
+    frozen_spec = frozen_digest
   )
   x$provenance <- list(
     seed = seed,
@@ -377,7 +459,12 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
 # backfit, nullcheck, verbose, plus any flash_control overrides). The mapping
 # to fit_ebmf() is exact; flash_control members that fit_ebmf() does not
 # expose are rejected explicitly so no control is ever silently dropped.
-.fit_via_flashier_utils <- function(args, seed) {
+# `feature_scale` is declared measurement units for the manifest (MR-1: the
+# projection oracle refuses queries whose declared units differ from the
+# source manifest, so fits must not stay "unknown" if they will be projected).
+# It is passed separately rather than through `args` because the legacy
+# backend do.call(flashier::flash, args) has no such formal.
+.fit_via_flashier_utils <- function(args, seed, feature_scale = "unknown") {
   # flash_control overrides that fit_ebmf() cannot map: anything beyond the
   # core argument set. The core set is forwarded explicitly below.
   core <- c("data", "ebnm_fn", "var_type", "greedy_Kmax", "backfit",
@@ -398,7 +485,8 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     backfit = args$backfit,
     nullcheck = args$nullcheck,
     seed = seed,
-    verbose = args$verbose
+    verbose = args$verbose,
+    feature_scale = feature_scale
   )
 }
 
