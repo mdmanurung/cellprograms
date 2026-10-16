@@ -96,3 +96,42 @@ If the user declines the download: port their node statistic `A_v` as arm `node_
 - Biomni M4 pre-work if a fit change is ported: `flash_control` conflict detection (`R/ebmf.R:123-132`), package version in `provenance`, small-n K guard.
 - Biomni M2 findings not acted on: confounder check not in `summarize.R`; NA passes some guards; no multiplicity control across arms.
 - `feat/sofa-comparator`: open a PR or archive it.
+
+## Update 2026-10-16 (later) — immune-aging application complete; C2 check closed
+
+**Main @ `5245b09`.** The Terekhova et al. Immunity 2026 8-cohort immune-aging
+application (2,609 donors) is complete end to end:
+
+- **All 8 cohort fits + associations** at the registered operating point
+  (max_factors=10, point_laplace, top-2000 variable genes, log1p-CP10K,
+  seed=20261016, NO covariate residualization — pilot-falsified amendment:
+  residualized scores are orthogonal to age by construction, making the
+  association test vacuous). Scripts + tables + repro recipe:
+  `analyses/immune_aging/README.md`.
+- **MR-0/MR-1 projection pipeline hardened**: unique donor|ct observation IDs
+  (donor IDs repeat across cell-type blocks — the old filter pulled
+  NA-contaminated rows from all blocks), full query gene panel (pre-restricting
+  to the discovery feature union collapses per-ct coverage below the 0.9 gate),
+  per-cell-type tryCatch isolation, solve_LSAP NA guard. 4 rare KCL cell types
+  fail projection cleanly (rank-deficient shared-gene support) and are logged.
+- **Conservation panel (3 tiers)**: matched score concordance median |cor|
+  0.49-0.63 across 6 pairs; matched association profiles null-to-weak
+  (Spearman -0.07..0.17 incl. at 981 donors — decomposition mismatch, not
+  noise); projected-score replication of discovery age hits 36-68% (null ~4%);
+  top-20 gene Jaccard 0.03-0.13 (conservation is score-level, not gene-list).
+- **Age**: thymic-involution axis replicates (CD8+ RTE 7/7 cohorts negative,
+  median -0.29 SD/10y; CD4+ RTE 6/7; gd T naive 6/7; gd T Vd2 GZMK+ 7/7).
+  Full report: `reports/immune_aging_analysis.md`; case-study vignette:
+  `vignettes/articles/immune_aging_cross_cohort.Rmd`.
+- **C2 matching check CLOSED**: pooled greedy-vs-optimal discordance 1.35%
+  (Stephenson 1.19%, combat 1.58%) < 5% threshold → greedy matching retained,
+  no `R/` change. Neither the ≥5% adoption clause nor the [0.02,0.10) +10-boot
+  clause fires.
+- **Batch benchmarks closed**: v1 and small-batch v1a both preregistered,
+  neither rule fired, OLS default retained; small-batch guidance documented
+  (at 5 donors/batch OLS degrades: recovery 0.82, K inflated to cap; ComBat
+  holds 0.96 but leaves residual batchR2 0.015). Summary CSV committed.
+- **Session incident (recovered)**: worker OOM at 16 GB killed all background
+  jobs mid-run (stacking error, not a pipeline defect). All artifacts survived
+  on disk; work resumed on a 2-machine split with a strict concurrency budget.
+  Lesson recorded: cap concurrent fit lanes at ~7 GB on a 16 GB worker.

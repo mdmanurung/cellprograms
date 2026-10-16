@@ -1,0 +1,915 @@
+"query","cell_type","proj","refit","score_cor","jaccard_top20"
+"SPAC","B Switched memory","B Switched memory_1","B Switched memory_1",0.677779854452297,0
+"SPAC","B Switched memory","B Switched memory_2","B Switched memory_8",0.615606730933144,0.111111111111111
+"SPAC","B Switched memory","B Switched memory_3","B Switched memory_9",0.376779089219339,0.212121212121212
+"SPAC","B Switched memory","B Switched memory_4","B Switched memory_4",0.488791985486405,0.25
+"SPAC","B Switched memory","B Switched memory_5","B Switched memory_3",-0.505516611370593,0.142857142857143
+"SPAC","B Switched memory","B Switched memory_6","B Switched memory_7",0.435008733424985,0.0526315789473684
+"SPAC","B Switched memory","B Switched memory_7","B Switched memory_2",-0.423272590339201,0.0810810810810811
+"SPAC","B Switched memory","B Switched memory_8","B Switched memory_6",0.702913115407192,0.212121212121212
+"SPAC","B Switched memory","B Switched memory_9","B Switched memory_10",0.366511748356723,0.25
+"SPAC","B Switched memory","B Switched memory_10","B Switched memory_5",0.567602871190167,0.333333333333333
+"SPAC","NK CD56dim CD57int","NK CD56dim CD57int_1","NK CD56dim CD57int_4",0.753035528179366,0
+"SPAC","NK CD56dim CD57int","NK CD56dim CD57int_2","NK CD56dim CD57int_1",-0.812615046507464,0
+"SPAC","NK CD56dim CD57int","NK CD56dim CD57int_3","NK CD56dim CD57int_8",-0.593035493786287,0.0256410256410256
+"SPAC","NK CD56dim CD57int","NK CD56dim CD57int_4","NK CD56dim CD57int_3",-0.669578677019879,0.142857142857143
+"SPAC","NK CD56dim CD57int","NK CD56dim CD57int_5","NK CD56dim CD57int_2",0.774500786267959,0.290322580645161
+"SPAC","NK CD56dim CD57int","NK CD56dim CD57int_6","NK CD56dim CD57int_6",0.864342167916186,0.428571428571429
+"SPAC","NK CD56dim CD57int","NK CD56dim CD57int_7","NK CD56dim CD57int_7",0.553036060046437,0.0810810810810811
+"SPAC","NK CD56dim CD57int","NK CD56dim CD57int_8","NK CD56dim CD57int_5",0.913348796103038,0.0526315789473684
+"SPAC","NK CD56dim CD57int","NK CD56dim CD57int_9","NK CD56dim CD57int_9",-0.193941707094147,0.0810810810810811
+"SPAC","NK CD56dim CD57int","NK CD56dim CD57int_10","NK CD56dim CD57int_10",0.14320509691369,0
+"SPAC","B Naive","B Naive_1","B Naive_5",0.926996421739178,0
+"SPAC","B Naive","B Naive_2","B Naive_8",0.656691371553043,0.142857142857143
+"SPAC","B Naive","B Naive_3","B Naive_4",0.445725396996185,0.111111111111111
+"SPAC","B Naive","B Naive_4","B Naive_1",-0.479918165975635,0.0256410256410256
+"SPAC","B Naive","B Naive_5","B Naive_6",0.699796894505769,0.0810810810810811
+"SPAC","B Naive","B Naive_6","B Naive_10",0.215902450674694,0.111111111111111
+"SPAC","B Naive","B Naive_7","B Naive_3",0.72215977757219,0.333333333333333
+"SPAC","B Naive","B Naive_8","B Naive_2",0.664971541835349,0.290322580645161
+"SPAC","B Naive","B Naive_9","B Naive_9",-0.185373017066687,0.0526315789473684
+"SPAC","B Naive","B Naive_10","B Naive_7",0.106812400783221,0.176470588235294
+"SPAC","NK CD56dim CD57-","NK CD56dim CD57-_1","NK CD56dim CD57-_4",-0.692967915765827,0
+"SPAC","NK CD56dim CD57-","NK CD56dim CD57-_2","NK CD56dim CD57-_3",0.782706660807327,0.333333333333333
+"SPAC","NK CD56dim CD57-","NK CD56dim CD57-_3","NK CD56dim CD57-_9",-0.165131891209129,0
+"SPAC","NK CD56dim CD57-","NK CD56dim CD57-_4","NK CD56dim CD57-_2",0.873775239898014,0.290322580645161
+"SPAC","NK CD56dim CD57-","NK CD56dim CD57-_5","NK CD56dim CD57-_5",0.894092168845067,0.176470588235294
+"SPAC","NK CD56dim CD57-","NK CD56dim CD57-_6","NK CD56dim CD57-_1",-0.853633369749404,0.0526315789473684
+"SPAC","NK CD56dim CD57-","NK CD56dim CD57-_7","NK CD56dim CD57-_10",-0.361343182904416,0.0256410256410256
+"SPAC","NK CD56dim CD57-","NK CD56dim CD57-_8","NK CD56dim CD57-_7",0.391775202042055,0.0526315789473684
+"SPAC","NK CD56dim CD57-","NK CD56dim CD57-_9","NK CD56dim CD57-_6",-0.611335491307841,0.142857142857143
+"SPAC","NK CD56dim CD57-","NK CD56dim CD57-_10","NK CD56dim CD57-_8",0.293371262631025,0
+"SPAC","MAIT","MAIT_1","MAIT_5",-0.508440051692967,0
+"SPAC","MAIT","MAIT_2","MAIT_3",0.680702883039508,0.333333333333333
+"SPAC","MAIT","MAIT_3","MAIT_1",-0.880441577123195,0
+"SPAC","MAIT","MAIT_4","MAIT_4",0.944875701458901,0.212121212121212
+"SPAC","MAIT","MAIT_5","MAIT_10",-0.344293065326291,0.142857142857143
+"SPAC","MAIT","MAIT_6","MAIT_8",0.378702876618514,0.0256410256410256
+"SPAC","MAIT","MAIT_7","MAIT_9",0.437545690479579,0.0810810810810811
+"SPAC","MAIT","MAIT_8","MAIT_2",0.870498113590426,0.379310344827586
+"SPAC","MAIT","MAIT_9","MAIT_7",0.296940948506923,0.290322580645161
+"SPAC","MAIT","MAIT_10","MAIT_6",-0.897054532708466,0.0256410256410256
+"SPAC","Myeloid Classical monocytes","Myeloid Classical monocytes_1","Myeloid Classical monocytes_10",-0.113300164006509,0
+"SPAC","Myeloid Classical monocytes","Myeloid Classical monocytes_2","Myeloid Classical monocytes_5",0.807176570238488,0.25
+"SPAC","Myeloid Classical monocytes","Myeloid Classical monocytes_3","Myeloid Classical monocytes_2",-0.883865980262429,0.0256410256410256
+"SPAC","Myeloid Classical monocytes","Myeloid Classical monocytes_4","Myeloid Classical monocytes_1",0.591173703705287,0
+"SPAC","Myeloid Classical monocytes","Myeloid Classical monocytes_5","Myeloid Classical monocytes_4",0.548440667511513,0.142857142857143
+"SPAC","Myeloid Classical monocytes","Myeloid Classical monocytes_6","Myeloid Classical monocytes_6",-0.801740622689976,0.333333333333333
+"SPAC","Myeloid Classical monocytes","Myeloid Classical monocytes_7","Myeloid Classical monocytes_9",0.365006239392382,0.212121212121212
+"SPAC","Myeloid Classical monocytes","Myeloid Classical monocytes_8","Myeloid Classical monocytes_8",-0.706570366634565,0.0526315789473684
+"SPAC","Myeloid Classical monocytes","Myeloid Classical monocytes_9","Myeloid Classical monocytes_7",-0.565709774408546,0.111111111111111
+"SPAC","Myeloid Classical monocytes","Myeloid Classical monocytes_10","Myeloid Classical monocytes_3",-0.809374850707094,0.111111111111111
+"SPAC","NK Proliferative","NK Proliferative_1","NK Proliferative_2",0.972936692414885,0.481481481481481
+"SPAC","NK Proliferative","NK Proliferative_2","NK Proliferative_6",-0.0317380596336911,0
+"SPAC","NK Proliferative","NK Proliferative_3","NK Proliferative_1",0.873846179513384,0.0256410256410256
+"SPAC","NK Proliferative","NK Proliferative_4","NK Proliferative_7",0.702667939781574,0.176470588235294
+"SPAC","NK Proliferative","NK Proliferative_5","NK Proliferative_10",-0.29754008060846,0.0256410256410256
+"SPAC","NK Proliferative","NK Proliferative_6","NK Proliferative_8",-0.696805251735188,0.290322580645161
+"SPAC","NK Proliferative","NK Proliferative_7","NK Proliferative_5",0.214152508854095,0.0256410256410256
+"SPAC","NK Proliferative","NK Proliferative_8","NK Proliferative_3",-0.87244984979415,0.333333333333333
+"SPAC","NK Proliferative","NK Proliferative_9","NK Proliferative_9",0.596624957369485,0.0256410256410256
+"SPAC","NK Proliferative","NK Proliferative_10","NK Proliferative_4",-0.612341784430849,0.0810810810810811
+"SPAC","Myeloid cDCs","Myeloid cDCs_1","Myeloid cDCs_3",-0.733946698985226,0
+"SPAC","Myeloid cDCs","Myeloid cDCs_2","Myeloid cDCs_4",0.436244700527279,0
+"SPAC","Myeloid cDCs","Myeloid cDCs_3","Myeloid cDCs_5",-0.490191420379126,0.142857142857143
+"SPAC","Myeloid cDCs","Myeloid cDCs_4","Myeloid cDCs_8",0.738996480309093,0.0810810810810811
+"SPAC","Myeloid cDCs","Myeloid cDCs_5","Myeloid cDCs_2",-0.820133044500643,0.0256410256410256
+"SPAC","Myeloid cDCs","Myeloid cDCs_6","Myeloid cDCs_10",0.353975670275639,0.0526315789473684
+"SPAC","Myeloid cDCs","Myeloid cDCs_7","Myeloid cDCs_6",0.21442260535159,0.0526315789473684
+"SPAC","Myeloid cDCs","Myeloid cDCs_8","Myeloid cDCs_9",0.697532681922481,0.0810810810810811
+"SPAC","Myeloid cDCs","Myeloid cDCs_9","Myeloid cDCs_7",0.778655721579953,0.379310344827586
+"SPAC","Myeloid cDCs","Myeloid cDCs_10","Myeloid cDCs_1",-0.609844701266848,0.290322580645161
+"SPAC","B Atypical memory","B Atypical memory_1","B Atypical memory_2",-0.411931159214612,0.0256410256410256
+"SPAC","B Atypical memory","B Atypical memory_2","B Atypical memory_1",0.689649880880426,0.0256410256410256
+"SPAC","B Atypical memory","B Atypical memory_3","B Atypical memory_5",-0.177834982375473,0
+"SPAC","B Atypical memory","B Atypical memory_4","B Atypical memory_10",-0.394330982349199,0.0526315789473684
+"SPAC","B Atypical memory","B Atypical memory_5","B Atypical memory_3",-0.581653916366136,0.111111111111111
+"SPAC","B Atypical memory","B Atypical memory_6","B Atypical memory_9",-0.285306548950184,0.212121212121212
+"SPAC","B Atypical memory","B Atypical memory_7","B Atypical memory_7",0.255111855258899,0.176470588235294
+"SPAC","B Atypical memory","B Atypical memory_8","B Atypical memory_8",0.34548664913663,0.176470588235294
+"SPAC","B Atypical memory","B Atypical memory_9","B Atypical memory_4",0.732436948581238,0.176470588235294
+"SPAC","B Atypical memory","B Atypical memory_10","B Atypical memory_6",0.738997131961927,0.0256410256410256
+"SPAC","B Non-switched memory","B Non-switched memory_1","B Non-switched memory_2",0.376268720416725,0.0256410256410256
+"SPAC","B Non-switched memory","B Non-switched memory_2","B Non-switched memory_5",0.50408918612092,0.0526315789473684
+"SPAC","B Non-switched memory","B Non-switched memory_3","B Non-switched memory_1",-0.775613450538051,0
+"SPAC","B Non-switched memory","B Non-switched memory_4","B Non-switched memory_10",0.194509552163551,0.212121212121212
+"SPAC","B Non-switched memory","B Non-switched memory_5","B Non-switched memory_3",0.804775623705378,0.25
+"SPAC","B Non-switched memory","B Non-switched memory_6","B Non-switched memory_6",-0.691820613467506,0.111111111111111
+"SPAC","B Non-switched memory","B Non-switched memory_7","B Non-switched memory_7",-0.310508725110142,0.142857142857143
+"SPAC","B Non-switched memory","B Non-switched memory_8","B Non-switched memory_8",-0.571904022496027,0.333333333333333
+"SPAC","B Non-switched memory","B Non-switched memory_9","B Non-switched memory_9",-0.334177133059789,0.176470588235294
+"SPAC","B Non-switched memory","B Non-switched memory_10","B Non-switched memory_4",0.566163909298393,0.212121212121212
+"SPAC","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_1","Myeloid Non-classical monocytes_4",0.884254708483648,0
+"SPAC","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_2","Myeloid Non-classical monocytes_9",0.641946782412425,0.212121212121212
+"SPAC","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_3","Myeloid Non-classical monocytes_8",0.550498570436021,0.25
+"SPAC","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_4","Myeloid Non-classical monocytes_2",0.593568019841133,0.428571428571429
+"SPAC","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_5","Myeloid Non-classical monocytes_3",0.817725351630586,0.333333333333333
+"SPAC","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_6","Myeloid Non-classical monocytes_1",0.635435770835303,0
+"SPAC","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_7","Myeloid Non-classical monocytes_10",-0.180222866249802,0
+"SPAC","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_8","Myeloid Non-classical monocytes_5",0.683157237760819,0.0810810810810811
+"SPAC","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_9","Myeloid Non-classical monocytes_7",-0.24951607310911,0.142857142857143
+"SPAC","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_10","Myeloid Non-classical monocytes_6",0.415841127378041,0.111111111111111
+"SPAC","NK CD56bright","NK CD56bright_3","NK CD56bright_1",-0.876288113822847,0
+"SPAC","NK CD56bright","NK CD56bright_5","NK CD56bright_2",0.664106552844031,0.428571428571429
+"SPAC","NK CD56bright","NK CD56bright_7","NK CD56bright_3",0.90494897083258,0.25
+"SPAC","NK CD56bright","NK CD56bright_9","NK CD56bright_4",0.863173121112407,0.25
+"SPAC","NK CD56bright","NK CD56bright_2","NK CD56bright_5",0.717000236510556,0
+"SPAC","NK CD56bright","NK CD56bright_4","NK CD56bright_6",0.883653687213154,0.142857142857143
+"SPAC","NK CD56bright","NK CD56bright_10","NK CD56bright_7",0.514656463616827,0.0256410256410256
+"SPAC","NK CD56bright","NK CD56bright_6","NK CD56bright_8",0.323608039003094,0.0256410256410256
+"SPAC","NK CD56bright","NK CD56bright_8","NK CD56bright_9",0.403918683263526,0.0256410256410256
+"SPAC","B Activated","B Activated_1","B Activated_1",-0.477184811525269,0
+"SPAC","B Activated","B Activated_2","B Activated_9",-0.401092581098506,0
+"SPAC","B Activated","B Activated_3","B Activated_2",0.705733144942334,0.0256410256410256
+"SPAC","B Activated","B Activated_4","B Activated_10",0.0952077668267372,0.142857142857143
+"SPAC","B Activated","B Activated_5","B Activated_3",-0.437067657471253,0.142857142857143
+"SPAC","B Activated","B Activated_6","B Activated_6",0.437208910693274,0.0810810810810811
+"SPAC","B Activated","B Activated_7","B Activated_7",-0.438126036438792,0.212121212121212
+"SPAC","B Activated","B Activated_8","B Activated_5",0.645512310066724,0.111111111111111
+"SPAC","B Activated","B Activated_9","B Activated_8",0.631381246222198,0.111111111111111
+"SPAC","B Activated","B Activated_10","B Activated_4",-0.407847359109343,0.0810810810810811
+"SPAC","NK CD56dim CD57low","NK CD56dim CD57low_1","NK CD56dim CD57low_3",0.686886065127984,0.0256410256410256
+"SPAC","NK CD56dim CD57low","NK CD56dim CD57low_2","NK CD56dim CD57low_10",0.229598015267286,0
+"SPAC","NK CD56dim CD57low","NK CD56dim CD57low_3","NK CD56dim CD57low_1",-0.782550153129249,0
+"SPAC","NK CD56dim CD57low","NK CD56dim CD57low_4","NK CD56dim CD57low_6",0.933643243484491,0.25
+"SPAC","NK CD56dim CD57low","NK CD56dim CD57low_5","NK CD56dim CD57low_2",0.807672818010211,0.481481481481481
+"SPAC","NK CD56dim CD57low","NK CD56dim CD57low_6","NK CD56dim CD57low_4",0.643470987975311,0.25
+"SPAC","NK CD56dim CD57low","NK CD56dim CD57low_7","NK CD56dim CD57low_9",-0.232729459080889,0.0810810810810811
+"SPAC","NK CD56dim CD57low","NK CD56dim CD57low_8","NK CD56dim CD57low_5",0.946281162504288,0.142857142857143
+"SPAC","NK CD56dim CD57low","NK CD56dim CD57low_9","NK CD56dim CD57low_7",-0.122689377609226,0.142857142857143
+"SPAC","NK CD56dim CD57low","NK CD56dim CD57low_10","NK CD56dim CD57low_8",-0.121430095129448,0.0526315789473684
+"SPAC","B Transitional","B Transitional_1","B Transitional_1",0.598012883994812,0
+"SPAC","B Transitional","B Transitional_2","B Transitional_3",-0.522754305832192,0.0526315789473684
+"SPAC","B Transitional","B Transitional_3","B Transitional_2",0.411612785059169,0.111111111111111
+"SPAC","B Transitional","B Transitional_4","B Transitional_8",0.434807595168697,0.0810810810810811
+"SPAC","B Transitional","B Transitional_5","B Transitional_10",0.469489726200294,0.176470588235294
+"SPAC","B Transitional","B Transitional_6","B Transitional_7",0.521230809606879,0.25
+"SPAC","B Transitional","B Transitional_7","B Transitional_5",-0.344384172969532,0.176470588235294
+"SPAC","B Transitional","B Transitional_8","B Transitional_9",-0.571800312019347,0.176470588235294
+"SPAC","B Transitional","B Transitional_9","B Transitional_6",-0.46687551824969,0.142857142857143
+"SPAC","B Transitional","B Transitional_10","B Transitional_4",-0.352159139925601,0.25
+"SPAC","Myeloid pDCs","Myeloid pDCs_1","Myeloid pDCs_8",-0.744144152847962,0
+"SPAC","Myeloid pDCs","Myeloid pDCs_2","Myeloid pDCs_7",0.653623712916332,0
+"SPAC","Myeloid pDCs","Myeloid pDCs_3","Myeloid pDCs_2",0.698879465199136,0.176470588235294
+"SPAC","Myeloid pDCs","Myeloid pDCs_4","Myeloid pDCs_3",0.747532636482804,0.0256410256410256
+"SPAC","Myeloid pDCs","Myeloid pDCs_5","Myeloid pDCs_5",0.819039496522326,0.25
+"SPAC","Myeloid pDCs","Myeloid pDCs_6","Myeloid pDCs_1",-0.30479360944213,0.0256410256410256
+"SPAC","Myeloid pDCs","Myeloid pDCs_7","Myeloid pDCs_9",0.431879789908932,0.111111111111111
+"SPAC","Myeloid pDCs","Myeloid pDCs_8","Myeloid pDCs_10",0.855175730874887,0.142857142857143
+"SPAC","Myeloid pDCs","Myeloid pDCs_9","Myeloid pDCs_4",0.207611256516983,0.0526315789473684
+"SPAC","Myeloid pDCs","Myeloid pDCs_10","Myeloid pDCs_6",-0.601164929932047,0.176470588235294
+"SPAC","DN T cells","DN T cells_4","DN T cells_1",-0.733415146930529,0.0256410256410256
+"SPAC","DN T cells","DN T cells_1","DN T cells_2",0.810367229985592,0.0526315789473684
+"SPAC","DN T cells","DN T cells_6","DN T cells_3",0.869600927505554,0.212121212121212
+"SPAC","DN T cells","DN T cells_3","DN T cells_4",0.280871738207918,0
+"SPAC","DN T cells","DN T cells_7","DN T cells_5",0.0955334550547554,0
+"SPAC","DN T cells","DN T cells_10","DN T cells_6",-0.526977432076029,0.0526315789473684
+"SPAC","DN T cells","DN T cells_2","DN T cells_7",0.715363331465301,0
+"SPAC","DN T cells","DN T cells_9","DN T cells_8",0.81707326453922,0.142857142857143
+"SPAC","DN T cells","DN T cells_8","DN T cells_9",-0.354516675348071,0.0256410256410256
+"SPAC","Progenitor cells","Progenitor cells_10","Progenitor cells_1",-0.651156100386416,0
+"SPAC","Progenitor cells","Progenitor cells_4","Progenitor cells_2",-0.675575304463091,0
+"SPAC","Progenitor cells","Progenitor cells_3","Progenitor cells_3",0.706108622867899,0.0256410256410256
+"SPAC","Progenitor cells","Progenitor cells_9","Progenitor cells_4",-0.629405012544212,0.0256410256410256
+"SPAC","B Plasma cells","B Plasma cells_1","B Plasma cells_5",0.941965586116781,0
+"SPAC","B Plasma cells","B Plasma cells_2","B Plasma cells_8",-0.585981098883432,0
+"SPAC","B Plasma cells","B Plasma cells_3","B Plasma cells_2",-0.238698504061303,0
+"SPAC","B Plasma cells","B Plasma cells_4","B Plasma cells_6",0.472908507688454,0.176470588235294
+"SPAC","B Plasma cells","B Plasma cells_5","B Plasma cells_4",-0.40551604179147,0.111111111111111
+"SPAC","B Plasma cells","B Plasma cells_6","B Plasma cells_7",0.58014936342914,0.290322580645161
+"SPAC","B Plasma cells","B Plasma cells_7","B Plasma cells_1",0.633526334219173,0.142857142857143
+"SPAC","B Plasma cells","B Plasma cells_8","B Plasma cells_3",-0.514505357404702,0.142857142857143
+"SPAC","B Plasma cells","B Plasma cells_9","B Plasma cells_9",0.384818014133538,0.111111111111111
+"SPAC","B Plasma cells","B Plasma cells_10","B Plasma cells_10",0.440836311141947,0.111111111111111
+"SPAC","gd T naive","gd T naive_1","gd T naive_3",-0.265860995636337,0
+"SPAC","gd T naive","gd T naive_2","gd T naive_2",0.366768329750898,0.0810810810810811
+"SPAC","gd T naive","gd T naive_3","gd T naive_4",0.628925246748089,0.176470588235294
+"SPAC","gd T naive","gd T naive_4","gd T naive_1",0.835268620356106,0.0810810810810811
+"UCSF","Myeloid Classical monocytes","Myeloid Classical monocytes_1","Myeloid Classical monocytes_1",0.92142977116558,0
+"UCSF","Myeloid Classical monocytes","Myeloid Classical monocytes_2","Myeloid Classical monocytes_10",0.784109854597579,0.379310344827586
+"UCSF","Myeloid Classical monocytes","Myeloid Classical monocytes_3","Myeloid Classical monocytes_8",-0.178577275454652,0.0256410256410256
+"UCSF","Myeloid Classical monocytes","Myeloid Classical monocytes_4","Myeloid Classical monocytes_5",-0.16886709481467,0
+"UCSF","Myeloid Classical monocytes","Myeloid Classical monocytes_5","Myeloid Classical monocytes_9",0.160965724142513,0.0256410256410256
+"UCSF","Myeloid Classical monocytes","Myeloid Classical monocytes_6","Myeloid Classical monocytes_6",0.884546744601711,0.379310344827586
+"UCSF","Myeloid Classical monocytes","Myeloid Classical monocytes_7","Myeloid Classical monocytes_4",0.459289914685968,0.0810810810810811
+"UCSF","Myeloid Classical monocytes","Myeloid Classical monocytes_8","Myeloid Classical monocytes_2",0.631893732835917,0.0256410256410256
+"UCSF","Myeloid Classical monocytes","Myeloid Classical monocytes_9","Myeloid Classical monocytes_3",-0.776175034397044,0.0256410256410256
+"UCSF","Myeloid Classical monocytes","Myeloid Classical monocytes_10","Myeloid Classical monocytes_7",0.183784512279199,0.111111111111111
+"UCSF","DN T cells","DN T cells_1","DN T cells_1",0.983949981684405,0.111111111111111
+"UCSF","DN T cells","DN T cells_2","DN T cells_2",0.628028270530832,0.0810810810810811
+"UCSF","DN T cells","DN T cells_5","DN T cells_3",0.67997384926858,0
+"UCSF","DN T cells","DN T cells_4","DN T cells_4",-0.496180780028624,0.111111111111111
+"UCSF","DN T cells","DN T cells_10","DN T cells_5",-0.242579359756479,0
+"UCSF","DN T cells","DN T cells_9","DN T cells_6",0.459935218009593,0.0526315789473684
+"UCSF","DN T cells","DN T cells_3","DN T cells_7",0.182667348802452,0.0526315789473684
+"UCSF","DN T cells","DN T cells_7","DN T cells_8",0.891629299857371,0.333333333333333
+"UCSF","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_1","Myeloid Non-classical monocytes_1",0.946624502551161,0
+"UCSF","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_2","Myeloid Non-classical monocytes_3",0.238773682535463,0.0526315789473684
+"UCSF","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_3","Myeloid Non-classical monocytes_2",0.660302166209089,0.0256410256410256
+"UCSF","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_4","Myeloid Non-classical monocytes_7",0.124843082951981,0.0256410256410256
+"UCSF","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_5","Myeloid Non-classical monocytes_6",0.794077646683447,0.333333333333333
+"UCSF","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_6","Myeloid Non-classical monocytes_10",-0.431342253806315,0.0810810810810811
+"UCSF","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_7","Myeloid Non-classical monocytes_4",-0.158818357831628,0.0256410256410256
+"UCSF","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_8","Myeloid Non-classical monocytes_8",0.482395280563225,0.290322580645161
+"UCSF","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_9","Myeloid Non-classical monocytes_9",-0.207853775211976,0.0526315789473684
+"UCSF","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_10","Myeloid Non-classical monocytes_5",0.79910862496545,0.142857142857143
+"UCSF","NK CD56dim CD57int","NK CD56dim CD57int_1","NK CD56dim CD57int_1",0.970561692065385,0
+"UCSF","NK CD56dim CD57int","NK CD56dim CD57int_2","NK CD56dim CD57int_4",0.578336418590132,0.0256410256410256
+"UCSF","NK CD56dim CD57int","NK CD56dim CD57int_3","NK CD56dim CD57int_2",0.87379863378423,0.0810810810810811
+"UCSF","NK CD56dim CD57int","NK CD56dim CD57int_4","NK CD56dim CD57int_3",0.399700779709625,0
+"UCSF","NK CD56dim CD57int","NK CD56dim CD57int_5","NK CD56dim CD57int_8",0.320242432908161,0.0810810810810811
+"UCSF","NK CD56dim CD57int","NK CD56dim CD57int_6","NK CD56dim CD57int_9",0.602027039254902,0.176470588235294
+"UCSF","NK CD56dim CD57int","NK CD56dim CD57int_7","NK CD56dim CD57int_10",0.480470882609697,0.0526315789473684
+"UCSF","NK CD56dim CD57int","NK CD56dim CD57int_8","NK CD56dim CD57int_5",0.97191837704826,0.0526315789473684
+"UCSF","NK CD56dim CD57int","NK CD56dim CD57int_9","NK CD56dim CD57int_7",0.469857396203563,0.142857142857143
+"UCSF","NK CD56dim CD57int","NK CD56dim CD57int_10","NK CD56dim CD57int_6",0.18870248038083,0
+"UCSF","NK CD56dim CD57low","NK CD56dim CD57low_1","NK CD56dim CD57low_1",0.95502350548487,0.0256410256410256
+"UCSF","NK CD56dim CD57low","NK CD56dim CD57low_2","NK CD56dim CD57low_6",0.720509507055226,0.481481481481481
+"UCSF","NK CD56dim CD57low","NK CD56dim CD57low_3","NK CD56dim CD57low_2",-0.692737937098212,0
+"UCSF","NK CD56dim CD57low","NK CD56dim CD57low_4","NK CD56dim CD57low_10",0.299533074399037,0.0810810810810811
+"UCSF","NK CD56dim CD57low","NK CD56dim CD57low_5","NK CD56dim CD57low_7",-0.125062173380149,0.0526315789473684
+"UCSF","NK CD56dim CD57low","NK CD56dim CD57low_6","NK CD56dim CD57low_3",0.6325196905237,0.142857142857143
+"UCSF","NK CD56dim CD57low","NK CD56dim CD57low_7","NK CD56dim CD57low_5",0.17387297802164,0
+"UCSF","NK CD56dim CD57low","NK CD56dim CD57low_8","NK CD56dim CD57low_4",0.970006293486013,0.111111111111111
+"UCSF","NK CD56dim CD57low","NK CD56dim CD57low_9","NK CD56dim CD57low_9",0.42666272251956,0.0810810810810811
+"UCSF","NK CD56dim CD57low","NK CD56dim CD57low_10","NK CD56dim CD57low_8",0.463896652176522,0.0810810810810811
+"UCSF","B Plasma cells","B Plasma cells_1","B Plasma cells_3",0.404612589575505,0.0256410256410256
+"UCSF","B Plasma cells","B Plasma cells_2","B Plasma cells_2",0.957615609519885,0.0810810810810811
+"UCSF","B Plasma cells","B Plasma cells_3","B Plasma cells_1",0.949522479974699,0.0256410256410256
+"UCSF","B Plasma cells","B Plasma cells_4","B Plasma cells_8",0.0932791238195289,0
+"UCSF","B Plasma cells","B Plasma cells_5","B Plasma cells_9",0.379512690510438,0
+"UCSF","B Plasma cells","B Plasma cells_6","B Plasma cells_10",0.0905915214422525,0
+"UCSF","B Plasma cells","B Plasma cells_7","B Plasma cells_5",-0.166929206454888,0
+"UCSF","B Plasma cells","B Plasma cells_8","B Plasma cells_4",-0.395802956318946,0
+"UCSF","B Plasma cells","B Plasma cells_9","B Plasma cells_6",0.176970156066247,0
+"UCSF","B Plasma cells","B Plasma cells_10","B Plasma cells_7",-0.302107157222747,0.0256410256410256
+"UCSF","B Atypical memory","B Atypical memory_1","B Atypical memory_1",0.976404456969257,0
+"UCSF","B Atypical memory","B Atypical memory_2","B Atypical memory_2",0.922267363197869,0.0256410256410256
+"UCSF","B Atypical memory","B Atypical memory_3","B Atypical memory_4",0.729171164276475,0.0810810810810811
+"UCSF","B Atypical memory","B Atypical memory_4","B Atypical memory_3",0.578877099349527,0.0526315789473684
+"UCSF","B Atypical memory","B Atypical memory_5","B Atypical memory_9",-0.652055051071713,0.0810810810810811
+"UCSF","B Atypical memory","B Atypical memory_6","B Atypical memory_6",0.8900814573253,0.0256410256410256
+"UCSF","B Atypical memory","B Atypical memory_7","B Atypical memory_7",-0.300546894849731,0
+"UCSF","B Atypical memory","B Atypical memory_8","B Atypical memory_10",0.239660916456574,0
+"UCSF","B Atypical memory","B Atypical memory_9","B Atypical memory_8",-0.914699433668374,0.0256410256410256
+"UCSF","B Atypical memory","B Atypical memory_10","B Atypical memory_5",-0.390350760987832,0.0526315789473684
+"UCSF","Myeloid cDCs","Myeloid cDCs_1","Myeloid cDCs_1",0.930294609446902,0
+"UCSF","Myeloid cDCs","Myeloid cDCs_2","Myeloid cDCs_8",0.617421870100464,0.290322580645161
+"UCSF","Myeloid cDCs","Myeloid cDCs_3","Myeloid cDCs_6",-0.903533018647931,0.333333333333333
+"UCSF","Myeloid cDCs","Myeloid cDCs_4","Myeloid cDCs_5",0.133891624675033,0
+"UCSF","Myeloid cDCs","Myeloid cDCs_5","Myeloid cDCs_10",0.456150982377782,0.0526315789473684
+"UCSF","Myeloid cDCs","Myeloid cDCs_6","Myeloid cDCs_9",0.210632341949177,0
+"UCSF","Myeloid cDCs","Myeloid cDCs_7","Myeloid cDCs_4",0.46768986413547,0.111111111111111
+"UCSF","Myeloid cDCs","Myeloid cDCs_8","Myeloid cDCs_3",0.976272824369703,0.111111111111111
+"UCSF","Myeloid cDCs","Myeloid cDCs_9","Myeloid cDCs_2",-0.442155420274881,0
+"UCSF","Myeloid cDCs","Myeloid cDCs_10","Myeloid cDCs_7",-0.0102663609877303,0.0256410256410256
+"UCSF","NK CD56dim CD57-","NK CD56dim CD57-_1","NK CD56dim CD57-_1",0.814568733936903,0.0256410256410256
+"UCSF","NK CD56dim CD57-","NK CD56dim CD57-_3","NK CD56dim CD57-_2",-0.719663881783157,0
+"UCSF","NK CD56dim CD57-","NK CD56dim CD57-_8","NK CD56dim CD57-_3",-0.18588385865068,0
+"UCSF","B Non-switched memory","B Non-switched memory_1","B Non-switched memory_1",0.973543851394611,0
+"UCSF","B Non-switched memory","B Non-switched memory_2","B Non-switched memory_4",0.552172515315407,0.176470588235294
+"UCSF","B Non-switched memory","B Non-switched memory_3","B Non-switched memory_2",-0.689334888589668,0
+"UCSF","B Non-switched memory","B Non-switched memory_4","B Non-switched memory_5",0.803748892288946,0.0256410256410256
+"UCSF","B Non-switched memory","B Non-switched memory_5","B Non-switched memory_8",-0.136782696469237,0
+"UCSF","B Non-switched memory","B Non-switched memory_6","B Non-switched memory_6",0.462530514032664,0.0256410256410256
+"UCSF","B Non-switched memory","B Non-switched memory_7","B Non-switched memory_7",0.189561228360019,0
+"UCSF","B Non-switched memory","B Non-switched memory_8","B Non-switched memory_3",0.753928184664631,0
+"UCSF","B Non-switched memory","B Non-switched memory_9","B Non-switched memory_9",0.700438637194822,0
+"UCSF","B Non-switched memory","B Non-switched memory_10","B Non-switched memory_10",0.210014399053713,0
+"UCSF","Progenitor cells","Progenitor cells_4","Progenitor cells_1",-0.908530146653723,0.0810810810810811
+"UCSF","Progenitor cells","Progenitor cells_2","Progenitor cells_2",0.906867686751488,0
+"UCSF","Progenitor cells","Progenitor cells_1","Progenitor cells_3",-0.422119366910024,0.0256410256410256
+"UCSF","MAIT","MAIT_1","MAIT_1",0.949044818752125,0
+"UCSF","MAIT","MAIT_2","MAIT_10",0.583624878978266,0.290322580645161
+"UCSF","MAIT","MAIT_3","MAIT_2",0.742081243150001,0.0256410256410256
+"UCSF","MAIT","MAIT_4","MAIT_4",-0.146856580929865,0
+"UCSF","MAIT","MAIT_5","MAIT_7",0.742572446971997,0.142857142857143
+"UCSF","MAIT","MAIT_6","MAIT_9",-0.326555324792825,0.0256410256410256
+"UCSF","MAIT","MAIT_7","MAIT_8",0.871047303052101,0.0256410256410256
+"UCSF","MAIT","MAIT_8","MAIT_6",-0.229355239231834,0.0256410256410256
+"UCSF","MAIT","MAIT_9","MAIT_3",0.583244646041696,0.0256410256410256
+"UCSF","MAIT","MAIT_10","MAIT_5",-0.0628485452727642,0.0526315789473684
+"UCSF","B Transitional","B Transitional_1","B Transitional_1",0.971173756480869,0
+"UCSF","B Transitional","B Transitional_2","B Transitional_10",-0.30368181054672,0.111111111111111
+"UCSF","B Transitional","B Transitional_3","B Transitional_6",-0.550010678990134,0
+"UCSF","B Transitional","B Transitional_4","B Transitional_2",0.918980467489712,0
+"UCSF","B Transitional","B Transitional_5","B Transitional_9",-0.131081438424494,0
+"UCSF","B Transitional","B Transitional_6","B Transitional_4",-0.24157099427235,0
+"UCSF","B Transitional","B Transitional_7","B Transitional_3",-0.116024304930608,0
+"UCSF","B Transitional","B Transitional_8","B Transitional_5",0.235268569171109,0
+"UCSF","B Transitional","B Transitional_9","B Transitional_7",0.197112824745707,0
+"UCSF","B Transitional","B Transitional_10","B Transitional_8",0.838347539589511,0.0256410256410256
+"UCSF","B Switched memory","B Switched memory_1","B Switched memory_1",0.972232465156472,0
+"UCSF","B Switched memory","B Switched memory_2","B Switched memory_5",0.386904575440407,0.0256410256410256
+"UCSF","B Switched memory","B Switched memory_3","B Switched memory_3",0.39395191083674,0
+"UCSF","B Switched memory","B Switched memory_4","B Switched memory_9",-0.186795762038326,0
+"UCSF","B Switched memory","B Switched memory_5","B Switched memory_10",0.350691407784938,0
+"UCSF","B Switched memory","B Switched memory_6","B Switched memory_2",0.853935419715117,0.0810810810810811
+"UCSF","B Switched memory","B Switched memory_7","B Switched memory_6",-0.212337109097808,0.0256410256410256
+"UCSF","B Switched memory","B Switched memory_8","B Switched memory_8",0.80887774227499,0.0256410256410256
+"UCSF","B Switched memory","B Switched memory_9","B Switched memory_4",0.890771416077285,0.0256410256410256
+"UCSF","B Switched memory","B Switched memory_10","B Switched memory_7",0.163312990092871,0
+"UCSF","Myeloid pDCs","Myeloid pDCs_1","Myeloid pDCs_3",0.102903723666259,0
+"UCSF","Myeloid pDCs","Myeloid pDCs_2","Myeloid pDCs_8",-0.331471543990545,0.212121212121212
+"UCSF","Myeloid pDCs","Myeloid pDCs_3","Myeloid pDCs_1",0.926085192011916,0
+"UCSF","Myeloid pDCs","Myeloid pDCs_4","Myeloid pDCs_2",0.849949155604088,0.0256410256410256
+"UCSF","Myeloid pDCs","Myeloid pDCs_5","Myeloid pDCs_9",-0.162462402832905,0
+"UCSF","Myeloid pDCs","Myeloid pDCs_6","Myeloid pDCs_6",0.400477200100874,0.111111111111111
+"UCSF","Myeloid pDCs","Myeloid pDCs_7","Myeloid pDCs_7",0.337732278396315,0
+"UCSF","Myeloid pDCs","Myeloid pDCs_8","Myeloid pDCs_4",0.806164194252638,0.111111111111111
+"UCSF","Myeloid pDCs","Myeloid pDCs_9","Myeloid pDCs_5",0.229009205686495,0
+"UCSF","Myeloid pDCs","Myeloid pDCs_10","Myeloid pDCs_10",0.245398930226533,0.0526315789473684
+"UCSF","NK CD56bright","NK CD56bright_1","NK CD56bright_1",0.94977813954621,0
+"UCSF","NK CD56bright","NK CD56bright_2","NK CD56bright_3",0.605034852753383,0.142857142857143
+"UCSF","NK CD56bright","NK CD56bright_3","NK CD56bright_2",-0.732332479169706,0
+"UCSF","NK CD56bright","NK CD56bright_4","NK CD56bright_10",-0.190387998400455,0.0256410256410256
+"UCSF","NK CD56bright","NK CD56bright_5","NK CD56bright_9",0.237575057074096,0.0256410256410256
+"UCSF","NK CD56bright","NK CD56bright_6","NK CD56bright_7",0.171115262129369,0.0256410256410256
+"UCSF","NK CD56bright","NK CD56bright_7","NK CD56bright_4",-0.486142899968366,0.142857142857143
+"UCSF","NK CD56bright","NK CD56bright_8","NK CD56bright_5",-0.118082744327005,0
+"UCSF","NK CD56bright","NK CD56bright_9","NK CD56bright_8",0.195393596436339,0.0256410256410256
+"UCSF","NK CD56bright","NK CD56bright_10","NK CD56bright_6",0.971309774417527,0.0256410256410256
+"UCSF","B Activated","B Activated_1","B Activated_4",0.384679608670111,0.111111111111111
+"UCSF","B Activated","B Activated_2","B Activated_1",0.951969624762209,0
+"UCSF","B Activated","B Activated_3","B Activated_3",-0.532224506139865,0.0256410256410256
+"UCSF","B Activated","B Activated_4","B Activated_7",0.69952420868483,0.0256410256410256
+"UCSF","B Activated","B Activated_5","B Activated_9",-0.111646836106911,0
+"UCSF","B Activated","B Activated_6","B Activated_10",0.346686393801197,0.0526315789473684
+"UCSF","B Activated","B Activated_7","B Activated_5",-0.635141149673555,0.0256410256410256
+"UCSF","B Activated","B Activated_8","B Activated_2",0.456449786730053,0
+"UCSF","B Activated","B Activated_9","B Activated_8",0.385289129086161,0
+"UCSF","B Activated","B Activated_10","B Activated_6",-0.599628336039765,0.142857142857143
+"UCSF","NK Proliferative","NK Proliferative_2","NK Proliferative_1",0.888191494528616,0
+"UCSF","NK Proliferative","NK Proliferative_1","NK Proliferative_2",0.969925633722602,0.25
+"UCSF","NK Proliferative","NK Proliferative_3","NK Proliferative_3",-0.689287062395171,0.0526315789473684
+"UCSF","gd T naive","gd T naive_1","gd T naive_1",0.978283617324772,0.0256410256410256
+"UCSF","gd T naive","gd T naive_2","gd T naive_3",0.872223861525964,0.212121212121212
+"UCSF","gd T naive","gd T naive_3","gd T naive_5",0.647657916543645,0.111111111111111
+"UCSF","gd T naive","gd T naive_4","gd T naive_6",-0.613515795570899,0
+"AIDA","Myeloid Classical monocytes","Myeloid Classical monocytes_1","Myeloid Classical monocytes_3",0.975753252248984,0.333333333333333
+"AIDA","Myeloid Classical monocytes","Myeloid Classical monocytes_2","Myeloid Classical monocytes_1",0.956556045073477,0.6
+"AIDA","Myeloid Classical monocytes","Myeloid Classical monocytes_3","Myeloid Classical monocytes_6",-0.360173765878602,0.176470588235294
+"AIDA","Myeloid Classical monocytes","Myeloid Classical monocytes_4","Myeloid Classical monocytes_5",-0.608436847720374,0.142857142857143
+"AIDA","Myeloid Classical monocytes","Myeloid Classical monocytes_5","Myeloid Classical monocytes_8",0.888899135140016,0.176470588235294
+"AIDA","Myeloid Classical monocytes","Myeloid Classical monocytes_6","Myeloid Classical monocytes_4",0.946879714620758,0.333333333333333
+"AIDA","Myeloid Classical monocytes","Myeloid Classical monocytes_7","Myeloid Classical monocytes_7",0.246593161298427,0.0256410256410256
+"AIDA","Myeloid Classical monocytes","Myeloid Classical monocytes_8","Myeloid Classical monocytes_9",0.28747765899318,0
+"AIDA","Myeloid Classical monocytes","Myeloid Classical monocytes_9","Myeloid Classical monocytes_2",0.716757156206997,0.212121212121212
+"AIDA","Myeloid Classical monocytes","Myeloid Classical monocytes_10","Myeloid Classical monocytes_10",-0.604308370273395,0.176470588235294
+"AIDA","Myeloid pDCs","Myeloid pDCs_1","Myeloid pDCs_2",-0.875643719002594,0
+"AIDA","Myeloid pDCs","Myeloid pDCs_2","Myeloid pDCs_1",0.955829775711347,0.428571428571429
+"AIDA","Myeloid pDCs","Myeloid pDCs_3","Myeloid pDCs_4",-0.499943705315742,0
+"AIDA","Myeloid pDCs","Myeloid pDCs_4","Myeloid pDCs_6",0.132036435123729,0
+"AIDA","Myeloid pDCs","Myeloid pDCs_5","Myeloid pDCs_8",0.619695486316919,0.212121212121212
+"AIDA","Myeloid pDCs","Myeloid pDCs_6","Myeloid pDCs_7",0.589734326372535,0.0256410256410256
+"AIDA","Myeloid pDCs","Myeloid pDCs_7","Myeloid pDCs_10",0.0980755590924275,0.0256410256410256
+"AIDA","Myeloid pDCs","Myeloid pDCs_8","Myeloid pDCs_9",-0.215649734893648,0.176470588235294
+"AIDA","Myeloid pDCs","Myeloid pDCs_9","Myeloid pDCs_5",0.655517814189163,0.25
+"AIDA","Myeloid pDCs","Myeloid pDCs_10","Myeloid pDCs_3",-0.810161396210546,0.142857142857143
+"AIDA","NK CD56dim CD57low","NK CD56dim CD57low_1","NK CD56dim CD57low_6",0.644408001925963,0.111111111111111
+"AIDA","NK CD56dim CD57low","NK CD56dim CD57low_2","NK CD56dim CD57low_9",0.440879720716271,0.25
+"AIDA","NK CD56dim CD57low","NK CD56dim CD57low_3","NK CD56dim CD57low_2",0.877937851528398,0
+"AIDA","NK CD56dim CD57low","NK CD56dim CD57low_4","NK CD56dim CD57low_5",0.939868708098298,0.379310344827586
+"AIDA","NK CD56dim CD57low","NK CD56dim CD57low_5","NK CD56dim CD57low_3",-0.522703508742059,0
+"AIDA","NK CD56dim CD57low","NK CD56dim CD57low_6","NK CD56dim CD57low_1",0.951272963902098,0.25
+"AIDA","NK CD56dim CD57low","NK CD56dim CD57low_7","NK CD56dim CD57low_4",0.286107984827914,0
+"AIDA","NK CD56dim CD57low","NK CD56dim CD57low_8","NK CD56dim CD57low_8",0.97689314245053,0.0810810810810811
+"AIDA","NK CD56dim CD57low","NK CD56dim CD57low_9","NK CD56dim CD57low_10",0.0137035581104971,0
+"AIDA","NK CD56dim CD57low","NK CD56dim CD57low_10","NK CD56dim CD57low_7",0.151059376506301,0.111111111111111
+"AIDA","B Naive","B Naive_1","B Naive_5",-0.761651531086902,0.176470588235294
+"AIDA","B Naive","B Naive_2","B Naive_1",0.92284364302073,0.290322580645161
+"AIDA","B Naive","B Naive_3","B Naive_2",0.660129927107477,0.0256410256410256
+"AIDA","B Naive","B Naive_4","B Naive_6",0.232484455828816,0.0810810810810811
+"AIDA","B Naive","B Naive_5","B Naive_7",0.902969434765819,0.290322580645161
+"AIDA","B Naive","B Naive_6","B Naive_10",0.646017213608904,0.25
+"AIDA","B Naive","B Naive_7","B Naive_4",0.840722978728613,0.290322580645161
+"AIDA","B Naive","B Naive_8","B Naive_8",-0.19223285911739,0.0810810810810811
+"AIDA","B Naive","B Naive_9","B Naive_3",0.418348690482908,0.0256410256410256
+"AIDA","B Naive","B Naive_10","B Naive_9",0.397880073080033,0.212121212121212
+"AIDA","NK CD56dim CD57int","NK CD56dim CD57int_1","NK CD56dim CD57int_5",-0.706279271069618,0.25
+"AIDA","NK CD56dim CD57int","NK CD56dim CD57int_2","NK CD56dim CD57int_2",0.809714957095308,0
+"AIDA","NK CD56dim CD57int","NK CD56dim CD57int_3","NK CD56dim CD57int_1",0.892711941438735,0.333333333333333
+"AIDA","NK CD56dim CD57int","NK CD56dim CD57int_4","NK CD56dim CD57int_10",-0.35067557976073,0.0810810810810811
+"AIDA","NK CD56dim CD57int","NK CD56dim CD57int_5","NK CD56dim CD57int_3",-0.644070531737995,0.0526315789473684
+"AIDA","NK CD56dim CD57int","NK CD56dim CD57int_6","NK CD56dim CD57int_4",0.872510811377068,0.379310344827586
+"AIDA","NK CD56dim CD57int","NK CD56dim CD57int_7","NK CD56dim CD57int_9",0.267404335163533,0.111111111111111
+"AIDA","NK CD56dim CD57int","NK CD56dim CD57int_8","NK CD56dim CD57int_8",0.938092881691881,0.0256410256410256
+"AIDA","NK CD56dim CD57int","NK CD56dim CD57int_9","NK CD56dim CD57int_7",0.244017897785574,0.0810810810810811
+"AIDA","NK CD56dim CD57int","NK CD56dim CD57int_10","NK CD56dim CD57int_6",0.74004879999069,0.25
+"AIDA","B Activated","B Activated_1","B Activated_7",0.37892464642969,0.212121212121212
+"AIDA","B Activated","B Activated_2","B Activated_2",-0.844738828060148,0.111111111111111
+"AIDA","B Activated","B Activated_3","B Activated_4",-0.803933751081185,0.333333333333333
+"AIDA","B Activated","B Activated_4","B Activated_6",0.457742648074192,0.333333333333333
+"AIDA","B Activated","B Activated_5","B Activated_10",0.584379996990228,0.212121212121212
+"AIDA","B Activated","B Activated_6","B Activated_9",0.542435303289427,0.142857142857143
+"AIDA","B Activated","B Activated_7","B Activated_3",0.12756273667836,0
+"AIDA","B Activated","B Activated_8","B Activated_8",0.132384485860266,0.111111111111111
+"AIDA","B Activated","B Activated_9","B Activated_5",0.3036255457591,0.0256410256410256
+"AIDA","B Activated","B Activated_10","B Activated_1",-0.857198043447867,0.142857142857143
+"AIDA","MAIT","MAIT_1","MAIT_7",-0.109897279532021,0
+"AIDA","MAIT","MAIT_2","MAIT_1",0.904061182376774,0.379310344827586
+"AIDA","MAIT","MAIT_3","MAIT_8",-0.5922741692567,0.0526315789473684
+"AIDA","MAIT","MAIT_4","MAIT_5",0.974320817696888,0.379310344827586
+"AIDA","MAIT","MAIT_5","MAIT_10",0.773598871070988,0.25
+"AIDA","MAIT","MAIT_6","MAIT_4",0.221793679734034,0.0256410256410256
+"AIDA","MAIT","MAIT_7","MAIT_9",0.909209240875414,0.0810810810810811
+"AIDA","MAIT","MAIT_8","MAIT_2",0.632352109161931,0.111111111111111
+"AIDA","MAIT","MAIT_9","MAIT_6",0.477576800264404,0.0256410256410256
+"AIDA","MAIT","MAIT_10","MAIT_3",0.433466810579033,0.0810810810810811
+"AIDA","B Non-switched memory","B Non-switched memory_1","B Non-switched memory_2",-0.880962795225996,0.111111111111111
+"AIDA","B Non-switched memory","B Non-switched memory_2","B Non-switched memory_4",0.553393983988119,0.538461538461538
+"AIDA","B Non-switched memory","B Non-switched memory_3","B Non-switched memory_3",-0.490502074946523,0.0810810810810811
+"AIDA","B Non-switched memory","B Non-switched memory_4","B Non-switched memory_7",0.205309251530788,0.0256410256410256
+"AIDA","B Non-switched memory","B Non-switched memory_5","B Non-switched memory_5",0.876058413579868,0.333333333333333
+"AIDA","B Non-switched memory","B Non-switched memory_6","B Non-switched memory_1",-0.604466927228959,0.0526315789473684
+"AIDA","B Non-switched memory","B Non-switched memory_7","B Non-switched memory_9",-0.448275439402176,0.25
+"AIDA","B Non-switched memory","B Non-switched memory_8","B Non-switched memory_6",-0.655203595276824,0.333333333333333
+"AIDA","B Non-switched memory","B Non-switched memory_9","B Non-switched memory_8",0.654360926142501,0.212121212121212
+"AIDA","B Non-switched memory","B Non-switched memory_10","B Non-switched memory_10",0.453705032237874,0.176470588235294
+"AIDA","NK CD56dim CD57-","NK CD56dim CD57-_1","NK CD56dim CD57-_3",-0.729602869064116,0.0256410256410256
+"AIDA","NK CD56dim CD57-","NK CD56dim CD57-_2","NK CD56dim CD57-_6",0.266934269012203,0.142857142857143
+"AIDA","NK CD56dim CD57-","NK CD56dim CD57-_3","NK CD56dim CD57-_9",-0.333177253563468,0.0256410256410256
+"AIDA","NK CD56dim CD57-","NK CD56dim CD57-_4","NK CD56dim CD57-_2",-0.580331839288909,0.0526315789473684
+"AIDA","NK CD56dim CD57-","NK CD56dim CD57-_5","NK CD56dim CD57-_5",0.962922087880235,0.290322580645161
+"AIDA","NK CD56dim CD57-","NK CD56dim CD57-_6","NK CD56dim CD57-_1",-0.770743606538699,0.0526315789473684
+"AIDA","NK CD56dim CD57-","NK CD56dim CD57-_7","NK CD56dim CD57-_8",-0.317442153919564,0.0810810810810811
+"AIDA","NK CD56dim CD57-","NK CD56dim CD57-_8","NK CD56dim CD57-_7",-0.022614517799563,0.0810810810810811
+"AIDA","NK CD56dim CD57-","NK CD56dim CD57-_9","NK CD56dim CD57-_10",0.191575571899413,0.0810810810810811
+"AIDA","NK CD56dim CD57-","NK CD56dim CD57-_10","NK CD56dim CD57-_4",0.422477583926933,0.0810810810810811
+"AIDA","B Transitional","B Transitional_1","B Transitional_2",-0.899917027039743,0.111111111111111
+"AIDA","B Transitional","B Transitional_2","B Transitional_4",0.729672111266653,0.666666666666667
+"AIDA","B Transitional","B Transitional_3","B Transitional_1",-0.780244597409021,0
+"AIDA","B Transitional","B Transitional_4","B Transitional_9",0.362512519971379,0.111111111111111
+"AIDA","B Transitional","B Transitional_5","B Transitional_5",-0.596082844619319,0.212121212121212
+"AIDA","B Transitional","B Transitional_6","B Transitional_6",-0.406170926186506,0.176470588235294
+"AIDA","B Transitional","B Transitional_7","B Transitional_8",-0.535703191930465,0.25
+"AIDA","B Transitional","B Transitional_8","B Transitional_10",0.186825134829506,0.25
+"AIDA","B Transitional","B Transitional_9","B Transitional_7",0.49522000150255,0.212121212121212
+"AIDA","B Transitional","B Transitional_10","B Transitional_3",-0.0657179773261302,0.0256410256410256
+"AIDA","B Switched memory","B Switched memory_1","B Switched memory_6",-0.241649509364785,0.0256410256410256
+"AIDA","B Switched memory","B Switched memory_2","B Switched memory_1",0.880424708695885,0.428571428571429
+"AIDA","B Switched memory","B Switched memory_3","B Switched memory_2",0.731462640705795,0.0256410256410256
+"AIDA","B Switched memory","B Switched memory_4","B Switched memory_7",0.299180033035769,0.25
+"AIDA","B Switched memory","B Switched memory_5","B Switched memory_9",0.380853217136711,0.212121212121212
+"AIDA","B Switched memory","B Switched memory_6","B Switched memory_4",0.822648244692168,0.176470588235294
+"AIDA","B Switched memory","B Switched memory_7","B Switched memory_10",0.66908642968291,0.379310344827586
+"AIDA","B Switched memory","B Switched memory_8","B Switched memory_5",0.687128837389489,0.333333333333333
+"AIDA","B Switched memory","B Switched memory_9","B Switched memory_8",0.22030185914679,0.333333333333333
+"AIDA","B Switched memory","B Switched memory_10","B Switched memory_3",0.000445502130478864,0
+"AIDA","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_1","Myeloid Non-classical monocytes_3",-0.71888056668579,0.0256410256410256
+"AIDA","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_2","Myeloid Non-classical monocytes_1",0.91971806814454,0.481481481481481
+"AIDA","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_3","Myeloid Non-classical monocytes_2",0.289303796107065,0.0256410256410256
+"AIDA","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_4","Myeloid Non-classical monocytes_7",0.862695496821214,0.212121212121212
+"AIDA","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_5","Myeloid Non-classical monocytes_4",0.872823335455645,0.481481481481481
+"AIDA","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_6","Myeloid Non-classical monocytes_6",-0.373026414484567,0
+"AIDA","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_7","Myeloid Non-classical monocytes_5",-0.290166775615137,0.142857142857143
+"AIDA","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_8","Myeloid Non-classical monocytes_8",0.644436205737606,0.111111111111111
+"AIDA","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_9","Myeloid Non-classical monocytes_10",-0.611762226321641,0.176470588235294
+"AIDA","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_10","Myeloid Non-classical monocytes_9",-0.374917317468519,0
+"AIDA","NK CD56bright","NK CD56bright_1","NK CD56bright_7",-0.0639505335633593,0
+"AIDA","NK CD56bright","NK CD56bright_2","NK CD56bright_5",0.367199107192951,0.212121212121212
+"AIDA","NK CD56bright","NK CD56bright_3","NK CD56bright_4",-0.533627301031034,0
+"AIDA","NK CD56bright","NK CD56bright_4","NK CD56bright_6",0.990234297449388,0.333333333333333
+"AIDA","NK CD56bright","NK CD56bright_5","NK CD56bright_10",0.454262251201451,0.0256410256410256
+"AIDA","NK CD56bright","NK CD56bright_6","NK CD56bright_2",0.482719627474518,0
+"AIDA","NK CD56bright","NK CD56bright_7","NK CD56bright_8",0.866593886489632,0.481481481481481
+"AIDA","NK CD56bright","NK CD56bright_8","NK CD56bright_3",0.816336725591806,0.0810810810810811
+"AIDA","NK CD56bright","NK CD56bright_9","NK CD56bright_1",0.698075392135204,0.142857142857143
+"AIDA","NK CD56bright","NK CD56bright_10","NK CD56bright_9",0.484270649449865,0.0810810810810811
+"AIDA","gd T naive","gd T naive_1","gd T naive_1",-0.700346615119571,0.0256410256410256
+"AIDA","gd T naive","gd T naive_2","gd T naive_5",0.890266660303262,0.538461538461538
+"AIDA","gd T naive","gd T naive_3","gd T naive_3",0.732599621292898,0.481481481481481
+"AIDA","gd T naive","gd T naive_4","gd T naive_2",-0.494503848469067,0.212121212121212
+"AIDA","NK Proliferative","NK Proliferative_1","NK Proliferative_6",0.542213077187196,0.212121212121212
+"AIDA","NK Proliferative","NK Proliferative_2","NK Proliferative_3",0.834903887648538,0
+"AIDA","NK Proliferative","NK Proliferative_3","NK Proliferative_2",0.881512103789803,0.0256410256410256
+"AIDA","NK Proliferative","NK Proliferative_4","NK Proliferative_5",0.850683197180087,0.666666666666667
+"AIDA","NK Proliferative","NK Proliferative_5","NK Proliferative_10",-0.302603193275383,0
+"AIDA","NK Proliferative","NK Proliferative_6","NK Proliferative_9",-0.396921199014454,0
+"AIDA","NK Proliferative","NK Proliferative_7","NK Proliferative_1",0.102957537822664,0
+"AIDA","NK Proliferative","NK Proliferative_8","NK Proliferative_8",0.481313278211592,0.0526315789473684
+"AIDA","NK Proliferative","NK Proliferative_9","NK Proliferative_7",0.707505818513983,0.0810810810810811
+"AIDA","NK Proliferative","NK Proliferative_10","NK Proliferative_4",0.483236925902149,0.0526315789473684
+"AIDA","B Plasma cells","B Plasma cells_1","B Plasma cells_1",0.913051487395364,0.0810810810810811
+"AIDA","B Plasma cells","B Plasma cells_2","B Plasma cells_10",0.0284413322081783,0
+"AIDA","B Plasma cells","B Plasma cells_3","B Plasma cells_9",-0.291320434488868,0.0256410256410256
+"AIDA","B Plasma cells","B Plasma cells_4","B Plasma cells_4",0.506365453493595,0.176470588235294
+"AIDA","B Plasma cells","B Plasma cells_5","B Plasma cells_8",0.37029201316086,0.25
+"AIDA","B Plasma cells","B Plasma cells_6","B Plasma cells_3",0.418084033245265,0.111111111111111
+"AIDA","B Plasma cells","B Plasma cells_7","B Plasma cells_2",0.518191553125565,0.176470588235294
+"AIDA","B Plasma cells","B Plasma cells_8","B Plasma cells_5",0.34681884271733,0.212121212121212
+"AIDA","B Plasma cells","B Plasma cells_9","B Plasma cells_7",0.399479122459017,0.142857142857143
+"AIDA","B Plasma cells","B Plasma cells_10","B Plasma cells_6",0.335620177959654,0.290322580645161
+"AIDA","Myeloid cDCs","Myeloid cDCs_1","Myeloid cDCs_4",-0.714914003533351,0
+"AIDA","Myeloid cDCs","Myeloid cDCs_2","Myeloid cDCs_1",0.910110910813006,0.379310344827586
+"AIDA","Myeloid cDCs","Myeloid cDCs_3","Myeloid cDCs_3",-0.977818721850958,0.379310344827586
+"AIDA","Myeloid cDCs","Myeloid cDCs_4","Myeloid cDCs_2",0.762096449363184,0.0256410256410256
+"AIDA","Myeloid cDCs","Myeloid cDCs_5","Myeloid cDCs_10",0.15335352629577,0
+"AIDA","Myeloid cDCs","Myeloid cDCs_6","Myeloid cDCs_8",0.981644175216246,0.176470588235294
+"AIDA","Myeloid cDCs","Myeloid cDCs_7","Myeloid cDCs_6",-0.293534697187324,0.0256410256410256
+"AIDA","Myeloid cDCs","Myeloid cDCs_8","Myeloid cDCs_5",0.812328552624545,0.142857142857143
+"AIDA","Myeloid cDCs","Myeloid cDCs_9","Myeloid cDCs_7",0.916049562828272,0.538461538461538
+"AIDA","Myeloid cDCs","Myeloid cDCs_10","Myeloid cDCs_9",-0.420007603452646,0.0526315789473684
+"AIDA","B Atypical memory","B Atypical memory_1","B Atypical memory_2",-0.80029825317854,0
+"AIDA","B Atypical memory","B Atypical memory_2","B Atypical memory_3",0.823757970897896,0.176470588235294
+"AIDA","B Atypical memory","B Atypical memory_3","B Atypical memory_1",0.885276633092232,0.379310344827586
+"AIDA","B Atypical memory","B Atypical memory_4","B Atypical memory_7",0.475545818858532,0.176470588235294
+"AIDA","B Atypical memory","B Atypical memory_5","B Atypical memory_4",-0.704883845156774,0.0256410256410256
+"AIDA","B Atypical memory","B Atypical memory_6","B Atypical memory_10",-0.335886313354207,0.290322580645161
+"AIDA","B Atypical memory","B Atypical memory_7","B Atypical memory_8",0.755700526729951,0.25
+"AIDA","B Atypical memory","B Atypical memory_8","B Atypical memory_6",0.572031984729696,0.212121212121212
+"AIDA","B Atypical memory","B Atypical memory_9","B Atypical memory_9",0.622878778474301,0.290322580645161
+"AIDA","B Atypical memory","B Atypical memory_10","B Atypical memory_5",-0.234659594984237,0
+"AIDA","Progenitor cells","Progenitor cells_1","Progenitor cells_5",0.713099934705193,0.212121212121212
+"AIDA","Progenitor cells","Progenitor cells_2","Progenitor cells_4",0.976758976472751,0
+"AIDA","Progenitor cells","Progenitor cells_3","Progenitor cells_9",-0.250638006241214,0
+"AIDA","Progenitor cells","Progenitor cells_4","Progenitor cells_2",0.877636449435161,0.176470588235294
+"AIDA","Progenitor cells","Progenitor cells_5","Progenitor cells_1",0.892093248721162,0.428571428571429
+"AIDA","Progenitor cells","Progenitor cells_6","Progenitor cells_3",-0.573120796632906,0.0526315789473684
+"AIDA","Progenitor cells","Progenitor cells_7","Progenitor cells_7",0.223137543222425,0
+"AIDA","Progenitor cells","Progenitor cells_8","Progenitor cells_10",0.569134490789976,0
+"AIDA","Progenitor cells","Progenitor cells_9","Progenitor cells_8",-0.415819778196503,0.0256410256410256
+"AIDA","Progenitor cells","Progenitor cells_10","Progenitor cells_6",0.606294096553332,0.176470588235294
+"CIMA","Myeloid Classical monocytes","Myeloid Classical monocytes_1","Myeloid Classical monocytes_2",0.607103164752749,0
+"CIMA","Myeloid Classical monocytes","Myeloid Classical monocytes_2","Myeloid Classical monocytes_3",0.928037609933915,0.538461538461538
+"CIMA","Myeloid Classical monocytes","Myeloid Classical monocytes_3","Myeloid Classical monocytes_4",0.595794848334976,0.0526315789473684
+"CIMA","Myeloid Classical monocytes","Myeloid Classical monocytes_4","Myeloid Classical monocytes_6",-0.382465435928387,0.0256410256410256
+"CIMA","Myeloid Classical monocytes","Myeloid Classical monocytes_5","Myeloid Classical monocytes_9",0.90285129992733,0.111111111111111
+"CIMA","Myeloid Classical monocytes","Myeloid Classical monocytes_6","Myeloid Classical monocytes_5",0.868932241088939,0.290322580645161
+"CIMA","Myeloid Classical monocytes","Myeloid Classical monocytes_7","Myeloid Classical monocytes_8",0.410526750119468,0.333333333333333
+"CIMA","Myeloid Classical monocytes","Myeloid Classical monocytes_8","Myeloid Classical monocytes_1",-0.702024805348039,0
+"CIMA","Myeloid Classical monocytes","Myeloid Classical monocytes_9","Myeloid Classical monocytes_10",0.0578013859607128,0.0810810810810811
+"CIMA","Myeloid Classical monocytes","Myeloid Classical monocytes_10","Myeloid Classical monocytes_7",0.190580334926134,0.0256410256410256
+"CIMA","NK CD56dim CD57int","NK CD56dim CD57int_1","NK CD56dim CD57int_1",0.903571561584954,0
+"CIMA","NK CD56dim CD57int","NK CD56dim CD57int_2","NK CD56dim CD57int_6",0.323697156403442,0.0526315789473684
+"CIMA","NK CD56dim CD57int","NK CD56dim CD57int_3","NK CD56dim CD57int_2",-0.797389876771306,0.25
+"CIMA","NK CD56dim CD57int","NK CD56dim CD57int_4","NK CD56dim CD57int_7",-0.350327588295038,0.111111111111111
+"CIMA","NK CD56dim CD57int","NK CD56dim CD57int_5","NK CD56dim CD57int_8",-0.548561015323829,0.0810810810810811
+"CIMA","NK CD56dim CD57int","NK CD56dim CD57int_6","NK CD56dim CD57int_5",0.931061148024295,0.333333333333333
+"CIMA","NK CD56dim CD57int","NK CD56dim CD57int_7","NK CD56dim CD57int_10",-0.00493773209202763,0
+"CIMA","NK CD56dim CD57int","NK CD56dim CD57int_8","NK CD56dim CD57int_9",0.980028871852782,0.0810810810810811
+"CIMA","NK CD56dim CD57int","NK CD56dim CD57int_9","NK CD56dim CD57int_4",-0.645268661641175,0.111111111111111
+"CIMA","NK CD56dim CD57int","NK CD56dim CD57int_10","NK CD56dim CD57int_3",0.431861704227431,0.0256410256410256
+"CIMA","B Naive","B Naive_1","B Naive_1",0.943777861828385,0
+"CIMA","B Naive","B Naive_2","B Naive_6",0.724723097557501,0.538461538461538
+"CIMA","B Naive","B Naive_3","B Naive_2",0.788705893381422,0
+"CIMA","B Naive","B Naive_4","B Naive_8",0.0985606976378302,0.0810810810810811
+"CIMA","B Naive","B Naive_5","B Naive_3",0.99260381519985,0.290322580645161
+"CIMA","B Naive","B Naive_6","B Naive_10",0.742273178325271,0.0256410256410256
+"CIMA","B Naive","B Naive_7","B Naive_5",-0.337630699500575,0
+"CIMA","B Naive","B Naive_8","B Naive_4",-0.513674710788927,0.0810810810810811
+"CIMA","B Naive","B Naive_9","B Naive_9",0.181154283947793,0
+"CIMA","B Naive","B Naive_10","B Naive_7",0.915310074226985,0.0810810810810811
+"CIMA","NK CD56bright","NK CD56bright_1","NK CD56bright_10",-0.0350976211506081,0.0256410256410256
+"CIMA","NK CD56bright","NK CD56bright_2","NK CD56bright_7",0.816336551957191,0.538461538461538
+"CIMA","NK CD56bright","NK CD56bright_3","NK CD56bright_1",0.821630918594714,0
+"CIMA","NK CD56bright","NK CD56bright_4","NK CD56bright_3",0.993789632568337,0.379310344827586
+"CIMA","NK CD56bright","NK CD56bright_5","NK CD56bright_6",0.283005954117258,0.111111111111111
+"CIMA","NK CD56bright","NK CD56bright_6","NK CD56bright_4",0.383052353857126,0
+"CIMA","NK CD56bright","NK CD56bright_7","NK CD56bright_8",0.658934694743031,0.142857142857143
+"CIMA","NK CD56bright","NK CD56bright_8","NK CD56bright_2",-0.924711788649604,0.0526315789473684
+"CIMA","NK CD56bright","NK CD56bright_9","NK CD56bright_5",0.611563511338231,0.142857142857143
+"CIMA","NK CD56bright","NK CD56bright_10","NK CD56bright_9",-0.0465260915463962,0.0256410256410256
+"CIMA","NK CD56dim CD57-","NK CD56dim CD57-_1","NK CD56dim CD57-_6",0.080907854459677,0.0256410256410256
+"CIMA","NK CD56dim CD57-","NK CD56dim CD57-_2","NK CD56dim CD57-_9",0.76094545120174,0.428571428571429
+"CIMA","NK CD56dim CD57-","NK CD56dim CD57-_3","NK CD56dim CD57-_1",0.826791337189702,0
+"CIMA","NK CD56dim CD57-","NK CD56dim CD57-_4","NK CD56dim CD57-_3",-0.45475281036268,0.0810810810810811
+"CIMA","NK CD56dim CD57-","NK CD56dim CD57-_5","NK CD56dim CD57-_5",0.96453891332614,0.379310344827586
+"CIMA","NK CD56dim CD57-","NK CD56dim CD57-_6","NK CD56dim CD57-_7",0.468604102119553,0.0256410256410256
+"CIMA","NK CD56dim CD57-","NK CD56dim CD57-_7","NK CD56dim CD57-_4",0.656755246942532,0.111111111111111
+"CIMA","NK CD56dim CD57-","NK CD56dim CD57-_8","NK CD56dim CD57-_10",-0.146736051580648,0.0256410256410256
+"CIMA","NK CD56dim CD57-","NK CD56dim CD57-_9","NK CD56dim CD57-_8",-0.917095662668339,0.0256410256410256
+"CIMA","NK CD56dim CD57-","NK CD56dim CD57-_10","NK CD56dim CD57-_2",-0.919829344358127,0.0256410256410256
+"CIMA","B Switched memory","B Switched memory_1","B Switched memory_1",0.925276987407364,0
+"CIMA","B Switched memory","B Switched memory_2","B Switched memory_7",0.798531711793437,0.538461538461538
+"CIMA","B Switched memory","B Switched memory_3","B Switched memory_6",0.139691869505693,0.0256410256410256
+"CIMA","B Switched memory","B Switched memory_4","B Switched memory_3",0.962562005343214,0.142857142857143
+"CIMA","B Switched memory","B Switched memory_5","B Switched memory_5",-0.0458835714060935,0
+"CIMA","B Switched memory","B Switched memory_6","B Switched memory_2",-0.616247816094261,0.0256410256410256
+"CIMA","B Switched memory","B Switched memory_7","B Switched memory_4",0.397656478875707,0.0256410256410256
+"CIMA","B Switched memory","B Switched memory_8","B Switched memory_9",-0.0732876470204921,0
+"CIMA","B Switched memory","B Switched memory_9","B Switched memory_8",0.456622254008645,0.0256410256410256
+"CIMA","B Switched memory","B Switched memory_10","B Switched memory_10",-0.639078291402111,0.0256410256410256
+"CIMA","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_1","Myeloid Non-classical monocytes_2",0.420127380050005,0
+"CIMA","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_2","Myeloid Non-classical monocytes_10",0.819880657559868,0.481481481481481
+"CIMA","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_3","Myeloid Non-classical monocytes_3",0.158117229280629,0.176470588235294
+"CIMA","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_4","Myeloid Non-classical monocytes_7",0.861736444842793,0.142857142857143
+"CIMA","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_5","Myeloid Non-classical monocytes_4",0.882644545632199,0.428571428571429
+"CIMA","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_6","Myeloid Non-classical monocytes_6",0.48761957086331,0.111111111111111
+"CIMA","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_7","Myeloid Non-classical monocytes_1",-0.7794803260525,0.0256410256410256
+"CIMA","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_8","Myeloid Non-classical monocytes_5",-0.353758618732336,0
+"CIMA","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_9","Myeloid Non-classical monocytes_9",0.277492540698097,0.0810810810810811
+"CIMA","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_10","Myeloid Non-classical monocytes_8",-0.152508692423388,0.142857142857143
+"CIMA","NK CD56dim CD57low","NK CD56dim CD57low_1","NK CD56dim CD57low_3",-0.286252563519291,0.0256410256410256
+"CIMA","NK CD56dim CD57low","NK CD56dim CD57low_2","NK CD56dim CD57low_8",0.793479937617668,0.481481481481481
+"CIMA","NK CD56dim CD57low","NK CD56dim CD57low_3","NK CD56dim CD57low_5",0.423266810636972,0.0526315789473684
+"CIMA","NK CD56dim CD57low","NK CD56dim CD57low_4","NK CD56dim CD57low_6",0.963047757742929,0.428571428571429
+"CIMA","NK CD56dim CD57low","NK CD56dim CD57low_5","NK CD56dim CD57low_2",-0.555343238405993,0.0810810810810811
+"CIMA","NK CD56dim CD57low","NK CD56dim CD57low_6","NK CD56dim CD57low_4",0.506090438727985,0.25
+"CIMA","NK CD56dim CD57low","NK CD56dim CD57low_7","NK CD56dim CD57low_1",-0.946190373578514,0
+"CIMA","NK CD56dim CD57low","NK CD56dim CD57low_8","NK CD56dim CD57low_9",0.98480068879764,0.0526315789473684
+"CIMA","NK CD56dim CD57low","NK CD56dim CD57low_9","NK CD56dim CD57low_10",-0.0837150347178153,0.0256410256410256
+"CIMA","NK CD56dim CD57low","NK CD56dim CD57low_10","NK CD56dim CD57low_7",-0.477818124130468,0.0810810810810811
+"CIMA","B Non-switched memory","B Non-switched memory_1","B Non-switched memory_1",0.894214716285674,0
+"CIMA","B Non-switched memory","B Non-switched memory_2","B Non-switched memory_6",0.706326192675242,0.6
+"CIMA","B Non-switched memory","B Non-switched memory_3","B Non-switched memory_2",0.691638399311153,0
+"CIMA","B Non-switched memory","B Non-switched memory_4","B Non-switched memory_7",0.282288493944385,0.0256410256410256
+"CIMA","B Non-switched memory","B Non-switched memory_5","B Non-switched memory_3",0.989482199603603,0.25
+"CIMA","B Non-switched memory","B Non-switched memory_6","B Non-switched memory_5",-0.199439860080877,0
+"CIMA","B Non-switched memory","B Non-switched memory_7","B Non-switched memory_10",0.957258429618425,0.0256410256410256
+"CIMA","B Non-switched memory","B Non-switched memory_8","B Non-switched memory_9",0.127669016738571,0
+"CIMA","B Non-switched memory","B Non-switched memory_9","B Non-switched memory_4",-0.255921453016049,0
+"CIMA","B Non-switched memory","B Non-switched memory_10","B Non-switched memory_8",-0.0341756719590729,0
+"CIMA","B Plasma cells","B Plasma cells_1","B Plasma cells_3",0.68946960312601,0.0256410256410256
+"CIMA","B Plasma cells","B Plasma cells_2","B Plasma cells_1",0.797857478487407,0
+"CIMA","B Plasma cells","B Plasma cells_3","B Plasma cells_2",0.912851839991648,0.0256410256410256
+"CIMA","B Plasma cells","B Plasma cells_4","B Plasma cells_9",0.472447116931738,0.111111111111111
+"CIMA","B Plasma cells","B Plasma cells_5","B Plasma cells_4",-0.382520850765716,0.142857142857143
+"CIMA","B Plasma cells","B Plasma cells_6","B Plasma cells_10",-0.226038648188567,0.0526315789473684
+"CIMA","B Plasma cells","B Plasma cells_7","B Plasma cells_8",0.317981114641347,0.0810810810810811
+"CIMA","B Plasma cells","B Plasma cells_8","B Plasma cells_7",-0.18527442229994,0.0810810810810811
+"CIMA","B Plasma cells","B Plasma cells_9","B Plasma cells_6",0.01875812360225,0
+"CIMA","B Plasma cells","B Plasma cells_10","B Plasma cells_5",-0.44562844540433,0.25
+"CIMA","Myeloid pDCs","Myeloid pDCs_1","Myeloid pDCs_1",0.946549528128147,0
+"CIMA","Myeloid pDCs","Myeloid pDCs_2","Myeloid pDCs_7",0.765994020308786,0.481481481481481
+"CIMA","Myeloid pDCs","Myeloid pDCs_3","Myeloid pDCs_2",0.54061789391635,0.0256410256410256
+"CIMA","Myeloid pDCs","Myeloid pDCs_4","Myeloid pDCs_3",0.396940245748011,0
+"CIMA","Myeloid pDCs","Myeloid pDCs_5","Myeloid pDCs_5",-0.987146946043211,0.428571428571429
+"CIMA","Myeloid pDCs","Myeloid pDCs_6","Myeloid pDCs_6",-0.147639601224462,0.0256410256410256
+"CIMA","Myeloid pDCs","Myeloid pDCs_7","Myeloid pDCs_4",0.597942866238624,0.333333333333333
+"CIMA","Myeloid pDCs","Myeloid pDCs_8","Myeloid pDCs_10",0.726303651480871,0.212121212121212
+"CIMA","Myeloid pDCs","Myeloid pDCs_9","Myeloid pDCs_9",0.318229866080627,0.111111111111111
+"CIMA","Myeloid pDCs","Myeloid pDCs_10","Myeloid pDCs_8",0.0989090376178317,0
+"CIMA","MAIT","MAIT_1","MAIT_2",0.857594504790313,0
+"CIMA","MAIT","MAIT_2","MAIT_6",0.632667878419859,0.379310344827586
+"CIMA","MAIT","MAIT_3","MAIT_1",0.813826797316612,0.0256410256410256
+"CIMA","MAIT","MAIT_4","MAIT_3",0.986007973536741,0.333333333333333
+"CIMA","MAIT","MAIT_5","MAIT_7",-0.161229784143257,0.0256410256410256
+"CIMA","MAIT","MAIT_6","MAIT_10",-0.444644287394483,0.0256410256410256
+"CIMA","MAIT","MAIT_7","MAIT_9",-0.155513948362203,0.0256410256410256
+"CIMA","MAIT","MAIT_8","MAIT_4",0.351243029585212,0.0810810810810811
+"CIMA","MAIT","MAIT_9","MAIT_5",0.302717106622955,0
+"CIMA","MAIT","MAIT_10","MAIT_8",-0.036855605337511,0
+"CIMA","gd T naive","gd T naive_1","gd T naive_1",0.710405340855749,0
+"CIMA","gd T naive","gd T naive_2","gd T naive_3",0.960294962892384,0.379310344827586
+"CIMA","gd T naive","gd T naive_3","gd T naive_2",0.698353761152747,0.333333333333333
+"CIMA","gd T naive","gd T naive_4","gd T naive_6",0.539066543403777,0.0256410256410256
+"CIMA","Myeloid cDCs","Myeloid cDCs_1","Myeloid cDCs_3",0.795368087168615,0
+"CIMA","Myeloid cDCs","Myeloid cDCs_2","Myeloid cDCs_4",0.824472849837966,0.538461538461538
+"CIMA","Myeloid cDCs","Myeloid cDCs_3","Myeloid cDCs_10",-0.396372011788047,0.0526315789473684
+"CIMA","Myeloid cDCs","Myeloid cDCs_4","Myeloid cDCs_2",-0.521973846016552,0.0810810810810811
+"CIMA","Myeloid cDCs","Myeloid cDCs_5","Myeloid cDCs_9",-0.0290181221011592,0.0256410256410256
+"CIMA","Myeloid cDCs","Myeloid cDCs_6","Myeloid cDCs_7",0.95796271800327,0.142857142857143
+"CIMA","Myeloid cDCs","Myeloid cDCs_7","Myeloid cDCs_1",-0.909110243643359,0.0526315789473684
+"CIMA","Myeloid cDCs","Myeloid cDCs_8","Myeloid cDCs_8",0.779888834530812,0.176470588235294
+"CIMA","Myeloid cDCs","Myeloid cDCs_9","Myeloid cDCs_5",-0.536173117870881,0.0810810810810811
+"CIMA","Myeloid cDCs","Myeloid cDCs_10","Myeloid cDCs_6",0.323309781988773,0
+"CIMA","B Atypical memory","B Atypical memory_1","B Atypical memory_1",0.911102320856479,0
+"CIMA","B Atypical memory","B Atypical memory_2","B Atypical memory_2",0.731754670160065,0
+"CIMA","B Atypical memory","B Atypical memory_3","B Atypical memory_7",0.73893619155861,0.538461538461538
+"CIMA","B Atypical memory","B Atypical memory_4","B Atypical memory_4",0.556973518952769,0.176470588235294
+"CIMA","B Atypical memory","B Atypical memory_5","B Atypical memory_3",-0.889175348818061,0
+"CIMA","B Atypical memory","B Atypical memory_6","B Atypical memory_8",0.697249765255585,0.0256410256410256
+"CIMA","B Atypical memory","B Atypical memory_7","B Atypical memory_6",-0.0561750243932579,0
+"CIMA","B Atypical memory","B Atypical memory_8","B Atypical memory_5",-0.711856498213107,0.0526315789473684
+"CIMA","B Atypical memory","B Atypical memory_9","B Atypical memory_10",0.161846203799645,0.0256410256410256
+"CIMA","B Atypical memory","B Atypical memory_10","B Atypical memory_9",0.184608159233497,0.0526315789473684
+"CIMA","B Transitional","B Transitional_1","B Transitional_1",0.947164802535719,0
+"CIMA","B Transitional","B Transitional_2","B Transitional_10",0.792128014064579,0.481481481481481
+"CIMA","B Transitional","B Transitional_3","B Transitional_2",0.776452532220909,0
+"CIMA","B Transitional","B Transitional_4","B Transitional_8",0.271743763006692,0.0256410256410256
+"CIMA","B Transitional","B Transitional_5","B Transitional_6",-0.0506710495999394,0
+"CIMA","B Transitional","B Transitional_6","B Transitional_3",0.348017153975043,0
+"CIMA","B Transitional","B Transitional_7","B Transitional_4",-0.950848043478206,0.0810810810810811
+"CIMA","B Transitional","B Transitional_8","B Transitional_5",-0.173324200886323,0
+"CIMA","B Transitional","B Transitional_9","B Transitional_9",-0.0752160845004488,0
+"CIMA","B Transitional","B Transitional_10","B Transitional_7",0.237833068808267,0.0256410256410256
+"CIMA","DN T cells","DN T cells_1","DN T cells_2",0.988688444585037,0.25
+"CIMA","DN T cells","DN T cells_2","DN T cells_1",0.923777375250499,0.0256410256410256
+"CIMA","DN T cells","DN T cells_3","DN T cells_5",0.875578330257579,0.481481481481481
+"CIMA","DN T cells","DN T cells_4","DN T cells_4",0.788306943325148,0.290322580645161
+"CIMA","DN T cells","DN T cells_5","DN T cells_8",0.207738656165898,0
+"CIMA","DN T cells","DN T cells_6","DN T cells_7",-0.0262949501931315,0
+"CIMA","DN T cells","DN T cells_7","DN T cells_10",0.0735377111714913,0
+"CIMA","DN T cells","DN T cells_8","DN T cells_3",-0.337382877909223,0
+"CIMA","DN T cells","DN T cells_9","DN T cells_9",0.283901879263928,0.111111111111111
+"CIMA","DN T cells","DN T cells_10","DN T cells_6",-0.833412009835249,0.111111111111111
+"CIMA","NK Proliferative","NK Proliferative_1","NK Proliferative_6",0.673420618485631,0.333333333333333
+"CIMA","NK Proliferative","NK Proliferative_2","NK Proliferative_2",0.903499144740248,0
+"CIMA","NK Proliferative","NK Proliferative_3","NK Proliferative_1",-0.981619069125577,0.0256410256410256
+"CIMA","NK Proliferative","NK Proliferative_4","NK Proliferative_3",0.966712118170481,0.538461538461538
+"CIMA","NK Proliferative","NK Proliferative_5","NK Proliferative_4",0.69010188158593,0.25
+"CIMA","NK Proliferative","NK Proliferative_6","NK Proliferative_5",0.169802329789834,0.0526315789473684
+"CIMA","NK Proliferative","NK Proliferative_7","NK Proliferative_9",0.543227363608443,0.0810810810810811
+"CIMA","NK Proliferative","NK Proliferative_8","NK Proliferative_10",-0.138054487444648,0
+"CIMA","NK Proliferative","NK Proliferative_9","NK Proliferative_8",0.165418500836332,0.0256410256410256
+"CIMA","NK Proliferative","NK Proliferative_10","NK Proliferative_7",-0.468280315273023,0.0526315789473684
+"CIMA","Progenitor cells","Progenitor cells_1","Progenitor cells_8",-0.954557320248491,0.25
+"CIMA","Progenitor cells","Progenitor cells_2","Progenitor cells_2",0.883117625562307,0.0256410256410256
+"CIMA","Progenitor cells","Progenitor cells_3","Progenitor cells_4",-0.171227171953768,0
+"CIMA","Progenitor cells","Progenitor cells_4","Progenitor cells_1",0.919576802044583,0.111111111111111
+"CIMA","Progenitor cells","Progenitor cells_5","Progenitor cells_10",0.919183275581723,0.428571428571429
+"CIMA","Progenitor cells","Progenitor cells_6","Progenitor cells_9",-0.332278080574596,0
+"CIMA","Progenitor cells","Progenitor cells_7","Progenitor cells_6",0.172402916791941,0.0256410256410256
+"CIMA","Progenitor cells","Progenitor cells_8","Progenitor cells_3",0.488899474452792,0.0526315789473684
+"CIMA","Progenitor cells","Progenitor cells_9","Progenitor cells_5",-0.284849894322561,0.0256410256410256
+"CIMA","Progenitor cells","Progenitor cells_10","Progenitor cells_7",0.627854150835243,0.333333333333333
+"CIMA","B Activated","B Activated_1","B Activated_7",0.520219391160695,0.212121212121212
+"CIMA","B Activated","B Activated_2","B Activated_1",0.795181593664038,0
+"CIMA","B Activated","B Activated_3","B Activated_4",-0.245387080512353,0.0526315789473684
+"CIMA","B Activated","B Activated_4","B Activated_8",0.139414107026291,0.0256410256410256
+"CIMA","B Activated","B Activated_5","B Activated_5",-0.612307325686504,0.0256410256410256
+"CIMA","B Activated","B Activated_6","B Activated_6",-0.213605792413945,0.0526315789473684
+"CIMA","B Activated","B Activated_7","B Activated_2",-0.182929108497659,0
+"CIMA","B Activated","B Activated_8","B Activated_9",-0.182920469805829,0
+"CIMA","B Activated","B Activated_9","B Activated_3",-0.519303151789038,0
+"CIMA","B Activated","B Activated_10","B Activated_10",-0.722425177600973,0.111111111111111
+"SoundLife","MAIT","MAIT_1","MAIT_1",0.976521635032364,0.0526315789473684
+"SoundLife","MAIT","MAIT_2","MAIT_8",0.359170615189874,0.0526315789473684
+"SoundLife","MAIT","MAIT_3","MAIT_7",0.0486527955762445,0
+"SoundLife","MAIT","MAIT_4","MAIT_2",0.998796953716662,0.379310344827586
+"SoundLife","MAIT","MAIT_5","MAIT_9",0.721419245687114,0.25
+"SoundLife","MAIT","MAIT_6","MAIT_4",0.92231135937299,0.0526315789473684
+"SoundLife","MAIT","MAIT_7","MAIT_5",0.589198016083162,0.111111111111111
+"SoundLife","MAIT","MAIT_8","MAIT_6",0.686539691469651,0.142857142857143
+"SoundLife","MAIT","MAIT_9","MAIT_3",-0.619958706119964,0.0526315789473684
+"SoundLife","MAIT","MAIT_10","MAIT_10",-0.431451190347663,0.0256410256410256
+"SoundLife","Myeloid Classical monocytes","Myeloid Classical monocytes_1","Myeloid Classical monocytes_1",0.925437556103957,0.0256410256410256
+"SoundLife","Myeloid Classical monocytes","Myeloid Classical monocytes_2","Myeloid Classical monocytes_8",-0.542531608443348,0.25
+"SoundLife","Myeloid Classical monocytes","Myeloid Classical monocytes_3","Myeloid Classical monocytes_4",0.964096499339655,0.481481481481481
+"SoundLife","Myeloid Classical monocytes","Myeloid Classical monocytes_4","Myeloid Classical monocytes_2",0.995683255400509,0.379310344827586
+"SoundLife","Myeloid Classical monocytes","Myeloid Classical monocytes_5","Myeloid Classical monocytes_3",0.973867010841027,0.666666666666667
+"SoundLife","Myeloid Classical monocytes","Myeloid Classical monocytes_6","Myeloid Classical monocytes_7",-0.305760878996934,0.0256410256410256
+"SoundLife","Myeloid Classical monocytes","Myeloid Classical monocytes_7","Myeloid Classical monocytes_9",0.905325205405244,0.212121212121212
+"SoundLife","Myeloid Classical monocytes","Myeloid Classical monocytes_8","Myeloid Classical monocytes_10",-0.605088833902292,0.142857142857143
+"SoundLife","Myeloid Classical monocytes","Myeloid Classical monocytes_9","Myeloid Classical monocytes_6",-0.469614783188758,0.0810810810810811
+"SoundLife","Myeloid Classical monocytes","Myeloid Classical monocytes_10","Myeloid Classical monocytes_5",0.914305195316958,0.212121212121212
+"SoundLife","Myeloid pDCs","Myeloid pDCs_1","Myeloid pDCs_1",0.970661931640978,0
+"SoundLife","Myeloid pDCs","Myeloid pDCs_2","Myeloid pDCs_7",0.233219765611455,0.0256410256410256
+"SoundLife","Myeloid pDCs","Myeloid pDCs_3","Myeloid pDCs_3",-0.197318284682888,0.0256410256410256
+"SoundLife","Myeloid pDCs","Myeloid pDCs_4","Myeloid pDCs_2",-0.994091866320469,0.290322580645161
+"SoundLife","Myeloid pDCs","Myeloid pDCs_5","Myeloid pDCs_4",-0.676032620652044,0.0526315789473684
+"SoundLife","Myeloid pDCs","Myeloid pDCs_6","Myeloid pDCs_5",0.953804333609208,0.333333333333333
+"SoundLife","Myeloid pDCs","Myeloid pDCs_7","Myeloid pDCs_6",0.731242463587856,0.111111111111111
+"SoundLife","Myeloid pDCs","Myeloid pDCs_8","Myeloid pDCs_10",0.288163820863074,0.0810810810810811
+"SoundLife","Myeloid pDCs","Myeloid pDCs_9","Myeloid pDCs_8",-0.139745679124986,0.0256410256410256
+"SoundLife","Myeloid pDCs","Myeloid pDCs_10","Myeloid pDCs_9",0.60503889240637,0.212121212121212
+"SoundLife","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_1","Myeloid Non-classical monocytes_1",0.933830931491238,0
+"SoundLife","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_2","Myeloid Non-classical monocytes_5",0.806825879595253,0.428571428571429
+"SoundLife","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_3","Myeloid Non-classical monocytes_2",0.98564699984623,0.481481481481481
+"SoundLife","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_4","Myeloid Non-classical monocytes_4",-0.0899513773396199,0
+"SoundLife","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_5","Myeloid Non-classical monocytes_3",0.954493942847247,0.538461538461538
+"SoundLife","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_6","Myeloid Non-classical monocytes_10",-0.804374941794671,0.333333333333333
+"SoundLife","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_7","Myeloid Non-classical monocytes_8",0.722411062344078,0.333333333333333
+"SoundLife","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_8","Myeloid Non-classical monocytes_6",0.954293655335956,0.111111111111111
+"SoundLife","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_9","Myeloid Non-classical monocytes_9",0.74938637643378,0.176470588235294
+"SoundLife","Myeloid Non-classical monocytes","Myeloid Non-classical monocytes_10","Myeloid Non-classical monocytes_7",0.269799217269802,0.0810810810810811
+"SoundLife","NK CD56bright","NK CD56bright_1","NK CD56bright_1",0.973264151600109,0.0256410256410256
+"SoundLife","NK CD56bright","NK CD56bright_2","NK CD56bright_3",0.948719859957233,0.333333333333333
+"SoundLife","NK CD56bright","NK CD56bright_3","NK CD56bright_2",0.992112606703357,0.379310344827586
+"SoundLife","NK CD56bright","NK CD56bright_4","NK CD56bright_8",-0.420460706965012,0.0526315789473684
+"SoundLife","NK CD56bright","NK CD56bright_5","NK CD56bright_5",0.60031373521225,0.111111111111111
+"SoundLife","NK CD56bright","NK CD56bright_6","NK CD56bright_9",0.98237999323592,0.0810810810810811
+"SoundLife","NK CD56bright","NK CD56bright_7","NK CD56bright_7",0.601941606058312,0.25
+"SoundLife","NK CD56bright","NK CD56bright_8","NK CD56bright_10",0.651753054187629,0.111111111111111
+"SoundLife","NK CD56bright","NK CD56bright_9","NK CD56bright_6",0.223855266537347,0.0526315789473684
+"SoundLife","NK CD56bright","NK CD56bright_10","NK CD56bright_4",-0.739040684707168,0.0256410256410256
+"SoundLife","B Naive","B Naive_1","B Naive_1",0.988803460540642,0
+"SoundLife","B Naive","B Naive_2","B Naive_2",0.997843945230396,0.428571428571429
+"SoundLife","B Naive","B Naive_3","B Naive_9",0.434362618614375,0.0256410256410256
+"SoundLife","B Naive","B Naive_4","B Naive_7",0.1997633880096,0
+"SoundLife","B Naive","B Naive_5","B Naive_8",0.0815465069559791,0.0256410256410256
+"SoundLife","B Naive","B Naive_6","B Naive_5",-0.987455773939669,0.0256410256410256
+"SoundLife","B Naive","B Naive_7","B Naive_3",-0.617374462752112,0.0256410256410256
+"SoundLife","B Naive","B Naive_8","B Naive_6",-0.45866358263337,0.0526315789473684
+"SoundLife","B Naive","B Naive_9","B Naive_4",-0.646429601048843,0
+"SoundLife","B Naive","B Naive_10","B Naive_10",-0.049194316812467,0
+"SoundLife","B Atypical memory","B Atypical memory_1","B Atypical memory_3",-0.612563844489737,0.0810810810810811
+"SoundLife","B Atypical memory","B Atypical memory_2","B Atypical memory_1",0.879580311427501,0
+"SoundLife","B Atypical memory","B Atypical memory_3","B Atypical memory_6",0.297728877273618,0
+"SoundLife","B Atypical memory","B Atypical memory_4","B Atypical memory_2",-0.966364164966147,0.212121212121212
+"SoundLife","B Atypical memory","B Atypical memory_5","B Atypical memory_9",0.203825381161977,0.0526315789473684
+"SoundLife","B Atypical memory","B Atypical memory_6","B Atypical memory_5",0.590837784055877,0.0526315789473684
+"SoundLife","B Atypical memory","B Atypical memory_7","B Atypical memory_8",-0.709621413430946,0.0526315789473684
+"SoundLife","B Atypical memory","B Atypical memory_8","B Atypical memory_7",-0.860853977145027,0.0256410256410256
+"SoundLife","B Atypical memory","B Atypical memory_9","B Atypical memory_10",0.0710215757437817,0.0256410256410256
+"SoundLife","B Atypical memory","B Atypical memory_10","B Atypical memory_4",0.465120219017218,0.0256410256410256
+"SoundLife","NK CD56dim CD57int","NK CD56dim CD57int_1","NK CD56dim CD57int_1",0.963092964807022,0.0810810810810811
+"SoundLife","NK CD56dim CD57int","NK CD56dim CD57int_2","NK CD56dim CD57int_2",0.989752723219216,0.6
+"SoundLife","NK CD56dim CD57int","NK CD56dim CD57int_3","NK CD56dim CD57int_5",-0.949840236861959,0.0810810810810811
+"SoundLife","NK CD56dim CD57int","NK CD56dim CD57int_4","NK CD56dim CD57int_4",0.826021362885316,0.0526315789473684
+"SoundLife","NK CD56dim CD57int","NK CD56dim CD57int_5","NK CD56dim CD57int_3",-0.25457839472593,0.0526315789473684
+"SoundLife","NK CD56dim CD57int","NK CD56dim CD57int_6","NK CD56dim CD57int_8",0.888213996786876,0.176470588235294
+"SoundLife","NK CD56dim CD57int","NK CD56dim CD57int_7","NK CD56dim CD57int_6",0.556257703692598,0.0810810810810811
+"SoundLife","NK CD56dim CD57int","NK CD56dim CD57int_8","NK CD56dim CD57int_10",0.757120914983282,0.212121212121212
+"SoundLife","NK CD56dim CD57int","NK CD56dim CD57int_9","NK CD56dim CD57int_9",-0.654329650423623,0.0810810810810811
+"SoundLife","NK CD56dim CD57int","NK CD56dim CD57int_10","NK CD56dim CD57int_7",0.270968639504995,0.0526315789473684
+"SoundLife","DN T cells","DN T cells_1","DN T cells_2",0.958528999697389,0.25
+"SoundLife","DN T cells","DN T cells_2","DN T cells_1",0.973301437368,0.142857142857143
+"SoundLife","DN T cells","DN T cells_3","DN T cells_4",0.590378172313536,0.25
+"SoundLife","DN T cells","DN T cells_4","DN T cells_3",0.994500634263911,0.290322580645161
+"SoundLife","DN T cells","DN T cells_5","DN T cells_6",-0.537029195235124,0
+"SoundLife","DN T cells","DN T cells_6","DN T cells_7",0.0299855591719184,0
+"SoundLife","DN T cells","DN T cells_7","DN T cells_9",-0.42479913941901,0
+"SoundLife","DN T cells","DN T cells_8","DN T cells_5",-0.444188374568581,0.0256410256410256
+"SoundLife","DN T cells","DN T cells_9","DN T cells_8",-0.0768458355299936,0.0256410256410256
+"SoundLife","DN T cells","DN T cells_10","DN T cells_10",-0.351756700510583,0.0810810810810811
+"SoundLife","B Switched memory","B Switched memory_1","B Switched memory_1",0.963453421659921,0.0256410256410256
+"SoundLife","B Switched memory","B Switched memory_2","B Switched memory_3",0.953195347660973,0.212121212121212
+"SoundLife","B Switched memory","B Switched memory_3","B Switched memory_9",-0.178105023461549,0.0256410256410256
+"SoundLife","B Switched memory","B Switched memory_4","B Switched memory_2",0.99892553529807,0.379310344827586
+"SoundLife","B Switched memory","B Switched memory_5","B Switched memory_4",0.451379965989283,0.0526315789473684
+"SoundLife","B Switched memory","B Switched memory_6","B Switched memory_10",-0.168381325911714,0
+"SoundLife","B Switched memory","B Switched memory_7","B Switched memory_5",-0.201217831378877,0
+"SoundLife","B Switched memory","B Switched memory_8","B Switched memory_6",0.979867686107975,0.0256410256410256
+"SoundLife","B Switched memory","B Switched memory_9","B Switched memory_7",-0.0380578567516038,0.0256410256410256
+"SoundLife","B Switched memory","B Switched memory_10","B Switched memory_8",-0.842332497000425,0.0526315789473684
+"SoundLife","Progenitor cells","Progenitor cells_1","Progenitor cells_7",0.634000625370889,0.212121212121212
+"SoundLife","Progenitor cells","Progenitor cells_2","Progenitor cells_5",-0.514762576054759,0
+"SoundLife","Progenitor cells","Progenitor cells_3","Progenitor cells_1",0.956142306639744,0
+"SoundLife","Progenitor cells","Progenitor cells_4","Progenitor cells_9",-0.532570900002411,0.0256410256410256
+"SoundLife","Progenitor cells","Progenitor cells_5","Progenitor cells_8",-0.0744957659199095,0.0256410256410256
+"SoundLife","Progenitor cells","Progenitor cells_6","Progenitor cells_10",0.150245708023493,0.0526315789473684
+"SoundLife","Progenitor cells","Progenitor cells_7","Progenitor cells_3",0.719969325039963,0.142857142857143
+"SoundLife","Progenitor cells","Progenitor cells_8","Progenitor cells_6",-0.516365494618393,0.142857142857143
+"SoundLife","Progenitor cells","Progenitor cells_9","Progenitor cells_4",0.994879538880057,0.212121212121212
+"SoundLife","Progenitor cells","Progenitor cells_10","Progenitor cells_2",-0.71637488257175,0.25
+"SoundLife","B Activated","B Activated_1","B Activated_1",0.991214344895954,0.0526315789473684
+"SoundLife","B Activated","B Activated_2","B Activated_7",0.768158859269475,0.0256410256410256
+"SoundLife","B Activated","B Activated_3","B Activated_8",0.559467845906374,0.0526315789473684
+"SoundLife","B Activated","B Activated_4","B Activated_10",-0.118739186627497,0.0256410256410256
+"SoundLife","B Activated","B Activated_5","B Activated_6",0.0485450583232355,0.0256410256410256
+"SoundLife","B Activated","B Activated_6","B Activated_4",-0.654017774601286,0.0256410256410256
+"SoundLife","B Activated","B Activated_7","B Activated_2",0.98657322315571,0.212121212121212
+"SoundLife","B Activated","B Activated_8","B Activated_9",-0.369164298248546,0.111111111111111
+"SoundLife","B Activated","B Activated_9","B Activated_3",0.468358547582407,0.0256410256410256
+"SoundLife","B Activated","B Activated_10","B Activated_5",-0.371701735275808,0
+"SoundLife","B Non-switched memory","B Non-switched memory_1","B Non-switched memory_1",0.969991603016549,0.0256410256410256
+"SoundLife","B Non-switched memory","B Non-switched memory_2","B Non-switched memory_2",0.996426954364805,0.379310344827586
+"SoundLife","B Non-switched memory","B Non-switched memory_3","B Non-switched memory_10",-0.265474473906375,0.0256410256410256
+"SoundLife","B Non-switched memory","B Non-switched memory_4","B Non-switched memory_7",-0.643747284159515,0.0810810810810811
+"SoundLife","B Non-switched memory","B Non-switched memory_5","B Non-switched memory_8",0.419427446233801,0.0256410256410256
+"SoundLife","B Non-switched memory","B Non-switched memory_6","B Non-switched memory_3",-0.175481406662792,0.0256410256410256
+"SoundLife","B Non-switched memory","B Non-switched memory_7","B Non-switched memory_4",-0.0933160171081599,0
+"SoundLife","B Non-switched memory","B Non-switched memory_8","B Non-switched memory_6",0.974653531542311,0.0256410256410256
+"SoundLife","B Non-switched memory","B Non-switched memory_9","B Non-switched memory_9",0.346217156999454,0.0256410256410256
+"SoundLife","B Non-switched memory","B Non-switched memory_10","B Non-switched memory_5",0.165843612751891,0
+"SoundLife","B Transitional","B Transitional_1","B Transitional_1",0.986439339112891,0.0810810810810811
+"SoundLife","B Transitional","B Transitional_2","B Transitional_5",-0.712780397099863,0
+"SoundLife","B Transitional","B Transitional_3","B Transitional_2",0.998588092213205,0.212121212121212
+"SoundLife","B Transitional","B Transitional_4","B Transitional_10",-0.338397104878728,0.0256410256410256
+"SoundLife","B Transitional","B Transitional_5","B Transitional_8",-0.173100772374912,0
+"SoundLife","B Transitional","B Transitional_6","B Transitional_7",-0.168981338752634,0
+"SoundLife","B Transitional","B Transitional_7","B Transitional_9",0.019964543300379,0
+"SoundLife","B Transitional","B Transitional_8","B Transitional_6",-0.832859966189051,0.0526315789473684
+"SoundLife","B Transitional","B Transitional_9","B Transitional_3",0.606576054481077,0.0526315789473684
+"SoundLife","B Transitional","B Transitional_10","B Transitional_4",0.250178629793052,0
+"SoundLife","NK CD56dim CD57low","NK CD56dim CD57low_1","NK CD56dim CD57low_1",0.979565944980548,0.0810810810810811
+"SoundLife","NK CD56dim CD57low","NK CD56dim CD57low_2","NK CD56dim CD57low_2",0.988686743515522,0.481481481481481
+"SoundLife","NK CD56dim CD57low","NK CD56dim CD57low_3","NK CD56dim CD57low_5",0.859448144541278,0.428571428571429
+"SoundLife","NK CD56dim CD57low","NK CD56dim CD57low_4","NK CD56dim CD57low_6",-0.811121305863784,0.111111111111111
+"SoundLife","NK CD56dim CD57low","NK CD56dim CD57low_5","NK CD56dim CD57low_10",0.539075225835668,0.142857142857143
+"SoundLife","NK CD56dim CD57low","NK CD56dim CD57low_6","NK CD56dim CD57low_7",0.305023389199274,0.0256410256410256
+"SoundLife","NK CD56dim CD57low","NK CD56dim CD57low_7","NK CD56dim CD57low_4",0.676515764798241,0.111111111111111
+"SoundLife","NK CD56dim CD57low","NK CD56dim CD57low_8","NK CD56dim CD57low_3",-0.717441321735338,0.111111111111111
+"SoundLife","NK CD56dim CD57low","NK CD56dim CD57low_9","NK CD56dim CD57low_8",0.215132006567281,0.0810810810810811
+"SoundLife","NK CD56dim CD57low","NK CD56dim CD57low_10","NK CD56dim CD57low_9",0.155894361354591,0.0810810810810811
+"SoundLife","NK CD56dim CD57-","NK CD56dim CD57-_1","NK CD56dim CD57-_1",0.980063011568189,0.0526315789473684
+"SoundLife","NK CD56dim CD57-","NK CD56dim CD57-_2","NK CD56dim CD57-_2",0.990797734833787,0.379310344827586
+"SoundLife","NK CD56dim CD57-","NK CD56dim CD57-_3","NK CD56dim CD57-_4",-0.377567548951688,0.0810810810810811
+"SoundLife","NK CD56dim CD57-","NK CD56dim CD57-_4","NK CD56dim CD57-_5",-0.0310298362788472,0.0256410256410256
+"SoundLife","NK CD56dim CD57-","NK CD56dim CD57-_5","NK CD56dim CD57-_8",-0.686758026255919,0.0810810810810811
+"SoundLife","NK CD56dim CD57-","NK CD56dim CD57-_6","NK CD56dim CD57-_9",0.826276178515065,0.379310344827586
+"SoundLife","NK CD56dim CD57-","NK CD56dim CD57-_7","NK CD56dim CD57-_10",0.513366644874133,0.333333333333333
+"SoundLife","NK CD56dim CD57-","NK CD56dim CD57-_8","NK CD56dim CD57-_3",0.698321548502953,0.0810810810810811
+"SoundLife","NK CD56dim CD57-","NK CD56dim CD57-_9","NK CD56dim CD57-_7",-0.271580177971896,0.0810810810810811
+"SoundLife","NK CD56dim CD57-","NK CD56dim CD57-_10","NK CD56dim CD57-_6",-0.23288547763869,0.111111111111111
+"SoundLife","B Plasma cells","B Plasma cells_1","B Plasma cells_4",0.540571196439871,0.0810810810810811
+"SoundLife","B Plasma cells","B Plasma cells_2","B Plasma cells_1",-0.850668196787737,0.0256410256410256
+"SoundLife","B Plasma cells","B Plasma cells_3","B Plasma cells_6",-0.623856948703962,0.290322580645161
+"SoundLife","B Plasma cells","B Plasma cells_4","B Plasma cells_8",-0.272443245454215,0.212121212121212
+"SoundLife","B Plasma cells","B Plasma cells_5","B Plasma cells_9",0.256811577221583,0.0810810810810811
+"SoundLife","B Plasma cells","B Plasma cells_6","B Plasma cells_2",0.638165285156892,0.212121212121212
+"SoundLife","B Plasma cells","B Plasma cells_7","B Plasma cells_5",-0.336984993270578,0.142857142857143
+"SoundLife","B Plasma cells","B Plasma cells_8","B Plasma cells_7",-0.439273971989251,0.142857142857143
+"SoundLife","B Plasma cells","B Plasma cells_9","B Plasma cells_10",-0.347529439566405,0.142857142857143
+"SoundLife","B Plasma cells","B Plasma cells_10","B Plasma cells_3",0.0981112348333903,0
+"SoundLife","NK Proliferative","NK Proliferative_1","NK Proliferative_1",0.987669930856873,0.739130434782609
+"SoundLife","NK Proliferative","NK Proliferative_2","NK Proliferative_2",0.976154900113582,0.111111111111111
+"SoundLife","NK Proliferative","NK Proliferative_3","NK Proliferative_4",0.964291963175703,0.333333333333333
+"SoundLife","NK Proliferative","NK Proliferative_4","NK Proliferative_5",0.817961929303484,0.290322580645161
+"SoundLife","NK Proliferative","NK Proliferative_5","NK Proliferative_8",0.622902872065506,0.290322580645161
+"SoundLife","NK Proliferative","NK Proliferative_6","NK Proliferative_6",0.386854216347372,0.0526315789473684
+"SoundLife","NK Proliferative","NK Proliferative_7","NK Proliferative_7",0.089262538940332,0.0256410256410256
+"SoundLife","NK Proliferative","NK Proliferative_8","NK Proliferative_3",0.986161678332446,0.333333333333333
+"SoundLife","NK Proliferative","NK Proliferative_9","NK Proliferative_10",0.916258668998098,0.538461538461538
+"SoundLife","NK Proliferative","NK Proliferative_10","NK Proliferative_9",0.842260085855343,0.0526315789473684
+"SoundLife","gd T naive","gd T naive_8","gd T naive_1",0.614064383249617,0.0526315789473684
+"SoundLife","gd T naive","gd T naive_1","gd T naive_2",0.849508668448651,0.0256410256410256
+"SoundLife","gd T naive","gd T naive_6","gd T naive_3",0.744579614344715,0.0256410256410256
+"SoundLife","ILCs","ILCs_1","ILCs_1",0.964176255411108,0.0810810810810811
+"SoundLife","ILCs","ILCs_2","ILCs_2",0.953088087479476,0.379310344827586
+"SoundLife","ILCs","ILCs_3","ILCs_3",-0.835963037717821,0.0810810810810811
+"SoundLife","ILCs","ILCs_4","ILCs_4",0.0516003096683486,0.0256410256410256
+"SoundLife","ILCs","ILCs_5","ILCs_5",0.22989111648256,0.0526315789473684
+"SoundLife","ILCs","ILCs_6","ILCs_6",-0.630171572159655,0.0526315789473684

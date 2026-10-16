@@ -105,3 +105,34 @@ Dependencies: M0 → M1 → M2 → (M3) → M4 → M5. M6 and M7 are independent
 1. ~~Is C1 in scope?~~ Yes, it is the main scope. Open: how are multi-cell-type programs defined (see the chat summary of PMD vs principal vectors)?
 2. Should C4 (K ≤ n − q − 1) be added anyway as a guard, since it never changes results?
 3. SOFA branch: open a PR, or archive it?
+
+## Update 2026-10-16 (later) — immune-aging application; new roadmap items
+
+The Terekhova et al. 8-cohort immune-aging application is complete
+(`reports/immune_aging_analysis.md`, `analyses/immune_aging/`,
+`vignettes/articles/immune_aging_cross_cohort.Rmd`). C2 matching check closed
+(pooled discordance 1.35% < 5%; greedy retained). Batch benchmarks v1 + v1a
+closed (OLS default retained; small-batch guidance documented).
+
+**New items opened by the application:**
+
+1. **Discovery-freeze robustness**: the application freezes ABF300 (166
+   donors) as discovery. Refreezing on OneK1K (981) and reprojecting would
+   test discovery-cohort sensitivity of the conservation panel.
+2. **Composition-level aging axis**: the paper's GZMK+/GZMB+ Tem ratio and
+   CMV effects live at the cell-type proportion level; cellprograms operates
+   within cell types. A composition-aware companion analysis (proportions +
+   program scores jointly) is the natural extension.
+3. **Principal-angle subspace metrics** (registered tier-2 extension):
+   subspace alignment between discovery and refit loading spans, stability-
+   normalized conservation ratio (between-cohort cosine / within-cohort
+   bootstrap ceiling).
+4. **Sparse-loading backend for transferable gene lists**: top-N gene Jaccard
+   of matched programs is near-zero under dense point-Laplace shrinkage; a
+   sparse prior variant (e.g. point-ash with high sparsity) might yield
+   programs whose gene lists survive transfer — testable in the same
+   projection harness.
+5. **Batch-adjustment option**: small-batch v1a showed ComBat beats OLS at
+   5 donors/batch (recovery 0.96 vs 0.82) but leaves residual batch. A
+   documented `adjust_batches=` option with an explicit residual-batch
+   warning remains a possible proposal (not adopted; OLS default retained).

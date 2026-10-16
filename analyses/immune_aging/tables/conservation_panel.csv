@@ -1,0 +1,6 @@
+"query","query_n_donors","discovery","disc_n_donors","n_matched_programs","median_abs_cor","frac_abs_cor_ge_0.5","sign_flip_rate","assoc_spearman_age","assoc_sign_agree_age","assoc_spearman_sex","assoc_sign_agree_sex","assoc_spearman_cmv","assoc_sign_agree_cmv"
+"SPAC",33,"ABF300",166,186,0.589,0.602,0.392,-0.07,0.468,0.203,0.516,NA,NA
+"UCSF",99,"ABF300",166,161,0.486,0.491,0.304,0.166,0.528,-0.125,0.416,NA,NA
+"AIDA",625,"ABF300",166,184,0.591,0.576,0.321,0.015,0.527,0.096,0.554,NA,NA
+"CIMA",421,"ABF300",166,194,0.552,0.552,0.361,0.119,0.531,0.214,0.644,NA,NA
+"SoundLife",96,"KCL",188,189,0.634,0.635,0.365,0.133,0.54,0.231,0.54,-0.152,0.455
