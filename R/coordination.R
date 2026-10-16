@@ -61,7 +61,15 @@
 }
 
 .cmp_rank_gauss <- function(S) {
-  R <- apply(S, 2, function(v) stats::qnorm((rank(v, ties.method = "average") - 0.5) / length(v)))
+  # NA scores stay NA: rank()'s default na.last=TRUE would assign them the last
+  # (i.e. top) ranks and manufacture fake high-scoring donors (audit B-6).
+  R <- apply(S, 2, function(v) {
+    obs <- !is.na(v)
+    r <- numeric(length(v))
+    r[obs] <- stats::qnorm((rank(v[obs], ties.method = "average") - 0.5) / sum(obs))
+    r[!obs] <- NA_real_
+    r
+  })
   if (is.null(dim(R))) R <- matrix(R, nrow(S))
   dimnames(R) <- dimnames(S)
   R
@@ -73,7 +81,14 @@
     R0 <- .cmp_rank_gauss(S)
     f <- factor(blocks[rownames(S)])
     X <- if (nlevels(f) > 1L) stats::model.matrix(~f) else matrix(1, nrow(S), 1L)
-    R <- R0 - X %*% qr.solve(X, R0)
+    # residualize each program on its observed donors; NA rows stay NA (audit B-6)
+    R <- matrix(NA_real_, nrow(R0), ncol(R0), dimnames = dimnames(R0))
+    for (j in seq_len(ncol(R0))) {
+      obs <- !is.na(R0[, j])
+      if (!any(obs)) next
+      b <- qr.solve(X[obs, , drop = FALSE], R0[obs, j])
+      R[obs, j] <- R0[obs, j] - X[obs, , drop = FALSE] %*% b
+    }
     dimnames(R) <- dimnames(S)
     R
   })
@@ -92,12 +107,18 @@
 
 .cmp_edges <- function(Z, pairs) {
   do.call(rbind, lapply(pairs, function(p) {
-    r <- suppressWarnings(stats::cor(Z[[p$a]][p$ids, , drop = FALSE], Z[[p$b]][p$ids, , drop = FALSE]))
+    Za <- Z[[p$a]][p$ids, , drop = FALSE]
+    Zb <- Z[[p$b]][p$ids, , drop = FALSE]
+    # pairwise-complete donors per program pair; edge `n` reports the honest
+    # pairwise-complete count rather than the nominal donor count (audit B-6)
+    r <- suppressWarnings(stats::cor(Za, Zb, use = "pairwise.complete.obs"))
+    n <- crossprod(!is.na(Za), !is.na(Zb))
     r[!is.finite(r)] <- 0
-    t <- atanh(pmin(pmax(r, -0.999999), 0.999999)) * sqrt(length(p$ids) - 3)
+    t <- atanh(pmin(pmax(r, -0.999999), 0.999999)) * sqrt(pmax(n - 3, 0))
+    t[n < 4] <- 0
     data.frame(ct_a = p$a, ct_b = p$b,
                prog_a = rownames(r)[row(r)], prog_b = colnames(r)[col(r)],
-               stat = as.vector(abs(t)), sign = as.vector(sign(t)), n = length(p$ids),
+               stat = as.vector(abs(t)), sign = as.vector(sign(t)), n = as.vector(n),
                stringsAsFactors = FALSE)
   }))
 }
@@ -201,6 +222,14 @@
 #' is intended for `find_coordinated_programs()`. A one-time message is shown
 #' when a fit with `max_factors < 30` has a cell type at its cap.
 #'
+#' @section Missing donor scores:
+#' Programs with missing donor scores (NA) are handled by pairwise-complete
+#' donors: rank transformation and strata residualization keep NA donors as NA,
+#' cross-cell-type correlations use the donors observed in both programs, and
+#' edge `n` reports the pairwise-complete donor count for that program pair. A
+#' warning lists the affected programs. Missingness reduces power (fewer
+#' effective donors); it does not manufacture high-scoring donors.
+#'
 #' @return An object of class `cmp_result`, a list with
 #'   \describe{
 #'     \item{cmps}{one row per (CMP, program): `cmp`, `cell_type`,
@@ -270,6 +299,16 @@ find_coordinated_programs <- function(fit, strata = NULL, context = NULL,
       if (!is.null(Z[[ct]])) Z[[ct]] <- Z[[ct]][, colnames(Z[[ct]]) != bad$program_id[i], drop = FALSE]
     }
     Z <- Z[vapply(Z, ncol, 1L) > 0L]
+  }
+  naf <- do.call(rbind, lapply(names(Z), function(ct) {
+    data.frame(cell_type = ct, program_id = colnames(Z[[ct]]), n_missing = colSums(is.na(Z[[ct]])),
+               stringsAsFactors = FALSE)
+  }))
+  naf <- naf[naf$n_missing > 0L, , drop = FALSE]
+  if (nrow(naf)) {
+    warning(sprintf(paste0("find_coordinated_programs(): %d program(s) have missing donor scores (up to %d of %d donors, e.g. %s/%s); ",
+                           "correlations use pairwise-complete donors and edge `n` reports the pairwise-complete count."),
+                    nrow(naf), max(naf$n_missing), length(ids), naf$cell_type[1], naf$program_id[1]), call. = FALSE)
   }
   res <- structure(list(cmps = .cmp_empty(), edges = NULL, nodes = NULL, ambient = amb, settings = settings),
                    class = "cmp_result")

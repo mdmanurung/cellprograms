@@ -96,6 +96,17 @@ is intended for `find_coordinated_programs()`. A one-time message is shown
 when a fit with `max_factors < 30` has a cell type at its cap.
 }
 
+\section{Missing donor scores}{
+
+Programs with missing donor scores (NA) are handled by pairwise-complete
+donors: rank transformation and strata residualization keep NA donors as NA,
+cross-cell-type correlations use the donors observed in both programs, and
+edge `n` reports the pairwise-complete donor count for that program pair. A
+warning lists the affected programs. Missingness reduces power (fewer
+effective donors); it does not manufacture high-scoring donors. Donors with
+missing scores are never ranked as top-scoring.
+}
+
 \examples{
 # Toy canonicalized fit: program 1 of cell types A and B shares donor
 # activity z (a planted coordinated program) and top genes G1-G15.

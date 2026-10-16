@@ -1,3 +1,18 @@
+# cellprograms 0.2.0.9000 (development)
+
+## Audit remediations
+
+* `find_coordinated_programs()`: missing donor scores (NA) are no longer
+  silently converted into top ranks. Rank transformation and strata
+  residualization keep NA donors as NA, cross-cell-type correlations use
+  pairwise-complete donors, edge `n` reports the pairwise-complete donor
+  count for each program pair, and a warning lists programs with missing
+  scores. Previously, `rank()`'s default `na.last=TRUE` manufactured fake
+  top-scoring donors, which either destroyed detection power (donor-specific
+  missingness) or inflated significance (missingness shared across programs);
+  a planted pair with 20% missingness could be missed entirely with no
+  warning. Regression tests: `tests/testthat/test-cmp-missingness.R`.
+
 # cellprograms 0.2.0
 
 ## Stage B: frozen preprocessing and cell-level projection
