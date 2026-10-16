@@ -30,7 +30,7 @@ show <- function(r) {
   if (nrow(r$clusters)) print(aggregate(cell_type ~ cluster, r$clusters, function(x) paste(sort(x), collapse = ",")))
   else cat("  (no clusters)\n")
 }
-M4 <- c("node_cor", "subspace_sum", "pa_cc", "gene_match")
+M4 <- c("node_cor", "node_agg", "subspace_sum", "pa_cc", "gene_match")
 for (m in M4) show(run_method(m, f, strata, n_perm = 199, seed = 1))
 
 ## .perm_rows must move values, keep row names and stay inside strata (a no-op permutation made node_cor never reject)
@@ -51,3 +51,26 @@ for (m in M4) {
 rp <- run_method("node_cor", f, strata, n_perm = 199, seed = 1)
 stopifnot(nrow(rp$clusters) > 0L)
 cat("OK\n")
+
+## node_agg: the A_v port must pool weak evidence -- a program coupled to 3 cell types with every
+## edge just below the edge max-T threshold is node_agg's target case; at minimum it must not
+## lose the strong-signal recovery node_cor has (power check above uses node_cor).
+ra <- run_method("node_agg", f, strata, n_perm = 199, seed = 1)
+stopifnot(nrow(ra$clusters) > 0L)
+
+## density filter unit check: chain A-B, B-C strong, A-C absent -> density 2/3.
+## min_density = 0 keeps the chain; min_density = 0.9 drops it.
+mk_edge <- function(ct_a, pr_a, ct_b, pr_b, stat) {
+  data.frame(ct_a, prog_a = pr_a, ct_b, prog_b = pr_b, stat, fwer_p = 0.01, stringsAsFactors = FALSE)
+}
+nd <- data.frame(cell_type = c("A", "B", "C"), program_id = c("A_1", "B_1", "C_1"), stringsAsFactors = FALSE)
+chain <- rbind(mk_edge("A", "A_1", "B", "B_1", 5), mk_edge("B", "B_1", "C", "C_1", 4.5))
+c0 <- .cluster_edges(chain, nd, min_density = 0)
+c9 <- .cluster_edges(chain, nd, min_density = 0.9)
+c5 <- .cluster_edges(chain, nd, min_density = 0.5)
+stopifnot(nrow(c0) == 3L, nrow(c9) == 0L, nrow(c5) == 3L)   # 2/3 density passes 0.5, fails 0.9
+## a fully connected triad (3/3) survives min_density = 0.9
+triad <- rbind(chain, mk_edge("A", "A_1", "C", "C_1", 4))
+c9t <- .cluster_edges(triad, nd, min_density = 0.9)
+stopifnot(nrow(c9t) == 3L)
+cat("density filter OK\n")

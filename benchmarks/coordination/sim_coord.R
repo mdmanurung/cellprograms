@@ -11,8 +11,10 @@ COORD_CTS <- sprintf("ct%02d", 1:10)
 COORD_BREADTH <- c(R100 = 10L, R50 = 5L, R20 = 2L)
 
 gen_coord <- function(mode, amp, seed, act_cor = 1, G = getOption("ms.G", 4000L),
-                      n_prog_genes = getOption("ms.npg", 50L), priv_amp = 1, n_donors = 100L) {
+                      n_prog_genes = getOption("ms.npg", 50L), priv_amp = 1, n_donors = 100L,
+                      artifacts = character(0)) {
   stopifnot(mode %in% c("act+genes", "act+half", "act_only", "genes_only", "null"))
+  stopifnot(all(artifacts %in% c("vdj", "deletion")))
   set.seed(seed)
   cts <- COORD_CTS
   ids <- sprintf("d%03d", seq_len(n_donors))
@@ -68,6 +70,38 @@ gen_coord <- function(mode, amp, seed, act_cor = 1, G = getOption("ms.G", 4000L)
     lapply(seq_len(sample(1:2, 1)), function(k) list(g = take(n_prog_genes), w = rnorm(n_prog_genes, sd = priv_amp)))
   })
 
+  ## Artifact-shaped decoys (HANDOFF 2026-10-11 adoption items). Neither is a target: clusters
+  ## aligned with them are artifact calls, reported like decoys, never in the F1.
+  ## - vdj: an Ig/TCR-like program -- a donor-composition latent expressed on a small receptor-gene
+  ##   pool (renamed to IGLV*/TRBV* so the package's artifact_genes() regex flags it) in a random
+  ##   subset of 3-5 cell types, same genes across members (the real shape).
+  ## - deletion: 1-2 donors shifted on a shared gene set in EVERY cell type (a donor property);
+  ##   the "activity" is the donor indicator, the exact shape of a low-quality-donor artifact.
+  art <- list()
+  vdj_genes <- NULL
+  if ("vdj" %in% artifacts) {
+    vdj_genes <- take(40L)
+    mem_v <- sort(sample(cts, sample(3:5, 1)))
+    zv <- setNames(rnorm(n_donors), ids)
+    wv <- rnorm(40L, sd = amp)
+    art[["VDJ"]] <- list(id = "VDJ", type = "artifact_vdj", members = mem_v,
+                         z = setNames(lapply(mem_v, function(ct) zv), mem_v),
+                         genes = setNames(rep(list(vdj_genes), length(mem_v)), mem_v),
+                         w = setNames(rep(list(wv), length(mem_v)), mem_v),
+                         activity_true = TRUE, genes_true = TRUE)
+  }
+  if ("deletion" %in% artifacts) {
+    d_del <- sample(ids, sample(1:2, 1))
+    g_del <- take(100L)
+    w_del <- rnorm(100L, sd = amp)
+    zd <- setNames(as.numeric(ids %in% d_del), ids)
+    art[["DEL"]] <- list(id = "DEL", type = "artifact_deletion", members = cts,
+                         z = setNames(lapply(cts, function(ct) zd), cts),
+                         genes = setNames(rep(list(g_del), length(cts)), cts),
+                         w = setNames(rep(list(w_del), length(cts)), cts),
+                         activity_true = TRUE, genes_true = TRUE)
+  }
+
   pb <- list(); ncell <- list()
   for (ct in cts) {
     d <- donors[[ct]]; n <- length(d)
@@ -77,10 +111,35 @@ gen_coord <- function(mode, amp, seed, act_cor = 1, G = getOption("ms.G", 4000L)
     Y <- Y + 1.5 * outer(bz[d], bload)
     for (p in priv[[ct]]) { zp <- rnorm(n); Y[, p$g] <- Y[, p$g] + outer(zp, p$w) }
     for (p in progs) if (ct %in% p$members) Y[, p$genes[[ct]]] <- Y[, p$genes[[ct]]] + outer(p$z[[ct]][d], p$w[[ct]])
+    for (p in art) if (ct %in% p$members) Y[, p$genes[[ct]]] <- Y[, p$genes[[ct]]] + outer(p$z[[ct]][d], p$w[[ct]])
     pb[[ct]] <- Y; ncell[[ct]] <- nc
+  }
+  if (!is.null(vdj_genes)) {
+    vdj_names <- c(paste0("IGLV", seq_len(20L)), paste0("TRBV", seq_len(20L)))
+    for (ct in cts) colnames(pb[[ct]])[vdj_genes] <- vdj_names
   }
   meta <- data.frame(observation_id = ids, institute = factor(inst), stringsAsFactors = FALSE)
   list(x = as_cell_program_data(pb, sample_metadata = meta), ncell = ncell,
-       truth = list(mode = mode, programs = progs, nuisance = bz, small = small, overlap = overlap),
+       truth = list(mode = mode, programs = c(progs, art), nuisance = bz, small = small, overlap = overlap),
        strata = setNames(as.character(inst), ids))
+}
+
+## Count-level variant (HANDOFF: "count-level simulator (current is Gaussian)"). Same latent
+## structure and truth as gen_coord, but expression is realized as Poisson counts per donor
+## (library size ncell, relative expression exp(Y) normalized per donor) and the fit input is
+## log2 CPM. Stated limit: Poisson aggregation only -- no NB overdispersion arm.
+gen_coord_counts <- function(mode, amp, seed, ...) {
+  d <- gen_coord(mode, amp, seed, ...)
+  set.seed(seed + 1L)
+  pb_c <- stats::setNames(lapply(names(d$x$pseudobulk), function(ct) {
+    Y <- d$x$pseudobulk[[ct]]
+    nc <- d$ncell[[ct]][rownames(Y)]
+    rho <- exp(Y)
+    lambda <- rho / rowSums(rho) * nc
+    matrix(stats::rpois(length(lambda), lambda), nrow(Y), ncol(Y), dimnames = dimnames(Y))
+  }), names(d$x$pseudobulk))
+  pb_lcpm <- lapply(pb_c, function(C) log2(sweep(C, 1L, rowSums(C), "/") * 1e6 + 1))
+  d$x <- as_cell_program_data(pb_lcpm, sample_metadata = d$x$sample_metadata)
+  d$counts <- pb_c
+  d
 }
