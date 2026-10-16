@@ -33,6 +33,11 @@ articles:
   - articles/real_data_case_study
   - articles/divas_case_study
 
+- title: Applications
+  navbar: ~
+  contents:
+  - articles/immune_aging_cross_cohort
+
 - title: Comparisons
   navbar: ~
   contents:
