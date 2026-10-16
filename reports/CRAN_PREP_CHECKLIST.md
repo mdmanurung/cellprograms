@@ -23,13 +23,17 @@ checklist is everything that can be verified or prepared ahead.
 - [ ] Win-builder + mac-builder pre-submission runs (CRAN's web forms).
 - [ ] Title/description fields in DESCRIPTION pass CRAN's style scrutiny
       (no quotes, no "R" in title, sentence case).
-- [ ] `utils::citEntry`/CITATION file if we want a citation notice.
+- [x] `utils::citEntry`/CITATION file: inst/CITATION added 2026-10-16
+      (verified via readCitationFile); CITATION.cff already present.
 - [ ] License check: dependencies' licenses compatible (flashier, ebnm,
       flashier.utils, cli, digest — all MIT/GPL-compatible with the current
       LICENSE; confirm flashier.utils's license at release time).
-- [ ] URLs in docs resolve (portal links, DOIs) — run `urlchecker::url_check()`.
+- [x] URLs in docs resolve: `urlchecker::url_check()` run 2026-10-16 —
+      all 6 URLs correct, 0 fixes needed.
 - [ ] Check `R CMD check --as-cran` NOTE about "New submission" — expected.
-- [ ] Package-landing pages: pkgdown site deploys green (CI job exists).
+- [x] Package-landing pages: pkgdown site rebuilt 2026-10-16 (commit
+      7a3269a) — current with all 6 articles (incl. immune_aging_cross_cohort)
+      and the full 46-export reference; live pages return 200.
 - [ ] Decide: submit v0.2.0 as-is or after the batch-benchmark outcome (if the
       registered rule fires and R/ changes, bump to 0.2.1/0.3.0 first — never
       submit a version whose NEWS/check state is in flux).
