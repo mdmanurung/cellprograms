@@ -51,7 +51,7 @@ dataset <- tools::file_path_sans_ext(basename(fit_path))
 }
 
 .greedy_partners <- function(cos_sim) {
-  gm <- .greedy_match(cos_sim)
+  gm <- cellprograms:::.greedy_match(cos_sim)
   partner <- rep(NA_integer_, nrow(cos_sim))
   if (nrow(gm)) partner[gm$a] <- gm$b
   partner
