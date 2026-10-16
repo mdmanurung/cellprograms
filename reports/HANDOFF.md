@@ -135,3 +135,42 @@ application (2,609 donors) is complete end to end:
   jobs mid-run (stacking error, not a pipeline defect). All artifacts survived
   on disk; work resumed on a 2-machine split with a strict concurrency budget.
   Lesson recorded: cap concurrent fit lanes at ~7 GB on a 16 GB worker.
+
+## Update 2026-10-16 (latest) — composition-level aging axis added
+
+- **Composition-level analysis complete** (roadmap item 2 closed): per-donor
+  per-cell-type counts extracted from every cohort h5ad
+  (`composition_counts.py`); per cohort, key-type proportions
+  (`prop ~ age + sex [+CMV]`) and the GZMK+/GZMB+ Tem log-ratio
+  (`composition_aging.R`). Tables:
+  `analyses/immune_aging/tables/composition/`; figures:
+  `fig_aging_composition.png`, `fig_aging_tem_ratio.png`; report Section 7;
+  vignette section "The composition-level aging axis".
+- **Findings**: proportion-level thymic involution is universal (CD8+ RTE
+  decline 8/8 cohorts, −22% to −70% relative per decade; CD4+ RTE 8/8; CD8+
+  T naive 8/8; gd T Vd2 GZMK+ 7/8) — mirrors the program-level RTE declines.
+  The Tem GZMK+/GZMB+ ratio's age trajectory is cohort-inconsistent
+  (OneK1K −0.101, CIMA −0.078, SPAC −0.161, AIDA +0.157 opposite sign, rest
+  null) — consistent with the paper's framing of the ratio as a
+  health-trajectory stratifier, not a monotonic age effect. **CMV replicates
+  cleanly at composition level**: SoundLife CMV+ shifts the log ratio by
+  −1.07 (p = 2.5e-11), i.e. ~66% lower GZMK+/GZMB+ ratio in CMV+ donors —
+  exactly the paper's claim; KCL null (diluted by No_info stratum).
+- **Discovery-freeze sensitivity (roadmap item 1) CLOSED**: OneK1K (981
+  donors) refreeze + reprojection of all 7 remaining cohorts. Panel is
+  discovery-robust — matched score concordance moves ≤ ±0.09 per cohort
+  (OneK1K-disc 0.508–0.710 vs ABF300-disc 0.486–0.634; SoundLife rises to
+  0.710), matched age-profile Spearman stays null-to-weak under both
+  discoveries (OneK1K-disc −0.079..0.116), and projected-score replication
+  of the deeper OneK1K hit set (244–249 FDR<0.05 hits vs ABF300's 45–48) is
+  16–37% per query (null ~4%) — hit-set depth, not weaker transfer. Table:
+  `analyses/immune_aging/tables/sensitivity/discovery_sensitivity.csv`;
+  report Section 4a.
+- **Session incident (second OOM, recovered)**: the first refreeze attempt
+  (loading the 2.3 GB OneK1K fit per projection on a 16 GB worker) OOM-killed
+  the worker and wiped its local workspace, including the query pseudobulks
+  and uncommitted repo edits. Recovery: fits/assoc/projection outputs
+  survived on shared + results storage; h5ads re-downloaded from the portal
+  (aria2c, 16 connections, ~100 MB/s), pseudobulks rebuilt, composition
+  scripts rewritten and validated bit-for-bit against the surviving tables.
+  Lesson reinforced: discovery-fit projections belong on a ≥32 GB worker.

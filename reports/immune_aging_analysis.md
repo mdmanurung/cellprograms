@@ -94,6 +94,45 @@ cytotoxic, CD4+ Proliferative: rank-deficient shared-gene support) and are
 logged, not fatal. OneK1K's "ILCs" type is absent from the ABF300 fit
 (NA activities, warned).
 
+### 4a. Discovery-cohort sensitivity (OneK1K refreeze)
+
+The whole panel was recomputed with **OneK1K (981 donors) as the discovery
+freeze** (MR-0 refit at the registered operating point; MR-1 projection of
+all 7 remaining cohorts). Per-cohort comparison with the registered
+ABF300-discovery panel (`tables/sensitivity/discovery_sensitivity.csv`):
+
+| Query | Median \|cor\|, ABF300 disc. | Median \|cor\|, OneK1K disc. | Sign flips (ABF3 / OneK1K) |
+|---|---|---|---|
+| ABF300 (166) | — | 0.545 | — / 0.330 |
+| SPAC (33) | 0.589 | 0.528 | 0.392 / 0.363 |
+| UCSF (99) | 0.486 | 0.579 | 0.304 / 0.343 |
+| AIDA (625) | 0.591 | 0.538 | 0.321 / 0.315 |
+| CIMA (421) | 0.552 | 0.634 | 0.361 / 0.329 |
+| KCL (188) | — | 0.508 | — / 0.260 |
+| SoundLife (96) | 0.634 (vs KCL) | 0.710 | 0.365 / 0.291 |
+
+**Verdict: the conservation panel is discovery-robust.** Switching the
+discovery freeze moves matched score concordance by at most ±0.09 per
+cohort (OneK1K-disc range 0.508–0.710 vs ABF300-disc 0.486–0.634), slightly
+widening the panel's upper end (SoundLife 0.710) without collapsing any
+pair. Matched age-profile Spearman stays null-to-weak under both
+discoveries (OneK1K-disc: −0.079..0.116; ABF300-disc: −0.07..0.17) — the
+decomposition-mismatch conclusion is a property of the method, not of the
+discovery cohort.
+
+Projected-score age replication under the OneK1K discovery
+(`tables/sensitivity/projected_age_replication_onek1k_disc.csv`): the
+981-donor freeze yields 244–249 significant age hits (FDR<0.05; ABF300's
+166-donor freeze yielded 45–48), and 16–37% of them replicate in each query
+cohort (p<0.05, same sign; ABF300 0.198, SPAC 0.262, UCSF 0.219, AIDA 0.269,
+CIMA 0.365, KCL 0.325, SoundLife 0.162; null ~0.04). Matched age-profile
+Spearman spans −0.03..0.46 (highest KCL 0.462, SPAC 0.314). The larger
+discovery's hit set includes smaller effects that a <200-donor query is
+underpowered to confirm, so the lower raw replication fraction vs the
+ABF300-discovery numbers (36–68% of 45–48 hits) reflects hit-set depth, not
+weaker transfer — the qualitative conclusion (partial score-level transfer,
+well above null) is unchanged.
+
 ## 5. Association replication (tier 1b)
 
 **Matched-refit profiles are null-to-weak everywhere** (Spearman of age
@@ -129,15 +168,66 @@ should be made at the score/subspace level.
 
 ![Jaccard](../vignettes/articles/figures/fig_aging_jaccard.png)
 
-## 7. CMV axis (KCL → SoundLife)
+## 7. Composition-level aging axis (proportions and the Tem ratio)
+
+Program scores capture within-compartment transcriptional shifts; cell
+**proportions** capture a second, independent aging axis. Per-donor
+per-cell-type counts were extracted from each cohort h5ad and modeled
+directly (`prop ~ age + sex [+ CMV]` per key type; scripts
+`composition_counts.py` + `composition_aging.R`, tables under
+`tables/composition/`).
+
+**Proportion-level thymic involution is universal** — more consistent
+across cohorts than the program-level declines (Section 3):
+
+| Key type | Cohorts significant (p<0.05) | Relative change per decade |
+|---|---|---|
+| CD8+ RTE | 8/8 declining | −22% to −70% |
+| CD4+ RTE | 8/8 declining | −20% to −63% |
+| CD8+ T Naive | 8/8 declining | −19% to −42% |
+| gd T Vd2 GZMK+ | 7/8 declining | −8% to −29% |
+| CD8+ Tem GZMB+ | 6/8 increasing | +9% to +18% |
+| CD8+ Tem GZMK+ | 6/8 increasing | +4% to +23% |
+| CD8+ Temra | 3/8 increasing | +9% to +15% |
+| CD4+ T Naive | 3/8 (mixed) | ±3% |
+
+![Composition heatmap](../vignettes/articles/figures/fig_aging_composition.png)
+
+**The GZMK+/GZMB+ Tem ratio is not a monotonic age effect.** Its age
+trajectory is cohort-inconsistent — log-ratio slope per decade −0.101
+(OneK1K, p = 7.6e-12), −0.078 (CIMA, p = 1.6e-3), −0.161 (SPAC, p = 1.2e-3),
+but **+0.157 in AIDA (p = 5.4e-6, opposite sign)** and null in ABF300, KCL,
+UCSF, SoundLife. This matches the paper's framing of the ratio as a
+health-trajectory stratifier rather than an age effect.
+
+| Cohort | n | Median ratio | Age slope (log/10y) | age p | CMV effect (log) | CMV p |
+|---|---|---|---|---|---|---|
+| ABF300 | 166 | 1.041 | +0.077 | 0.16 | — | — |
+| OneK1K | 981 | 0.590 | −0.101 | 7.6e-12 | — | — |
+| AIDA | 625 | 0.622 | +0.157 | 5.4e-6 | — | — |
+| CIMA | 421 | 0.399 | −0.078 | 1.6e-3 | — | — |
+| KCL | 188 | 0.761 | +0.034 | 0.29 | −0.31 | 0.61 |
+| UCSF | 99 | 0.856 | −0.043 | 0.40 | — | — |
+| SoundLife | 96 | 0.991 | −0.012 | 0.80 | **−1.07** | **2.5e-11** |
+| SPAC | 33 | 0.599 | −0.161 | 1.2e-3 | — | — |
+
+**The CMV effect on the ratio replicates cleanly** where serostatus is
+recorded: in SoundLife, CMV+ donors shift the log ratio by −1.07
+(p = 2.5e-11) — a ~66% lower GZMK+/GZMB+ ratio in CMV+ donors, exactly the
+paper's claim. KCL's smaller, null estimate (−0.31, p = 0.61) is diluted by
+its No_info stratum (kept as its own level).
+
+![Tem ratio](../vignettes/articles/figures/fig_aging_tem_ratio.png)
+
+## 8. CMV axis at program level (KCL → SoundLife)
 
 The only CMV-informative pair. Matched score concordance 0.634; matched
 CMV-profile replication null (Spearman −0.15, sign agreement 0.46). The
 paper's CMV effect operates at the composition level (GZMK+/GZMB+ Tem
-ratio); program-level CMV associations do not replicate under projection
-matching. Composition-level analysis is future work.
+ratio, Section 7); program-level CMV associations do not replicate under
+projection matching.
 
-## 8. Related registered benchmarks (same session)
+## 9. Related registered benchmarks (same session)
 
 - **Batch adjustment v1** (`benchmarks/batch_adjustment/RESULTS.md`): OLS
   residualization vs ComBat vs ComBat-seq vs fixed-covariate on simulated
@@ -149,19 +239,20 @@ matching. Composition-level analysis is future work.
   the real K30 stability refits; pooled discordance 1.35% (Stephenson 1.19%,
   combat 1.58%) < 5% threshold → greedy matching retained, no R/ change.
 
-## 9. Limitations
+## 10. Limitations
 
 - Program sign orientation (canonicalization by top-|loading| gene) is
   mostly but not provably stable across fits; matched metrics use |cor|.
 - CMV adjustment impossible outside KCL/SoundLife; ethnicity confounded
   with cohort (AIDA/CIMA/SPAC Asian; OneK1K/ABF300 European).
 - SPAC (60+ only) has restricted age range; its age betas are noisy (n=33).
-- Discovery limited to ABF300 (166 donors) — a larger discovery freeze
-  (e.g. OneK1K) is a robustness check worth running.
+- Discovery was registered at ABF300 (166 donors); the OneK1K (981-donor)
+  refreeze (Section 4a) confirms the panel is discovery-robust, but only
+  two of the eight cohorts have served as discovery so far.
 - Tier-2 principal-angle subspace metrics and the stability-normalized
   conservation ratio were registered as extensions and are not yet computed.
 
-## 10. Reproducibility
+## 11. Reproducibility
 
 Environment: R 4.4.2, cellprograms v0.2.0+ (this repo), rhdf5, clue, sva;
 Python 3.10+ (h5py, numpy, scipy). Data: open portal (access recipe in

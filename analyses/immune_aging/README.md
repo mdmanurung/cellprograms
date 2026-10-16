@@ -114,3 +114,51 @@ Per-cohort fits (`<cohort>_full_fit.rds`, 0.2-1.6 GB), pseudobulks
 via the commands above. The full fits and projection outputs are also
 distributed alongside this repository (see the session results archive,
 `aging_pbmc_repro/`).
+
+## Composition-level aging axis (added 2026-10-16, later)
+
+Program-level results are complemented by a composition-level analysis
+(cell-type proportions and the paper's GZMK+/GZMB+ Tem ratio):
+
+```bash
+# 9. Per-donor per-cell-type counts from each cohort h5ad (obs only)
+python scripts/composition_counts.py <cohort>.h5ad <COHORT> > <dir>_ct_counts.csv
+
+# 10. Key-type proportion trajectories + Tem ratio (zero-filled regressions)
+Rscript scripts/composition_aging.R <composition_dir> <pseudobulk_base> <out_dir>
+
+# 11. Figures (composition heatmap; Tem ratio age scatter + CMV boxplot)
+Rscript scripts/make_composition_figures.R <tables_dir> <fig_dir>
+```
+
+Tables: `tables/composition/` (regenerated 2026-10-16 from re-downloaded
+h5ads; matches the original run exactly). Findings: proportion-level thymic
+involution is universal (CD8+/CD4+ RTE decline in 8/8 cohorts); the Tem
+ratio's age trajectory is cohort-inconsistent (AIDA sign flip) — a
+health-trajectory stratifier, not a monotonic age effect; the CMV effect on
+the ratio replicates in SoundLife (−1.07 log, p = 2.5e-11).
+
+## Discovery-cohort sensitivity (added 2026-10-16, later)
+
+The conservation panel was recomputed with OneK1K (981 donors) as the
+discovery freeze (MR-0 refit + MR-1 projection of all 7 remaining cohorts,
+same operating point):
+
+```bash
+# per query cohort (7x): project vs the OneK1K fit, then assoc concordance
+Rscript scripts/project_cohort.R <onek1k_dir>/onek1k_full_fit.rds <dir> <Name> <dir>/<query>_vs_onek1k
+Rscript scripts/assoc_concordance.R <onek1k_dir>/onek1k_full_assoc.csv <dir>/<query>_full_assoc.csv \
+        <dir>/<query>_vs_onek1k_concordance.csv <dir>/<query>_vs_onek1k_assoc_concordance.csv
+
+# assemble the ABF300-disc vs OneK1K-disc comparison
+Rscript scripts/discovery_sensitivity.R <out_csv>
+# projected-score age replication under the OneK1K discovery
+Rscript scripts/projected_age_replication_gen.R onek1k <out_csv>
+```
+
+Table: `tables/sensitivity/discovery_sensitivity.csv`. Verdict: the panel is
+discovery-robust — matched score concordance moves ≤ ±0.09 per cohort
+(OneK1K-disc 0.508–0.710 vs ABF300-disc 0.486–0.634); matched age-profile
+Spearman stays null-to-weak under both discoveries; projected-score
+replication of the deeper OneK1K hit set (244–249 hits) is 16–37% per query
+(null ~4%). Report Section 4a has the full comparison.

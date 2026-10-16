@@ -204,6 +204,42 @@ overlap.
 
 ![Top-20 gene Jaccard of matched programs](figures/fig_aging_jaccard.png)
 
+## The composition-level aging axis
+
+Program scores capture within-compartment transcriptional shifts; cell
+**proportions** capture a second, independent aging axis. Re-running the
+per-donor models at the composition level (`prop ~ age + sex`, per cell
+type; scripts in `analyses/immune_aging/scripts/`) shows the
+thymic-involution signature even more universally than the program level:
+CD8+ RTE proportions decline with age in **8/8 cohorts** (relative change
+−22% to −70% per decade), CD4+ RTE in 8/8, CD8+ T naive in 8/8, and
+γδ T Vd2 GZMK+ in 7/8 — mirroring the projected RTE program declines
+above.
+
+```{r fig-composition, eval = FALSE, fig.width = 8, fig.height = 6}
+# figures/fig_aging_composition.png
+```
+
+![Relative change in cell-type proportion per decade of age](figures/fig_aging_composition.png)
+
+The paper's **GZMK+/GZMB+ Tem ratio** behaves differently: its age
+trajectory is cohort-inconsistent (log-ratio slope per decade −0.101 in
+OneK1K, −0.078 in CIMA, −0.161 in SPAC, but **+0.157 in AIDA** — opposite
+sign — and null in ABF300, KCL, UCSF, SoundLife). This is consistent with
+the ratio acting as a **health-trajectory stratifier** rather than a
+monotonic age effect. The **CMV effect** on the ratio, by contrast,
+replicates cleanly where CMV status is recorded: in SoundLife, CMV+
+serostatus shifts the log ratio by **−1.07 (p = 2.5e-11)** — CMV+ donors
+carry a ~66% lower GZMK+/GZMB+ ratio — exactly the paper's claim. (KCL's
+smaller, null estimate is diluted by its No_info stratum, kept as its own
+level.)
+
+```{r fig-tem-ratio, eval = FALSE, fig.width = 8, fig.height = 4}
+# figures/fig_aging_tem_ratio.png
+```
+
+![GZMK+/GZMB+ Tem ratio: age trajectory in OneK1K and CMV effect in SoundLife](figures/fig_aging_tem_ratio.png)
+
 ## Practical guidance
 
 - **Freeze-then-project (MR-0/MR-1) is the right design for cross-cohort

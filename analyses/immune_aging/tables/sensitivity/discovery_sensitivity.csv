@@ -1,0 +1,9 @@
+"query","abf300_n_matched_programs","abf300_median_abs_cor","abf300_frac_abs_cor_ge_0.5","abf300_sign_flip_rate","abf300_assoc_spearman_age","abf300_assoc_sign_agree_age","onek1k_n_matched_programs","onek1k_median_abs_cor","onek1k_frac_abs_cor_ge_0.5","onek1k_sign_flip_rate","onek1k_assoc_spearman_age","onek1k_assoc_sign_agree_age"
+"ABF300",NA,NA,NA,NA,NA,NA,194,0.545,0.531,0.33,-0.048,0.49
+"AIDA",184,0.591,0.576,0.321,0.015,0.527,200,0.538,0.525,0.315,0.074,0.5
+"CIMA",194,0.552,0.552,0.361,0.119,0.531,210,0.634,0.6,0.329,-0.079,0.49
+"KCL",NA,NA,NA,NA,NA,NA,196,0.508,0.505,0.26,0.059,0.464
+"OneK1K",194,0.613,0.598,0.309,-0.025,0.49,NA,NA,NA,NA,NA,NA
+"SoundLife",189,0.634,0.635,0.365,0.133,0.54,199,0.71,0.698,0.291,-0.044,0.477
+"SPAC",186,0.589,0.602,0.392,-0.07,0.468,190,0.528,0.568,0.363,0.116,0.558
+"UCSF",161,0.486,0.491,0.304,0.166,0.528,178,0.579,0.573,0.343,-0.029,0.466

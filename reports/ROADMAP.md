@@ -116,13 +116,22 @@ closed (OLS default retained; small-batch guidance documented).
 
 **New items opened by the application:**
 
-1. **Discovery-freeze robustness**: the application freezes ABF300 (166
-   donors) as discovery. Refreezing on OneK1K (981) and reprojecting would
-   test discovery-cohort sensitivity of the conservation panel.
-2. **Composition-level aging axis**: the paper's GZMK+/GZMB+ Tem ratio and
-   CMV effects live at the cell-type proportion level; cellprograms operates
-   within cell types. A composition-aware companion analysis (proportions +
-   program scores jointly) is the natural extension.
+1. ~~**Discovery-freeze robustness**~~ **DONE (2026-10-16)**: OneK1K (981
+   donors) refreeze + reprojection of all 7 remaining cohorts; report
+   Section 4a, table in `analyses/immune_aging/tables/sensitivity/`.
+   Panel is discovery-robust: matched score concordance moves ≤ ±0.09 per
+   cohort (OneK1K-disc 0.508–0.710 vs ABF300-disc 0.486–0.634); matched
+   age-profile Spearman stays null-to-weak under both discoveries;
+   projected-score replication of the deeper OneK1K hit set (244–249 hits)
+   is 16–37% per query (null ~4%) — hit-set depth, not weaker transfer.
+2. ~~**Composition-level aging axis**~~ **DONE (2026-10-16)**: proportions +
+   GZMK+/GZMB+ Tem ratio modeled per cohort (`composition_aging.R`); report
+   Section 7, tables in `analyses/immune_aging/tables/composition/`.
+   Proportion-level thymic involution universal (CD8+/CD4+ RTE 8/8 cohorts);
+   Tem ratio age trajectory cohort-inconsistent (AIDA sign flip) — a
+   health-trajectory stratifier, not a monotonic age effect; CMV effect on
+   the ratio replicates in SoundLife (−1.07 log, p = 2.5e-11). Joint
+   proportion + program-score modeling remains open as a deeper follow-up.
 3. **Principal-angle subspace metrics** (registered tier-2 extension):
    subspace alignment between discovery and refit loading spans, stability-
    normalized conservation ratio (between-cohort cosine / within-cohort
