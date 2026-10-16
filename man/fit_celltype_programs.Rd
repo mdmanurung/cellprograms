@@ -30,6 +30,10 @@ fit_celltype_programs(
 "point_normal", or "unimodal".}
 
 \item{max_factors}{Maximum candidate factors per cell type (greedy_Kmax).
+Must leave at least one residual degree of freedom per cell type:
+the fit aborts if `max_factors > n - q - 1`, where n is the number of
+donors for the cell type and q the number of covariate columns adjusted
+for (safety guard; never binds at n >= 50 with `max_factors <= 10`).
 Default 10: benchmarked on COMBAT pseudobulk (32-config factorial),
 K=10 dominated all prior/variance/backfit combinations; K >= 30
 overfits and collapses disease-signal recovery. For coordinated-program

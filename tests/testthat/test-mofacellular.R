@@ -23,7 +23,7 @@ test_that("as_mofacellular_input produces create_init_exp-ready counts/coldata",
 
   # works on a fit object too (pseudobulk carried through)
   skip_if_not_installed("flashier")
-  fit <- fit_celltype_programs(cpd, seed = 1)
+  fit <- fit_celltype_programs(cpd, max_factors = 3, seed = 1)  # K=10 would trip the C4 residual-df guard at n=8
   out2 <- as_mofacellular_input(fit)
   expect_equal(out2$counts, out$counts)
 

@@ -10,6 +10,10 @@
 #' @param loading_prior Gene-side EBNM prior family: "point_laplace" (default),
 #'   "point_normal", or "unimodal".
 #' @param max_factors Maximum candidate factors per cell type (greedy_Kmax).
+#'   Must leave at least one residual degree of freedom per cell type:
+#'   the fit aborts if `max_factors > n - q - 1`, where n is the number of
+#'   donors for the cell type and q the number of covariate columns adjusted
+#'   for (safety guard; never binds at n >= 50 with `max_factors <= 10`).
 #'   Default 10: benchmarked on COMBAT pseudobulk (32-config factorial),
 #'   K=10 dominated all prior/variance/backfit combinations; K >= 30
 #'   overfits and collapses disease-signal recovery. For coordinated-program
@@ -126,8 +130,13 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     Y <- as.matrix(x$pseudobulk[[ct]])
     genes <- feature_sets[[ct]]
     Y <- Y[, genes, drop = FALSE]
-    if (!is.null(covariates) && covariate_mode == "residualize") {
-      Y <- .residualize(Y, x$sample_metadata, covariates, ct)
+    Xres <- if (!is.null(covariates) && covariate_mode == "residualize") {
+      .cov_design(rownames(Y), x$sample_metadata, covariates, ct)
+    } else NULL
+    if (!is.null(Xres)) {
+      R <- stats::lm.fit(Xres, Y)$residuals
+      dimnames(R) <- dimnames(Y)
+      Y <- R
     }
     if (center) Y <- scale(Y, center = TRUE, scale = scale)
     else if (scale) Y <- scale(Y, center = FALSE, scale = TRUE)
@@ -159,6 +168,26 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
       cli::cli_inform("Dropping {sum(!keep_cols)} zero-variance gene(s) in cell type {.val {ct}}.")
       Y <- Y[, keep_cols, drop = FALSE]
       genes <- genes[keep_cols]
+    }
+
+    # C4 safety guard (ROADMAP M6, D7c): the requested number of factors must
+    # fit within the residual degrees of freedom. q_ct counts the covariate
+    # columns adjusted for in this cell type (residualize: design rank minus
+    # the intercept; fixed: the fixed columns), so n_ct - q_ct - 1 is the
+    # degrees of freedom left after the covariate model and one spare df.
+    # Never binds at operating points (n >= 50, max_factors <= 10); it fires
+    # for small-n cell types at the CMP-detection K (e.g. max_factors = 30).
+    q_ct <- if (!is.null(Xres)) {
+      max(qr(Xres)$rank - 1L, 0L)
+    } else if (!is.null(Xc)) {
+      ncol(Xc)
+    } else 0L
+    n_ct <- nrow(Y)
+    if (max_factors > n_ct - q_ct - 1L) {
+      cli::cli_abort(c(
+        "Too many factors in cell type {.val {ct}}: {.arg max_factors} = {max_factors} exceeds the {n_ct - q_ct - 1L} factor(s) the residual degrees of freedom support (n = {n_ct} donor(s), q = {q_ct} covariate column(s)).",
+        i = "Lower {.arg max_factors}, drop covariates, or add donors for this cell type."
+      ))
     }
 
     args <- modifyList(list(
@@ -308,15 +337,6 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     attr(X, "scaled:center") <- attr(X, "scaled:scale") <- NULL
   }
   X
-}
-
-# Residualize Y (obs x genes) on sample-level covariates, intercept included.
-.residualize <- function(Y, meta, covariates, ct) {
-  X <- .cov_design(rownames(Y), meta, covariates, ct)
-  if (is.null(X)) return(Y)
-  R <- stats::lm.fit(X, Y)$residuals
-  dimnames(R) <- dimnames(Y)
-  R
 }
 
 # Soft adjustment (SOFA-style): covariate columns enter flashier as FIXED
