@@ -1,0 +1,94 @@
+# Freeze a preprocessing specification
+
+Resolves the feature panel and adjustment decisions once and returns a
+content-addressed specification (sha256 digest) that
+\`fit_celltype_programs(preprocessing_spec = ...)\` replays exactly on
+any dataset carrying the same genes. Intended workflow: freeze the spec
+on the discovery cohort, store it alongside the fit (it is plain
+RDS-serializable data), and pass it to every refit so the frozen panel
+can never silently drift.
+
+## Usage
+
+``` r
+freeze_preprocessing(
+  x,
+  features = "all",
+  n_variable_genes = 2000,
+  exclude_genes = NULL,
+  exclude_artifacts = FALSE,
+  covariates = NULL,
+  covariate_mode = c("residualize", "fixed"),
+  center = TRUE,
+  scale = FALSE
+)
+```
+
+## Arguments
+
+- x:
+
+  A \`cell_program_data\` object (the discovery cohort).
+
+- features:
+
+  Feature selection mode, passed to the same selection used by
+  \`fit_celltype_programs()\`: "all", "variable", or a named list of
+  gene ID vectors per cell type. The resolved per-cell-type gene vectors
+  are stored in the spec.
+
+- n_variable_genes:
+
+  Number of most-variable genes when \`features = "variable"\`.
+
+- exclude_genes:
+
+  Optional character vector of gene IDs removed from every cell type's
+  feature universe before feature selection.
+
+- exclude_artifacts:
+
+  Convenience preset: when TRUE, union \`artifact_genes()\` over the
+  pseudobulk gene universe into \`exclude_genes\`. The spec stores the
+  resolved union.
+
+- covariates:
+
+  Optional sample-level covariates: a character vector of
+  \`sample_metadata\` column names or a one-sided formula (stored as its
+  deparsed string so the spec serializes and digests stably).
+
+- covariate_mode:
+
+  How \`covariates\` are handled in refits: "residualize" (default) or
+  "fixed".
+
+- center:
+
+  Center genes within each cell type (default TRUE).
+
+- scale:
+
+  Unit-variance scale genes (default FALSE; not recommended).
+
+## Value
+
+A list of class \`cell_program_preproc_spec\` with components
+\`spec_version\`, \`feature_sets\` (named list of gene ID vectors per
+cell type), \`exclude_genes\` (resolved, sorted, unique),
+\`exclude_artifacts\`, \`covariates\` (character vector or deparsed
+formula string), \`covariate_mode\`, \`center\`, \`scale\`,
+\`gene_universe\` (sorted unique gene names of the discovery cohort),
+and \`digest\` (sha256 over the spec contents). The digest is what
+refits record in their preprocessing provenance.
+
+## Examples
+
+``` r
+sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
+x <- as_cell_program_data(sim$pseudobulk)
+spec <- freeze_preprocessing(x, features = "variable", n_variable_genes = 150)
+fit <- fit_celltype_programs(x, max_factors = 3, preprocessing_spec = spec)
+fit$preprocessing$frozen_spec == spec$digest   # TRUE
+#> [1] TRUE
+```

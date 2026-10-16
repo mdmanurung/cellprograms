@@ -38,6 +38,7 @@
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/immune_aging_cross_cohort.html">Case study: immune-aging programs across 8 global PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis</a></li>
   </ul>
 </li>
@@ -205,11 +206,29 @@ the fit’s <code>scores</code> (observations x programs) and
 <span><span class="va">W</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/program_loadings.html">program_loadings</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>  <span class="co"># genes x all programs</span></span>
 <span><span class="fu"><a href="../reference/program_summary.html">program_summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>        <span class="co"># per cell type: K, R2, ELBO</span></span>
 <span><span class="fu"><a href="../reference/top_genes.html">top_genes</a></span><span class="op">(</span><span class="va">fit</span>, <span class="st">"CD4_1"</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="loadings-on-a-common-gene-panel">Loadings on a common gene panel<a class="anchor" aria-label="anchor" href="#loadings-on-a-common-gene-panel"></a>
+</h3>
+<p>With <code>features = "variable"</code>, each cell type fits its own
+gene panel, so the per-cell-type loading matrices cannot be compared
+gene-by-gene across cell types. Rather than refitting on the union panel
+(which the model-selection benchmark showed does not improve recovery),
+<code><a href="../reference/union_panel_loadings.html">union_panel_loadings()</a></code> refits the loadings post hoc: it
+regresses each cell type’s union-panel expression on its fixed program
+scores by least squares, replaying the fit’s covariate handling and
+centering. Fits and scores are untouched; the result is a gene x program
+matrix per cell type on the shared panel, for cross-cell-type loading
+comparisons.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">up</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/union_panel_loadings.html">union_panel_loadings</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<span><span class="va">up</span><span class="op">$</span><span class="va">loadings</span><span class="op">$</span><span class="va">CD4</span>          <span class="co"># genes x programs on the common panel</span></span>
+<span><span class="va">up</span><span class="op">$</span><span class="va">genes</span>                 <span class="co"># the panel (union of per-cell-type fitted genes)</span></span></code></pre></div>
+</div>
 </div>
 <div class="section level2">
 <h2 id="coordinated-multicellular-programs-cmps">4. Coordinated multicellular programs (CMPs)<a class="anchor" aria-label="anchor" href="#coordinated-multicellular-programs-cmps"></a>
 </h2>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/find_coordinated_programs.html">find_coordinated_programs</a></span><span class="op">(</span><span class="va">fit</span>, strata <span class="op">=</span> <span class="st">"site"</span>, ambient <span class="op">=</span> <span class="st">"flag"</span>,</span>
 <span>                                 n_perm <span class="op">=</span> <span class="fl">999</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/cmp_scores.html">cmp_scores</a></span><span class="op">(</span><span class="va">fit</span>, <span class="va">res</span><span class="op">)</span>   <span class="co"># donors x CMPs consensus scores</span></span></code></pre></div>
@@ -262,7 +281,7 @@ survives is not an artifact of case/control composition.</p>
 <div class="section level2">
 <h2 id="program-sharing-mashr">5. Program sharing (mashr)<a class="anchor" aria-label="anchor" href="#program-sharing-mashr"></a>
 </h2>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">shr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/program_sharing.html">program_sharing</a></span><span class="op">(</span><span class="va">fit</span>, n_perm <span class="op">=</span> <span class="fl">199</span>, z_thresh <span class="op">=</span> <span class="fl">1.5</span><span class="op">)</span></span>
 <span><span class="va">shr</span><span class="op">$</span><span class="va">summary</span>   <span class="co"># one row per program: shared / partial / private</span></span></code></pre></div>
 <p>Sharing is a different axis from coordination: two cell types can use
@@ -306,7 +325,7 @@ signs still counts as shared.</li>
 <div class="section level2">
 <h2 id="artifact-masking">6. Artifact masking<a class="anchor" aria-label="anchor" href="#artifact-masking"></a>
 </h2>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">flags</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/flag_artifact_genes.html">flag_artifact_genes</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>          <span class="co"># post-hoc: which programs look artifactual</span></span>
 <span><span class="co"># gene universe: union of the per-cell-type loading row names</span></span>
 <span><span class="va">universe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="../reference/program_loadings.html">program_loadings</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, <span class="va">rownames</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -325,7 +344,7 @@ calls substantially (see the real-data case study).</p>
 <div class="section level2">
 <h2 id="putting-it-together">Putting it together<a class="anchor" aria-label="anchor" href="#putting-it-together"></a>
 </h2>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">x</span>   <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_cell_program_data.html">as_cell_program_data</a></span><span class="op">(</span><span class="va">pseudobulk</span>, sample_metadata <span class="op">=</span> <span class="va">metadata</span><span class="op">)</span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/canonicalize_programs.html">canonicalize_programs</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/fit_celltype_programs.html">fit_celltype_programs</a></span><span class="op">(</span><span class="va">x</span>, max_factors <span class="op">=</span> <span class="fl">30</span>, covariates <span class="op">=</span> <span class="st">"site"</span><span class="op">)</span></span>

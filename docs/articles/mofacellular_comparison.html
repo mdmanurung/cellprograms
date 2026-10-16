@@ -38,6 +38,7 @@
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/immune_aging_cross_cohort.html">Case study: immune-aging programs across 8 global PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis</a></li>
   </ul>
 </li>
@@ -90,7 +91,8 @@ both models.</p>
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"MOFA2"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">||</span></span>
 <span>    <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"MOFAcellulaR"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"MOFA2/MOFAcellulaR not installed; skipping the comparison sections."</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
+<span><span class="op">}</span></span>
+<span><span class="co">#&gt; MOFA2/MOFAcellulaR not installed; skipping the comparison sections.</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="the-data-planted-multicellular-programs">The data: planted multicellular programs<a class="anchor" aria-label="anchor" href="#the-data-planted-multicellular-programs"></a>
 </h2>
@@ -196,7 +198,7 @@ not.</p>
 </h2>
 <p><code><a href="../reference/as_mofacellular_input.html">as_mofacellular_input()</a></code> exports the same pseudobulk as
 the <code>(counts, coldata)</code> pair
-<code><a href="https://saezlab.github.io/MOFAcellulaR/reference/create_init_exp.html" class="external-link">MOFAcellulaR::create_init_exp()</a></code> expects, guaranteeing both
+<code>MOFAcellulaR::create_init_exp()</code> expects, guaranteeing both
 models see identical inputs. MOFAcellulaR’s QC chain
 (<code>filt_profiles</code>, <code>tmm_trns</code>, …) targets
 <em>raw-count</em> pseudobulk; the simulated profiles are already
@@ -205,146 +207,16 @@ their full preprocessing first):</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mofa_in</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_mofacellular_input.html">as_mofacellular_input</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>          <span class="co"># counts + coldata (the interop adapter)</span></span>
 <span><span class="va">views</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">pseudobulk</span>, <span class="va">t</span><span class="op">)</span>           <span class="co"># genes x donors, one view per cell type</span></span>
-<span><span class="va">mo</span> <span class="op">&lt;-</span> <span class="fu">MOFA2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MOFA2/man/create_mofa.html" class="external-link">create_mofa</a></span><span class="op">(</span><span class="va">views</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Creating MOFA object from a list of matrices (features as rows, sample as columns)...</span></span>
-<span><span class="co">#&gt; Warning in .rename_duplicated_features(object): There are duplicated features names across different views. We will add the suffix *_view* only for those features </span></span>
-<span><span class="co">#&gt;             Example: if you have both TP53 in mRNA and mutation data it will be renamed to TP53_mRNA, TP53_mutation</span></span>
-<span><span class="va">mo_opts</span> <span class="op">&lt;-</span> <span class="fu">MOFA2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MOFA2/man/get_default_model_options.html" class="external-link">get_default_model_options</a></span><span class="op">(</span><span class="va">mo</span><span class="op">)</span></span>
+<span><span class="va">mo</span> <span class="op">&lt;-</span> <span class="fu">MOFA2</span><span class="fu">::</span><span class="fu">create_mofa</span><span class="op">(</span><span class="va">views</span><span class="op">)</span></span>
+<span><span class="va">mo_opts</span> <span class="op">&lt;-</span> <span class="fu">MOFA2</span><span class="fu">::</span><span class="fu">get_default_model_options</span><span class="op">(</span><span class="va">mo</span><span class="op">)</span></span>
 <span><span class="va">mo_opts</span><span class="op">$</span><span class="va">num_factors</span> <span class="op">&lt;-</span> <span class="fl">8</span></span>
 <span><span class="va">mo_opts</span><span class="op">$</span><span class="va">spikeslab_weights</span> <span class="op">&lt;-</span> <span class="cn">FALSE</span>           <span class="co"># as in the MOFAcellulaR tutorial</span></span>
-<span><span class="va">tr_opts</span> <span class="op">&lt;-</span> <span class="fu">MOFA2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MOFA2/man/get_default_training_options.html" class="external-link">get_default_training_options</a></span><span class="op">(</span><span class="va">mo</span><span class="op">)</span></span>
+<span><span class="va">tr_opts</span> <span class="op">&lt;-</span> <span class="fu">MOFA2</span><span class="fu">::</span><span class="fu">get_default_training_options</span><span class="op">(</span><span class="va">mo</span><span class="op">)</span></span>
 <span><span class="va">tr_opts</span><span class="op">$</span><span class="va">seed</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
-<span><span class="va">mo</span> <span class="op">&lt;-</span> <span class="fu">MOFA2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MOFA2/man/prepare_mofa.html" class="external-link">prepare_mofa</a></span><span class="op">(</span><span class="va">mo</span>, model_options <span class="op">=</span> <span class="va">mo_opts</span>, training_options <span class="op">=</span> <span class="va">tr_opts</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Checking data options...</span></span>
-<span><span class="co">#&gt; No data options specified, using default...</span></span>
-<span><span class="co">#&gt; Checking training options...</span></span>
-<span><span class="co">#&gt; Checking model options...</span></span>
-<span><span class="va">mofa_model</span> <span class="op">&lt;-</span> <span class="fu">MOFA2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MOFA2/man/run_mofa.html" class="external-link">run_mofa</a></span><span class="op">(</span><span class="va">mo</span>, outfile <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".hdf5"</span><span class="op">)</span>, save_data <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Connecting to the mofapy2 python package using reticulate (use_basilisk = FALSE)... </span></span>
-<span><span class="co">#&gt;     Please make sure to manually specify the right python binary when loading R with reticulate::use_python(..., force=TRUE) or the right conda environment with reticulate::use_condaenv(..., force=TRUE)</span></span>
-<span><span class="co">#&gt;     If you prefer to let us automatically install a conda environment with 'mofapy2' installed using the 'basilisk' package, please use the argument 'use_basilisk = TRUE'</span></span>
-<span><span class="co">#&gt; Warning in MOFA2::run_mofa(mo, outfile = tempfile(fileext = ".hdf5"), save_data</span></span>
-<span><span class="co">#&gt; = FALSE): The latest mofapy2 version is 0.7.0, you are using 0.7.5. Please</span></span>
-<span><span class="co">#&gt; upgrade with 'pip install mofapy2'</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;         #########################################################</span></span>
-<span><span class="co">#&gt;         ###           __  __  ____  ______                    ### </span></span>
-<span><span class="co">#&gt;         ###          |  \/  |/ __ \|  ____/\    _             ### </span></span>
-<span><span class="co">#&gt;         ###          | \  / | |  | | |__ /  \ _| |_           ### </span></span>
-<span><span class="co">#&gt;         ###          | |\/| | |  | |  __/ /\ \_   _|          ###</span></span>
-<span><span class="co">#&gt;         ###          | |  | | |__| | | / ____ \|_|            ###</span></span>
-<span><span class="co">#&gt;         ###          |_|  |_|\____/|_|/_/    \_\              ###</span></span>
-<span><span class="co">#&gt;         ###                                                   ### </span></span>
-<span><span class="co">#&gt;         ######################################################### </span></span>
-<span><span class="co">#&gt;          </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; use_float32 set to True: replacing float64 arrays by float32 arrays to speed up computations...</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Successfully loaded view='B' group='group1' with N=60 samples and D=800 features...</span></span>
-<span><span class="co">#&gt; Successfully loaded view='CD4' group='group1' with N=60 samples and D=800 features...</span></span>
-<span><span class="co">#&gt; Successfully loaded view='CD8' group='group1' with N=60 samples and D=800 features...</span></span>
-<span><span class="co">#&gt; Successfully loaded view='NK' group='group1' with N=60 samples and D=800 features...</span></span>
-<span><span class="co">#&gt; Successfully loaded view='Mono' group='group1' with N=60 samples and D=800 features...</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Model options:</span></span>
-<span><span class="co">#&gt; - Automatic Relevance Determination prior on the factors: False</span></span>
-<span><span class="co">#&gt; - Automatic Relevance Determination prior on the weights: True</span></span>
-<span><span class="co">#&gt; - Spike-and-slab prior on the factors: False</span></span>
-<span><span class="co">#&gt; - Spike-and-slab prior on the weights: False</span></span>
-<span><span class="co">#&gt; Likelihoods:</span></span>
-<span><span class="co">#&gt; - View 0 (B): gaussian</span></span>
-<span><span class="co">#&gt; - View 1 (CD4): gaussian</span></span>
-<span><span class="co">#&gt; - View 2 (CD8): gaussian</span></span>
-<span><span class="co">#&gt; - View 3 (NK): gaussian</span></span>
-<span><span class="co">#&gt; - View 4 (Mono): gaussian</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ######################################</span></span>
-<span><span class="co">#&gt; ## Training the model with seed 1 ##</span></span>
-<span><span class="co">#&gt; ######################################</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ELBO before training: -1633838.31 </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Iteration 1: time=0.04, ELBO=-379185.10, deltaELBO=1254653.205 (76.79176074%), Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 2: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 3: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 4: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 5: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 6: time=0.01, ELBO=-376437.50, deltaELBO=2747.604 (0.16816865%), Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 7: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 8: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 9: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 10: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 11: time=0.01, ELBO=-376274.49, deltaELBO=163.009 (0.00997705%), Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 12: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 13: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 14: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 15: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 16: time=0.01, ELBO=-376188.62, deltaELBO=85.871 (0.00525575%), Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 17: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 18: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 19: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 20: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 21: time=0.01, ELBO=-376129.73, deltaELBO=58.893 (0.00360455%), Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 22: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 23: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 24: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 25: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 26: time=0.01, ELBO=-376094.90, deltaELBO=34.829 (0.00213171%), Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 27: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 28: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 29: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 30: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 31: time=0.01, ELBO=-376072.16, deltaELBO=22.744 (0.00139207%), Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 32: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 33: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 34: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 35: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 36: time=0.01, ELBO=-376056.13, deltaELBO=16.022 (0.00098061%), Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 37: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 38: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 39: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 40: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 41: time=0.01, ELBO=-376044.14, deltaELBO=11.990 (0.00073388%), Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 42: time=0.02, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 43: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 44: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 45: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 46: time=0.01, ELBO=-376034.30, deltaELBO=9.843 (0.00060242%), Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 47: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 48: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 49: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 50: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 51: time=0.01, ELBO=-376025.88, deltaELBO=8.416 (0.00051514%), Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 52: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 53: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 54: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 55: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 56: time=0.01, ELBO=-376018.51, deltaELBO=7.374 (0.00045134%), Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 57: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 58: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 59: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 60: time=0.01, Factors=8</span></span>
-<span><span class="co">#&gt; Iteration 61: time=0.01, ELBO=-376011.86, deltaELBO=6.652 (0.00040713%), Factors=8</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Converged!</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; #######################</span></span>
-<span><span class="co">#&gt; ## Training finished ##</span></span>
-<span><span class="co">#&gt; #######################</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Saving model in /tmp/RtmpzLmL1T/fileb4f7ac35e97.hdf5...</span></span>
-<span><span class="va">Z_mofa</span> <span class="op">&lt;-</span> <span class="fu">MOFA2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MOFA2/man/get_factors.html" class="external-link">get_factors</a></span><span class="op">(</span><span class="va">mofa_model</span><span class="op">)</span><span class="op">$</span><span class="va">group1</span>   <span class="co"># donors x factors</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">Z_mofa</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 60  8</span></span></code></pre></div>
+<span><span class="va">mo</span> <span class="op">&lt;-</span> <span class="fu">MOFA2</span><span class="fu">::</span><span class="fu">prepare_mofa</span><span class="op">(</span><span class="va">mo</span>, model_options <span class="op">=</span> <span class="va">mo_opts</span>, training_options <span class="op">=</span> <span class="va">tr_opts</span><span class="op">)</span></span>
+<span><span class="va">mofa_model</span> <span class="op">&lt;-</span> <span class="fu">MOFA2</span><span class="fu">::</span><span class="fu">run_mofa</span><span class="op">(</span><span class="va">mo</span>, outfile <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".hdf5"</span><span class="op">)</span>, save_data <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">Z_mofa</span> <span class="op">&lt;-</span> <span class="fu">MOFA2</span><span class="fu">::</span><span class="fu">get_factors</span><span class="op">(</span><span class="va">mofa_model</span><span class="op">)</span><span class="op">$</span><span class="va">group1</span>   <span class="co"># donors x factors</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">Z_mofa</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="aligning-the-two-models">Aligning the two models<a class="anchor" aria-label="anchor" href="#aligning-the-two-models"></a>
@@ -366,7 +238,6 @@ program and every MOFA factor:</p>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"MOFA factor"</span>, y <span class="op">=</span> <span class="st">"cellprograms program"</span>,</span>
 <span>                title <span class="op">=</span> <span class="st">"Donor-score concordance between the two models"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="mofacellular_comparison_files/figure-html/align-1.png" class="r-plt" alt="" width="1050"></p>
 <p>Reading it: programs that appear in both models light up a MOFA
 factor; MOFA factors with no cellprograms counterpart are typically
 cell-type-specific or artifact directions that the local fits + CMP test
@@ -405,7 +276,7 @@ the top-40 |loadings| against the planted genes):</p>
 <span><span class="co">## MOFA2 suffixes feature names with the view name when views share genes</span></span>
 <span><span class="co">## (G1 -&gt; G1_B); strip it before matching planted gene names</span></span>
 <span><span class="va">w_mofa</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">pseudobulk</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">ct</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">W</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="fu">MOFA2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MOFA2/man/get_weights.html" class="external-link">get_weights</a></span><span class="op">(</span><span class="va">mofa_model</span>, views <span class="op">=</span> <span class="va">ct</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span>  <span class="va">W</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="fu">MOFA2</span><span class="fu">::</span><span class="fu">get_weights</span><span class="op">(</span><span class="va">mofa_model</span>, views <span class="op">=</span> <span class="va">ct</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">W</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"_"</span>, <span class="va">ct</span>, <span class="st">"$"</span><span class="op">)</span>, <span class="st">""</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">W</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="va">W</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
@@ -415,131 +286,6 @@ the top-40 |loadings| against the planted genes):</p>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span>model <span class="op">=</span> <span class="st">"cellprograms"</span>, <span class="va">rec_cp</span><span class="op">)</span>,</span>
 <span>                   <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span>model <span class="op">=</span> <span class="st">"MOFA2"</span>, <span class="va">rec_mf</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>             digits <span class="op">=</span> <span class="fl">2</span>, caption <span class="op">=</span> <span class="st">"Best donor-score |r| and top-gene Jaccard per planted program"</span><span class="op">)</span></span></code></pre></div>
-<table class="table">
-<caption>Best donor-score |r| and top-gene Jaccard per planted
-program</caption>
-<thead><tr class="header">
-<th align="left">model</th>
-<th align="left">label</th>
-<th align="left">cell_type</th>
-<th align="right">best_r</th>
-<th align="right">gene_jaccard</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td align="left">cellprograms</td>
-<td align="left">B_private</td>
-<td align="left">B</td>
-<td align="right">0.99</td>
-<td align="right">0.70</td>
-</tr>
-<tr class="even">
-<td align="left">cellprograms</td>
-<td align="left">global_IFN</td>
-<td align="left">B</td>
-<td align="right">1.00</td>
-<td align="right">0.72</td>
-</tr>
-<tr class="odd">
-<td align="left">cellprograms</td>
-<td align="left">global_IFN</td>
-<td align="left">CD4</td>
-<td align="right">0.99</td>
-<td align="right">0.75</td>
-</tr>
-<tr class="even">
-<td align="left">cellprograms</td>
-<td align="left">CD8NK_shared</td>
-<td align="left">CD8</td>
-<td align="right">0.99</td>
-<td align="right">0.85</td>
-</tr>
-<tr class="odd">
-<td align="left">cellprograms</td>
-<td align="left">CD8NK_shared</td>
-<td align="left">NK</td>
-<td align="right">1.00</td>
-<td align="right">0.75</td>
-</tr>
-<tr class="even">
-<td align="left">cellprograms</td>
-<td align="left">global_IFN</td>
-<td align="left">NK</td>
-<td align="right">0.99</td>
-<td align="right">0.82</td>
-</tr>
-<tr class="odd">
-<td align="left">cellprograms</td>
-<td align="left">Mono_private</td>
-<td align="left">Mono</td>
-<td align="right">0.99</td>
-<td align="right">0.80</td>
-</tr>
-<tr class="even">
-<td align="left">cellprograms</td>
-<td align="left">global_IFN</td>
-<td align="left">Mono</td>
-<td align="right">1.00</td>
-<td align="right">0.78</td>
-</tr>
-<tr class="odd">
-<td align="left">MOFA2</td>
-<td align="left">B_private</td>
-<td align="left">B</td>
-<td align="right">0.92</td>
-<td align="right">0.70</td>
-</tr>
-<tr class="even">
-<td align="left">MOFA2</td>
-<td align="left">global_IFN</td>
-<td align="left">B</td>
-<td align="right">1.00</td>
-<td align="right">0.75</td>
-</tr>
-<tr class="odd">
-<td align="left">MOFA2</td>
-<td align="left">global_IFN</td>
-<td align="left">CD4</td>
-<td align="right">1.00</td>
-<td align="right">0.78</td>
-</tr>
-<tr class="even">
-<td align="left">MOFA2</td>
-<td align="left">CD8NK_shared</td>
-<td align="left">CD8</td>
-<td align="right">1.00</td>
-<td align="right">0.85</td>
-</tr>
-<tr class="odd">
-<td align="left">MOFA2</td>
-<td align="left">CD8NK_shared</td>
-<td align="left">NK</td>
-<td align="right">1.00</td>
-<td align="right">0.78</td>
-</tr>
-<tr class="even">
-<td align="left">MOFA2</td>
-<td align="left">global_IFN</td>
-<td align="left">NK</td>
-<td align="right">1.00</td>
-<td align="right">0.82</td>
-</tr>
-<tr class="odd">
-<td align="left">MOFA2</td>
-<td align="left">Mono_private</td>
-<td align="left">Mono</td>
-<td align="right">0.98</td>
-<td align="right">0.80</td>
-</tr>
-<tr class="even">
-<td align="left">MOFA2</td>
-<td align="left">global_IFN</td>
-<td align="left">Mono</td>
-<td align="right">1.00</td>
-<td align="right">0.78</td>
-</tr>
-</tbody>
-</table>
 <p>What to expect: the two models tie on raw recovery — every planted
 program’s donor activity comes back at best |r| ≥ 0.9 in both, with
 comparable partial gene-set recovery (top-40 Jaccard 0.7–0.85; the local
@@ -591,27 +337,14 @@ for continuous). The cellprograms counterpart is
 <code class="sourceCode R"><span><span class="co">## cellprograms: CMP scores vs the planted context</span></span>
 <span><span class="va">ca</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cmp_context_association.html">cmp_context_association</a></span><span class="op">(</span><span class="va">fit</span>, <span class="va">cmp</span>, <span class="st">"ifn_high"</span><span class="op">)</span></span>
 <span><span class="va">ca</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">ca</span><span class="op">$</span><span class="va">p</span><span class="op">)</span>, <span class="op">]</span></span>
-<span><span class="co">#&gt;   cmp  term  estimate         t            p  n</span></span>
-<span><span class="co">#&gt; 1   1 xhigh -1.555736 -9.731873 8.415312e-14 60</span></span>
 <span></span>
 <span><span class="co">## MOFAcellulaR: factor scores vs the same context</span></span>
 <span><span class="va">md_f</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sample <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">Z_mofa</span><span class="op">)</span>, ifn_high <span class="op">=</span> <span class="va">md</span><span class="op">$</span><span class="va">ifn_high</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">Z_mofa</span><span class="op">)</span>, <span class="va">md</span><span class="op">$</span><span class="va">observation_id</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="va">ga</span> <span class="op">&lt;-</span> <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu"><a href="https://saezlab.github.io/MOFAcellulaR/reference/get_associations.html" class="external-link">get_associations</a></span><span class="op">(</span>model <span class="op">=</span> <span class="va">mofa_model</span>, metadata <span class="op">=</span> <span class="va">md_f</span>,</span>
+<span><span class="va">ga</span> <span class="op">&lt;-</span> <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu">get_associations</span><span class="op">(</span>model <span class="op">=</span> <span class="va">mofa_model</span>, metadata <span class="op">=</span> <span class="va">md_f</span>,</span>
 <span>                                     sample_id_column <span class="op">=</span> <span class="st">"sample"</span>,</span>
 <span>                                     test_variable <span class="op">=</span> <span class="st">"ifn_high"</span>,</span>
 <span>                                     test_type <span class="op">=</span> <span class="st">"categorical"</span>, group <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="va">ga</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">ga</span><span class="op">$</span><span class="va">p.value</span><span class="op">)</span>, <span class="op">]</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 8 × 4</span></span></span>
-<span><span class="co">#&gt;   Factor  term      p.value adj_pvalue</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Factor1 ifn_high 7.61<span style="color: #949494;">e</span><span style="color: #BB0000;">-14</span>   6.09<span style="color: #949494;">e</span><span style="color: #BB0000;">-13</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Factor2 ifn_high 1.17<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span>   8.16<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Factor3 ifn_high 4.71<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span>   1   <span style="color: #949494;">e</span>+ 0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> Factor5 ifn_high 4.72<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span>   1   <span style="color: #949494;">e</span>+ 0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> Factor6 ifn_high 5.47<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span>   1   <span style="color: #949494;">e</span>+ 0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> Factor4 ifn_high 6.80<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span>   1   <span style="color: #949494;">e</span>+ 0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> Factor7 ifn_high 6.91<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span>   1   <span style="color: #949494;">e</span>+ 0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span> Factor8 ifn_high 9.71<span style="color: #949494;">e</span><span style="color: #BB0000;">- 1</span>   1   <span style="color: #949494;">e</span>+ 0</span></span></code></pre></div>
+<span><span class="va">ga</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">ga</span><span class="op">$</span><span class="va">p.value</span><span class="op">)</span>, <span class="op">]</span></span></code></pre></div>
 <p>Both should flag the factors/programs aligned with the planted
 <code>global_IFN</code> donor scores (the sign of the estimate is
 arbitrary — program and factor directions are identified only up to
@@ -642,21 +375,21 @@ tutorial):</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## heavy: ~15 min; cached results used below</span></span>
 <span><span class="va">counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">cbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">cts</span>, <span class="kw">function</span><span class="op">(</span><span class="va">ct</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">pseudobulk</span><span class="op">[[</span><span class="va">ct</span><span class="op">]</span><span class="op">]</span><span class="op">[</span>, <span class="va">shared</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">ct_list</span> <span class="op">&lt;-</span> <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu"><a href="https://saezlab.github.io/MOFAcellulaR/reference/create_init_exp.html" class="external-link">create_init_exp</a></span><span class="op">(</span>counts <span class="op">=</span> <span class="va">counts</span>, coldata <span class="op">=</span> <span class="va">coldata</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu"><a href="https://saezlab.github.io/MOFAcellulaR/reference/filt_profiles.html" class="external-link">filt_profiles</a></span><span class="op">(</span>pb_dat <span class="op">=</span> <span class="va">.</span>, cts <span class="op">=</span> <span class="va">cts</span>, ncells <span class="op">=</span> <span class="fl">0</span>,</span>
+<span><span class="va">ct_list</span> <span class="op">&lt;-</span> <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu">create_init_exp</span><span class="op">(</span>counts <span class="op">=</span> <span class="va">counts</span>, coldata <span class="op">=</span> <span class="va">coldata</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu">filt_profiles</span><span class="op">(</span>pb_dat <span class="op">=</span> <span class="va">.</span>, cts <span class="op">=</span> <span class="va">cts</span>, ncells <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>                              counts_col <span class="op">=</span> <span class="st">"cell_counts"</span>, ct_col <span class="op">=</span> <span class="st">"cell_type"</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu"><a href="https://saezlab.github.io/MOFAcellulaR/reference/filt_views_bysamples.html" class="external-link">filt_views_bysamples</a></span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, nsamples <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu"><a href="https://saezlab.github.io/MOFAcellulaR/reference/filt_gex_byexpr.html" class="external-link">filt_gex_byexpr</a></span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, min.count <span class="op">=</span> <span class="fl">5</span>, min.prop <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu"><a href="https://saezlab.github.io/MOFAcellulaR/reference/filt_views_bygenes.html" class="external-link">filt_views_bygenes</a></span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, ngenes <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu"><a href="https://saezlab.github.io/MOFAcellulaR/reference/filt_samples_bycov.html" class="external-link">filt_samples_bycov</a></span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, prop_coverage <span class="op">=</span> <span class="fl">0.9</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu"><a href="https://saezlab.github.io/MOFAcellulaR/reference/tmm_trns.html" class="external-link">tmm_trns</a></span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, scale_factor <span class="op">=</span> <span class="fl">1e6</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu"><a href="https://saezlab.github.io/MOFAcellulaR/reference/filt_gex_byhvg.html" class="external-link">filt_gex_byhvg</a></span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, prior_hvg <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">preprocessing</span><span class="op">$</span><span class="va">feature_sets</span>,</span>
+<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu">filt_views_bysamples</span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, nsamples <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu">filt_gex_byexpr</span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, min.count <span class="op">=</span> <span class="fl">5</span>, min.prop <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu">filt_views_bygenes</span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, ngenes <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu">filt_samples_bycov</span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, prop_coverage <span class="op">=</span> <span class="fl">0.9</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu">tmm_trns</span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, scale_factor <span class="op">=</span> <span class="fl">1e6</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu">filt_gex_byhvg</span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, prior_hvg <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">preprocessing</span><span class="op">$</span><span class="va">feature_sets</span>,</span>
 <span>                               var.threshold <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu"><a href="https://saezlab.github.io/MOFAcellulaR/reference/filt_gex_bybckgrnd.html" class="external-link">filt_gex_bybckgrnd</a></span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>,</span>
+<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu">filt_gex_bybckgrnd</span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>,</span>
 <span>                                   prior_mrks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>phantom <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">preprocessing</span><span class="op">$</span><span class="va">exclude_genes</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu"><a href="https://saezlab.github.io/MOFAcellulaR/reference/filt_views_bygenes.html" class="external-link">filt_views_bygenes</a></span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, ngenes <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu"><a href="https://saezlab.github.io/MOFAcellulaR/reference/pb_dat2MOFA.html" class="external-link">pb_dat2MOFA</a></span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, sample_column <span class="op">=</span> <span class="st">"observation_id"</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">MOFA2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MOFA2/man/create_mofa.html" class="external-link">create_mofa</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu">filt_views_bygenes</span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, ngenes <span class="op">=</span> <span class="fl">15</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu">pb_dat2MOFA</span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, sample_column <span class="op">=</span> <span class="st">"observation_id"</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
+<span>  <span class="fu">MOFA2</span><span class="fu">::</span><span class="fu">create_mofa</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">## ... then prepare_mofa(num_factors = 15, spikeslab_weights = FALSE, seed = 1) and run_mofa()</span></span></code></pre></div>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cache_path</span> <span class="op">&lt;-</span> <span class="st">"mofacellular_stephenson_cache.rds"</span></span>
@@ -754,7 +487,7 @@ list vetoed across views plus the refit’s HVG panels.</p>
 <span><span class="va">has_cache_excl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">excl_path</span><span class="op">)</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="va">has_cache_excl</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"mofacellular_stephenson_cache_excl.rds not found; "</span>,</span>
-<span>          <span class="st">"skipping the sensitivity results (run scripts in benchmarks/ to build it)."</span><span class="op">)</span></span>
+<span>          <span class="st">"skipping the sensitivity results (see benchmarks/mofacellular_comparison/ to build it)."</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">c1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="va">excl_path</span><span class="op">)</span></span>

@@ -134,19 +134,18 @@ if (requireNamespace("mashr", quietly = TRUE)) {
   res <- program_sharing(fit, matches = grp, n_top = 20)
   res$summary
 }
-#> Warning: Only 0 null genes (|z| < 1 in all 2 conditions); using V = identity.
-#>  - Computing 73 x 341 likelihood matrix.
+#>  - Computing 73 x 241 likelihood matrix.
 #>  - Likelihood calculations took 0.01 seconds.
-#>  - Fitting model with 341 mixture components.
-#>  - Model fitting took 0.49 seconds.
+#>  - Fitting model with 241 mixture components.
+#>  - Model fitting took 0.07 seconds.
 #>  - Computing posterior matrices.
 #>  - Computation allocated took 0.00 seconds.
 #>   program_id cell_type group_id n_conditions classification frac_top_shared
 #> 1        B_1         B       NA            1        private              NA
 #> 2        B_2         B       NA            1        private              NA
 #> 3      CD4_1       CD4       NA            1        private              NA
-#> 4      CD8_1       CD8        1            2        private             0.1
-#> 5       NK_1        NK        1            2        private             0.1
+#> 4      CD8_1       CD8        1            2        private            0.05
+#> 5       NK_1        NK        1            2        private            0.05
 #> 6       NK_2        NK       NA            1        private              NA
 #> 7     Mono_1      Mono       NA            1        private              NA
 #> 8     Mono_2      Mono       NA            1        private              NA
@@ -154,8 +153,8 @@ if (requireNamespace("mashr", quietly = TRUE)) {
 #> 1               NA           NA no_significant_match
 #> 2               NA           NA no_significant_match
 #> 3               NA           NA no_significant_match
-#> 4             0.85   0.05969732                mashr
-#> 5             0.85   0.05969732                mashr
+#> 4              0.6            0                mashr
+#> 5              0.6            0                mashr
 #> 6               NA           NA no_significant_match
 #> 7               NA           NA no_significant_match
 #> 8               NA           NA no_significant_match

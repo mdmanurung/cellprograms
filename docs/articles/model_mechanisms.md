@@ -118,6 +118,24 @@ Programs are then labelled `{cell_type}_{k}` and stored as the fit’s
 [`program_summary`](https://mdmanurung.github.io/cellprograms/reference/program_summary.md)`(``fit``)``        ``# per cell type: K, R2, ELBO`\
 [`top_genes`](https://mdmanurung.github.io/cellprograms/reference/top_genes.md)`(``fit``, ``"CD4_1"``, n ``=`` ``10``)`
 
+### Loadings on a common gene panel
+
+With `features = "variable"`, each cell type fits its own gene panel, so
+the per-cell-type loading matrices cannot be compared gene-by-gene
+across cell types. Rather than refitting on the union panel (which the
+model-selection benchmark showed does not improve recovery),
+[`union_panel_loadings()`](https://mdmanurung.github.io/cellprograms/reference/union_panel_loadings.md)
+refits the loadings post hoc: it regresses each cell type’s union-panel
+expression on its fixed program scores by least squares, replaying the
+fit’s covariate handling and centering. Fits and scores are untouched;
+the result is a gene x program matrix per cell type on the shared panel,
+for cross-cell-type loading comparisons.
+
+\
+`up`` ``<-`` `[`union_panel_loadings`](https://mdmanurung.github.io/cellprograms/reference/union_panel_loadings.md)`(``fit``)`\
+`up``$``loadings``$``CD4``          ``# genes x programs on the common panel`\
+`up``$``genes``                 ``# the panel (union of per-cell-type fitted genes)`
+
 ## 4. Coordinated multicellular programs (CMPs)
 
 \

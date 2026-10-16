@@ -2,7 +2,7 @@
 title: "Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Compared to MOFAcellulaR: local-first vs joint factor analysis}
+  %\VignetteIndexEntry{Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

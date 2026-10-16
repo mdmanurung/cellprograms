@@ -56,7 +56,7 @@ Major functionality of the cellprograms package:
 \
 `remotes``::`[`install_github`](https://remotes.r-lib.org/reference/install_github.html)`(``"mdmanurung/cellprograms"``)`
 
-Requires R \>= 4.1. The `flashier` and `ebnm` backends are installed
+Requires R \>= 4.3. The `flashier` and `ebnm` backends are installed
 automatically (`flashier` via GitHub).
 
 ## Quick start
@@ -86,10 +86,18 @@ investigated subsequently, never assumed.
 
 ## Resources
 
+- Getting started:
+  [quickstart](https://mdmanurung.github.io/cellprograms/articles/quickstart.html)
+- Methods: [program mechanisms and the data
+  model](https://mdmanurung.github.io/cellprograms/articles/model_mechanisms.html)
 - Case studies: [real-data case
   study](https://mdmanurung.github.io/cellprograms/articles/real_data_case_study.html)
   (Stephenson + COMBAT COVID cohorts) and [DIVAS multi-omics
   reanalysis](https://mdmanurung.github.io/cellprograms/articles/divas_case_study.html)
+- Application: [immune-aging cross-cohort
+  analysis](https://mdmanurung.github.io/cellprograms/articles/immune_aging_cross_cohort.html)
+  (8 PBMC cohorts, 2,609 donors; conservation panel + composition axis;
+  scripts and tables under `analyses/immune_aging/`)
 - Pre-registered held-out benchmarks: `benchmarks/cmp_detection/` (CMP
   detection, 800 datasets per arm) and `benchmarks/divas_comparison/`
   (DIVAS comparison)

@@ -22,6 +22,7 @@
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/immune_aging_cross_cohort.html">Case study: immune-aging programs across 8 global PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -41,6 +42,20 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0" id="cellprograms-020">cellprograms 0.2.0<a class="anchor" aria-label="anchor" href="#cellprograms-020"></a></h2>
+<div class="section level3">
+<h3 id="stage-b-frozen-preprocessing-and-cell-level-projection-0-2-0">Stage B: frozen preprocessing and cell-level projection<a class="anchor" aria-label="anchor" href="#stage-b-frozen-preprocessing-and-cell-level-projection-0-2-0"></a></h3>
+<ul><li>
+<code><a href="../reference/freeze_preprocessing.html">freeze_preprocessing()</a></code> (MR-0): resolve the feature panel and adjustment decisions once into a content-addressed specification (<code>cell_program_preproc_spec</code>, sha256 digest); refit any cohort carrying the same genes with <code>fit_celltype_programs(preprocessing_spec = ...)</code>, which replays the spec fail-closed (conflicting explicit arguments are refused, and the spec’s digest is recorded in the fit’s preprocessing provenance).</li>
+<li>
+<code><a href="../reference/project_programs_to_cells.html">project_programs_to_cells()</a></code> (MR-1): project fitted programs onto individual cells. Query expression is adjusted with the fit’s recorded preprocessing (residualization coefficients, centering, scale), activities are inferred against the frozen gene loadings via <code><a href="https://mdmanurung.github.io/flashier-utils/reference/project_factor_activity.html" class="external-link">flashier.utils::project_factor_activity()</a></code>, and raw activities are canonicalized with the same RMS/sign multipliers as the donor scores. Requires a canonicalized fit with declared <code>feature_scale</code>; fits with residualized covariates require <code>donors</code> + <code>sample_metadata</code>, and the rebuilt covariate design must match the fit’s design columns exactly.</li>
+<li>
+<code><a href="../reference/fit_celltype_programs.html">fit_celltype_programs()</a></code> gains <code>feature_scale</code> (declared measurement units, recorded in the fit manifest and required for projection) and <code>preprocessing_spec</code> (MR-0 replay); fits now record a <code>preproc_replay</code> block per cell type so the exact adjustment can be replayed on query data.</li>
+<li>New roadmap: <code>reports/STAGE_B_ROADMAP.md</code> (MR-0..MR-4 spec, staged main-run costs, registration drafts, gates).</li>
+</ul></div>
+<div class="section level3">
+<h3 id="backend-synchronization-stage-a-0-2-0">Backend synchronization (Stage A)<a class="anchor" aria-label="anchor" href="#backend-synchronization-stage-a-0-2-0"></a></h3>
+<ul><li>Ordinary EBMF fits now delegate to <code><a href="https://mdmanurung.github.io/flashier-utils/reference/fit_ebmf.html" class="external-link">flashier.utils::fit_ebmf()</a></code> and canonicalization uses <code>flashier.utils::standardize_factors(scaling = "rms")</code>, with numerical parity verified to machine precision against the previous direct <code><a href="https://rdrr.io/pkg/flashier/man/flash.html" class="external-link">flashier::flash()</a></code> backend. The public workflow, output fields, and scientific results are unchanged. <code>flashier</code>, <code>ebnm</code>, and <code>flashier.utils</code> move to <code>Imports</code> (R &gt;= 4.3 required); the fixed-covariate path (<code>covariate_mode = "fixed"</code>) and degenerate fits remain on the legacy backend. Set <code>options(cellprograms.use_flashier_utils = FALSE)</code> to force the legacy backend. See <code>reports/SYNC_ROADMAP.md</code> for the version pair, parity evidence, and rollback plan.</li>
+</ul></div>
 <div class="section level3">
 <h3 id="new-features-0-2-0">New features<a class="anchor" aria-label="anchor" href="#new-features-0-2-0"></a></h3>
 <ul><li>

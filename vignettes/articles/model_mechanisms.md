@@ -1,0 +1,256 @@
+How the model works: mechanisms of cellprograms
+================
+
+This article explains what the package actually fits, layer by layer:
+the data model, the per-cell-type empirical-Bayes matrix factorization,
+the canonicalization that makes programs comparable, and the two
+post-hoc cross-cell-type analyses (coordination and sharing). Code
+chunks show the user-facing calls; the text describes the underlying
+machinery.
+
+## Design principle
+
+**Factorize locally first; integrate later only when scientifically
+useful.** Each cell type gets its own factorization. Nothing in the fit
+assumes that programs are shared, coordinated, or comparable across cell
+types — those are separate, post-hoc questions with their own tests.
+This is the opposite of joint factorization (MOFA+) or
+reference-projection tools, which build cross-cell-type structure into
+the model itself.
+
+## 1. Data model
+
+The input is pseudobulk: for each cell type, an observations x genes
+matrix of aggregated expression (typically donor-level pseudobulk from
+single-cell data).
+
+``` r
+x <- as_cell_program_data(pseudobulk, sample_metadata = metadata)
+validate_cell_program_data(x)
+```
+
+`as_cell_program_data()` stores one matrix per cell type, the sample
+metadata, and the gene panels; `validate_cell_program_data()` checks
+dimension consistency, numeric content, and observation/gene overlap
+across cell types. Cell types may have different gene panels; analyses
+that compare across cell types (sharing) use the shared panel.
+
+## 2. Per-cell-type empirical-Bayes matrix factorization
+
+``` r
+fit <- fit_celltype_programs(x, loading_prior = "point_laplace",
+                             max_factors = 10, var_type = 1)
+fit <- canonicalize_programs(fit)
+```
+
+For each cell type independently, the package fits the two-factor model
+
+$$Y \approx L F^T + E,$$
+
+where $Y$ is the (preprocessed) observations x genes matrix, $L$ are
+sample-side factors (program *scores*), $F$ are gene-side factors
+(program *loadings*), and $E$ is residual noise. The fit is `flashier`’s
+empirical-Bayes matrix factorization:
+
+- **Greedy addition + backfitting.** Factors are added one at a time
+  (greedy_Kmax = `max_factors`), each new factor capturing the largest
+  remaining structured variation; after greedy addition, all factors are
+  jointly re-estimated (backfitting) until the evidence lower bound
+  (ELBO) stops improving. `nullcheck()`-style pruning removes factors
+  that do not improve the ELBO.
+- **Sparsity via empirical Bayes.** Each factor’s loadings get a
+  point-Laplace prior (a spike at zero plus a Laplace slab), fitted by
+  `ebnm::ebnm_point_laplace`. The spike shrinks small loadings strongly
+  toward zero while the slab admits large effects, giving programs a
+  sparse *character* — but the stored posterior means are small nonzero
+  values, not exact zeros. Extract gene sets with an explicit loading
+  threshold or the lfsr (`top_genes(..., by = "lfsr")`), not by
+  filtering on exact zeros. `point_normal` (Gaussian slab) and
+  `unimodal` are available alternatives.
+- **Noise model.** `var_type` controls the residual variance structure:
+  `0` = one variance for everything, `1` = one per observation (the
+  default, right for pseudobulk where donors differ in depth/quality),
+  `2` = one per gene, `c(1, 2)` = Kronecker rank-one. The default was
+  selected by a full-factorial tuning benchmark (see the README).
+- **Preprocessing.** `center = TRUE` centers each gene (default);
+  `scale = TRUE` would also scale to unit variance (off by default — raw
+  program amplitudes are kept). `features = "variable"` restricts the
+  fit to the top `n_variable_genes` most variable genes per cell type.
+- **Covariate adjustment**, two modes:
+  - `covariate_mode = "residualize"` (hard): the pseudobulk matrix is
+    residualized on the covariate design (e.g. sequencing institute,
+    sex) by ordinary least squares *before* factorization. Programs are
+    fit on covariate-free residual expression.
+  - `covariate_mode = "fixed"` (soft, SOFA-style): covariate columns
+    enter the factorization as *fixed* sample-side factors with unshrunk
+    gene effects, initialized at OLS; free programs are added greedily
+    alongside and everything except the fixed columns is backfit. The
+    covariate part is returned separately (`fixed_L`, `fixed_F`) and
+    never appears in program extraction.
+- **Degenerate inputs.** Genes that are identically zero after
+  preprocessing are dropped; a cell type with no informative genes
+  records a K = 0 fit instead of failing the analysis.
+
+The fitted object stores, per cell type, the posterior means and
+posterior SDs of both factor matrices (`L_pm`/`L_psd`, `F_pm`/`F_psd`),
+the ELBO trajectory, and the gene panel used. Posterior SDs are what
+later power the mashr sharing analysis.
+
+## 3. Canonicalization: making programs comparable
+
+EBMF factors are identified only up to sign and scale. After fitting,
+`canonicalize_programs()` puts every program on a common scale:
+
+- **Scale**: each score column is divided by its RMS across
+  observations, and the loadings multiplied by the same constant — the
+  program’s amplitude moves into the loadings, so scores are comparable
+  across programs and cell types.
+- **Sign**: the gene with the largest absolute loading (ties broken
+  deterministically by gene name) defines the positive direction.
+
+Programs are then labelled `{cell_type}_{k}` and stored as the fit’s
+`scores` (observations x programs) and `loadings` (genes x programs).
+
+``` r
+Z <- program_scores(fit)    # observations x all programs (wide matrix)
+W <- program_loadings(fit)  # genes x all programs
+program_summary(fit)        # per cell type: K, R2, ELBO
+top_genes(fit, "CD4_1", n = 10)
+```
+
+### Loadings on a common gene panel
+
+With `features = "variable"`, each cell type fits its own gene panel, so
+the per-cell-type loading matrices cannot be compared gene-by-gene
+across cell types. Rather than refitting on the union panel (which the
+model-selection benchmark showed does not improve recovery),
+`union_panel_loadings()` refits the loadings post hoc: it regresses each
+cell type’s union-panel expression on its fixed program scores by least
+squares, replaying the fit’s covariate handling and centering. Fits and
+scores are untouched; the result is a gene x program matrix per cell
+type on the shared panel, for cross-cell-type loading comparisons.
+
+``` r
+up <- union_panel_loadings(fit)
+up$loadings$CD4          # genes x programs on the common panel
+up$genes                 # the panel (union of per-cell-type fitted genes)
+```
+
+## 4. Coordinated multicellular programs (CMPs)
+
+``` r
+res <- find_coordinated_programs(fit, strata = "site", ambient = "flag",
+                                 n_perm = 999)
+cmp_scores(fit, res)   # donors x CMPs consensus scores
+```
+
+A CMP is a set of programs from \>= 2 cell types whose donor-level
+scores co-vary — they track one shared latent donor activity. Gene
+overlap plays no role in the call. The procedure:
+
+1.  **Rank-first scores.** Each program’s donor scores are
+    rank-transformed to normal scores, then residualized on the blocking
+    strata. Point-Laplace priors produce single-donor spike factors that
+    break Pearson-based max-T calibration; ranks remove that failure
+    mode.
+2.  **Ambient filter.** Programs whose loadings track another cell
+    type’s expression specificity (ambient RNA / doublet leakage) are
+    dropped (`ambient = "drop"`) or flagged (`ambient = "flag"`), using
+    `ambient_program_scores()`.
+3.  **Edge statistic.** For every cross-cell-type program pair (over the
+    donors the two cell types share), $T = \tanh^{-1}(r)\sqrt{n-3}$
+    where $r$ is the **Pearson correlation of the residualized
+    Gaussian-rank scores** from step 1. With no strata this is close to
+    a Spearman correlation of donor scores (Pearson on ranks), but
+    residualization after the rank transform makes the distinction
+    material when strata are present. Edges with $|T| \ge$
+    `link_threshold` (default 3) link the programs.
+4.  **Node statistic.** A program’s evidence is pooled across partner
+    cell types: $A_v = \sum_c \max(0, \max_u |T_{vu}| - \tau)^2$ — a
+    program correlated with many partners is stronger evidence than one
+    correlated with a single partner.
+5.  **Permutation null.** Donor rows are permuted within strata,
+    independently per cell type — this removes cross-cell-type coupling
+    while keeping within-cell-type structure. Program p-values are
+    adjusted by the permutation maximum of $A$ (single-step max-T), so
+    the family-wise error rate of calling *any* CMP is controlled at
+    `alpha`.
+6.  **Clustering.** Significant programs are grouped into CMPs by their
+    edge structure; `cmp_scores()` summarizes each CMP as a donor-level
+    consensus score.
+
+`mode = "within"` tests the same structure *within* levels of a context
+variable (e.g. severity) — coordination that survives is not an artifact
+of case/control composition.
+
+## 5. Program sharing (mashr)
+
+``` r
+shr <- program_sharing(fit, n_perm = 199, z_thresh = 1.5)
+shr$summary   # one row per program: shared / partial / private
+```
+
+Sharing is a different axis from coordination: two cell types can use
+the same biological program (shared gene loadings) with uncorrelated
+donor scores, and vice versa. `program_sharing()` assesses shared
+*loadings* post hoc with mashr (Urbut et al. 2019), never assuming them:
+
+- **Mapping**: units = genes on the shared panel; conditions = cell
+  types; effects = canonicalized program loadings; standard errors = the
+  flashier loading posterior SDs (scale-canonicalized like the
+  loadings).
+- **Residual variance** $V$ is estimated from “null” genes (\|z\| \<
+  `z_thresh` in all conditions); if too few null genes exist, $V$ =
+  identity with a warning.
+- **Covariances**: canonical covariance matrices, plus data-driven ones
+  from PCA of strong effects (`npc`); if the data-driven set is
+  numerically non-positive-semi-definite (small condition counts), the
+  fit falls back to canonical-only with a warning.
+- **Classification**: for each matched group, the `n_top` genes with the
+  largest posterior-mean effects are counted. A gene counts as shared
+  when its lfsr \< `lfsr_thresh` in at least two conditions (signs are
+  not compared), and as private when significant in exactly one. The
+  group is classified `shared` when \>= half its top genes are shared,
+  `private` when \>= half are private, else `partial`. Programs with no
+  significant cross-cell-type match are labeled `private` without a
+  mashr fit (`evidence = "no_significant_match"`). The summary reports
+  `frac_top_shared` / `frac_top_private` and the evidence source. Note
+  the criterion is significance-based, not sign-based: a gene
+  significant in two conditions with opposite posterior signs still
+  counts as shared.
+
+## 6. Artifact masking
+
+``` r
+flags <- flag_artifact_genes(fit)          # post-hoc: which programs look artifactual
+# gene universe: union of the per-cell-type loading row names
+universe <- unique(unlist(lapply(program_loadings(fit), rownames)))
+excl <- artifact_genes(universe)           # gene set: V(D)J + genotype markers
+fit2 <- fit_celltype_programs(x, exclude_genes = excl)  # fit-time masking
+```
+
+Programs whose top genes are immunoglobulin/TCR V(D)J segments or known
+donor-genotype markers (e.g. GSTM1, HLA haplotype genes) can arise from
+ambient/clonal leakage or donor genotype rather than regulation. They
+co-vary across cell types for genetic reasons and masquerade as “shared”
+programs. `flag_artifact_genes()` marks them post hoc;
+`artifact_genes()` returns the gene set for fit-time `exclude_genes`,
+which removes them before variable-gene selection. On real COVID
+cohorts, masking changed shared-vs-private calls substantially (see the
+real-data case study).
+
+## Putting it together
+
+``` r
+x   <- as_cell_program_data(pseudobulk, sample_metadata = metadata)
+fit <- canonicalize_programs(
+  fit_celltype_programs(x, max_factors = 30, covariates = "site")
+)
+cmp <- find_coordinated_programs(fit, strata = "site", ambient = "flag")
+shr <- program_sharing(fit)
+```
+
+The three layers answer three different questions: what programs exist
+within each cell type (the fit), which programs move together across
+cell types (CMPs), and which programs use the same genes across cell
+types (sharing).

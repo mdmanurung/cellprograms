@@ -22,6 +22,7 @@
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/immune_aging_cross_cohort.html">Case study: immune-aging programs across 8 global PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -62,7 +63,9 @@
 <span>  covariates <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  covariate_mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"residualize"</span>, <span class="st">"fixed"</span><span class="op">)</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  flash_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  flash_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  feature_scale <span class="op">=</span> <span class="st">"unknown"</span>,</span>
+<span>  preprocessing_spec <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -81,6 +84,10 @@
 
 <dt id="arg-max-factors">max_factors<a class="anchor" aria-label="anchor" href="#arg-max-factors"></a></dt>
 <dd><p>Maximum candidate factors per cell type (greedy_Kmax).
+Must leave at least one residual degree of freedom per cell type:
+the fit aborts if `max_factors &gt; n - q - 1`, where n is the number of
+donors for the cell type and q the number of covariate columns adjusted
+for (safety guard; never binds at n &gt;= 50 with `max_factors &lt;= 10`).
 Default 10: benchmarked on COMBAT pseudobulk (32-config factorial),
 K=10 dominated all prior/variance/backfit combinations; K &gt;= 30
 overfits and collapses disease-signal recovery. For coordinated-program
@@ -169,6 +176,27 @@ variance with a covariate. Requires `center = TRUE`, ignores
 
 <dt id="arg-flash-control">flash_control<a class="anchor" aria-label="anchor" href="#arg-flash-control"></a></dt>
 <dd><p>Optional list overriding flashier::flash arguments.</p></dd>
+
+
+<dt id="arg-feature-scale">feature_scale<a class="anchor" aria-label="anchor" href="#arg-feature-scale"></a></dt>
+<dd><p>Declared measurement units of the pseudobulk
+expression values, recorded in the fit manifest and required for
+`project_programs_to_cells()` (the projection oracle refuses queries
+whose declared units differ from the source fit's). "unknown" (default)
+keeps the fit unprojectable; pass e.g. "logcounts" for
+log-normalized pseudobulk. Only used on the flashier.utils backend.</p></dd>
+
+
+<dt id="arg-preprocessing-spec">preprocessing_spec<a class="anchor" aria-label="anchor" href="#arg-preprocessing-spec"></a></dt>
+<dd><p>Optional frozen preprocessing specification from
+`freeze_preprocessing()` (MR-0). When supplied, the spec governs feature
+selection and adjustment: `features`, `n_variable_genes`,
+`exclude_genes`, `exclude_artifacts`, `covariates`, `covariate_mode`,
+`center`, and `scale` must all be left at their defaults (any explicit
+conflict is an error, so a refit can never silently drift from the
+frozen panel), and the spec's digest is recorded in the fit's
+preprocessing provenance. The spec's cell types must cover `x` and all
+frozen genes must be present in the dataset.</p></dd>
 
 </dl></div>
     <div class="section level2">

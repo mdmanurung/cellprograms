@@ -22,6 +22,7 @@
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/immune_aging_cross_cohort.html">Case study: immune-aging programs across 8 global PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -112,23 +113,23 @@ preprocessing settings, gene sets and covariates).</p></dd>
 <span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">assess_program_stability</span><span class="op">(</span><span class="va">fit</span>, n_boot <span class="op">=</span> <span class="fl">2</span>, seed <span class="op">=</span> <span class="fl">1</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">fit</span><span class="op">$</span><span class="va">stability</span><span class="op">$</span><span class="va">per_program</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   program_id cell_type recovery_freq median_score_cor median_loading_cos</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1        B_1         B             1        0.9997789          0.9948071</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2        B_2         B             1        0.9996917          0.9858163</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3      CD4_1       CD4             1        0.9998691          0.9914415</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4      CD8_1       CD8             1        0.9993433          0.9822231</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5       NK_1        NK             1        0.9999543          0.9957585</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6       NK_2        NK             1        0.9998960          0.9924255</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7     Mono_1      Mono             1        0.9999358          0.9968871</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8     Mono_2      Mono             1        0.9998421          0.9915194</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1        B_1         B             1        0.9999650          0.9971983</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2        B_2         B             1        0.9997030          0.9870352</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3      CD4_1       CD4             1        0.9998824          0.9921341</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4      CD8_1       CD8             1        0.9993324          0.9828631</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5       NK_1        NK             1        0.9999204          0.9946079</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6       NK_2        NK             1        0.9999242          0.9946153</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7     Mono_1      Mono             1        0.9999864          0.9985128</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8     Mono_2      Mono             1        0.9998608          0.9920544</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   sign_consistency top_gene_jaccard</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                1        0.8614719</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                1        0.8219462</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                1        0.9090909</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1                1        0.9047619</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2                1        0.8614719</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3                1        0.8614719</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4                1        0.9090909</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                1        0.9047619</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5                1        0.9523810</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 6                1        0.9090909</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 7                1        0.9523810</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8                1        0.8181818</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8                1        0.7424242</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

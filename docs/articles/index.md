@@ -17,6 +17,11 @@
 - [Case study: DIVAS COVID-19 multi-omics reanalysis with
   cellprograms](https://mdmanurung.github.io/cellprograms/articles/divas_case_study.md):
 
+### Applications
+
+- [Case study: immune-aging programs across 8 global PBMC
+  cohorts](https://mdmanurung.github.io/cellprograms/articles/immune_aging_cross_cohort.md):
+
 ### Comparisons
 
 - [Compared to MOFAcellulaR: local-first vs joint multicellular factor

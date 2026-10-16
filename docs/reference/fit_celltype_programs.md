@@ -21,7 +21,9 @@ fit_celltype_programs(
   covariates = NULL,
   covariate_mode = c("residualize", "fixed"),
   seed = 1,
-  flash_control = list()
+  flash_control = list(),
+  feature_scale = "unknown",
+  preprocessing_spec = NULL
 )
 ```
 
@@ -38,12 +40,16 @@ fit_celltype_programs(
 
 - max_factors:
 
-  Maximum candidate factors per cell type (greedy_Kmax). Default 10:
-  benchmarked on COMBAT pseudobulk (32-config factorial), K=10 dominated
-  all prior/variance/backfit combinations; K \>= 30 overfits and
-  collapses disease-signal recovery. For coordinated-program detection
-  (\`find_coordinated_programs()\`), use \`max_factors = 30\`: it raised
-  CMP membership F1 in the cmp-bench-v1.2 held-out benchmark.
+  Maximum candidate factors per cell type (greedy_Kmax). Must leave at
+  least one residual degree of freedom per cell type: the fit aborts if
+  \`max_factors \> n - q - 1\`, where n is the number of donors for the
+  cell type and q the number of covariate columns adjusted for (safety
+  guard; never binds at n \>= 50 with \`max_factors \<= 10\`). Default
+  10: benchmarked on COMBAT pseudobulk (32-config factorial), K=10
+  dominated all prior/variance/backfit combinations; K \>= 30 overfits
+  and collapses disease-signal recovery. For coordinated-program
+  detection (\`find_coordinated_programs()\`), use \`max_factors = 30\`:
+  it raised CMP membership F1 in the cmp-bench-v1.2 held-out benchmark.
 
 - center:
 
@@ -125,6 +131,27 @@ fit_celltype_programs(
 - flash_control:
 
   Optional list overriding flashier::flash arguments.
+
+- feature_scale:
+
+  Declared measurement units of the pseudobulk expression values,
+  recorded in the fit manifest and required for
+  \`project_programs_to_cells()\` (the projection oracle refuses queries
+  whose declared units differ from the source fit's). "unknown"
+  (default) keeps the fit unprojectable; pass e.g. "logcounts" for
+  log-normalized pseudobulk. Only used on the flashier.utils backend.
+
+- preprocessing_spec:
+
+  Optional frozen preprocessing specification from
+  \`freeze_preprocessing()\` (MR-0). When supplied, the spec governs
+  feature selection and adjustment: \`features\`, \`n_variable_genes\`,
+  \`exclude_genes\`, \`exclude_artifacts\`, \`covariates\`,
+  \`covariate_mode\`, \`center\`, and \`scale\` must all be left at
+  their defaults (any explicit conflict is an error, so a refit can
+  never silently drift from the frozen panel), and the spec's digest is
+  recorded in the fit's preprocessing provenance. The spec's cell types
+  must cover \`x\` and all frozen genes must be present in the dataset.
 
 ## Value
 

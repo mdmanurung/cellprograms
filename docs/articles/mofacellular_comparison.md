@@ -25,7 +25,8 @@ on metadata associations — the same questions, asked of both models.
 `if`` ``(``!`[`requireNamespace`](https://rdrr.io/r/base/ns-load.html)`(``"MOFA2"``, quietly ``=`` ``TRUE``)`` ``||`\
 `    ``!`[`requireNamespace`](https://rdrr.io/r/base/ns-load.html)`(``"MOFAcellulaR"``, quietly ``=`` ``TRUE``)``)`` ``{`\
 `  `[`message`](https://rdrr.io/r/base/message.html)`(``"MOFA2/MOFAcellulaR not installed; skipping the comparison sections."``)`\
-`}`
+`}`\
+`#> MOFA2/MOFAcellulaR not installed; skipping the comparison sections.`
 
 ## The data: planted multicellular programs
 
@@ -133,156 +134,25 @@ in a way a joint model’s implicit assumptions are not.
 
 [`as_mofacellular_input()`](https://mdmanurung.github.io/cellprograms/reference/as_mofacellular_input.md)
 exports the same pseudobulk as the `(counts, coldata)` pair
-[`MOFAcellulaR::create_init_exp()`](https://saezlab.github.io/MOFAcellulaR/reference/create_init_exp.html)
-expects, guaranteeing both models see identical inputs. MOFAcellulaR’s
-QC chain (`filt_profiles`, `tmm_trns`, …) targets *raw-count*
-pseudobulk; the simulated profiles are already continuous, so we hand
-the views to MOFA2 directly (with real data, run their full
-preprocessing first):
+`MOFAcellulaR::create_init_exp()` expects, guaranteeing both models see
+identical inputs. MOFAcellulaR’s QC chain (`filt_profiles`, `tmm_trns`,
+…) targets *raw-count* pseudobulk; the simulated profiles are already
+continuous, so we hand the views to MOFA2 directly (with real data, run
+their full preprocessing first):
 
 \
 `mofa_in`` ``<-`` `[`as_mofacellular_input`](https://mdmanurung.github.io/cellprograms/reference/as_mofacellular_input.md)`(``x``)``          ``# counts + coldata (the interop adapter)`\
 `views`` ``<-`` `[`lapply`](https://rdrr.io/r/base/lapply.html)`(``sim``$``pseudobulk``, ``t``)``           ``# genes x donors, one view per cell type`\
-`mo`` ``<-`` ``MOFA2``::`[`create_mofa`](https://rdrr.io/pkg/MOFA2/man/create_mofa.html)`(``views``)`\
-`#> Creating MOFA object from a list of matrices (features as rows, sample as columns)...`\
-`#> Warning in .rename_duplicated_features(object): There are duplicated features names across different views. We will add the suffix *_view* only for those features `\
-`#>             Example: if you have both TP53 in mRNA and mutation data it will be renamed to TP53_mRNA, TP53_mutation`\
-`mo_opts`` ``<-`` ``MOFA2``::`[`get_default_model_options`](https://rdrr.io/pkg/MOFA2/man/get_default_model_options.html)`(``mo``)`\
+`mo`` ``<-`` ``MOFA2``::``create_mofa``(``views``)`\
+`mo_opts`` ``<-`` ``MOFA2``::``get_default_model_options``(``mo``)`\
 `mo_opts``$``num_factors`` ``<-`` ``8`\
 `mo_opts``$``spikeslab_weights`` ``<-`` ``FALSE``           ``# as in the MOFAcellulaR tutorial`\
-`tr_opts`` ``<-`` ``MOFA2``::`[`get_default_training_options`](https://rdrr.io/pkg/MOFA2/man/get_default_training_options.html)`(``mo``)`\
+`tr_opts`` ``<-`` ``MOFA2``::``get_default_training_options``(``mo``)`\
 `tr_opts``$``seed`` ``<-`` ``1`\
-`mo`` ``<-`` ``MOFA2``::`[`prepare_mofa`](https://rdrr.io/pkg/MOFA2/man/prepare_mofa.html)`(``mo``, model_options ``=`` ``mo_opts``, training_options ``=`` ``tr_opts``)`\
-`#> Checking data options...`\
-`#> No data options specified, using default...`\
-`#> Checking training options...`\
-`#> Checking model options...`\
-`mofa_model`` ``<-`` ``MOFA2``::`[`run_mofa`](https://rdrr.io/pkg/MOFA2/man/run_mofa.html)`(``mo``, outfile ``=`` `[`tempfile`](https://rdrr.io/r/base/tempfile.html)`(``fileext ``=`` ``".hdf5"``)``, save_data ``=`` ``FALSE``)`\
-`#> Connecting to the mofapy2 python package using reticulate (use_basilisk = FALSE)... `\
-`#>     Please make sure to manually specify the right python binary when loading R with reticulate::use_python(..., force=TRUE) or the right conda environment with reticulate::use_condaenv(..., force=TRUE)`\
-`#>     If you prefer to let us automatically install a conda environment with 'mofapy2' installed using the 'basilisk' package, please use the argument 'use_basilisk = TRUE'`\
-`#> Warning in MOFA2::run_mofa(mo, outfile = tempfile(fileext = ".hdf5"), save_data`\
-`#> = FALSE): The latest mofapy2 version is 0.7.0, you are using 0.7.5. Please`\
-`#> upgrade with 'pip install mofapy2'`\
-`#> `\
-`#>         #########################################################`\
-`#>         ###           __  __  ____  ______                    ### `\
-`#>         ###          |  \/  |/ __ \|  ____/\    _             ### `\
-`#>         ###          | \  / | |  | | |__ /  \ _| |_           ### `\
-`#>         ###          | |\/| | |  | |  __/ /\ \_   _|          ###`\
-`#>         ###          | |  | | |__| | | / ____ \|_|            ###`\
-`#>         ###          |_|  |_|\____/|_|/_/    \_\              ###`\
-`#>         ###                                                   ### `\
-`#>         ######################################################### `\
-`#>          `\
-`#> `\
-`#> `\
-`#> use_float32 set to True: replacing float64 arrays by float32 arrays to speed up computations...`\
-`#> `\
-`#> Successfully loaded view='B' group='group1' with N=60 samples and D=800 features...`\
-`#> Successfully loaded view='CD4' group='group1' with N=60 samples and D=800 features...`\
-`#> Successfully loaded view='CD8' group='group1' with N=60 samples and D=800 features...`\
-`#> Successfully loaded view='NK' group='group1' with N=60 samples and D=800 features...`\
-`#> Successfully loaded view='Mono' group='group1' with N=60 samples and D=800 features...`\
-`#> `\
-`#> `\
-`#> Model options:`\
-`#> - Automatic Relevance Determination prior on the factors: False`\
-`#> - Automatic Relevance Determination prior on the weights: True`\
-`#> - Spike-and-slab prior on the factors: False`\
-`#> - Spike-and-slab prior on the weights: False`\
-`#> Likelihoods:`\
-`#> - View 0 (B): gaussian`\
-`#> - View 1 (CD4): gaussian`\
-`#> - View 2 (CD8): gaussian`\
-`#> - View 3 (NK): gaussian`\
-`#> - View 4 (Mono): gaussian`\
-`#> `\
-`#> `\
-`#> `\
-`#> `\
-`#> ######################################`\
-`#> ## Training the model with seed 1 ##`\
-`#> ######################################`\
-`#> `\
-`#> `\
-`#> ELBO before training: -1633838.31 `\
-`#> `\
-`#> Iteration 1: time=0.04, ELBO=-379185.10, deltaELBO=1254653.205 (76.79176074%), Factors=8`\
-`#> Iteration 2: time=0.01, Factors=8`\
-`#> Iteration 3: time=0.01, Factors=8`\
-`#> Iteration 4: time=0.01, Factors=8`\
-`#> Iteration 5: time=0.01, Factors=8`\
-`#> Iteration 6: time=0.01, ELBO=-376437.50, deltaELBO=2747.604 (0.16816865%), Factors=8`\
-`#> Iteration 7: time=0.01, Factors=8`\
-`#> Iteration 8: time=0.01, Factors=8`\
-`#> Iteration 9: time=0.01, Factors=8`\
-`#> Iteration 10: time=0.01, Factors=8`\
-`#> Iteration 11: time=0.01, ELBO=-376274.49, deltaELBO=163.009 (0.00997705%), Factors=8`\
-`#> Iteration 12: time=0.01, Factors=8`\
-`#> Iteration 13: time=0.01, Factors=8`\
-`#> Iteration 14: time=0.01, Factors=8`\
-`#> Iteration 15: time=0.01, Factors=8`\
-`#> Iteration 16: time=0.01, ELBO=-376188.62, deltaELBO=85.871 (0.00525575%), Factors=8`\
-`#> Iteration 17: time=0.01, Factors=8`\
-`#> Iteration 18: time=0.01, Factors=8`\
-`#> Iteration 19: time=0.01, Factors=8`\
-`#> Iteration 20: time=0.01, Factors=8`\
-`#> Iteration 21: time=0.01, ELBO=-376129.73, deltaELBO=58.893 (0.00360455%), Factors=8`\
-`#> Iteration 22: time=0.01, Factors=8`\
-`#> Iteration 23: time=0.01, Factors=8`\
-`#> Iteration 24: time=0.01, Factors=8`\
-`#> Iteration 25: time=0.01, Factors=8`\
-`#> Iteration 26: time=0.01, ELBO=-376094.90, deltaELBO=34.829 (0.00213171%), Factors=8`\
-`#> Iteration 27: time=0.01, Factors=8`\
-`#> Iteration 28: time=0.01, Factors=8`\
-`#> Iteration 29: time=0.01, Factors=8`\
-`#> Iteration 30: time=0.01, Factors=8`\
-`#> Iteration 31: time=0.01, ELBO=-376072.16, deltaELBO=22.744 (0.00139207%), Factors=8`\
-`#> Iteration 32: time=0.01, Factors=8`\
-`#> Iteration 33: time=0.01, Factors=8`\
-`#> Iteration 34: time=0.01, Factors=8`\
-`#> Iteration 35: time=0.01, Factors=8`\
-`#> Iteration 36: time=0.01, ELBO=-376056.13, deltaELBO=16.022 (0.00098061%), Factors=8`\
-`#> Iteration 37: time=0.01, Factors=8`\
-`#> Iteration 38: time=0.01, Factors=8`\
-`#> Iteration 39: time=0.01, Factors=8`\
-`#> Iteration 40: time=0.01, Factors=8`\
-`#> Iteration 41: time=0.01, ELBO=-376044.14, deltaELBO=11.990 (0.00073388%), Factors=8`\
-`#> Iteration 42: time=0.02, Factors=8`\
-`#> Iteration 43: time=0.01, Factors=8`\
-`#> Iteration 44: time=0.01, Factors=8`\
-`#> Iteration 45: time=0.01, Factors=8`\
-`#> Iteration 46: time=0.01, ELBO=-376034.30, deltaELBO=9.843 (0.00060242%), Factors=8`\
-`#> Iteration 47: time=0.01, Factors=8`\
-`#> Iteration 48: time=0.01, Factors=8`\
-`#> Iteration 49: time=0.01, Factors=8`\
-`#> Iteration 50: time=0.01, Factors=8`\
-`#> Iteration 51: time=0.01, ELBO=-376025.88, deltaELBO=8.416 (0.00051514%), Factors=8`\
-`#> Iteration 52: time=0.01, Factors=8`\
-`#> Iteration 53: time=0.01, Factors=8`\
-`#> Iteration 54: time=0.01, Factors=8`\
-`#> Iteration 55: time=0.01, Factors=8`\
-`#> Iteration 56: time=0.01, ELBO=-376018.51, deltaELBO=7.374 (0.00045134%), Factors=8`\
-`#> Iteration 57: time=0.01, Factors=8`\
-`#> Iteration 58: time=0.01, Factors=8`\
-`#> Iteration 59: time=0.01, Factors=8`\
-`#> Iteration 60: time=0.01, Factors=8`\
-`#> Iteration 61: time=0.01, ELBO=-376011.86, deltaELBO=6.652 (0.00040713%), Factors=8`\
-`#> `\
-`#> Converged!`\
-`#> `\
-`#> `\
-`#> `\
-`#> #######################`\
-`#> ## Training finished ##`\
-`#> #######################`\
-`#> `\
-`#> `\
-`#> Saving model in /tmp/RtmpzLmL1T/fileb4f7ac35e97.hdf5...`\
-`Z_mofa`` ``<-`` ``MOFA2``::`[`get_factors`](https://rdrr.io/pkg/MOFA2/man/get_factors.html)`(``mofa_model``)``$``group1``   ``# donors x factors`\
-[`dim`](https://rdrr.io/r/base/dim.html)`(``Z_mofa``)`\
-`#> [1] 60  8`
+`mo`` ``<-`` ``MOFA2``::``prepare_mofa``(``mo``, model_options ``=`` ``mo_opts``, training_options ``=`` ``tr_opts``)`\
+`mofa_model`` ``<-`` ``MOFA2``::``run_mofa``(``mo``, outfile ``=`` `[`tempfile`](https://rdrr.io/r/base/tempfile.html)`(``fileext ``=`` ``".hdf5"``)``, save_data ``=`` ``FALSE``)`\
+`Z_mofa`` ``<-`` ``MOFA2``::``get_factors``(``mofa_model``)``$``group1``   ``# donors x factors`\
+[`dim`](https://rdrr.io/r/base/dim.html)`(``Z_mofa``)`
 
 ## Aligning the two models
 
@@ -304,8 +174,6 @@ MOFA factor:
 `  ``ggplot2``::`[`labs`](https://ggplot2.tidyverse.org/reference/labs.html)`(``x ``=`` ``"MOFA factor"``, y ``=`` ``"cellprograms program"``,`\
 `                title ``=`` ``"Donor-score concordance between the two models"``)`` ``+`\
 `  ``ggplot2``::`[`theme_bw`](https://ggplot2.tidyverse.org/reference/ggtheme.html)`(``)`
-
-![](mofacellular_comparison_files/figure-html/align-1.png)
 
 Reading it: programs that appear in both models light up a MOFA factor;
 MOFA factors with no cellprograms counterpart are typically
@@ -345,7 +213,7 @@ the top-40 \|loadings\| against the planted genes):
 `## MOFA2 suffixes feature names with the view name when views share genes`\
 `## (G1 -> G1_B); strip it before matching planted gene names`\
 `w_mofa`` ``<-`` `[`lapply`](https://rdrr.io/r/base/lapply.html)`(`[`names`](https://rdrr.io/r/base/names.html)`(``sim``$``pseudobulk``)``, ``function``(``ct``)`` ``{`\
-`  ``W`` ``<-`` `[`as.matrix`](https://rdrr.io/r/base/matrix.html)`(``MOFA2``::`[`get_weights`](https://rdrr.io/pkg/MOFA2/man/get_weights.html)`(``mofa_model``, views ``=`` ``ct``)``[[``1``]``]``)`\
+`  ``W`` ``<-`` `[`as.matrix`](https://rdrr.io/r/base/matrix.html)`(``MOFA2``::``get_weights``(``mofa_model``, views ``=`` ``ct``)``[[``1``]``]``)`\
 `  `[`rownames`](https://rdrr.io/r/base/colnames.html)`(``W``)`` ``<-`` `[`sub`](https://rdrr.io/r/base/grep.html)`(`[`paste0`](https://rdrr.io/r/base/paste.html)`(``"_"``, ``ct``, ``"$"``)``, ``""``, `[`rownames`](https://rdrr.io/r/base/colnames.html)`(``W``)``)`\
 `  ``W`\
 `}``)`\
@@ -355,27 +223,6 @@ the top-40 \|loadings\| against the planted genes):
 `knitr``::`[`kable`](https://rdrr.io/pkg/knitr/man/kable.html)`(`[`rbind`](https://rdrr.io/r/base/cbind.html)`(`[`cbind`](https://rdrr.io/r/base/cbind.html)`(``model ``=`` ``"cellprograms"``, ``rec_cp``)``,`\
 `                   `[`cbind`](https://rdrr.io/r/base/cbind.html)`(``model ``=`` ``"MOFA2"``, ``rec_mf``)``)``,`\
 `             digits ``=`` ``2``, caption ``=`` ``"Best donor-score |r| and top-gene Jaccard per planted program"``)`
-
-| model        | label        | cell_type | best_r | gene_jaccard |
-|:-------------|:-------------|:----------|-------:|-------------:|
-| cellprograms | B_private    | B         |   0.99 |         0.70 |
-| cellprograms | global_IFN   | B         |   1.00 |         0.72 |
-| cellprograms | global_IFN   | CD4       |   0.99 |         0.75 |
-| cellprograms | CD8NK_shared | CD8       |   0.99 |         0.85 |
-| cellprograms | CD8NK_shared | NK        |   1.00 |         0.75 |
-| cellprograms | global_IFN   | NK        |   0.99 |         0.82 |
-| cellprograms | Mono_private | Mono      |   0.99 |         0.80 |
-| cellprograms | global_IFN   | Mono      |   1.00 |         0.78 |
-| MOFA2        | B_private    | B         |   0.92 |         0.70 |
-| MOFA2        | global_IFN   | B         |   1.00 |         0.75 |
-| MOFA2        | global_IFN   | CD4       |   1.00 |         0.78 |
-| MOFA2        | CD8NK_shared | CD8       |   1.00 |         0.85 |
-| MOFA2        | CD8NK_shared | NK        |   1.00 |         0.78 |
-| MOFA2        | global_IFN   | NK        |   1.00 |         0.82 |
-| MOFA2        | Mono_private | Mono      |   0.98 |         0.80 |
-| MOFA2        | global_IFN   | Mono      |   1.00 |         0.78 |
-
-Best donor-score \|r\| and top-gene Jaccard per planted program {.table}
 
 What to expect: the two models tie on raw recovery — every planted
 program’s donor activity comes back at best \|r\| ≥ 0.9 in both, with
@@ -428,27 +275,14 @@ on CMP consensus scores:
 `## cellprograms: CMP scores vs the planted context`\
 `ca`` ``<-`` `[`cmp_context_association`](https://mdmanurung.github.io/cellprograms/reference/cmp_context_association.md)`(``fit``, ``cmp``, ``"ifn_high"``)`\
 `ca``[`[`order`](https://rdrr.io/r/base/order.html)`(``ca``$``p``)``, ``]`\
-`#>   cmp  term  estimate         t            p  n`\
-`#> 1   1 xhigh -1.555736 -9.731873 8.415312e-14 60`\
 \
 `## MOFAcellulaR: factor scores vs the same context`\
 `md_f`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``sample ``=`` `[`rownames`](https://rdrr.io/r/base/colnames.html)`(``Z_mofa``)``, ifn_high ``=`` ``md``$``ifn_high``[`[`match`](https://rdrr.io/r/base/match.html)`(`[`rownames`](https://rdrr.io/r/base/colnames.html)`(``Z_mofa``)``, ``md``$``observation_id``)``]``)`\
-`ga`` ``<-`` ``MOFAcellulaR``::`[`get_associations`](https://saezlab.github.io/MOFAcellulaR/reference/get_associations.html)`(``model ``=`` ``mofa_model``, metadata ``=`` ``md_f``,`\
+`ga`` ``<-`` ``MOFAcellulaR``::``get_associations``(``model ``=`` ``mofa_model``, metadata ``=`` ``md_f``,`\
 `                                     sample_id_column ``=`` ``"sample"``,`\
 `                                     test_variable ``=`` ``"ifn_high"``,`\
 `                                     test_type ``=`` ``"categorical"``, group ``=`` ``FALSE``)`\
-`ga``[`[`order`](https://rdrr.io/r/base/order.html)`(``ga``$``p.value``)``, ``]`\
-`#> ``# A tibble: 8 × 4`\
-`#>   Factor  term      p.value adj_pvalue`\
-`#>   ``<chr>``   ``<chr>``       ``<dbl>``      ``<dbl>`\
-`#> ``1`` Factor1 ifn_high 7.61``e``-14``   6.09``e``-13`\
-`#> ``2`` Factor2 ifn_high 1.17``e``- 1``   8.16``e``- 1`\
-`#> ``3`` Factor3 ifn_high 4.71``e``- 1``   1   ``e``+ 0`\
-`#> ``4`` Factor5 ifn_high 4.72``e``- 1``   1   ``e``+ 0`\
-`#> ``5`` Factor6 ifn_high 5.47``e``- 1``   1   ``e``+ 0`\
-`#> ``6`` Factor4 ifn_high 6.80``e``- 1``   1   ``e``+ 0`\
-`#> ``7`` Factor7 ifn_high 6.91``e``- 1``   1   ``e``+ 0`\
-`#> ``8`` Factor8 ifn_high 9.71``e``- 1``   1   ``e``+ 0`
+`ga``[`[`order`](https://rdrr.io/r/base/order.html)`(``ga``$``p.value``)``, ``]`
 
 Both should flag the factors/programs aligned with the planted
 `global_IFN` donor scores (the sign of the estimate is arbitrary —
@@ -479,21 +313,21 @@ vetoed from every view via `filt_gex_bybckgrnd()`. We train 15 factors
 \
 `## heavy: ~15 min; cached results used below`\
 `counts`` ``<-`` `[`do.call`](https://rdrr.io/r/base/do.call.html)`(``cbind``, `[`lapply`](https://rdrr.io/r/base/lapply.html)`(``cts``, ``function``(``ct``)`` `[`t`](https://rdrr.io/r/base/t.html)`(``fit``$``pseudobulk``[[``ct``]``]``[``, ``shared``, drop ``=`` ``FALSE``]``)``)``)`\
-`ct_list`` ``<-`` ``MOFAcellulaR``::`[`create_init_exp`](https://saezlab.github.io/MOFAcellulaR/reference/create_init_exp.html)`(``counts ``=`` ``counts``, coldata ``=`` ``coldata``)`` ``%>%`\
-`  ``MOFAcellulaR``::`[`filt_profiles`](https://saezlab.github.io/MOFAcellulaR/reference/filt_profiles.html)`(``pb_dat ``=`` ``.``, cts ``=`` ``cts``, ncells ``=`` ``0``,`\
+`ct_list`` ``<-`` ``MOFAcellulaR``::``create_init_exp``(``counts ``=`` ``counts``, coldata ``=`` ``coldata``)`` ``%>%`\
+`  ``MOFAcellulaR``::``filt_profiles``(``pb_dat ``=`` ``.``, cts ``=`` ``cts``, ncells ``=`` ``0``,`\
 `                              counts_col ``=`` ``"cell_counts"``, ct_col ``=`` ``"cell_type"``)`` ``%>%`\
-`  ``MOFAcellulaR``::`[`filt_views_bysamples`](https://saezlab.github.io/MOFAcellulaR/reference/filt_views_bysamples.html)`(``pb_dat_list ``=`` ``.``, nsamples ``=`` ``2``)`` ``%>%`\
-`  ``MOFAcellulaR``::`[`filt_gex_byexpr`](https://saezlab.github.io/MOFAcellulaR/reference/filt_gex_byexpr.html)`(``pb_dat_list ``=`` ``.``, min.count ``=`` ``5``, min.prop ``=`` ``0.25``)`` ``%>%`\
-`  ``MOFAcellulaR``::`[`filt_views_bygenes`](https://saezlab.github.io/MOFAcellulaR/reference/filt_views_bygenes.html)`(``pb_dat_list ``=`` ``.``, ngenes ``=`` ``15``)`` ``%>%`\
-`  ``MOFAcellulaR``::`[`filt_samples_bycov`](https://saezlab.github.io/MOFAcellulaR/reference/filt_samples_bycov.html)`(``pb_dat_list ``=`` ``.``, prop_coverage ``=`` ``0.9``)`` ``%>%`\
-`  ``MOFAcellulaR``::`[`tmm_trns`](https://saezlab.github.io/MOFAcellulaR/reference/tmm_trns.html)`(``pb_dat_list ``=`` ``.``, scale_factor ``=`` ``1e6``)`` ``%>%`\
-`  ``MOFAcellulaR``::`[`filt_gex_byhvg`](https://saezlab.github.io/MOFAcellulaR/reference/filt_gex_byhvg.html)`(``pb_dat_list ``=`` ``.``, prior_hvg ``=`` ``fit``$``preprocessing``$``feature_sets``,`\
+`  ``MOFAcellulaR``::``filt_views_bysamples``(``pb_dat_list ``=`` ``.``, nsamples ``=`` ``2``)`` ``%>%`\
+`  ``MOFAcellulaR``::``filt_gex_byexpr``(``pb_dat_list ``=`` ``.``, min.count ``=`` ``5``, min.prop ``=`` ``0.25``)`` ``%>%`\
+`  ``MOFAcellulaR``::``filt_views_bygenes``(``pb_dat_list ``=`` ``.``, ngenes ``=`` ``15``)`` ``%>%`\
+`  ``MOFAcellulaR``::``filt_samples_bycov``(``pb_dat_list ``=`` ``.``, prop_coverage ``=`` ``0.9``)`` ``%>%`\
+`  ``MOFAcellulaR``::``tmm_trns``(``pb_dat_list ``=`` ``.``, scale_factor ``=`` ``1e6``)`` ``%>%`\
+`  ``MOFAcellulaR``::``filt_gex_byhvg``(``pb_dat_list ``=`` ``.``, prior_hvg ``=`` ``fit``$``preprocessing``$``feature_sets``,`\
 `                               var.threshold ``=`` ``0``)`` ``%>%`\
-`  ``MOFAcellulaR``::`[`filt_gex_bybckgrnd`](https://saezlab.github.io/MOFAcellulaR/reference/filt_gex_bybckgrnd.html)`(``pb_dat_list ``=`` ``.``,`\
+`  ``MOFAcellulaR``::``filt_gex_bybckgrnd``(``pb_dat_list ``=`` ``.``,`\
 `                                   prior_mrks ``=`` `[`list`](https://rdrr.io/r/base/list.html)`(``phantom ``=`` ``fit``$``preprocessing``$``exclude_genes``)``)`` ``%>%`\
-`  ``MOFAcellulaR``::`[`filt_views_bygenes`](https://saezlab.github.io/MOFAcellulaR/reference/filt_views_bygenes.html)`(``pb_dat_list ``=`` ``.``, ngenes ``=`` ``15``)`` ``%>%`\
-`  ``MOFAcellulaR``::`[`pb_dat2MOFA`](https://saezlab.github.io/MOFAcellulaR/reference/pb_dat2MOFA.html)`(``pb_dat_list ``=`` ``.``, sample_column ``=`` ``"observation_id"``)`` ``%>%`\
-`  ``MOFA2``::`[`create_mofa`](https://rdrr.io/pkg/MOFA2/man/create_mofa.html)`(``)`\
+`  ``MOFAcellulaR``::``filt_views_bygenes``(``pb_dat_list ``=`` ``.``, ngenes ``=`` ``15``)`` ``%>%`\
+`  ``MOFAcellulaR``::``pb_dat2MOFA``(``pb_dat_list ``=`` ``.``, sample_column ``=`` ``"observation_id"``)`` ``%>%`\
+`  ``MOFA2``::``create_mofa``(``)`\
 `## ... then prepare_mofa(num_factors = 15, spikeslab_weights = FALSE, seed = 1) and run_mofa()`
 
 \
@@ -596,7 +430,7 @@ institute + sex residualized, seed 1), and MOFAcellulaR gets the same
 `has_cache_excl`` ``<-`` `[`file.exists`](https://rdrr.io/r/base/files.html)`(``excl_path``)`\
 `if`` ``(``!``has_cache_excl``)`` ``{`\
 `  `[`message`](https://rdrr.io/r/base/message.html)`(``"mofacellular_stephenson_cache_excl.rds not found; "``,`\
-`          ``"skipping the sensitivity results (run scripts in benchmarks/ to build it)."``)`\
+`          ``"skipping the sensitivity results (see benchmarks/mofacellular_comparison/ to build it)."``)`\
 `}`
 
 \

@@ -2,6 +2,7 @@
 <url><loc>https://mdmanurung.github.io/cellprograms/404.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/LICENSE-text.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/articles/divas_case_study.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/articles/immune_aging_cross_cohort.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/articles/index.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/articles/model_mechanisms.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/articles/mofacellular_comparison.html</loc></url>
@@ -33,6 +34,7 @@
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/find_coordinated_programs.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/flag_artifact_genes.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/freeze_preprocessing.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/index.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/match_programs.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/plot_alignment.html</loc></url>
@@ -59,10 +61,12 @@
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/program_scores.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/program_sharing.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/program_summary.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/project_programs_to_cells.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/sharing_spectrum.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/simulate_pseudobulk.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/summary.cell_program_data.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/top_genes.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/union_panel_loadings.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/validate_cell_program_data.html</loc></url>
 </urlset>
 

@@ -42,6 +42,8 @@
   : Fit cell-type-specific programs with flashier
 - [`flag_artifact_genes()`](https://mdmanurung.github.io/cellprograms/reference/flag_artifact_genes.md)
   : Flag programs or CMPs carrying artifact genes
+- [`freeze_preprocessing()`](https://mdmanurung.github.io/cellprograms/reference/freeze_preprocessing.md)
+  : Freeze a preprocessing specification
 - [`match_programs()`](https://mdmanurung.github.io/cellprograms/reference/match_programs.md)
   : Match programs across two fits (bootstrap refits or cohorts)
 - [`plot_alignment()`](https://mdmanurung.github.io/cellprograms/reference/plot_alignment.md)
@@ -93,6 +95,8 @@
 - [`program_summary()`](https://mdmanurung.github.io/cellprograms/reference/program_summary.md)
   : Summary of programs per cell type (n, K, R2 of the reconstruction,
   ELBO)
+- [`project_programs_to_cells()`](https://mdmanurung.github.io/cellprograms/reference/project_programs_to_cells.md)
+  : Project fitted programs onto individual cells
 - [`sharing_spectrum()`](https://mdmanurung.github.io/cellprograms/reference/sharing_spectrum.md)
   : Pairwise sharing spectra across all cell types
 - [`simulate_pseudobulk()`](https://mdmanurung.github.io/cellprograms/reference/simulate_pseudobulk.md)
@@ -101,5 +105,7 @@
   : Summarize a cell program data object
 - [`top_genes()`](https://mdmanurung.github.io/cellprograms/reference/top_genes.md)
   : Top genes of a program
+- [`union_panel_loadings()`](https://mdmanurung.github.io/cellprograms/reference/union_panel_loadings.md)
+  : Refit program loadings on a common (union) gene panel
 - [`validate_cell_program_data()`](https://mdmanurung.github.io/cellprograms/reference/validate_cell_program_data.md)
   : Validate a cell program data object

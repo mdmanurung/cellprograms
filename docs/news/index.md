@@ -2,6 +2,50 @@
 
 ## cellprograms 0.2.0
 
+### Stage B: frozen preprocessing and cell-level projection
+
+- [`freeze_preprocessing()`](https://mdmanurung.github.io/cellprograms/reference/freeze_preprocessing.md)
+  (MR-0): resolve the feature panel and adjustment decisions once into a
+  content-addressed specification (`cell_program_preproc_spec`, sha256
+  digest); refit any cohort carrying the same genes with
+  `fit_celltype_programs(preprocessing_spec = ...)`, which replays the
+  spec fail-closed (conflicting explicit arguments are refused, and the
+  spec’s digest is recorded in the fit’s preprocessing provenance).
+- [`project_programs_to_cells()`](https://mdmanurung.github.io/cellprograms/reference/project_programs_to_cells.md)
+  (MR-1): project fitted programs onto individual cells. Query
+  expression is adjusted with the fit’s recorded preprocessing
+  (residualization coefficients, centering, scale), activities are
+  inferred against the frozen gene loadings via
+  [`flashier.utils::project_factor_activity()`](https://mdmanurung.github.io/flashier-utils/reference/project_factor_activity.html),
+  and raw activities are canonicalized with the same RMS/sign
+  multipliers as the donor scores. Requires a canonicalized fit with
+  declared `feature_scale`; fits with residualized covariates require
+  `donors` + `sample_metadata`, and the rebuilt covariate design must
+  match the fit’s design columns exactly.
+- [`fit_celltype_programs()`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)
+  gains `feature_scale` (declared measurement units, recorded in the fit
+  manifest and required for projection) and `preprocessing_spec` (MR-0
+  replay); fits now record a `preproc_replay` block per cell type so the
+  exact adjustment can be replayed on query data.
+- New roadmap: `reports/STAGE_B_ROADMAP.md` (MR-0..MR-4 spec, staged
+  main-run costs, registration drafts, gates).
+
+### Backend synchronization (Stage A)
+
+- Ordinary EBMF fits now delegate to
+  [`flashier.utils::fit_ebmf()`](https://mdmanurung.github.io/flashier-utils/reference/fit_ebmf.html)
+  and canonicalization uses
+  `flashier.utils::standardize_factors(scaling = "rms")`, with numerical
+  parity verified to machine precision against the previous direct
+  [`flashier::flash()`](https://rdrr.io/pkg/flashier/man/flash.html)
+  backend. The public workflow, output fields, and scientific results
+  are unchanged. `flashier`, `ebnm`, and `flashier.utils` move to
+  `Imports` (R \>= 4.3 required); the fixed-covariate path
+  (`covariate_mode = "fixed"`) and degenerate fits remain on the legacy
+  backend. Set `options(cellprograms.use_flashier_utils = FALSE)` to
+  force the legacy backend. See `reports/SYNC_ROADMAP.md` for the
+  version pair, parity evidence, and rollback plan.
+
 ### New features
 
 - [`find_coordinated_programs()`](https://mdmanurung.github.io/cellprograms/reference/find_coordinated_programs.md)

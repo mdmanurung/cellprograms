@@ -1,0 +1,129 @@
+# Project fitted programs onto individual cells
+
+Estimates per-cell program activities for a \`cell_program_fit\`: each
+cell's expression vector is adjusted with the fit's recorded
+preprocessing (covariate residualization coefficients, then the stored
+centering and scale values), and activities are inferred against the
+frozen gene loadings with \`flashier.utils::project_factor_activity()\`.
+Raw activities are canonicalized with the same RMS-scale and sign
+multipliers as the donor scores, so projected activities are on the
+canonical program scale and comparable across cell types and cohorts.
+
+## Usage
+
+``` r
+project_programs_to_cells(
+  fit,
+  expression,
+  cell_types,
+  feature_scale = NULL,
+  donors = NULL,
+  sample_metadata = NULL,
+  min_coverage = 0.9,
+  maxiter = 200L,
+  query_var_type = 0L,
+  dense_budget_bytes = 256 * 1024^2,
+  keep_native = FALSE
+)
+```
+
+## Arguments
+
+- fit:
+
+  A canonicalized \`cell_program_fit\` (from
+  \`fit_celltype_programs()\` + \`canonicalize_programs()\`).
+
+- expression:
+
+  Dense numeric matrix with cells in rows and genes in columns (row and
+  column names required). Sparse matrices are not supported in v1. Genes
+  absent from a cell type's fit panel are handled by \`flashier.utils\`
+  intersection matching against \`min_coverage\`.
+
+- cell_types:
+
+  Named character vector mapping every row of \`expression\` to its cell
+  type; names must be exactly the row names of \`expression\`. Cell
+  types not in the fit (and fit cell types with no cells here) yield
+  \`NA\` activities.
+
+- feature_scale:
+
+  Declared measurement units of \`expression\` (e.g. "logcounts").
+  Defaults to the fit's recorded \`feature_scale\`, which must not be
+  "unknown"; a query whose declared units differ from the fit's is
+  refused.
+
+- donors:
+
+  Optional named character vector mapping every cell to its donor ID
+  (\`sample_metadata\$observation_id\` values). Required whenever any
+  projected cell type was fit with residualized covariates.
+
+- sample_metadata:
+
+  Optional data.frame with an \`observation_id\` column plus the
+  covariate columns used at fit time. Required with \`donors\` when
+  replaying residualization.
+
+- min_coverage:
+
+  Minimum fraction of a cell type's fit genes that must be present in
+  \`expression\` (passed to the projection oracle).
+
+- maxiter:
+
+  Maximum projection iterations per cell type.
+
+- query_var_type:
+
+  Residual variance model for the query data: 0 = constant (default for
+  single-cell profiles), 1 = per-cell, 2 = per-gene.
+
+- dense_budget_bytes:
+
+  Memory budget for dense intermediates (passed to the projection
+  oracle).
+
+- keep_native:
+
+  When TRUE, include the native flash fit object for each projected cell
+  type in \`per_type\[\[ct\]\]\$native\`.
+
+## Value
+
+A list with components: \`activity\` (cells x programs matrix;
+canonicalized activities, \`NA\` for cells whose type contributed no
+programs), \`per_type\` (per cell type: \`activity\`, \`reconstruction\`
+metrics, and optionally \`native\`), \`coverage\` (per cell type:
+programs, cells, shared/reference genes, coverage),
+\`analysis_metadata\`, and \`provenance\`.
+
+## Details
+
+The fit must be canonicalized (\`canonicalize_programs()\`) and must
+carry a flashier.utils manifest (the default backend) with declared
+measurement units (\`feature_scale\`); legacy-backend and
+fixed-covariate fits are refused because their adjustment cannot be
+replayed. When the fit residualized covariates for a cell type,
+\`donors\` and \`sample_metadata\` are required so the adjustment can be
+rebuilt for the query cells; the rebuilt design must reproduce the fit's
+design columns exactly (fail closed on cohort changes that add or drop
+covariate levels).
+
+## Examples
+
+``` r
+sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
+x <- as_cell_program_data(sim$pseudobulk)
+fit <- fit_celltype_programs(x, max_factors = 3, features = "variable",
+                             n_variable_genes = 150, feature_scale = "simulated")
+fit <- canonicalize_programs(fit)
+ct1 <- fit$cell_types[1]
+# project the training pseudobulk back through the fit (donors as "cells")
+cells <- setNames(rep(ct1, nrow(x$pseudobulk[[ct1]])), rownames(x$pseudobulk[[ct1]]))
+proj <- project_programs_to_cells(fit, x$pseudobulk[[ct1]], cell_types = cells)
+cor(proj$activity[, 1], fit$scores[[ct1]][, 1])   # high by construction
+#> [1] 0.9999978
+```

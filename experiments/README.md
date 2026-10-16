@@ -14,10 +14,10 @@ and the figures, reports, and data products it produced. Package source
   (Stephenson K30), with and without artifact-gene exclusion?
 - **Scripts**: `scripts/01_fit_masked.R` ... `scripts/05_build_cache.R`;
   exact executed versions in `scripts/as-run/`.
-- **Figures**: `figure/cmp-1.png`, `figure/ambient-guard-1.png`,
-  `figure/ambient-guard-2.png`, `figure/sharing-1.png`, `figure/align-1.png`,
-  `figure/real-align-1.png`, `figure/real-severity-1.png`,
-  `figure/excl-align-1.png` — all referenced by the rendered article
+- **Figures**: `vignettes/articles/figure/cmp-1.png`, `vignettes/articles/figure/ambient-guard-1.png`,
+  `vignettes/articles/figure/ambient-guard-2.png`, `vignettes/articles/figure/sharing-1.png`, `vignettes/articles/figure/align-1.png`,
+  `vignettes/articles/figure/real-align-1.png`, `vignettes/articles/figure/real-severity-1.png`,
+  `vignettes/articles/figure/excl-align-1.png` — all referenced by the rendered article
   `vignettes/articles/mofacellular_comparison.md` (source:
   `mofacellular_comparison.Rmd`).
 - **Data products**: committed caches
