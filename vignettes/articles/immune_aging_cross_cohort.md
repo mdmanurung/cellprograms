@@ -66,13 +66,15 @@ fit <- canonicalize_programs(fit)
 
 This yields 430–573 programs per cohort (after degenerate-factor handling;
 e.g. KCL's Myeloid cDCs retains no programs). Age, sex, and CMV associations
-are then tested per program (`lm(score ~ age + sex + CMV)`, BH-FDR within
-cell type):
+are then tested per program with ordinary linear models on the program
+scores (`scripts/assoc_programs.R`; BH-FDR within cell type; CMV dropped
+where constant):
 
 
 ``` r
-assoc <- test_program_associations(fit, meta = meta,
-                                   covariates = c("age", "sex", "CMV"))
+# per cell type and program, on the canonicalized scores:
+fit_lm <- lm(score ~ age + sex + CMV, dd)   # dd: donors x (score, age, sex, CMV)
+age_beta_per_10y <- coef(summary(fit_lm))["age", 1] / sd(dd$score) * 10
 ```
 
 Age structure is widespread and scales with power: **44–56% of programs are
