@@ -95,9 +95,8 @@ run_seed_ct <- function(seed, ct) {
     if (do_stab && identical(sigma_b, 0.375) && identical(ct, "B")) {
       s <- tryCatch(assess_program_stability(f, n_boot = 5L, seed = 1,
                                              progress = FALSE), error = function(e) NULL)
-      if (!is.null(s)) {
-        sn <- unlist(lapply(s, function(v) if (is.numeric(v)) mean(v, na.rm = TRUE) else NULL))
-        stab <- if (length(sn)) sn[1] else NA_real_
+      if (!is.null(s) && !is.null(s$stability)) {
+        stab <- mean(s$stability$per_program$median_score_cor, na.rm = TRUE)
       }
     }
     out[[nm]] <- list(recovery = rec, batch_r2 = br2, K = K, stability = stab)
