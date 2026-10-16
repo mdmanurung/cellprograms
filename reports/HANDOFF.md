@@ -1,5 +1,27 @@
 # Handoff — cellprograms: metaprogram repair phase; learning from the Biomni CMP benchmark
 
+## Update 2026-10-16 — Stage A merged; phased execution plan in force
+
+**Main @ `31bd5bd`.** Stage A is merged and the release gate is signed (user plan approval
+2026-10-16); the v0.2.0 tag follows. PRs #12 (backend migration + mashr/R-4.6.1 guards) and
+#13 (benchmark provenance) are in; `Remotes` pins track `flashier-utils@main`; revdep CI is
+live upstream and green.
+
+**C5 unblocked:** M2 `genes_after` was null (`benchmarks/model_selection/RESULTS.md`), so the
+union-panel helper proceeds as route B (post-fit refit of loadings on fixed scores; fits and
+scores untouched) per `reports/metaprogram_methods_review.md` §3.1/§10.
+
+**Session-only losses (do not reconstruct blindly):** `sim_adj4/` was never committed and is
+gone; the flashier-utils `validation/`, `development/`, `docs/plans/` trees (CE G2 study root,
+implementation receipts, audited 46-task plan) were also session-local and are lost — see the
+flashier-utils HANDOFF 2026-10-16 reality check. CE G2 has no claimable verdict.
+
+**In force now:** C4 guard, C5 route-B helper, C2 registered check (≥5% rule) on the real K30
+stability refits, coordination phase-1 arms (node density filter, cluster-level coherence) +
+`prereg-coord-v1` DRAFT, simulator upgrades (Ig/TCR-like, donor-deletion, count-level);
+Stage B spec (`reports/STAGE_B_ROADMAP.md`) + MR-0/MR-1 first code. GBCD/STARCAT and the CE
+G2 rerun are backlog.
+
 ## Update 2026-10-13 — publication-prep closure (v0.2.0)
 
 **Branch:** `feat/artifacts-sharing-bench` @ `51d6f76` (PR #4, open) + local publication work to land as `feat/publication-prep`.

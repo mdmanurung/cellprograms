@@ -13,7 +13,14 @@
 - **M6 (optional features): C1 done** (CMP detection + annotation family, benchmarked in `benchmarks/cmp_detection/`). C2: greedy matching kept (optimal matching not ported). C4: not ported (guard never binds at operating points).
 - **M7 (housekeeping): SOFA branch archived without PR (user decision 2026-10-13)**; benchmark results committed under `benchmarks/`; logs ignored.
 - **M5 (COMBAT final analysis): superseded** by the real-data sharing + masking analysis in `vignettes/articles/real_data_case_study.Rmd` and `benchmarks/cmp_detection/` (COMBAT rerun with final settings incl. sharing + CMPs).
-- **New:** DIVAS COVID-19 case-study comparison (`benchmarks/divas_comparison/`) — cellprograms vs DIVAS on the 6-block Su et al. multi-omics analysis; in progress.
+- **New:** DIVAS COVID-19 case-study comparison (`benchmarks/divas_comparison/`) — cellprograms vs DIVAS on the 6-block Su et al. multi-omics analysis; **complete** (`benchmarks/divas_comparison/REPORT.md`, 2026-10-14; case-study article `vignettes/articles/divas_case_study.Rmd`).
+
+## Update 2026-10-16 — Stage A closed, remaining work in force
+
+- **Stage A (backend sync) merged and release gate signed**: flashier-utils #1, cellprograms #12 (ordinary EBMF backend → `flashier.utils`, machine-precision parity; mashr/R 4.6.1 example+test guards) and #13 (MOFAcellulaR benchmark scripts + as-run provenance). CI green on both mains; `Remotes` pin tracks `flashier-utils@main`; revdep CI live upstream. v0.2.0 tag follows (see HANDOFF).
+- **Experiments index**: `experiments/README.md` maps each benchmark folder to its figures/reports/data products and defines the conventions for new studies.
+- **C5 unblocked**: M2 `genes_after` was null (`benchmarks/model_selection/RESULTS.md`), so the common-gene-panel helper proceeds as route B (post-fit refit of loadings on fixed scores; fits untouched).
+- **Remaining work in force**: C4 guard, C5 helper, C2 registered check (≥5% rule), coordination phase-1 arms + `prereg-coord-v1` (DRAFT), simulator upgrades; Stage B spec + MR-0/MR-1 first code. GBCD/STARCAT full build and the CE G2 rerun are tracked backlog (see flashier-utils HANDOFF, 2026-10-16 reality check).
 
 
 **As of 2026-10-09.** PR #1 and #2 merged; harness frozen at tag `prereg-v1`, amplitudes chosen (M0, M1 done). M2 main run not started: 8 arms (`k_stab` and `w_S` dropped for breaching the 3x time guard, see `benchmarks/model_selection/DEVIATIONS.md` D6), about 324 CPU-h. `HANDOFF.md` has the current state; `strata=` and the stability fix are on `main`.
