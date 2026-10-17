@@ -1,0 +1,7 @@
+arm,block,seed,anchor_retention_cor,K_anchor,K_eff,maxit,diverged,converged,t_fit_s,peak_mem_gb
+D2_anchored,CD14_Monocyte,20261018,0.6607,30,29,50,False,False,475.68,1.062
+D2_anchored,CD4_T,20261016,0.6358,30,28,50,False,False,404.35,1.05
+D2_anchored,CD8_T,20261017,0.6808,30,28,50,False,True,461.96,1.056
+D2_anchored,NK,20261019,0.5073,30,27,50,False,False,69.53,1.062
+D2_anchored,metabolomics,20261021,1.0,30,30,50,False,True,24.75,1.062
+D2_anchored,proteomics,20261020,1.0,30,30,50,False,False,39.81,1.062

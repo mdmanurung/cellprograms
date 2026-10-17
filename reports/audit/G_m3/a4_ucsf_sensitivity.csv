@@ -1,0 +1,5 @@
+"method","arm","norm","seed","K_selected","runtime_s","concordance_vs_shiftedlog"
+"ebmf","singlecell","pflog",20261017,10,938.5,0.5798
+"ebmf","singlecell","clr",20261017,10,778.7,0.562
+"ebmf","metacell","pflog",20261017,10,115.2,0.7446
+"ebmf","metacell","clr",20261017,10,154.2,0.7054

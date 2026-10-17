@@ -1,0 +1,7 @@
+block,svd30_ceiling_vs_ref,ledgered,reproduces
+CD4_T,0.4094,0.409,True
+CD8_T,0.3644,0.364,True
+CD14_Monocyte,0.4252,0.425,True
+NK,0.333,0.333,True
+proteomics,0.4887,0.489,True
+metabolomics,0.6303,0.63,True
