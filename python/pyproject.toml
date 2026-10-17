@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cebmf-ext"
+version = "0.1.0"
+description = "Scalable cEBMF adapter for cellprograms: replayable preprocessing, ELBO-plateau fitting, chunked projection, result contract"
+requires-python = ">=3.10"
+dependencies = ["torch>=2.0", "numpy", "pandas", "scipy", "psutil"]
+
+[project.optional-dependencies]
+test = ["pytest", "anndata"]
+h5ad = ["anndata"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
