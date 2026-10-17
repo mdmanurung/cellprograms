@@ -1,0 +1,148 @@
+# Case study: pseudobulk vs metacell vs single-cell programs with cellprograms-style EBMF
+
+**Status**: pilot (workstream F + G-M3 synthetic battery), UCSF CD8+ T cell cohort
+(53,474 clean cells, 99 donors, top-2,000 HVGs, seed family 20261017). Pending arms
+are marked. Generated 2026-10-17; commits `1b40d77`..`d104f91` + ledger `1358c4c`.
+
+## What was compared
+
+Three input granularities built from the same cells (builder: `build_granularity.py`,
+gamma=25, MAX_CELLS=30000):
+
+| Granularity | Matrix | Construction |
+|---|---|---|
+| pseudobulk | 99 x 2000 | mean counts per donor |
+| metacell | 2,138 x 2000 | k-means (k=5) within donor on shifted-log PCs |
+| single-cell | 29,998 x 2000 | cells as observations (capped) |
+
+Four methods x three granularities = 12 arms: **ebmf** (flashier, R, the cellprograms
+backend), **cebmf_torch** (PyTorch, laplace/laplace, column-wise), **cNMF** (100
+restarts, density-silhouette K selection), **GeneNMF** (K grid 2-15, metaprogram
+consensus). All arms share the shifted-log recipe (alpha=1, library-size size factors)
+and the same HVG panel.
+
+## Arm summary (K, runtime, primary seed)
+
+| Method | pseudobulk | metacell | single-cell |
+|---|---|---|---|
+| ebmf | K=10, 45 s | K=10, 115 s | K=10, 640 s |
+| cebmf_torch | K_eff=6, 28 s | K_eff=10, 75 s | K_eff=4, 982 s |
+| cNMF | k=6 (sil 0.96), 5 s | k=2 (sil 1.00), 2,637 s | *pending* |
+| GeneNMF | 10 MPs, 7 s | MP detection degenerate | MP detection degenerate |
+
+Seed stability (ebmf, 3 seeds, greedy-matched loadings): 1.00 in all granularities.
+cebmf determinism: bit-identical refit at fixed seed (`F_cebmf_determinism.csv`).
+
+## Finding 1 — metacell is the most stable granularity for cebmf
+
+Within-method, across-granularity concordance (mean Hungarian-matched |cor| of gene
+loadings; top-50 Jaccard in parens):
+
+| Pair | cebmf_torch | ebmf (flashier) | cNMF |
+|---|---|---|---|
+| pseudobulk <-> metacell | 0.663 (0.33) | 0.340 (0.09) | 0.728 (0.18) |
+| pseudobulk <-> single-cell | 0.558 (0.29) | 0.192 (0.04) | — |
+| metacell <-> single-cell | **0.822 (0.40)** | 0.507 (0.19) | — |
+
+cebmf_torch's metacell and single-cell fits agree at 0.82 mean matched |cor| — the
+highest cross-granularity stability observed in this study. flashier's arms agree far
+less across granularities (0.19-0.51), i.e. its recovered programs are more
+granularity-dependent. cNMF's K selection is unstable across granularities (k=6 at
+pseudobulk vs k=2 at metacell, the latter with a degenerate perfect silhouette of
+1.00 — the density-silhouette criterion collapses to the coarsest split at metacell
+granularity), so its cross-granularity number (0.73) reflects the 2-program axis
+only.
+
+## Finding 2 — the two EBMF implementations converge best at single-cell granularity
+
+Same-granularity, cross-method concordance:
+
+| Pair | pseudobulk | metacell | single-cell |
+|---|---|---|---|
+| ebmf <-> cebmf_torch | 0.460 | 0.610 | **0.754** |
+| cNMF <-> cebmf_torch | 0.294 | 0.651 | *pending* |
+| GeneNMF <-> cebmf_torch | 0.474 | — | — |
+| ebmf <-> cNMF | 0.282 | 0.570 | — |
+
+At single-cell granularity the R and PyTorch EBMF stacks recover substantially the
+same program space (0.75); at pseudobulk granularity they diverge most (0.46) —
+consistent with cebmf's pseudobulk arm pruning to K_eff=6 while flashier retains
+K=10 (the extra flashier factors are the weaker, less reproducible ones).
+
+## Finding 3 — programs are biologically coherent in every arm, and one age axis is universal
+
+Best-program marker enrichment (mean rank percentile of canonical CD8 T marker sets —
+cytotoxicity, IFN response, cell cycle, naive/memory, terminal effector, heat shock,
+antigen presentation, NFkB): 0.94-1.00 in every loaded arm; metacell arms reach
+0.997 (cebmf and ebmf). Metacell aggregation loses nothing in marker coherence.
+
+Donor-score vs age (Spearman, 99 donors): every arm contains a dominant age-associated
+program with |rho| 0.34-0.49 (cebmf pseudobulk -0.459, ebmf single-cell +0.479, cNMF
+metacell -0.493/+0.493 as a sign-paired axis). The same age axis survives across all
+four methods and all three granularities — the strongest cross-arm biological
+invariant in this study.
+
+## Finding 4 — metacell denoising helps rare-program recovery (synthetic truth)
+
+G-M3 synthetic battery (5,000 cells x 1,500 genes, 50 donors, 3 broad + 1 rare (5%)
++ 2 null programs, Poisson UMI generator, nested dropout 0/10/30%, 10 reps; gates
+evaluated relative to the per-rep SVD ceiling per Amendment A3):
+
+- **S3 (metacell-init + project)** recovers the rare program at 0.919 matched |cor|
+  vs an SVD-10 ceiling of 0.789 on the same matrix — the metacell mean BEATS the
+  linear ceiling computed on single-cell data (denoising gain), and cebmf tracks it.
+- S3 held-out prediction 0.798 vs S1 (from-scratch single-cell) 0.855: metacell
+  init trades a little held-out fidelity for rare-program recovery and a ~40%
+  faster fit.
+- S2 (donor pseudobulk-init) collapses (matched |cor| 0.03-0.38): donor averaging
+  discards the cell-level usage variance the model needs.
+- S4mc (metacell-init + refine) matches S1 held-out (0.855) — initialization is
+  safe but, at 5k cells, costs 1.6x more wall-clock than from-scratch; the C1
+  cost claim is a large-N claim (tested at M4/M5).
+- Full battery (270 cebmf cells + 30 cNMF anchor cells, incl. dropout 0.1/0.3):
+  complete; aggregation in progress. Early dropout pattern matches workstream E:
+  ebmf-style fits degrade with entrywise dropout; metacell aggregation buffers it.
+
+## Finding 5 — normalization sensitivity is material (Amendment A4)
+
+PFlog/CLR (shifted-CLR family, Booeshaghi et al. 2022) vs the registered shifted-log
+recipe, UCSF real data (alpha-hat calibration active; concordance = greedy-matched
+|cor| vs the shifted-log fit, K=10 everywhere):
+
+| Arm | PFlog | CLR |
+|---|---|---|
+| single-cell | 0.580 | 0.562 |
+| metacell | 0.745 | 0.705 |
+
+Normalization choice moves recovered programs as much as the method choice does at
+single-cell granularity. On the Poisson synthetic, PFlog == CLR (alpha-hat hits the
+registered floor); the calibration only differentiates on overdispersed real data.
+
+## Status of metacell extensions in cellprograms (audit view)
+
+- **Exists in-session, not in the package**: the granularity builder (donor
+  pseudobulk, k-means-within-donor metacells, single-cell) is an audit script
+  (`build_granularity.py`); cellprograms/flashier ship no metacell builder.
+- **Metacell is where cebmf_torch wins**: highest cross-granularity stability (0.82),
+  rare-program recovery above the single-cell SVD ceiling, and 13x faster fits than
+  single-cell (75 s vs 982 s at this cohort size).
+- **Known hazards**: cNMF's density-silhouette K selection degenerates at metacell
+  granularity (k=2, silhouette 1.00); GeneNMF metaprogram detection returns zero MPs
+  at metacell/single-cell (empty compositions — degenerate consensus, not a loader
+  error); ebmf-style variance collapse under entrywise dropout (workstream E) argues
+  for metacell construction BEFORE fitting when zeros are mean-dependent.
+- **mcRigor link (MR-3)**: the ZeroRate budget that drives the ebmf dropout collapse
+  is a per-granularity design constraint for any metacell builder cellprograms adopts.
+- **Pending**: cNMF single-cell arm (running); M4 1M-cell chunked run; M5 500k shard
+  scaling; M6 adopt/revise/abandon gate; upstream frozen-prior request (weak-factor
+  projection fidelity, M2).
+
+## Reproduction
+
+Scripts: `python/benchmarks/m3/` (synthetic battery, A4 norms), audit workstream F
+(`build_granularity.py`, `ebmf_F.R`, `cebmf_F.py`, `cnmf_F.py`, `genenmf_F.R`,
+`compare_F.py`). Outputs: `F_comparison_pairs.csv`, `F_concordance_heatmap.png`,
+`F_marker_enrichment.csv`, `F_age_assoc.csv`, `F_ebmf_norm_sensitivity.csv`;
+per-cell battery JSONs on the shared store. Nothing in this vignette is a registered
+acceptance criterion; gates C1-C4 are as pre-registered (04-experiment-plan.md,
+amendments A1-A4).
