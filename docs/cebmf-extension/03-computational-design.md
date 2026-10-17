@@ -49,10 +49,10 @@ EM (upstream) is untouched: it does not change the objective (audit 1).
 
 | Operation | Status | Condition |
 |---|---|---|
-| Chunked L-update, F and tau fixed | EXACT | likelihood factorizes over rows |
+| Chunked L-update, F and tau fixed | EXACT in the likelihood; APPROXIMATE in the prior | rows are independent given (F, tau), but the package refits the L-prior per call on the current statistics (cebmf.py:347-360), so chunked priors see chunk-level values. MEASURED (M2, synthetic 1000x60): signal-factor shape error vs dense is converged (not a convergence artifact) and scales with chunk count: 3.0-10.9% at 10 chunks, 1.9-6.4% at 4, 1.3-4.7% at 2, 0% at 1 chunk. At 10k-row benchmark chunks the effect is smaller. Immaterial for usage scoring; material for exact posterior reproduction. Upstream feature request: posterior-only updates with frozen prior state. |
 | Chunked tau update from accumulated masked residual sums | EXACT | sufficient statistics |
 | Chunked F-update from accumulated statistics | EXACT | same argument over columns |
-| Full chunked EM (L, F, tau all updated chunk-wise) | EXACT | per-chunk residual reconstruction preserves coordinate structure |
+| Full chunked EM (L, F, tau all updated chunk-wise) | EXACT in likelihood; prior-refit caveat as above | per-chunk residual reconstruction preserves coordinate structure |
 | Projection with F fixed, few passes | APPROXIMATE as inference | it conditions on F (ignores F uncertainty); exact for the conditional L-update only |
 | Refinement from init | FULL fit | initialization-dependent; compared against from-scratch at matched maxit (02 §C) |
 
