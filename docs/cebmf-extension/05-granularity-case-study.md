@@ -99,9 +99,12 @@ evaluated relative to the per-rep SVD ceiling per Amendment A3):
 - S4mc (metacell-init + refine) matches S1 held-out (0.855) — initialization is
   safe but, at 5k cells, costs 1.6x more wall-clock than from-scratch; the C1
   cost claim is a large-N claim (tested at M4/M5).
-- Full battery (270 cebmf cells + 30 cNMF anchor cells, incl. dropout 0.1/0.3):
-  complete; aggregation in progress. Early dropout pattern matches workstream E:
-  ebmf-style fits degrade with entrywise dropout; metacell aggregation buffers it.
+- cebmf battery (270 cells: S1-S4 x shifted-log + S1/S3 x pflog/clr x 3 dropout
+  rates x 10 reps, incl. dropout 0.1/0.3): complete; aggregation in progress.
+  Early dropout pattern matches workstream E: ebmf-style fits degrade with
+  entrywise dropout; metacell aggregation buffers it.
+- cNMF anchor battery (S5, 30 cells): RUNNING (2/30 cells at writing time);
+  anchor-arm conclusions deferred until it lands.
 
 ## Finding 5 — normalization sensitivity is material (Amendment A4)
 
