@@ -82,18 +82,28 @@ metacell -0.493/+0.493 as a sign-paired axis). The same age axis survives across
 four methods and all three granularities — the strongest cross-arm biological
 invariant in this study.
 
-## Finding 4 — metacell denoising helps rare-program recovery (synthetic truth)
+## Finding 4 — metacell aggregation lifts rare-program recovery above the single-cell SVD ceiling (synthetic truth)
 
 G-M3 synthetic battery (5,000 cells x 1,500 genes, 50 donors, 3 broad + 1 rare (5%)
 + 2 null programs, Poisson UMI generator, nested dropout 0/10/30%, 10 reps; gates
 evaluated relative to the per-rep SVD ceiling per Amendment A3):
 
-- **S3 (metacell-init + project)** recovers the rare program at 0.919 matched |cor|
-  vs an SVD-10 ceiling of 0.789 on the same matrix — the metacell mean BEATS the
-  linear ceiling computed on single-cell data (denoising gain), and cebmf tracks it.
-- S3 held-out prediction 0.798 vs S1 (from-scratch single-cell) 0.855: metacell
-  init trades a little held-out fidelity for rare-program recovery and a ~40%
-  faster fit.
+- **S3 (metacell-init + project)** recovers the rare program at mean 0.840 matched
+  |cor| over 10 reps (range 0.744-0.964), exceeding the cell-level SVD-10 ceiling
+  (mean 0.780) in 8/10 reps (max +0.18). S1 (from-scratch single-cell) sits exactly
+  AT the ceiling (0.777 vs 0.780) — the lift is specific to the metacell input.
+- **Mechanism (tested by controls, not assumed)**: aggregation does NOT lift the
+  linear ceiling itself — SVD on the metacell matrix has rare ceiling 0.776 (no
+  lift), and projecting cells onto metacell-estimated SVD directions recovers rare
+  at only 0.487 (worse than cell-level SVD). The lift arises because k-means
+  metacells CONCENTRATE rare states (rare-high cells cluster into dedicated
+  metacells, raising their usage fraction from ~5% of cells to majorities of a few
+  metacells) while sqrt(n) averaging suppresses sampling noise; that makes the rare
+  direction identifiable for cebmf's OBLIQUE sparse factorization, which is not
+  bound by the orthogonality constraint that caps SVD. S1 vs S3 differ only in the
+  source of F (same projection path), so the lift is in factor estimation.
+- S3 held-out prediction 0.798 vs S1 0.855: metacell init trades a little held-out
+  fidelity for rare-program recovery and a ~40% faster fit.
 - S2 (donor pseudobulk-init) collapses (matched |cor| 0.03-0.38): donor averaging
   discards the cell-level usage variance the model needs.
 - S4mc (metacell-init + refine) matches S1 held-out (0.855) — initialization is
@@ -105,6 +115,34 @@ evaluated relative to the per-rep SVD ceiling per Amendment A3):
   entrywise dropout; metacell aggregation buffers it.
 - cNMF anchor battery (S5, 30 cells): RUNNING (2/30 cells at writing time);
   anchor-arm conclusions deferred until it lands.
+
+## Finding 4b — the same ceiling-relative logic on DIVAS: anchoring beats the linear ceiling
+
+DIVAS blocks are sample-level pseudobulks (114 samples; no cell-level matrix), so
+metacell strategies do not apply — but the ceiling-relative logic does, against the
+in-session cellprograms reference fits (DIVAS-parity recipe, seed=1). D1 =
+from-scratch cebmf (K=30, 5 seeds, bit-stable); D2 = anchored refinement
+(init_F = reference loadings, init_L = least-squares, maxit=50):
+
+| Block | SVD-30 ceiling | D1 from-scratch | D2 anchored |
+|---|---|---|---|
+| CD4 T | 0.409 | 0.278 | 0.636 |
+| CD8 T | 0.364 | 0.224 | 0.681 |
+| CD14 monocytes | 0.425 | 0.277 | 0.661 |
+| NK | 0.333 | 0.209 | 0.507 |
+| proteomics (481) | 0.489 | 0.422 | 1.000 |
+| metabolomics (763) | 0.630 | 0.474 | 1.000 |
+
+Three observations. (1) D1 sits BELOW the linear ceiling on every block: from-scratch
+K=30 on 114 samples is heavily underdetermined and converges to an optimum that
+reproduces the cellprograms program space no better than orthogonal SVD. (2) D2
+EXCEEDS the ceiling on every block (0.51-1.0 vs 0.33-0.63) — the same oblique-factor
+phenomenon as the synthetic rare program: prior-shrunk oblique factors match the
+reference better than any orthogonal 30-dim subspace. (3) On proteomics/metabolomics
+the anchor is a fixed point (retention 1.000) — small blocks refine onto the anchor
+exactly; gene blocks retain 27-29 of 30 programs. Anchoring multiplies concordance
+with the cellprograms reference ~3x on gene blocks, ~2x on small blocks. (DIVAS-vs-
+DIVAS concordance, gate C3, still awaits the blocked Zenodo RDS.)
 
 ## Finding 5 — normalization sensitivity is material (Amendment A4)
 
