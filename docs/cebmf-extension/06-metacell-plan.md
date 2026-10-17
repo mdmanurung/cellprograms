@@ -1,5 +1,14 @@
 # Plan: SEACells + mcRigor metacell builder for cellprograms (audit-side, feeds M6)
 
+> **Status (2026-10-17, user-directed amendment).** The W1 builder is implemented as the
+> companion R package `r_packages/cellprogramsMC/`:
+> `MetacellsByGroupsSEACells()` (hdWGCNA `MetacellsByGroups`-style interface, SEACells
+> backend in an isolated basilisk environment, mcRigor QC) — not the Python
+> `build_metacells_seacells()` sketched below. SEACells is GPLv2 (dependency/wrapper
+> only); mcRigor is MIT. See `reports/audit/TASKS.md` ledger entries and
+> `07-metacell-builder.md` for the cebmf_torch integration stages. The plan text below
+> is preserved as registered.
+
 ## Summary
 
 Borrow the *metacell construction layer* of hdWGCNA without adopting its network model:

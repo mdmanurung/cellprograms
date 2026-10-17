@@ -17,13 +17,16 @@ literature (Booeshaghi et al. 2022, bioRxiv 2022.05.06.490859; "PFlog" /
 ## Registered transform definitions
 
 All arms share the registered gene center+scale stage (fit on TRAIN donors,
-replayed on test chunks), so arms differ ONLY in count-scale/centering geometry:
+replayed on test chunks), so arms differ ONLY in count-scale/centering geometry.
+Implementation: `m3_norm.make_recipe(norm).fit_transform(counts)` — the gene
+stage is the recipe's internal `_fit_gene_stage`/`_apply_gene_stage` (per-gene
+center+scale); `zscore_gene`/`rowcenter` below are notation, not function names:
 
 | Arm       | Transform (per cell row)                                        |
 |-----------|------------------------------------------------------------------|
-| shiftedlog (control) | `zscore_gene( log1p(x / s_c) )`, s_c = lib size / mean |
-| pflog     | `zscore_gene( rowcenter( log1p(4 * ahat * x / s_c) ) )`          |
-| clr       | `zscore_gene( rowcenter( log1p(x) ) )`                           |
+| shiftedlog (control) | gene-stage z-score of `log1p(x / s_c)`, s_c = lib size / mean |
+| pflog     | gene-stage z-score of row-centered `log1p(4 * ahat * x / s_c)`   |
+| clr       | gene-stage z-score of row-centered `log1p(x)`                    |
 
 - `ahat` (PFlog): pooled negative-binomial overdispersion by moment matching on
   depth-normalized TRAIN counts (`var = mu + ahat*mu^2`), median over expressed

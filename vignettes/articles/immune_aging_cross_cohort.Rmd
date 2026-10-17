@@ -256,7 +256,7 @@ level.)
 
 All scripts, committed result tables, and the exact commands (including the
 portal data-access recipe and the registered operating point) live in
-[`analyses/immune_aging/`](../../analyses/immune_aging/README.md). The batch
+[`analyses/immune_aging/`](https://github.com/mdmanurung/cellprograms/blob/main/analyses/immune_aging/README.md). The batch
 benchmark motivating the no-residualization design is in
 `benchmarks/batch_adjustment/` (both the main and small-batch amendments
 preregistered; neither rule fired; OLS default retained).
