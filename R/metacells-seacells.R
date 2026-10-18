@@ -34,11 +34,11 @@
 }
 
 .run_seacells_in_basilisk <- function(paths, out_dir, n_seacells, params, seed) {
-    helper <- system.file("python", "seacells_helpers.py", package = "cellprogramsMC")
+    helper <- system.file("python", "seacells_helpers.py", package = "cellprograms")
     if (nchar(helper) == 0) {
         stop("seacells_helpers.py not found in installed package")
     }
-    proc <- basilisk::basiliskStart(seacells_env, testload = "SEACells")
+    proc <- basilisk::basiliskStart(.seacells_env(), testload = "SEACells")
     on.exit(try(basilisk::basiliskStop(proc), silent = TRUE), add = TRUE)
     out <- basilisk::basiliskRun(
         proc,
@@ -82,8 +82,9 @@
 #' nulls, DubRate/ZeroRate scoring, and optional granularity optimization via
 #' [OptimizeGammaSEACells()].
 #'
-#' The Python SEACells backend runs inside an isolated basilisk environment
-#' ([seacells_env]); no Python knowledge is required and the R interface is
+#' The Python SEACells backend runs inside an isolated basilisk-managed
+#' environment (built on first use; requires the suggested package
+#' `basilisk`); no Python knowledge is required and the R interface is
 #' self-contained. SEACells is GPLv2 and is used strictly as an external
 #' dependency, never source-copied.
 #'
@@ -193,6 +194,12 @@ MetacellsByGroupsSEACells <- function(
     verbose = TRUE
 ) {
     mode <- match.arg(mode)
+    if (!requireNamespace("Seurat", quietly = TRUE) ||
+        !requireNamespace("SeuratObject", quietly = TRUE)) {
+        cli::cli_abort(
+            "{.pkg Seurat} and {.pkg SeuratObject} are required for metacell construction. Install them with {.code install.packages('Seurat')}."
+        )
+    }
     if (!methods::is(seurat_obj, "Seurat")) {
         stop("seurat_obj must be a Seurat object")
     }
@@ -378,7 +385,7 @@ MetacellsByGroupsSEACells <- function(
         }
         rownames(soft) <- cells_g
     }
-    s <- as(soft, "dgTMatrix")
+    s <- as(soft, "TsparseMatrix")  # triplet form; dgTMatrix coercion is deprecated in Matrix >= 1.6
     trip <- data.frame(i = s@i + 1L, j = s@j + 1L, x = s@x)
     # row-wise argmax: order by row, then descending weight
     ord <- order(trip$i, -trip$x)

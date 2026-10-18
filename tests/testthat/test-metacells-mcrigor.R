@@ -1,4 +1,5 @@
-# cellprogramsMC tests.
+# Metacell (SEACells + mcRigor) tests — folded in from the retired
+# cellprogramsMC sub-package (ledger 2026-10-18).
 #
 # R-side logic is tested directly (mcRigor output normalization, gamma-score
 # extraction, hard-label reconstruction, export round trips, feasibility
@@ -32,7 +33,7 @@ fake_mcrigor_res <- function(n_mc = 5) {
 # ---- .mcrigor_normalize ------------------------------------------------------
 test_that("mcRigor_DETECT output normalizes to per-metacell QC table", {
   res <- fake_mcrigor_res(6)
-  out <- cellprogramsMC:::.mcrigor_normalize(res, group_id = "donor1_CD8")
+  out <- cellprograms:::.mcrigor_normalize(res, group_id = "donor1_CD8")
   expect_s3_class(out, "data.frame")
   expect_identical(nrow(out), 6L)
   expect_setequal(colnames(out),
@@ -48,12 +49,12 @@ test_that("dubious falls back to mcDiv > threshold when no verdict column", {
   res <- fake_mcrigor_res(5)
   res$TabMC$mcRigor <- NULL
   res$TabMC$T_org <- c(0.9, 0.1, 0.5, 0.4, 0.2)
-  out <- cellprogramsMC:::.mcrigor_normalize(res, group_id = "g")
+  out <- cellprograms:::.mcrigor_normalize(res, group_id = "g")
   expect_identical(out$dubious, out$mcDiv > out$mcDiv_threshold)
 })
 
 test_that("unrecognized mcRigor return structure raises loudly", {
-  expect_error(cellprogramsMC:::.mcrigor_normalize(list(a = 1), group_id = "g"),
+  expect_error(cellprograms:::.mcrigor_normalize(list(a = 1), group_id = "g"),
                "unrecognized")
 })
 
@@ -61,7 +62,7 @@ test_that("unrecognized mcRigor return structure raises loudly", {
 test_that("gamma optimization picks the max-score gamma", {
   gammas <- c(25, 50, 100)
   res <- data.frame(gamma = gammas, Score = c(0.4, 0.9, 0.6))
-  best <- cellprogramsMC:::.mcrigor_optimize_pick(res, gammas)
+  best <- cellprograms:::.mcrigor_optimize_pick(res, gammas)
   expect_identical(best$gamma, 50)
   expect_identical(as.numeric(best$scores), c(0.4, 0.9, 0.6))
 })
@@ -69,15 +70,15 @@ test_that("gamma optimization picks the max-score gamma", {
 test_that("gamma optimization survives a score-only table", {
   gammas <- c(25, 50, 100)
   res <- data.frame(opt_score = c(0.2, 0.3, 0.8))
-  best <- cellprogramsMC:::.mcrigor_optimize_pick(res, gammas)
+  best <- cellprograms:::.mcrigor_optimize_pick(res, gammas)
   expect_identical(best$gamma, 100)
 })
 
 # ---- .mc_n_seacells_for_group -------------------------------------------------
 test_that("metacell count feasibility rule", {
-  expect_identical(cellprogramsMC:::.mc_n_seacells_for_group(1000, 25, NULL), 40L)
-  expect_identical(cellprogramsMC:::.mc_n_seacells_for_group(1000, 25, 10), 10L)
-  expect_identical(cellprogramsMC:::.mc_n_seacells_for_group(10, 25, NULL), 1L)
+  expect_identical(cellprograms:::.mc_n_seacells_for_group(1000, 25, NULL), 40L)
+  expect_identical(cellprograms:::.mc_n_seacells_for_group(1000, 25, 10), 10L)
+  expect_identical(cellprograms:::.mc_n_seacells_for_group(10, 25, NULL), 1L)
 })
 
 # ---- .hard_labels_vector ------------------------------------------------------
@@ -89,7 +90,7 @@ test_that("bare soft-assignment MTX gets cell names and argmax labels", {
                            0.1, 0.9, 0.8, 0.2, 0.5, 0.5, 0.9),
                          nrow = 7, ncol = 2, sparse = TRUE)
   mc_out <- list(soft = soft)
-  lab <- cellprogramsMC:::.hard_labels_vector(mc_out, cells, paste0("mc_", 1:2))
+  lab <- cellprograms:::.hard_labels_vector(mc_out, cells, paste0("mc_", 1:2))
   expect_identical(as.character(lab[1]), "mc_1")
   expect_identical(as.character(lab[2]), "mc_2")
   expect_identical(as.character(lab[7]), "mc_2")
@@ -97,7 +98,7 @@ test_that("bare soft-assignment MTX gets cell names and argmax labels", {
 })
 
 test_that("missing soft assignments raise an informative error", {
-  expect_error(cellprogramsMC:::.hard_labels_vector(list(soft = NULL), letters[1:3],
+  expect_error(cellprograms:::.hard_labels_vector(list(soft = NULL), letters[1:3],
                                                 paste0("mc_", 1:2)),
                "soft assignments required")
 })
@@ -108,7 +109,7 @@ test_that("group export writes the files the python helper consumes", {
   rownames(counts) <- paste0("gene", 1:6)
   colnames(counts) <- paste0("cell", 1:5)
   emb <- matrix(rnorm(10), nrow = 5, dimnames = list(paste0("cell", 1:5), c("PC1", "PC2")))
-  paths <- cellprogramsMC:::.export_group_for_python(counts, emb, tempdir())
+  paths <- cellprograms:::.export_group_for_python(counts, emb, tempdir())
   expect_true(all(file.exists(unlist(paths))))
   # round-trip fidelity is the contract (the python helper reads via scipy and
   # takes names from cells.csv/genes.csv — MTX carries no dimnames);

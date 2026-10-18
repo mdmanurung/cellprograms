@@ -15,8 +15,10 @@ Depends:
 Imports:
     stats,
     utils,
+    methods,
     cli,
     digest,
+    Matrix,
     flashier,
     ebnm,
     flashier.utils,
@@ -31,9 +33,14 @@ Suggests:
     mashr,
     igraph,
     withr,
-    basilisk
+    basilisk,
+    Seurat,
+    SeuratObject,
+    mcRigor,
+    hdWGCNA
 Remotes:
     willwerscheid/flashier@fd44811ab22d61ee905e1964175571c452fe7683,
-    flashier.utils=mdmanurung/flashier-utils
+    flashier.utils=mdmanurung/flashier-utils,
+    JSB-UCLA/mcRigor
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.1.1

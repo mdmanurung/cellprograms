@@ -9,7 +9,11 @@
 
 .mcrigor_detect_group <- function(counts_g, membership, mode, mcrigor_args,
                                   group_id) {
-    stopifnot(requireNamespace("mcRigor", quietly = TRUE))
+    if (!requireNamespace("mcRigor", quietly = TRUE)) {
+        cli::cli_abort(
+            "{.pkg mcRigor} is required for metacell QC. Install it with {.code remotes::install_github('JSB-UCLA/mcRigor')}."
+        )
+    }
     # mcRigor's buildmc only aligns per-metacell metadata for NUMERIC
     # membership labels (its numeric branch strips Seurat's AggregateExpression
     # "g" prefix; string labels crash with "No cell overlap between new meta
@@ -169,7 +173,16 @@ OptimizeGammaSEACells <- function(
     seed = 20261016,
     verbose = TRUE
 ) {
-    stopifnot(requireNamespace("mcRigor", quietly = TRUE))
+    if (!requireNamespace("mcRigor", quietly = TRUE)) {
+        cli::cli_abort(
+            "{.pkg mcRigor} is required for granularity optimization. Install it with {.code remotes::install_github('JSB-UCLA/mcRigor')}."
+        )
+    }
+    if (!requireNamespace("Seurat", quietly = TRUE)) {
+        cli::cli_abort(
+            "{.pkg Seurat} is required for granularity optimization. Install it with {.code install.packages('Seurat')}."
+        )
+    }
     group_ids <- .mc_get_group_ids(seurat_obj, group.by)
     levels_g <- sort(unique(group_ids))
 

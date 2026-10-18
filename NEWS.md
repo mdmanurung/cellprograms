@@ -2,6 +2,20 @@
 
 ## New features (2026-10-18 feature-completion segment)
 
+* Metacell construction is folded into `cellprograms` from the retired
+  `r_packages/cellprogramsMC` sub-package: `MetacellsByGroupsSEACells()`
+  (group-stratified SEACells metacells with mcRigor QC),
+  `OptimizeGammaSEACells()` (mcRigor granularity selection), and
+  `GetMetacellSEACells()` (result accessor). The basilisk Python environment
+  is now created lazily on first use (internal `.seacells_env()`, same
+  pattern as the cebmf backend), so `basilisk` stays in Suggests and
+  installing `cellprograms` never requires basilisk, Python, Seurat, or
+  mcRigor; the exported `seacells_env` object from the sub-package is
+  retired (nothing in the project referenced it). `Seurat`, `SeuratObject`,
+  `mcRigor`, and `hdWGCNA` are Suggests with explicit fail-closed guards;
+  `Matrix` and `methods` move to Imports. Note: the basilisk environment is
+  re-registered under `cellprograms`, so the first metacell run after this
+  change rebuilds the SEACells conda environment (one-time, needs network).
 * `fit_celltype_programs()` gains `backend = c("flashier", "cebmf_torch")`.
   The `cebmf_torch` backend runs the pure-PyTorch cEBMF implementation
   (pinned upstream `william-denault/cebmf_torch@34abac5`) through the
