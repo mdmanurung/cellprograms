@@ -73,7 +73,7 @@ for (i in seq_len(nrow(summ))) {
   } else if (fam %in% c("C1", "C2", "C3", "C4")) {
     summ$verdict[i] <- sprintf("FWER estimate %.3f [%.3f, %.3f] vs alpha %.2f -> document",
                                summ$fwer[i], summ$fwer_lo[i], summ$fwer_hi[i], alpha)
-  } else if (fam == "D") {
+  } else if (fam %in% c("D1", "D2")) {
     summ$verdict[i] <- "DESCRIPTIVE"
   }
 }
@@ -113,7 +113,7 @@ for (i in seq_len(nrow(summ))) {
     fmt(summ$plant_power[i], summ$plant_power_lo[i], summ$plant_power_hi[i]),
     summ$verdict[i]))
 }
-if (any(summ$family == "D")) {
+if (any(grepl("^D", summ$family))) {
   lines <- c(lines, "", "## D-family sign patterns", "")
   for (i in which(summ$family == "D")) {
     lines <- c(lines, sprintf("- %s: modal cmp_signs = %s (%.1f%% of replicates)",

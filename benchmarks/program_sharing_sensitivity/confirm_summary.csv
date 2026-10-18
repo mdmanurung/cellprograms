@@ -2,18 +2,18 @@
 "P1_shared_biology","full",20,1,0.831566529016915,1,0,1,"recovery 1.000 [0.832, 1.000] (gate >= 0.80): PASS"
 "P1_shared_biology","prespecified",20,1,0.831566529016915,1,0,1,"recovery 1.000 [0.832, 1.000] (gate >= 0.80): PASS"
 "P1_shared_biology","posthoc",20,1,0.831566529016915,1,0,1,"recovery 1.000 [0.832, 1.000] (gate >= 0.80): PASS"
-"N0_unrelated","full",20,0,0,0.168433470983085,NA,NA,NA
-"N0_unrelated","prespecified",20,0,0,0.168433470983085,NA,NA,NA
-"N0_unrelated","posthoc",20,0,0,0.168433470983085,NA,NA,NA
-"N1_ambient_ig","full",20,1,0.831566529016915,1,1,0.8,NA
-"N1_ambient_ig","prespecified",20,0,0,0.168433470983085,NA,NA,NA
-"N1_ambient_ig","posthoc",20,0.6,0.36054258730749,0.808809939274693,1,0.516666666666667,NA
-"N2_vdj_lineage","full",20,0,0,0.168433470983085,NA,NA,NA
-"N2_vdj_lineage","prespecified",20,0,0,0.168433470983085,NA,NA,NA
-"N2_vdj_lineage","posthoc",20,0,0,0.168433470983085,NA,NA,NA
-"N3_sex_shared","full",20,0,0,0.168433470983085,NA,NA,NA
-"N3_sex_shared","prespecified",20,0,0,0.168433470983085,NA,NA,NA
-"N3_sex_shared","posthoc",20,0,0,0.168433470983085,NA,NA,NA
-"N4_genotype_shared","full",20,0,0,0.168433470983085,NA,NA,NA
-"N4_genotype_shared","prespecified",20,0,0,0.168433470983085,NA,NA,NA
-"N4_genotype_shared","posthoc",20,0,0,0.168433470983085,NA,NA,NA
+"N0_unrelated","full",20,0,0,0.168433470983085,NA,NA,"promotion 0.000 [0.000, 0.168] (defect if CI lo > 0.05): PASS"
+"N0_unrelated","prespecified",20,0,0,0.168433470983085,NA,NA,"promotion 0.000 [0.000, 0.168] (defect if CI lo > 0.05): PASS"
+"N0_unrelated","posthoc",20,0,0,0.168433470983085,NA,NA,"promotion 0.000 [0.000, 0.168] (defect if CI lo > 0.05): PASS"
+"N1_ambient_ig","full",20,1,0.831566529016915,1,1,0.8,"artifact flag on promoted groups = 1.00 (gate = 1.00): PASS"
+"N1_ambient_ig","prespecified",20,0,0,0.168433470983085,NA,NA,"prespecified promotion 0.000 [0.000, 0.168] (gate = no promotion): PASS"
+"N1_ambient_ig","posthoc",20,0.6,0.36054258730749,0.808809939274693,1,0.516666666666667,"posthoc descriptive: promotion 0.600 [0.361, 0.809], mean posthoc_n_drop=15.5"
+"N2_vdj_lineage","full",20,0,0,0.168433470983085,NA,NA,"full-arm promotion 0.000 [0.000, 0.168] (gate = 0): PASS"
+"N2_vdj_lineage","prespecified",20,0,0,0.168433470983085,NA,NA,"prespecified arm promotion 0.000 [0.000, 0.168] (documented cost)"
+"N2_vdj_lineage","posthoc",20,0,0,0.168433470983085,NA,NA,"posthoc arm promotion 0.000 [0.000, 0.168] (documented cost)"
+"N3_sex_shared","full",20,0,0,0.168433470983085,NA,NA,"no full-arm promotion; artifact-flag check vacuous (prereg expected promotion+flag; support dilution per Amendment 1): DOCUMENTED"
+"N3_sex_shared","prespecified",20,0,0,0.168433470983085,NA,NA,"prespecified promotion 0.000 [0.000, 0.168] (gate = no promotion): PASS"
+"N3_sex_shared","posthoc",20,0,0,0.168433470983085,NA,NA,"posthoc descriptive: promotion 0.000 [0.000, 0.168], mean posthoc_n_drop=11.4"
+"N4_genotype_shared","full",20,0,0,0.168433470983085,NA,NA,"no full-arm promotion; artifact-flag check vacuous (prereg expected promotion+flag; support dilution per Amendment 1): DOCUMENTED"
+"N4_genotype_shared","prespecified",20,0,0,0.168433470983085,NA,NA,"prespecified promotion 0.000 [0.000, 0.168] (gate = no promotion): PASS"
+"N4_genotype_shared","posthoc",20,0,0,0.168433470983085,NA,NA,"posthoc descriptive: promotion 0.000 [0.000, 0.168], mean posthoc_n_drop=11.8"

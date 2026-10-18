@@ -14,5 +14,8 @@ Valid rows: 5500 | Determinism vs interrupted run: 4000/4000 replicates identica
 | C2_realistic | 500 | 0.040 [0.025, 0.061] | 0.001 [0.001, 0.002] | — | FWER estimate 0.040 [0.025, 0.061] vs alpha 0.05 -> document |
 | C3_realistic | 500 | 0.040 [0.025, 0.061] | 0.001 [0.001, 0.002] | — | FWER estimate 0.040 [0.025, 0.061] vs alpha 0.05 -> document |
 | C4_realistic | 500 | 0.050 [0.033, 0.073] | 0.002 [0.001, 0.002] | — | FWER estimate 0.050 [0.033, 0.073] vs alpha 0.05 -> document |
-| D1_realistic | 500 | 1.000 [0.993, 1.000] | 0.002 [0.001, 0.002] | 1.000 [0.998, 1.000] | NA |
-| D2_realistic | 500 | 1.000 [0.993, 1.000] | 0.002 [0.001, 0.003] | 0.825 [0.805, 0.844] | NA |
+| D1_realistic | 500 | 1.000 [0.993, 1.000] | 0.002 [0.001, 0.002] | 1.000 [0.998, 1.000] | DESCRIPTIVE |
+| D2_realistic | 500 | 1.000 [0.993, 1.000] | 0.002 [0.001, 0.003] | 0.825 [0.805, 0.844] | DESCRIPTIVE |
+
+## D-family sign patterns
+

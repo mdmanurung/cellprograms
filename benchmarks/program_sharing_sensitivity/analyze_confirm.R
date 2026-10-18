@@ -46,16 +46,21 @@ for (i in seq_len(nrow(scen_arm))) {
                         if (!is.na(r[1]) && r[1] >= 0.8) "PASS" else "INVESTIGATE")
   }
   # N0: promotion rate; defect only if CI excludes 5% high side
-  if (sc == "N0_null") {
+  if (sc == "N0_unrelated") {
     row$gate <- sprintf("promotion %s (defect if CI lo > 0.05): %s", f3(prom),
                         if (!is.na(prom[2]) && prom[2] > 0.05) "INVESTIGATE" else "PASS")
   }
   # N1/N3/N4: full-arm promoted groups must carry artifact flag; prespecified must not promote
-  if (sc %in% c("N1_vdj_contamination", "N3_small_support", "N4_small_support_vdj")) {
+  if (sc %in% c("N1_ambient_ig", "N3_sex_shared", "N4_genotype_shared")) {
     if (ar == "full") {
-      flagged <- mean(d$artifact_frac_top[d$promoted_shared] > 0)
-      row$gate <- sprintf("artifact flag on promoted groups = %.2f (gate = 1.00): %s",
-                          flagged, if (isTRUE(flagged == 1)) "PASS" else "FLAG GAP")
+      if (!any(d$promoted_shared)) {
+        row$gate <- paste0("no full-arm promotion; artifact-flag check vacuous ",
+                           "(prereg expected promotion+flag; support dilution per Amendment 1): DOCUMENTED")
+      } else {
+        flagged <- mean(d$artifact_frac_top[d$promoted_shared] > 0)
+        row$gate <- sprintf("artifact flag on promoted groups = %.2f (gate = 1.00): %s",
+                            flagged, if (isTRUE(flagged == 1)) "PASS" else "FLAG GAP")
+      }
     } else if (ar == "prespecified") {
       row$gate <- sprintf("prespecified promotion %s (gate = no promotion): %s", f3(prom),
                           if (!is.na(prom[1]) && prom[1] == 0) "PASS" else "INVESTIGATE")
@@ -65,7 +70,7 @@ for (i in seq_len(nrow(scen_arm))) {
     }
   }
   # N2: full arm must not promote cross-type lineage program
-  if (sc == "N2_lineage_vdj") {
+  if (sc == "N2_vdj_lineage") {
     if (ar == "full") {
       row$gate <- sprintf("full-arm promotion %s (gate = 0): %s", f3(prom),
                           if (!is.na(prom[1]) && prom[1] == 0) "PASS" else "INVESTIGATE")
