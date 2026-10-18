@@ -51,13 +51,20 @@
 
 ## Remediation queue (2026-10-18): CAND-01, CAND-05, CAND-07, D-2a, CAND-03+D-3b, CAND-12
 
-* `assess_program_stability()` (CAND-01, P1): subsample refit failures are now
-  counted and reported (`fit$stability$n_failed`/`n_success`, warning on any
-  failure); `recovery_freq` is defined over SUCCESSFUL refits — previously the
-  silent denominator was `n_boot`, so a 30% refit-failure rate read as a 30%
-  recovery loss with zero user-facing signal, and an all-fail run was
-  indistinguishable from zero stability. All-fail now yields NA with a
-  distinct warning; per-program `n_hit` added.
+* `assess_program_stability()` (CAND-01/CP-1, P1): subsample refit failures
+  are now counted and reported (`fit$stability$valid_refits`/`failed_refits`,
+  warning on any failure) with a per-replicate `replicate_log` (status, error
+  class/message, elapsed time, sampled observations and factor counts per
+  cell type, matching eligibility). `recovery_freq` keeps its LEGACY meaning
+  (unconditional hit fraction over requested iterations, `n_hit / n_boot`);
+  the new `conditional_recovery_freq` is defined over SUCCESSFUL refits
+  (`n_hit / valid_refits`) — previously the silent denominator was `n_boot`,
+  so a 30% refit-failure rate read as a 30% recovery loss with zero
+  user-facing signal, and an all-fail run was indistinguishable from zero
+  stability. All-fail now yields NA rates with a distinct warning; per-program
+  `n_hit` and `n_eligible` added. Subsampled refit objects now carry
+  consistent `observation_ids`/`sample_metadata`/`dims` (previously stale
+  full-data values).
 * `find_coordinated_programs()` (CAND-05, P2): CMP member orientation now
   propagates along the linking edges that formed the CMP (product of edge
   signs along the path from the reference member). Chain-joined members

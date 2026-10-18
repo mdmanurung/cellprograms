@@ -88,9 +88,10 @@ plot_variance_explained(fit)
 
 `assess_program_stability()` refits on donor subsamples and reports how often
 each program is recovered. Refits that fail are counted, not silently
-dropped: `fit$stability` carries `n_failed` and `n_success`, and recovery
-frequencies are computed over successful refits (all refits failing yields
-`NA`, not 0).
+dropped: `fit$stability` carries `valid_refits`/`failed_refits` and a
+per-replicate `replicate_log`; `recovery_freq` keeps its legacy meaning (hits
+over requested iterations) while `conditional_recovery_freq` is computed over
+successful refits (all refits failing yields `NA`, not 0).
 
 ```{r stability}
 fit <- assess_program_stability(fit, n_boot = 4, resample_frac = 0.7,

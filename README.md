@@ -75,8 +75,9 @@ Z_new <- project_programs_to_cells(fit, new_pseudobulk,
 A refit supplied with a frozen spec cannot silently drift from the frozen
 panel: any explicit conflict with the spec is an error. Stability
 (`assess_program_stability()`) reports how many subsample refits failed
-(`n_failed`/`n_success`) so that recovery frequencies are computed over
-successful refits, never silently diluted.
+(`valid_refits`/`failed_refits` plus a per-replicate `replicate_log`) so that
+the conditional recovery frequency is computed over successful refits, never
+silently diluted.
 
 ## Motivation
 

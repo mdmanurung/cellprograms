@@ -27,8 +27,8 @@ test_that(".greedy_match demotes non-finite similarities instead of crashing (D-
   expect_identical(nrow(m2), 0L)  # nothing matchable, no crash
 })
 
-# ---- CAND-01: stability failure accounting ------------------------------
-test_that("stability refit failures are counted and excluded from the denominator (CAND-01)", {
+# ---- CAND-01 / CP-1: stability failure accounting -----------------------
+test_that("stability refit failures are ledgered; legacy and conditional rates coexist (CAND-01/CP-1)", {
   skip_if_not_installed("flashier"); skip_if_not_installed("ebnm")
   fit <- canonicalize_programs(fit_celltype_programs(.toy(), max_factors = 3, seed = 1))
   orig <- fit_celltype_programs
@@ -42,22 +42,76 @@ test_that("stability refit failures are counted and excluded from the denominato
   expect_warning(fit_s <- assess_program_stability(fit, n_boot = 4, seed = 1, progress = FALSE),
                  "2 of 4 subsample refits failed")
   st <- fit_s$stability$per_program
-  expect_identical(fit_s$stability$n_failed, 2L)
-  expect_identical(fit_s$stability$n_success, 2L)
-  ## the registered contract: recovery_freq == n_hit / n_success exactly
-  expect_equal(st$recovery_freq, st$n_hit / fit_s$stability$n_success)
-  ## a program recovered in both successful refits reads 1.0, not 0.5
-  expect_equal(max(st$recovery_freq), 1)
+  expect_identical(fit_s$stability$failed_refits, 2L)
+  expect_identical(fit_s$stability$valid_refits, 2L)
+  ## legacy semantics preserved: recovery_freq == n_hit / n_boot (requested)
+  expect_equal(st$recovery_freq, st$n_hit / 4)
+  ## conditional semantics: conditional_recovery_freq == n_hit / valid_refits
+  expect_equal(st$conditional_recovery_freq, st$n_hit / fit_s$stability$valid_refits)
+  ## a program recovered in both successful refits reads 1.0 conditionally, 0.5 legacy
+  expect_equal(max(st$conditional_recovery_freq), 1)
+  expect_equal(max(st$recovery_freq), 0.5)
+  ## replicate log: complete ledger, error captured, eligibility distinguishable
+  rl <- fit_s$stability$replicate_log
+  expect_identical(nrow(rl), 4L)
+  expect_identical(rl$status, c("ok", "error", "ok", "error"))
+  expect_true(all(rl$error_class[rl$status == "error"] == "simpleError"))
+  expect_true(all(grepl("injected refit failure", rl$error_message[rl$status == "error"])))
+  expect_true(all(is.na(rl$error_message[rl$status == "ok"])))
+  expect_true(all(rl$eligible[rl$status == "ok"]))
+  expect_true(all(!rl$eligible[rl$status == "error"]))
+  expect_true(all(vapply(rl$n_obs, length, integer(1)) == length(fit$cell_types)))
+  ## per-program eligibility counted over successful refits
+  expect_true(all(st$n_eligible <= fit_s$stability$valid_refits))
 })
 
-test_that("all-fail stability is NA with a distinct warning, not 0 (CAND-01)", {
+test_that("all-fail stability is NA with a distinct warning, not 0 (CAND-01/CP-1)", {
   skip_if_not_installed("flashier"); skip_if_not_installed("ebnm")
   fit <- canonicalize_programs(fit_celltype_programs(.toy(), max_factors = 3, seed = 1))
   testthat::local_mocked_bindings(fit_celltype_programs = function(...) stop("injected"))
   expect_warning(fit_s <- assess_program_stability(fit, n_boot = 2, seed = 1, progress = FALSE),
                  "all 2 subsample refits failed")
   expect_true(all(is.na(fit_s$stability$per_program$recovery_freq)))
-  expect_identical(fit_s$stability$n_success, 0L)
+  expect_true(all(is.na(fit_s$stability$per_program$conditional_recovery_freq)))
+  expect_identical(fit_s$stability$valid_refits, 0L)
+  expect_identical(fit_s$stability$failed_refits, 2L)
+  expect_identical(fit_s$stability$replicate_log$status, c("error", "error"))
+})
+
+test_that("all-success stability keeps legacy recovery_freq identical (CP-1 compatibility)", {
+  skip_if_not_installed("flashier"); skip_if_not_installed("ebnm")
+  fit <- canonicalize_programs(fit_celltype_programs(.toy(), max_factors = 3, seed = 1))
+  fit_s <- assess_program_stability(fit, n_boot = 2, seed = 1, progress = FALSE)
+  st <- fit_s$stability
+  expect_identical(st$failed_refits, 0L)
+  expect_identical(st$valid_refits, 2L)
+  ## with no failures, legacy and conditional rates coincide
+  expect_equal(st$per_program$recovery_freq, st$per_program$conditional_recovery_freq)
+  expect_equal(st$per_program$recovery_freq, st$per_program$n_hit / 2)
+})
+
+test_that("stability subsample objects carry consistent metadata and dims (CP-1 item 6)", {
+  skip_if_not_installed("flashier"); skip_if_not_installed("ebnm")
+  fit <- canonicalize_programs(fit_celltype_programs(.toy(), max_factors = 3, seed = 1))
+  orig <- fit_celltype_programs
+  seen <- list()
+  testthat::local_mocked_bindings(fit_celltype_programs = function(x, ...) {
+    seen[[length(seen) + 1L]] <<- x
+    orig(x, ...)
+  })
+  assess_program_stability(fit, n_boot = 2, resample_frac = 0.7, seed = 1, progress = FALSE)
+  expect_identical(length(seen), 2L)
+  for (x_b in seen) {
+    for (ct in x_b$cell_types) {
+      ## dims reflect the subsampled matrices, not the full data
+      expect_identical(x_b$dims[[ct]], dim(x_b$pseudobulk[[ct]]))
+      expect_lt(x_b$dims[[ct]][1], fit$dims[[ct]][1])
+    }
+    ## observation_ids and sample_metadata are subset to sampled rows
+    all_rows <- unique(unlist(lapply(x_b$pseudobulk, rownames)))
+    expect_setequal(x_b$observation_ids, all_rows)
+    expect_setequal(x_b$sample_metadata$observation_id, all_rows)
+  }
 })
 
 # ---- CAND-05: chain orientation propagation -----------------------------

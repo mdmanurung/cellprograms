@@ -743,8 +743,8 @@ plot_context_association <- function(assoc, p_alpha = 0.05) {
   df$term <- ifelse(df$term == "x", "context variable", df$term)
   ggplot2::ggplot(df, ggplot2::aes(estimate, cmp_lab, color = p < p_alpha)) +
     ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "grey60") +
-    ggplot2::geom_errorbarh(ggplot2::aes(xmin = estimate - 1.96 * se, xmax = estimate + 1.96 * se),
-                            height = 0.15, linewidth = 0.6) +
+    ggplot2::geom_errorbar(ggplot2::aes(xmin = estimate - 1.96 * se, xmax = estimate + 1.96 * se),
+                           orientation = "y", width = 0.15, linewidth = 0.6) +
     ggplot2::geom_point(ggplot2::aes(shape = p < p_alpha), size = 3) +
     ggplot2::scale_color_manual(values = c(`TRUE` = "#B2182B", `FALSE` = "grey40"),
                                 name = sprintf("p < %.2f", p_alpha)) +

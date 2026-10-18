@@ -325,3 +325,24 @@ mini-benchmark RUN, flashier var_floor fail-closed, GitHub push 403).
   "GitHub Actions". The committed docs/ directory keeps serving the site
   until that switch; after the first successful deploy, docs/ can be
   untracked and the build committed to git history only.
+
+## Spec v2 (factorization-roadmap-v2) execution — CP-1 adjustment (2026-10-18)
+
+* Bundle reviewed in full (00-07 + MANIFEST). Registered decision: CP-1
+  supersedes the CAND-01 denominator semantics shipped earlier today —
+  legacy `recovery_freq = n_hit/n_boot` is PRESERVED (relabeled unconditional
+  hit fraction) and `conditional_recovery_freq = n_hit/valid_refits` added,
+  per spec rule "preserve metric names with legacy meaning; introduce
+  appropriately labelled companion metrics". n_success/n_failed renamed to
+  the spec's valid_refits/failed_refits (same-day unreleased names).
+* Added per-replicate `replicate_log` (replicate, seed, status, error
+  class/message, elapsed_seconds, n_obs per cell type, n_factors per cell
+  type, eligibility) — errors are captured, not collapsed to NULL.
+* CP-1 item 6 repaired: subsampled refit objects now carry consistent
+  observation_ids/sample_metadata/dims (were stale full-data values).
+* CP-1 item 7 already satisfied by CAND-12 (spec replay through MR-0).
+* Tests: 4 CP-1 tests (injected-failure ledger, all-fail NA, all-success
+  legacy compatibility, metadata/dims consistency via mock capture).
+  Suite: FAIL 0 | WARN 13 | SKIP 0 | PASS 685 (r_suite9_cp1.log).
+* En-route: geom_errorbarh deprecated in ggplot2 4.0.x — replaced with
+  geom_errorbar(orientation="y") (test-plots warning eliminated).
