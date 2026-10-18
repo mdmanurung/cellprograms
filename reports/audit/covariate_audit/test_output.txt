@@ -1,0 +1,77 @@
+== cellprograms covariate audit ==
+cellprograms  0.2.0 | flashier  1.0.60 | flashier.utils  1.1.0.9000 
+R version 4.4.2 (2024-10-31) 
+
+[PASS] T1a variable-gene selection uses RAW Y (before adjustment)  identical panels: TRUE
+[PASS] T1b Y_used == center(residualize(Y)) i.e. residualize BEFORE centering  max|diff| = 0.00e+00
+[PASS] T1c with scale=TRUE, scale values are RESIDUAL sds (not raw sds)  max|scale-residSD|=4.44e-16  max|scale-rawSD|=2.096
+[PASS] T2a collinear design: max_factors=10 does NOT trip guard (q_ct = rank-1 = 1, not ncol-1 = 2)  fit completed
+[PASS] T2b max_factors=11 trips guard with q = 1 (rank-based)  Too many factors in cell type "NK": `max_factors` = 11 exceeds the 10
+factor(s) the residual degrees of freedom support (n = 12 donor(s), q = 1
+covariate column(s)).
+ℹ Lower `max_factors`, drop covariates, or add donors for this cell type.
+[PASS] T3 residuals orthogonal to design (full-rank and collinear)  full-rank max|t(R)X| = 7.11e-15 ; collinear max|t(R)X| = 1.78e-14
+[PASS] T4 .cov_design formula == character  identical: TRUE
+[PASS] T5 unused level dropped, no all-zero dummy column (== independent sex-only design)  columns: (Intercept), sexM
+[PASS] T6a constant covariate dropped with message  Covariate(s) "site_const" constant in cell type "B"; dropped for this cell
+type.
+[PASS] T6b all-constant -> NULL design + 'not adjusted' message  Covariate(s) "site_const" constant in cell type "B"; not adjusted.
+[PASS] T6c full fit with all-constant covariates proceeds unadjusted (coefficients NULL)  Covariate(s) "age", "sex", and "batch" constant in cell type "CD8"; not
+adjusted.
+[PASS] T7 NA in covariate aborts  Missing covariate values among donors of cell type "B"; impute or drop
+them first.
+[PASS] T8 df guard aborts at nrow - rank < 10 (12 donors, rank 4)  Too few donors (12) in "NK" for 3 covariate column(s): need >= 10
+residual degrees of freedom.
+[PASS] T9 leverage warning fires for singleton level (hat ~ 1)  max hat = 1.0000 ; warning: 1 donor(s) in cell type "B" have leverage ~1 under the covariate model (e.g. a
+level with a single donor): their residuals are ~0.
+[PASS] T10a fixed design: no intercept, centered, unit variance, full rank  columns: age, sexM, batchb2, batchb3, batchb4
+[PASS] T10b fixed design rank-pivots aliased columns (sex == sex2 -> 1 column)  ncol = 1
+[PASS] T11a fixed_L is exactly the fixed design  
+[PASS] T11b Y_used == centered Y - fixed_L %*% t(fixed_F)  ('Y minus fitted covariate part')  max|diff| = 0.00e+00
+       note: max|fixed_F - OLS init| = 0.000 (fixed_F is the flash-estimated factor; OLS is only its initializer)
+[PASS] T11c fixed columns NOT returned as free programs  K_free = 2, program names: B_1,B_2
+       age-vs-score |cor|: no-cov=0.960  residualize=0.001  fixed=0.001
+[PASS] T11d planted age module removed from free programs (both modes)  
+       cor(fixed_F age column, planted age loadings) = 0.991
+[PASS] T11e fixed mode silently ignores flash_control (documented)  doc: 'Requires center = TRUE, ignores flash_control'
+[PASS] T12a projection of training data runs  
+[PASS] T12b replayed adjustment == in-sample Y_used (same donors)  max|diff| = 3.55e-15
+[PASS] T12c projected activities match donor scores (B program columns)  min|cor| = 0.9988 (activity matrix has 8 cols across all cell types)
+[PASS] T12d replay order-independent  max|diff| = 0.00e+00
+[PASS] T13a new covariate level among query donors aborts  Replayed covariate design for cell type "B" does not match the design
+recorded at fit time.
+ℹ A covariate level present at fit time is absent among the query donors (or a
+  new level appears): the adjustment cannot be replayed. Align the query cohort
+  or refit.
+[PASS] T13b lost covariate level among query donors aborts (fail-closed; obscure msg -> P3 note)  error: contrasts can be applied only to factors with 2 or more levels
+[PASS] T13c query donor missing from sample_metadata aborts  1 query donor(s) missing from `sample_metadata`, e.g. "obs40".
+[PASS] T13d missing donors/sample_metadata aborts when covariates were residualized  Cell type "B" was fit with residualized covariates: `donors` and
+`sample_metadata` are required to replay the adjustment on query cells.
+[PASS] T13e metadata missing a covariate column fails (fail-closed)  error class: undefined columns selected
+[PASS] T14a formula stored deparsed  ~age + sex + batch
+[PASS] T14b spec refit replays covariates (rehydrated formula) + records digest  
+[PASS] T14c explicit covariates + frozen spec -> error  `preprocessing_spec` is frozen: leave covariates at their defaults; the
+spec governs.
+[PASS] T14d explicit covariate_mode + frozen spec -> error  `preprocessing_spec` is frozen: leave covariate_mode at their defaults;
+the spec governs.
+[PASS] T14e spec-rehydrated formula design == direct formula design  
+[PASS] T14f [DEFECT MARKER P2-3] frozen spec bypasses fixed-mode center=TRUE guard (passes while defect present; invert when fixed)  confirmed: fixed mode ran with center=FALSE via frozen spec
+[PASS] T15 site constant in CD4 dropped there, kept in B (own designs)  CD4 columns: (Intercept),sexM | B columns: (Intercept),siteS2,sexM
+[PASS] T16a collinear design stores NA coefficient for aliased column  NA rows: age_copy
+       T16b outcome: projection ERRORS: Missing values are not supported for this operation
+[PASS] T16b collinear-design projection fails closed (error, not silent NA)  error raised
+[PASS] T17a replay$center length (pre-drop) != nrow genes (post-drop)  length(center) = 150, ngenes = 149, drop message: TRUE
+[PASS] T17b DEFECT: code-replayed centering misaligned vs Y_used; aligned replay matches  code-replay max|diff| = 10.432 ; correctly-aligned replay max|diff| = 0.00e+00
+       T17c covariates+scale=TRUE+constant gene: completed
+[PASS] T18 fixed-covariate fit refuses projection  Cell type "B": the stored fit has no flashier.utils manifest (legacy or
+fixed-covariate backend) and
+[PASS] T19 stability subsample refits run with covariates  8 programs tracked
+[PASS] T20 union_panel_loadings replays residualize and fixed adjustment  errors: none / none
+[PASS] T21 [DEFECT MARKER P3] interaction with within-ct-constant covariate errors obscurely (passes while defect present; invert when fixed)  confirmed ERROR: variable lengths differ (found for 'sex')
+[PASS] T22 character and formula covariates give identical Y_used and design columns  
+
+== SUMMARY: 46 PASS, 0 FAIL ==
+
+-- sessionInfo --
+[1] "Ubuntu 24.04.5 LTS"
+cellprograms 0.2.0 

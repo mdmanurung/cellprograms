@@ -1,0 +1,188 @@
+{
+ "subsets": [
+  "CD8pos_T_Naive",
+  "CD8pos_Tem_GZMBpos",
+  "CD8pos_Tem_GZMKpos",
+  "CD8pos_Tcm_CCR4-",
+  "CD8pos_HLA-DRpos",
+  "CD8pos_Temra",
+  "MAIT",
+  "CD8pos_RTE"
+ ],
+ "K": 10,
+ "seed": 20261016,
+ "tau_max": 100000000.0,
+ "concordance": {
+  "CD8pos_T_Naive": 0.1459184689127531,
+  "CD8pos_Tem_GZMBpos": 0.17144323185753121,
+  "CD8pos_Tem_GZMKpos": 0.1659745944950896,
+  "CD8pos_Tcm_CCR4-": 0.1256981613752564,
+  "CD8pos_HLA-DRpos": 0.12330884292790507,
+  "CD8pos_Temra": 0.1387316543441984,
+  "MAIT": 0.10127695373231413,
+  "CD8pos_RTE": 0.13967604932318656
+ },
+ "n_fdr_sig": {
+  "metacell": 9,
+  "pseudobulk": 10
+ },
+ "seeds": {
+  "CD8pos_T_Naive": {
+   "mc": 20261016,
+   "pb": 20261016
+  },
+  "CD8pos_Tem_GZMBpos": {
+   "mc": 20261016,
+   "pb": 20261016
+  },
+  "CD8pos_Tem_GZMKpos": {
+   "mc": 20261016,
+   "pb": 20261016
+  },
+  "CD8pos_Tcm_CCR4-": {
+   "mc": 20261016,
+   "pb": 20261016
+  },
+  "CD8pos_HLA-DRpos": {
+   "mc": 20261016,
+   "pb": 20261016
+  },
+  "CD8pos_Temra": {
+   "mc": 20261016,
+   "pb": 20261016
+  },
+  "MAIT": {
+   "mc": 20261016,
+   "pb": 20261016
+  },
+  "CD8pos_RTE": {
+   "mc": 20261016,
+   "pb": 20261016
+  }
+ },
+ "seed_fallbacks": {
+  "CD8pos_T_Naive": {
+   "mc": 0,
+   "pb": 0
+  },
+  "CD8pos_Tem_GZMBpos": {
+   "mc": 0,
+   "pb": 0
+  },
+  "CD8pos_Tem_GZMKpos": {
+   "mc": 0,
+   "pb": 0
+  },
+  "CD8pos_Tcm_CCR4-": {
+   "mc": 0,
+   "pb": 0
+  },
+  "CD8pos_HLA-DRpos": {
+   "mc": 0,
+   "pb": 0
+  },
+  "CD8pos_Temra": {
+   "mc": 0,
+   "pb": 0
+  },
+  "MAIT": {
+   "mc": 0,
+   "pb": 0
+  },
+  "CD8pos_RTE": {
+   "mc": 0,
+   "pb": 0
+  }
+ },
+ "converged": {
+  "CD8pos_T_Naive": {
+   "mc": true,
+   "pb": true
+  },
+  "CD8pos_Tem_GZMBpos": {
+   "mc": false,
+   "pb": true
+  },
+  "CD8pos_Tem_GZMKpos": {
+   "mc": false,
+   "pb": true
+  },
+  "CD8pos_Tcm_CCR4-": {
+   "mc": true,
+   "pb": false
+  },
+  "CD8pos_HLA-DRpos": {
+   "mc": false,
+   "pb": false
+  },
+  "CD8pos_Temra": {
+   "mc": false,
+   "pb": false
+  },
+  "MAIT": {
+   "mc": false,
+   "pb": true
+  },
+  "CD8pos_RTE": {
+   "mc": false,
+   "pb": true
+  }
+ },
+ "effective_k": {
+  "CD8pos_T_Naive": {
+   "mc": 9,
+   "pb": 10
+  },
+  "CD8pos_Tem_GZMBpos": {
+   "mc": 10,
+   "pb": 10
+  },
+  "CD8pos_Tem_GZMKpos": {
+   "mc": 10,
+   "pb": 10
+  },
+  "CD8pos_Tcm_CCR4-": {
+   "mc": 10,
+   "pb": 10
+  },
+  "CD8pos_HLA-DRpos": {
+   "mc": 10,
+   "pb": 10
+  },
+  "CD8pos_Temra": {
+   "mc": 10,
+   "pb": 10
+  },
+  "MAIT": {
+   "mc": 10,
+   "pb": 9
+  },
+  "CD8pos_RTE": {
+   "mc": 10,
+   "pb": 10
+  }
+ },
+ "z_clip_per_subset": {
+  "CD8pos_T_Naive": 10.0,
+  "CD8pos_Tem_GZMBpos": 10.0,
+  "CD8pos_Tem_GZMKpos": 10.0,
+  "CD8pos_Tcm_CCR4-": 10.0,
+  "CD8pos_HLA-DRpos": 10.0,
+  "CD8pos_Temra": 10.0,
+  "MAIT": 10.0,
+  "CD8pos_RTE": 10.0
+ },
+ "genes_dropped": {
+  "CD8pos_T_Naive": 434,
+  "CD8pos_Tem_GZMBpos": 468,
+  "CD8pos_Tem_GZMKpos": 610,
+  "CD8pos_Tcm_CCR4-": 783,
+  "CD8pos_HLA-DRpos": 769,
+  "CD8pos_Temra": 766,
+  "MAIT": 818,
+  "CD8pos_RTE": 963
+ },
+ "shared_genes_sharing": 884,
+ "subsample": "metacell route: 10k-cell seeded subsample per subset (RandomState(20261016).choice, replace=False); pseudobulk: all cells",
+ "z_clip": "ShiftedLog z-scores clipped to [-10,10] both routes (divergence guard; see summary.md)"
+}

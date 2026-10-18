@@ -1,0 +1,42 @@
+{
+  "per_arm": {
+    "pseudobulk": {
+      "K": 2,
+      "mean_of_per_program_max_abs_cor": 0.8602855435261918,
+      "median_of_per_program_max_abs_cor": 0.8602855435261918,
+      "min": 0.8557895951275267,
+      "max": 0.8647814919248568
+    },
+    "metacell": {
+      "K": 2,
+      "mean_of_per_program_max_abs_cor": 0.9078412782403975,
+      "median_of_per_program_max_abs_cor": 0.9078412782403975,
+      "min": 0.8981186845966939,
+      "max": 0.917563871884101
+    },
+    "singlecell": {
+      "K": 2,
+      "mean_of_per_program_max_abs_cor": 0.9384553316071489,
+      "median_of_per_program_max_abs_cor": 0.9384553316071489,
+      "min": 0.929071047881787,
+      "max": 0.9478396153325108
+    }
+  },
+  "cross_granularity_hungarian_abs_cor": {
+    "hdwgna_pseudobulk|hdwgna_metacell": {
+      "mean": 0.7791446406785165,
+      "min": 0.7317955636069571,
+      "mean_top50_jaccard": 0.2946876044102907
+    },
+    "hdwgna_pseudobulk|hdwgna_singlecell": {
+      "mean": 0.7591636618066764,
+      "min": 0.7494546848859848,
+      "mean_top50_jaccard": 0.2422839506172839
+    },
+    "hdwgna_metacell|hdwgna_singlecell": {
+      "mean": 0.9596811315382864,
+      "min": 0.952087434195748,
+      "mean_top50_jaccard": 0.655719759168035
+    }
+  }
+}

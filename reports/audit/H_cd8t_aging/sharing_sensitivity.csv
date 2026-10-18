@@ -1,0 +1,11 @@
+route,kind,thresh_or_budget,n_edges,n_gained_vs08,n_lost_vs08,n_sig_pairs,edge_jaccard,ari
+metacell,sweep,0.7,2.0,2.0,0.0,,,
+metacell,sweep,0.8,0.0,0.0,0.0,,,
+metacell,sweep,0.9,0.0,0.0,0.0,,,
+metacell,calibration,199.0,,,,28.0,0.0,1.0
+metacell,calibration,1999.0,,,,28.0,0.0,1.0
+pseudobulk,sweep,0.7,5.0,5.0,0.0,,,
+pseudobulk,sweep,0.8,0.0,0.0,0.0,,,
+pseudobulk,sweep,0.9,0.0,0.0,0.0,,,
+pseudobulk,calibration,199.0,,,,28.0,0.0,1.0
+pseudobulk,calibration,1999.0,,,,28.0,0.0,1.0
