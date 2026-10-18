@@ -117,7 +117,8 @@ arguments: `Nrep` (50), `gene_filter` (0.1), `feature_use` (2000),
 \value{
 The Seurat object with results stored in `seurat_obj@misc[[wgcna_name]]`:
   `metacell_object` (Seurat object of metacells, counts = aggregated
-  expression, metadata = group, n_cells, mcRigor QC columns),
+  expression, metadata = Group, n_cells, the individual `group.by` columns,
+  and mcRigor QC columns),
   `soft_assignments` (dgCMatrix, cells x metacells, if
   `use_soft_assignments`), `qc` (per-metacell QC data.frame), `params`
   (all call parameters), `skipped_groups` (data.frame), and `call`.

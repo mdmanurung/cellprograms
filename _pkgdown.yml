@@ -16,6 +16,20 @@ template:
 search:
   exclude: ['news/index.html']
 
+reference:
+- title: Metacells (SEACells + mcRigor)
+  desc: >
+    Optional upstream aggregation of single cells into metacells before
+    program discovery. Requires the suggested packages Seurat, mcRigor and
+    basilisk (the SEACells Python environment is built on first use).
+  contents:
+  - MetacellsByGroupsSEACells
+  - OptimizeGammaSEACells
+  - GetMetacellSEACells
+- title: All functions
+  contents:
+  - matches(".")
+
 articles:
 - title: Getting started
   navbar: ~

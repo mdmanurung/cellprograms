@@ -51,6 +51,42 @@ additionally pass `covariates` (e.g. `c("site", "sex")`) and use
 `max_factors = 30` when the goal is CMP detection (see the CMP benchmark note
 in `README`).
 
+## From single cells: metacells (optional)
+
+When the starting point is a single-cell object rather than pseudobulk
+profiles, `MetacellsByGroupsSEACells()` aggregates cells into
+transcriptomically homogeneous metacells with SEACells (run in an isolated
+basilisk-managed Python environment, built on first use) and mcRigor QC,
+stratified so metacells never cross donors or cell types. The metacell
+counts feed `fit_celltype_programs()` directly:
+
+```{r metacells, eval=FALSE}
+# Requires: install.packages("Seurat"); remotes::install_github("JSB-UCLA/mcRigor");
+# BiocManager::install("basilisk")
+seu <- MetacellsByGroupsSEACells(
+  seurat_obj,                         # Seurat object with raw counts + PCA
+  group.by = c("donor", "celltype"),  # stratification: metacells stay within donor x cell type
+  cells_per_metacell = 75,
+  min_cells = 100
+)
+res <- GetMetacellSEACells(seu)
+mc <- res$metacell_object
+head(res$qc)  # per-metacell mcRigor QC (mcDiv, dubious flag, ZeroRate)
+
+# Metacell counts -> named list of metacells x genes matrices, one per cell type
+counts <- SeuratObject::LayerData(mc[["RNA"]], layer = "counts")  # genes x metacells
+by_type <- split(colnames(mc), mc$celltype)
+pb <- lapply(by_type, function(cells) t(as.matrix(counts[, cells, drop = FALSE])))
+
+x <- as_cell_program_data(pb)
+fit <- fit_celltype_programs(x, loading_prior = "point_laplace",
+                             max_factors = 6, features = "variable")
+fit <- canonicalize_programs(fit)
+```
+
+`OptimizeGammaSEACells()` selects the granularity (`cells_per_metacell`) by
+the mcRigor score when you prefer data-driven granularity over the default.
+
 ## Inspect programs
 
 ```{r inspect}

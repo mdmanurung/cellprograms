@@ -143,7 +143,8 @@
 #'
 #' @return The Seurat object with results stored in `seurat_obj@misc[[wgcna_name]]`:
 #'   `metacell_object` (Seurat object of metacells, counts = aggregated
-#'   expression, metadata = group, n_cells, mcRigor QC columns),
+#'   expression, metadata = Group, n_cells, the individual `group.by` columns,
+#'   and mcRigor QC columns),
 #'   `soft_assignments` (dgCMatrix, cells x metacells, if
 #'   `use_soft_assignments`), `qc` (per-metacell QC data.frame), `params`
 #'   (all call parameters), `skipped_groups` (data.frame), and `call`.
@@ -269,6 +270,11 @@ MetacellsByGroupsSEACells <- function(
         colnames(mc_mtx) <- mc_names
         rownames(mc_obs) <- mc_names
         mc_obs$Group <- g
+        # store each grouping column individually so metacells can be split
+        # downstream (e.g. per cell type) without parsing the combined id
+        for (col in group.by) {
+            mc_obs[[col]] <- unique(as.character(seurat_obj@meta.data[cells_g, col]))[1]
+        }
 
         if (!is.null(mc_out$soft) && use_soft_assignments) {
             soft_g <- mc_out$soft  # cells x metacells
@@ -349,6 +355,9 @@ MetacellsByGroupsSEACells <- function(
     )
     m_obj[["Group"]] <- factor(obs_all$Group)
     m_obj[["n_cells"]] <- obs_all$n_cells
+    for (col in group.by) {
+        m_obj[[col]] <- obs_all[[col]]
+    }
 
     skipped_df <- if (length(skipped) > 0) do.call(rbind, skipped) else
         data.frame(group = character(0), n_cells = integer(0), reason = character(0))
