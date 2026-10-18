@@ -346,3 +346,24 @@ mini-benchmark RUN, flashier var_floor fail-closed, GitHub push 403).
   Suite: FAIL 0 | WARN 13 | SKIP 0 | PASS 685 (r_suite9_cp1.log).
 * En-route: geom_errorbarh deprecated in ggplot2 4.0.x — replaced with
   geom_errorbar(orientation="y") (test-plots warning eliminated).
+
+## Spec v2 execution — CP-2 synchronized donor CMP stability (2026-10-18)
+
+* New export `assess_cmp_stability()` (R/cmp-stability.R): donor-synchronized
+  subsampling (without replacement; no pseudo-replication per spec gate),
+  optional donor_col/visit_col/donor_strata identity handling, per-replicate
+  rerun of find_coordinated_programs() with predeclared cmp_args, membership
+  Jaccard recovery with ambiguity margins, sign concordance (one global
+  flip), donor-score concordance, cell-type survival, CP-1-style failure
+  ledger (valid/failed_refits, NA-on-all-fail, no artificial zeros).
+  No-reference-CMP case reports ineligibility, never zero stability.
+* Scope decision (delegated): score-level resampling conditioning on fitted
+  programs; per-factor fit stability remains assess_program_stability()'s
+  domain. Documented in the function's header note.
+* Tests: tests/testthat/test-cmp-stability.R, 51 expectations — planted-CMP
+  recovery, no-reference ineligibility, donor_col+visit cluster integrity,
+  no-pseudo-replication, strata-proportional draws, strata-within-donor
+  validation, mocked-failure ledger (NA rates), seed reproducibility,
+  incomplete donor x cell-type coverage (identical draw, honest eligibility).
+* Suite after CP-2: FAIL 0 | WARN 12 | SKIP 0 | PASS 736 (r_suite10_cp2.log;
+  685 + 51 new). roxygen2 regenerated NAMESPACE + man pages.

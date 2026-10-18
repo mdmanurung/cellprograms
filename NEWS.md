@@ -36,6 +36,28 @@
   aliased rank-deficient replay designs zero their NA coefficients at
   projection instead of propagating NaN activities (F2).
 
+## New features (spec v2 execution segment)
+
+* `assess_cmp_stability()` (CP-2): stability of coordinated multicellular
+  programs under SYNCHRONIZED donor resampling. Donors are drawn once per
+  replicate (optionally within donor-level `donor_strata`) and the identical
+  donor set is applied to every cell type — independent per-type subsampling
+  (`assess_program_stability()`) changes donor overlap arbitrarily and cannot
+  answer whether the same donors support a CMP. Resampling is subsampling
+  without replacement (`subsample_frac`, default 0.8): duplicated donor rows
+  would pseudo-replicate the donor-level evidence the permutation null
+  evaluates. `donor_col` promotes resampling to the biological donor when it
+  differs from `observation_ids` (all of a donor's observations are kept
+  together; missing cell types/visits are never synthesized); `visit_col` is
+  required when donors contribute > 1 observation, making the
+  paired-observation estimand explicit. Each replicate reruns
+  `find_coordinated_programs()` with the caller's predeclared `cmp_args` and
+  reports per-CMP membership recovery (Jaccard), assignment-ambiguity
+  margins, sign concordance up to one global flip, donor-score concordance,
+  cell-type survival, and CP-1-style failure accounting (`valid_refits` /
+  `failed_refits`, conditional rates, NA on all-fail). When the reference fit
+  yields no CMPs, stability is reported as ineligible rather than zero.
+
 ## Audit remediations
 
 * `find_coordinated_programs()`: missing donor scores (NA) are no longer

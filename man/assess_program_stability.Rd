@@ -34,12 +34,27 @@ preprocessing settings, gene sets and covariates).}
 \item{progress}{Print progress messages.}
 }
 \value{
-The fit with `fit$stability` populated: per-program recovery
-  frequency (fraction of SUCCESSFUL subsample refits whose match recovers
-  the program; failed refits are excluded from the denominator and reported
-  in `n_failed`/`n_success`, with a warning; all-fail yields NA, not 0),
-  median score correlation, median loading cosine, sign consistency, and
-  top-gene Jaccard.
+The fit with `fit$stability` populated:
+  \describe{
+    \item{per_program}{One row per program: `n_hit` (refits whose match
+      recovered the program), `n_eligible` (successful refits in which the
+      program's cell type produced at least one factor, i.e. matching was
+      possible), `recovery_freq` (**legacy**: unconditional hit fraction
+      over all REQUESTED iterations, `n_hit / n_boot` — not an estimate of
+      biological recovery conditional on successful refitting),
+      `conditional_recovery_freq` (`n_hit / valid_refits`, NA when no
+      refit succeeded), median score correlation, median loading cosine,
+      sign consistency, and top-gene Jaccard.}
+    \item{valid_refits, failed_refits}{Refit denominator accounting.
+      Failed refits are never silently dropped: any failure warns, and an
+      all-fail run yields NA rates (undefined), never an artificial 0.}
+    \item{replicate_log}{One row per requested refit: `replicate`, `seed`,
+      `status` ("ok"/"error"), `error_class`/`error_message`,
+      `elapsed_seconds`, `n_obs` (sampled observations per cell type),
+      `n_factors` (refit factor count per cell type), and `eligible`
+      (whether matching could be attempted). A successful refit with no
+      matched factor is distinguishable from a failed refit.}
+  }
 }
 \description{
 Assess program stability by donor subsampling
