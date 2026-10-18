@@ -1,7 +1,26 @@
 # Package index
 
+## Metacells (SEACells + mcRigor)
+
+Optional upstream aggregation of single cells into metacells before
+program discovery. Requires the suggested packages Seurat, mcRigor and
+basilisk (the SEACells Python environment is built on first use).
+
+- [`MetacellsByGroupsSEACells()`](https://mdmanurung.github.io/cellprograms/reference/MetacellsByGroupsSEACells.md)
+  : Construct metacells by groups with SEACells and mcRigor QC
+- [`OptimizeGammaSEACells()`](https://mdmanurung.github.io/cellprograms/reference/OptimizeGammaSEACells.md)
+  : Optimize SEACells granularity with mcRigor
+- [`GetMetacellSEACells()`](https://mdmanurung.github.io/cellprograms/reference/GetMetacellSEACells.md)
+  : Access metacell results stored by MetacellsByGroupsSEACells
+
 ## All functions
 
+- [`GetMetacellSEACells()`](https://mdmanurung.github.io/cellprograms/reference/GetMetacellSEACells.md)
+  : Access metacell results stored by MetacellsByGroupsSEACells
+- [`MetacellsByGroupsSEACells()`](https://mdmanurung.github.io/cellprograms/reference/MetacellsByGroupsSEACells.md)
+  : Construct metacells by groups with SEACells and mcRigor QC
+- [`OptimizeGammaSEACells()`](https://mdmanurung.github.io/cellprograms/reference/OptimizeGammaSEACells.md)
+  : Optimize SEACells granularity with mcRigor
 - [`align_programs()`](https://mdmanurung.github.io/cellprograms/reference/align_programs.md)
   : Align all cell types' program subspaces to a reference cell type
 - [`ambient_program_scores()`](https://mdmanurung.github.io/cellprograms/reference/ambient_program_scores.md)
@@ -20,6 +39,8 @@
   : Create a cell program data object
 - [`as_mofacellular_input()`](https://mdmanurung.github.io/cellprograms/reference/as_mofacellular_input.md)
   : Export pseudobulk profiles to MOFAcellulaR input format
+- [`assess_cmp_stability()`](https://mdmanurung.github.io/cellprograms/reference/assess_cmp_stability.md)
+  : Assess CMP stability under synchronized donor resampling
 - [`assess_program_stability()`](https://mdmanurung.github.io/cellprograms/reference/assess_program_stability.md)
   : Assess program stability by donor subsampling
 - [`canonicalize_programs()`](https://mdmanurung.github.io/cellprograms/reference/canonicalize_programs.md)

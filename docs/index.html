@@ -40,6 +40,7 @@
     <li><a class="dropdown-item" href="articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
+    <li><a class="dropdown-item" href="articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
     <li><a class="dropdown-item" href="articles/immune_aging_cross_cohort.html">Case study: immune-aging programs across 8 global PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="articles/mofacellular_comparison.html">Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis</a></li>
   </ul>
@@ -131,7 +132,7 @@
 <span>                              feature_scale <span class="op">=</span> <span class="st">"logcounts"</span><span class="op">)</span></span>
 <span><span class="va">Z_new</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/project_programs_to_cells.html">project_programs_to_cells</a></span><span class="op">(</span><span class="va">fit</span>, <span class="va">new_pseudobulk</span>,</span>
 <span>                                   feature_scale <span class="op">=</span> <span class="st">"logcounts"</span><span class="op">)</span></span></code></pre></div>
-<p>A refit supplied with a frozen spec cannot silently drift from the frozen panel: any explicit conflict with the spec is an error. Stability (<code><a href="reference/assess_program_stability.html">assess_program_stability()</a></code>) reports how many subsample refits failed (<code>n_failed</code>/<code>n_success</code>) so that recovery frequencies are computed over successful refits, never silently diluted.</p>
+<p>A refit supplied with a frozen spec cannot silently drift from the frozen panel: any explicit conflict with the spec is an error. Stability (<code><a href="reference/assess_program_stability.html">assess_program_stability()</a></code>) reports how many subsample refits failed (<code>valid_refits</code>/<code>failed_refits</code> plus a per-replicate <code>replicate_log</code>) so that the conditional recovery frequency is computed over successful refits, never silently diluted.</p>
 </div>
 <div class="section level2">
 <h2 id="motivation">Motivation<a class="anchor" aria-label="anchor" href="#motivation"></a>

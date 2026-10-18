@@ -1,6 +1,7 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://mdmanurung.github.io/cellprograms/404.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/LICENSE-text.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/articles/cross_cohort_replication.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/articles/divas_case_study.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/articles/immune_aging_cross_cohort.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/articles/index.html</loc></url>
@@ -11,6 +12,9 @@
 <url><loc>https://mdmanurung.github.io/cellprograms/authors.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/index.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/news/index.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/GetMetacellSEACells.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/MetacellsByGroupsSEACells.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/OptimizeGammaSEACells.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/align_programs.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/ambient_program_scores.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/annotate_cmp_lr.html</loc></url>
@@ -20,6 +24,7 @@
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/artifact_genes.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/as_cell_program_data.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/as_mofacellular_input.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/assess_cmp_stability.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/assess_program_stability.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/canonicalize_programs.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/cellprograms-package.html</loc></url>

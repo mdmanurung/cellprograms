@@ -22,6 +22,7 @@
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
     <li><a class="dropdown-item" href="../articles/immune_aging_cross_cohort.html">Case study: immune-aging programs across 8 global PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis</a></li>
   </ul></li>
@@ -40,6 +41,36 @@
     </div>
 
     <div class="section level2">
+      <h2 id="metacells-seacells-mcrigor-">Metacells (SEACells + mcRigor)<a class="anchor" aria-label="anchor" href="#metacells-seacells-mcrigor-"></a></h2>
+
+      <div class="section-desc"><p>Optional upstream aggregation of single cells into metacells before program discovery. Requires the suggested packages Seurat, mcRigor and basilisk (the SEACells Python environment is built on first use).</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="MetacellsByGroupsSEACells.html">MetacellsByGroupsSEACells()</a></code>
+
+        </dt>
+        <dd>Construct metacells by groups with SEACells and mcRigor QC</dd>
+
+        <dt>
+
+          <code><a href="OptimizeGammaSEACells.html">OptimizeGammaSEACells()</a></code>
+
+        </dt>
+        <dd>Optimize SEACells granularity with mcRigor</dd>
+
+        <dt>
+
+          <code><a href="GetMetacellSEACells.html">GetMetacellSEACells()</a></code>
+
+        </dt>
+        <dd>Access metacell results stored by MetacellsByGroupsSEACells</dd>
+      </dl></div><div class="section level2">
       <h2 id="all-functions">All functions<a class="anchor" aria-label="anchor" href="#all-functions"></a></h2>
 
 
@@ -50,6 +81,27 @@
 
 
       <dl><dt>
+
+          <code><a href="GetMetacellSEACells.html">GetMetacellSEACells()</a></code>
+
+        </dt>
+        <dd>Access metacell results stored by MetacellsByGroupsSEACells</dd>
+
+        <dt>
+
+          <code><a href="MetacellsByGroupsSEACells.html">MetacellsByGroupsSEACells()</a></code>
+
+        </dt>
+        <dd>Construct metacells by groups with SEACells and mcRigor QC</dd>
+
+        <dt>
+
+          <code><a href="OptimizeGammaSEACells.html">OptimizeGammaSEACells()</a></code>
+
+        </dt>
+        <dd>Optimize SEACells granularity with mcRigor</dd>
+
+        <dt>
 
           <code><a href="align_programs.html">align_programs()</a></code>
 
@@ -111,6 +163,13 @@
 
         </dt>
         <dd>Export pseudobulk profiles to MOFAcellulaR input format</dd>
+
+        <dt>
+
+          <code><a href="assess_cmp_stability.html">assess_cmp_stability()</a></code>
+
+        </dt>
+        <dd>Assess CMP stability under synchronized donor resampling</dd>
 
         <dt>
 
@@ -420,7 +479,8 @@
         </dt>
         <dd>Validate a cell program data object</dd>
       </dl></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

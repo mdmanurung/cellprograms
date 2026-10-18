@@ -58,6 +58,45 @@ Real-data fits should additionally pass `covariates`
 (e.g. `c("site", "sex")`) and use `max_factors = 30` when the goal is
 CMP detection (see the CMP benchmark note in `README`).
 
+## From single cells: metacells (optional)
+
+When the starting point is a single-cell object rather than pseudobulk
+profiles,
+[`MetacellsByGroupsSEACells()`](https://mdmanurung.github.io/cellprograms/reference/MetacellsByGroupsSEACells.md)
+aggregates cells into transcriptomically homogeneous metacells with
+SEACells (run in an isolated basilisk-managed Python environment, built
+on first use) and mcRigor QC, stratified so metacells never cross donors
+or cell types. The metacell counts feed
+[`fit_celltype_programs()`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)
+directly:
+
+\
+`# Requires: install.packages("Seurat"); remotes::install_github("JSB-UCLA/mcRigor");`\
+`# BiocManager::install("basilisk")`\
+`seu`` ``<-`` `[`MetacellsByGroupsSEACells`](https://mdmanurung.github.io/cellprograms/reference/MetacellsByGroupsSEACells.md)`(`\
+`  ``seurat_obj``,                         ``# Seurat object with raw counts + PCA`\
+`  group.by ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"donor"``, ``"celltype"``)``,  ``# stratification: metacells stay within donor x cell type`\
+`  cells_per_metacell ``=`` ``75``,`\
+`  min_cells ``=`` ``100`\
+`)`\
+`res`` ``<-`` `[`GetMetacellSEACells`](https://mdmanurung.github.io/cellprograms/reference/GetMetacellSEACells.md)`(``seu``)`\
+`mc`` ``<-`` ``res``$``metacell_object`\
+[`head`](https://rdrr.io/r/utils/head.html)`(``res``$``qc``)``  ``# per-metacell mcRigor QC (mcDiv, dubious flag, ZeroRate)`\
+\
+`# Metacell counts -> named list of metacells x genes matrices, one per cell type`\
+`counts`` ``<-`` ``SeuratObject``::`[`LayerData`](https://satijalab.github.io/seurat-object/reference/Layers.html)`(``mc``[[``"RNA"``]``]``, layer ``=`` ``"counts"``)``  ``# genes x metacells`\
+`by_type`` ``<-`` `[`split`](https://rdrr.io/r/base/split.html)`(`[`colnames`](https://rdrr.io/r/base/colnames.html)`(``mc``)``, ``mc``$``celltype``)`\
+`pb`` ``<-`` `[`lapply`](https://rdrr.io/r/base/lapply.html)`(``by_type``, ``function``(``cells``)`` `[`t`](https://rdrr.io/r/base/t.html)`(`[`as.matrix`](https://rdrr.io/r/base/matrix.html)`(``counts``[``, ``cells``, drop ``=`` ``FALSE``]``)``)``)`\
+\
+`x`` ``<-`` `[`as_cell_program_data`](https://mdmanurung.github.io/cellprograms/reference/as_cell_program_data.md)`(``pb``)`\
+`fit`` ``<-`` `[`fit_celltype_programs`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)`(``x``, loading_prior ``=`` ``"point_laplace"``,`\
+`                             max_factors ``=`` ``6``, features ``=`` ``"variable"``)`\
+`fit`` ``<-`` `[`canonicalize_programs`](https://mdmanurung.github.io/cellprograms/reference/canonicalize_programs.md)`(``fit``)`
+
+[`OptimizeGammaSEACells()`](https://mdmanurung.github.io/cellprograms/reference/OptimizeGammaSEACells.md)
+selects the granularity (`cells_per_metacell`) by the mcRigor score when
+you prefer data-driven granularity over the default.
+
 ## Inspect programs
 
 \
@@ -119,30 +158,34 @@ variance explained:
 
 [`assess_program_stability()`](https://mdmanurung.github.io/cellprograms/reference/assess_program_stability.md)
 refits on donor subsamples and reports how often each program is
-recovered.
+recovered. Refits that fail are counted, not silently dropped:
+`fit$stability` carries `valid_refits`/`failed_refits` and a
+per-replicate `replicate_log`; `recovery_freq` keeps its legacy meaning
+(hits over requested iterations) while `conditional_recovery_freq` is
+computed over successful refits (all refits failing yields `NA`, not 0).
 
 \
 `fit`` ``<-`` `[`assess_program_stability`](https://mdmanurung.github.io/cellprograms/reference/assess_program_stability.md)`(``fit``, n_boot ``=`` ``4``, resample_frac ``=`` ``0.7``,`\
 `                                seed ``=`` ``1``, progress ``=`` ``FALSE``)`\
 `fit``$``stability``$``per_program`\
-`#>   program_id cell_type recovery_freq median_score_cor median_loading_cos`\
-`#> 1        B_1         B             1        0.9999750          0.9979232`\
-`#> 2        B_2         B             1        0.9997473          0.9897815`\
-`#> 3      CD4_1       CD4             1        0.9999688          0.9969414`\
-`#> 4      CD8_1       CD8             1        0.9999710          0.9973450`\
-`#> 5       NK_1        NK             1        0.9999756          0.9992105`\
-`#> 6       NK_2        NK             1        0.9999318          0.9961101`\
-`#> 7     Mono_1      Mono             1        0.9999895          0.9988151`\
-`#> 8     Mono_2      Mono             1        0.9999177          0.9953085`\
-`#>   sign_consistency top_gene_jaccard`\
-`#> 1                1        0.9523810`\
-`#> 2                1        0.8614719`\
-`#> 3                1        0.9047619`\
-`#> 4                1        1.0000000`\
-`#> 5                1        1.0000000`\
-`#> 6                1        1.0000000`\
-`#> 7                1        0.9047619`\
-`#> 8                1        1.0000000`\
+`#>   program_id cell_type n_hit n_eligible recovery_freq conditional_recovery_freq`\
+`#> 1        B_1         B     4          4             1                         1`\
+`#> 2        B_2         B     4          4             1                         1`\
+`#> 3      CD4_1       CD4     4          4             1                         1`\
+`#> 4      CD8_1       CD8     4          4             1                         1`\
+`#> 5       NK_1        NK     4          4             1                         1`\
+`#> 6       NK_2        NK     4          4             1                         1`\
+`#> 7     Mono_1      Mono     4          4             1                         1`\
+`#> 8     Mono_2      Mono     4          4             1                         1`\
+`#>   median_score_cor median_loading_cos sign_consistency top_gene_jaccard`\
+`#> 1        0.9999750          0.9979232                1        0.9523810`\
+`#> 2        0.9997473          0.9897815                1        0.8614719`\
+`#> 3        0.9999688          0.9969414                1        0.9047619`\
+`#> 4        0.9999710          0.9973450                1        1.0000000`\
+`#> 5        0.9999756          0.9992105                1        1.0000000`\
+`#> 6        0.9999318          0.9961101                1        1.0000000`\
+`#> 7        0.9999895          0.9988151                1        0.9047619`\
+`#> 8        0.9999177          0.9953085                1        1.0000000`\
 [`plot_stability`](https://mdmanurung.github.io/cellprograms/reference/plot_stability.md)`(``fit``)`
 
 ![](quickstart_files/figure-html/stability-1.png)

@@ -36,5 +36,4 @@ cmp <- find_coordinated_programs(fit, n_perm = 200, seed = 1)
 z <- sim$truth$B[[1]]$z > median(sim$truth$B[[1]]$z)
 ctx <- setNames(factor(z, c(FALSE, TRUE), c("low", "high")), paste0("obs", seq_along(z)))
 plot_context_association(cmp_context_association(fit, cmp, ctx))
-#> `height` was translated to `width`.
 ```

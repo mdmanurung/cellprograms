@@ -22,6 +22,7 @@
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
     <li><a class="dropdown-item" href="../articles/immune_aging_cross_cohort.html">Case study: immune-aging programs across 8 global PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis</a></li>
   </ul></li>
@@ -98,13 +99,32 @@ preprocessing settings, gene sets and covariates).</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>The fit with `fit$stability` populated: per-program recovery
-  frequency (fraction of SUCCESSFUL subsample refits whose match recovers
-  the program; failed refits are excluded from the denominator and reported
-  in `n_failed`/`n_success`, with a warning; all-fail yields NA, not 0),
-  median score correlation, median loading cosine, sign consistency, and
-  top-gene Jaccard.</p>
-    </div>
+    <p>The fit with `fit$stability` populated:</p><dl><dt>per_program</dt>
+<dd><p>One row per program: `n_hit` (refits whose match
+      recovered the program), `n_eligible` (successful refits in which the
+      program's cell type produced at least one factor, i.e. matching was
+      possible), `recovery_freq` (**legacy**: unconditional hit fraction
+      over all REQUESTED iterations, `n_hit / n_boot` — not an estimate of
+      biological recovery conditional on successful refitting),
+      `conditional_recovery_freq` (`n_hit / valid_refits`, NA when no
+      refit succeeded), median score correlation, median loading cosine,
+      sign consistency, and top-gene Jaccard.</p></dd>
+
+    <dt>valid_refits, failed_refits</dt>
+<dd><p>Refit denominator accounting.
+      Failed refits are never silently dropped: any failure warns, and an
+      all-fail run yields NA rates (undefined), never an artificial 0.</p></dd>
+
+    <dt>replicate_log</dt>
+<dd><p>One row per requested refit: `replicate`, `seed`,
+      `status` ("ok"/"error"), `error_class`/`error_message`,
+      `elapsed_seconds`, `n_obs` (sampled observations per cell type),
+      `n_factors` (refit factor count per cell type), and `eligible`
+      (whether matching could be attempted). A successful refit with no
+      matched factor is distinguishable from a failed refit.</p></dd>
+
+
+</dl></div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
@@ -115,24 +135,24 @@ preprocessing settings, gene sets and covariates).</p></dd>
 <span class="r-in"><span><span class="co"># few subsamples for a quick example; use more (e.g. 100) in practice</span></span></span>
 <span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">assess_program_stability</span><span class="op">(</span><span class="va">fit</span>, n_boot <span class="op">=</span> <span class="fl">2</span>, seed <span class="op">=</span> <span class="fl">1</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">fit</span><span class="op">$</span><span class="va">stability</span><span class="op">$</span><span class="va">per_program</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   program_id cell_type n_hit recovery_freq median_score_cor median_loading_cos</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1        B_1         B     2             1        0.9999650          0.9971983</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2        B_2         B     2             1        0.9997030          0.9870352</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3      CD4_1       CD4     2             1        0.9998824          0.9921341</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4      CD8_1       CD8     2             1        0.9993324          0.9828631</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5       NK_1        NK     2             1        0.9999204          0.9946079</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6       NK_2        NK     2             1        0.9999242          0.9946153</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7     Mono_1      Mono     2             1        0.9999864          0.9985128</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8     Mono_2      Mono     2             1        0.9998608          0.9920544</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   sign_consistency top_gene_jaccard</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                1        0.9047619</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                1        0.8614719</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                1        0.8614719</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                1        0.9090909</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                1        0.9523810</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                1        0.9090909</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7                1        0.9523810</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8                1        0.7424242</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   program_id cell_type n_hit n_eligible recovery_freq conditional_recovery_freq</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1        B_1         B     2          2             1                         1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2        B_2         B     2          2             1                         1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3      CD4_1       CD4     2          2             1                         1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4      CD8_1       CD8     2          2             1                         1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5       NK_1        NK     2          2             1                         1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6       NK_2        NK     2          2             1                         1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7     Mono_1      Mono     2          2             1                         1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8     Mono_2      Mono     2          2             1                         1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   median_score_cor median_loading_cos sign_consistency top_gene_jaccard</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1        0.9999650          0.9971983                1        0.9047619</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2        0.9997030          0.9870352                1        0.8614719</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3        0.9998824          0.9921341                1        0.8614719</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4        0.9993324          0.9828631                1        0.9090909</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5        0.9999204          0.9946079                1        0.9523810</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6        0.9999242          0.9946153                1        0.9090909</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7        0.9999864          0.9985128                1        0.9523810</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8        0.9998608          0.9920544                1        0.7424242</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

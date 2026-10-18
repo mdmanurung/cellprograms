@@ -19,7 +19,16 @@ Major functionality of the cellprograms package:
   x genes matrices, one per cell type)
 - [`fit_celltype_programs()`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)
   Fit per-cell-type programs with the EBMF backend (hard residualization
-  or soft fixed covariate adjustment)
+  or soft fixed covariate adjustment; `flashier` or `cebmf_torch`
+  backend)
+- [`freeze_preprocessing()`](https://mdmanurung.github.io/cellprograms/reference/freeze_preprocessing.md)
+  /
+  [`project_programs_to_cells()`](https://mdmanurung.github.io/cellprograms/reference/project_programs_to_cells.md)
+  Freeze a fit’s preprocessing spec (MR-0) and project new samples onto
+  its programs through a unit-checked oracle
+- [`assess_program_stability()`](https://mdmanurung.github.io/cellprograms/reference/assess_program_stability.md)
+  Subsampling stability of recovered programs, with explicit accounting
+  of failed refits
 - [`canonicalize_programs()`](https://mdmanurung.github.io/cellprograms/reference/canonicalize_programs.md)
   Align program sign, scale and labels across cell types
 - [`program_scores()`](https://mdmanurung.github.io/cellprograms/reference/program_scores.md)
@@ -57,7 +66,12 @@ Major functionality of the cellprograms package:
 `remotes``::`[`install_github`](https://remotes.r-lib.org/reference/install_github.html)`(``"mdmanurung/cellprograms"``)`
 
 Requires R \>= 4.3. The `flashier` and `ebnm` backends are installed
-automatically (`flashier` via GitHub).
+automatically (`flashier` via GitHub). The alternative `cebmf_torch`
+backend (optionally selected with
+`fit_celltype_programs(backend = "cebmf_torch")`) runs in a pinned
+Python environment (torch 2.7.1 + `cebmf_torch`); set
+`options(cellprograms.cebmf_python_env = ...)` to point at an existing
+environment, otherwise a basilisk environment is provisioned.
 
 ## Quick start
 
@@ -73,6 +87,27 @@ automatically (`flashier` via GitHub).
 \
 `Z`` ``<-`` `[`program_scores`](https://mdmanurung.github.io/cellprograms/reference/program_scores.md)`(``fit``)``   ``# sample x cellular-program activity matrix`\
 `W`` ``<-`` `[`program_loadings`](https://mdmanurung.github.io/cellprograms/reference/program_loadings.md)`(``fit``)`` ``# gene x program loadings`
+
+## Frozen preprocessing and out-of-sample projection
+
+Fits record their full preprocessing specification, and
+[`project_programs_to_cells()`](https://mdmanurung.github.io/cellprograms/reference/project_programs_to_cells.md)
+refuses queries whose declared measurement units differ from the source
+fit’s — a projection oracle, not a silent re-derivation:
+
+\
+`spec`` ``<-`` `[`freeze_preprocessing`](https://mdmanurung.github.io/cellprograms/reference/freeze_preprocessing.md)`(``x``, features ``=`` ``"variable"``, n_variable_genes ``=`` ``2000``)`\
+`fit``  ``<-`` `[`fit_celltype_programs`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)`(``x``, preprocessing_spec ``=`` ``spec``,`\
+`                              feature_scale ``=`` ``"logcounts"``)`\
+`Z_new`` ``<-`` `[`project_programs_to_cells`](https://mdmanurung.github.io/cellprograms/reference/project_programs_to_cells.md)`(``fit``, ``new_pseudobulk``,`\
+`                                   feature_scale ``=`` ``"logcounts"``)`
+
+A refit supplied with a frozen spec cannot silently drift from the
+frozen panel: any explicit conflict with the spec is an error. Stability
+([`assess_program_stability()`](https://mdmanurung.github.io/cellprograms/reference/assess_program_stability.md))
+reports how many subsample refits failed (`valid_refits`/`failed_refits`
+plus a per-replicate `replicate_log`) so that the conditional recovery
+frequency is computed over successful refits, never silently diluted.
 
 ## Motivation
 
@@ -120,6 +155,21 @@ mashr-based) and artifact-gene masking
 [`flag_artifact_genes()`](https://mdmanurung.github.io/cellprograms/reference/flag_artifact_genes.md),
 fit-time `exclude_genes`) are included. Integration backends such as ICA
 and EV-BIDIFAC were evaluated and rejected (see `reports/ROADMAP.md`).
+
+Recent additions: an alternative `cebmf_torch` torch backend (same
+preprocessing and output contract; fixed residual SDs bind there, while
+the flashier path currently passes them through unenforced — see the
+`var_floor` docs), frozen preprocessing specifications with a
+unit-checked projection oracle
+([`freeze_preprocessing()`](https://mdmanurung.github.io/cellprograms/reference/freeze_preprocessing.md),
+[`project_programs_to_cells()`](https://mdmanurung.github.io/cellprograms/reference/project_programs_to_cells.md)),
+and a hardening pass across the analysis contract: stability refits
+account for failed subsamples explicitly, CMP member orientation
+propagates along the linking edges that formed the CMP, and
+[`program_sharing()`](https://mdmanurung.github.io/cellprograms/reference/program_sharing.md)
+validates `matches=` references and warns on forced pairs (“shared”
+means active-in-both, not proven shared structure — check
+`p_all_shared`).
 
 Default configuration (`point_laplace` gene prior, per-donor residual
 variance, `max_factors = 10`) was selected by a benchmark-first

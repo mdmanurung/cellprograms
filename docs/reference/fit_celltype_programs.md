@@ -23,7 +23,9 @@ fit_celltype_programs(
   seed = 1,
   flash_control = list(),
   feature_scale = "unknown",
-  preprocessing_spec = NULL
+  preprocessing_spec = NULL,
+  backend = c("flashier", "cebmf_torch"),
+  var_floor = "none"
 )
 ```
 
@@ -152,6 +154,28 @@ fit_celltype_programs(
   never silently drift from the frozen panel), and the spec's digest is
   recorded in the fit's preprocessing provenance. The spec's cell types
   must cover \`x\` and all frozen genes must be present in the dataset.
+
+- backend:
+
+  EBMF implementation: \`"flashier"\` (default; the flashier.utils R
+  backend, with a nullcheck fallback ladder) or \`"cebmf_torch"\` (the
+  covariate-EBMF torch backend, which fails loudly instead of falling
+  back). Both backends share preprocessing, program extraction, and the
+  output contract. The torch backend runs in a pinned Python
+  environment: set options(cellprograms.cebmf_python_env = ...) to point
+  at an existing environment, otherwise a basilisk environment is used.
+
+- var_floor:
+
+  Residual SD handling: \`"none"\` (default; residual SDs are estimated
+  as usual), \`"vignette"\` (fixed at the flashier single-cell
+  vignette's S = sd(log(Poisson(1/n) + 1)), drawn once per cell type
+  with a fixed local seed, so the value is deterministic and independent
+  of \`seed\`), or a positive numeric scalar S (residual SDs fixed at
+  S). Fixed S binds on the \`cebmf_torch\` backend. On the \`flashier\`
+  backend the value is passed through but does not currently bind
+  (CAND-13: fits with and without a fixed scalar S are bit-identical at
+  the pinned flashier version); a fail-closed remediation is pending.
 
 ## Value
 

@@ -36,6 +36,7 @@ and comparable across cell types and cohorts."></head><body>
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
     <li><a class="dropdown-item" href="../articles/immune_aging_cross_cohort.html">Case study: immune-aging programs across 8 global PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis</a></li>
   </ul></li>
@@ -168,6 +169,12 @@ residualized covariates for a cell type, `donors` and `sample_metadata`
 are required so the adjustment can be rebuilt for the query cells; the
 rebuilt design must reproduce the fit's design columns exactly (fail
 closed on cohort changes that add or drop covariate levels).</p>
+<p>Projection is joint over the supplied cells within each cell type:
+  activity priors are re-estimated from the query set, so the same cell
+  projected in two different query sets can receive different activities.
+  Chunked projection would be an approximation and is not offered; oversize
+  queries are refused pre-flight against `dense_budget_bytes` (decision
+  record: flashier.utils `reports/FU3B_CP6_CHUNKING_DECISION.md`).</p>
     </div>
 
     <div class="section level2">

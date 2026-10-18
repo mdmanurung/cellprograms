@@ -63,7 +63,12 @@ program_sharing(
 
 - n_perm, seed:
 
-  Permutation calibration for the matching step.
+  Permutation calibration for the matching step. CAND-07 caveat: the
+  gene-permutation null treats genes as exchangeable; block-correlated
+  (co-regulated) genes violate that assumption, so matching q-values are
+  anticonservative when a large correlated gene block drives both
+  programs (audit D-1: 67.0 equicorrelation 0.55 vs 2.0 registered
+  calibration benchmark; interpret marginal matches accordingly.
 
 - min_genes:
 
@@ -109,9 +114,14 @@ of the equal_effects pattern over the top genes), \`frac_top_shared\` /
 \`frac_top_private\` (fraction of the top \`n_top\` genes with lfsr \<
 \`lfsr_thresh\` in \>= 2 / exactly 1 conditions), \`classification\`
 ("shared" if frac_top_shared \>= 0.5, "private" if frac_top_private \>=
-0.5, else "partial"), and the full \`mash\` result; \* \`summary\`: one
-row per program. Programs in no matched group are classified "private"
-with evidence "no_significant_match".
+0.5, else "partial"). D-2a caveat: "shared" means active-in-both, not
+proven shared structure — at high loading SNR, independent loadings also
+reach frac_top_shared \>= 0.5 (forced-pair diagnostic: 30/30 false
+"shared" at loading SE = 0.125 while mashr's mixture put 96 the identity
+pattern, p_all_shared ~ 0.001). Check \`p_all_shared\`. Each per-group
+result also carries the full \`mash\` fit; \* \`summary\`: one row per
+program. Programs in no matched group are classified "private" with
+evidence "no_significant_match".
 
 ## Details
 
@@ -134,10 +144,11 @@ if (requireNamespace("mashr", quietly = TRUE)) {
   res <- program_sharing(fit, matches = grp, n_top = 20)
   res$summary
 }
+#> Warning: `matches` supplied: matched sets are user-forced, not data-driven. The 'shared' classification counts top genes active (lfsr < 0.05) in >= 2 conditions and can label independent loadings 'shared' at high loading SNR; check `p_all_shared` (mixture weight of the equal-effects pattern) before interpretation.
 #>  - Computing 73 x 241 likelihood matrix.
 #>  - Likelihood calculations took 0.01 seconds.
 #>  - Fitting model with 241 mixture components.
-#>  - Model fitting took 0.07 seconds.
+#>  - Model fitting took 0.15 seconds.
 #>  - Computing posterior matrices.
 #>  - Computation allocated took 0.00 seconds.
 #>   program_id cell_type group_id n_conditions classification frac_top_shared

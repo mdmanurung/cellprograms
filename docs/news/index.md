@@ -1,5 +1,175 @@
 # Changelog
 
+## cellprograms 0.2.0.9000 (development)
+
+### New features (2026-10-18 feature-completion segment)
+
+- Metacell construction is folded into `cellprograms` from the retired
+  `r_packages/cellprogramsMC` sub-package:
+  [`MetacellsByGroupsSEACells()`](https://mdmanurung.github.io/cellprograms/reference/MetacellsByGroupsSEACells.md)
+  (group-stratified SEACells metacells with mcRigor QC),
+  [`OptimizeGammaSEACells()`](https://mdmanurung.github.io/cellprograms/reference/OptimizeGammaSEACells.md)
+  (mcRigor granularity selection), and
+  [`GetMetacellSEACells()`](https://mdmanurung.github.io/cellprograms/reference/GetMetacellSEACells.md)
+  (result accessor). The basilisk Python environment is now created
+  lazily on first use (internal `.seacells_env()`, same pattern as the
+  cebmf backend), so `basilisk` stays in Suggests and installing
+  `cellprograms` never requires basilisk, Python, Seurat, or mcRigor;
+  the exported `seacells_env` object from the sub-package is retired
+  (nothing in the project referenced it). `Seurat`, `SeuratObject`,
+  `mcRigor`, and `hdWGCNA` are Suggests with explicit fail-closed
+  guards; `Matrix` and `methods` move to Imports. Note: the basilisk
+  environment is re-registered under `cellprograms`, so the first
+  metacell run after this change rebuilds the SEACells conda environment
+  (one-time, needs network).
+- [`fit_celltype_programs()`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)
+  gains `backend = c("flashier", "cebmf_torch")`. The `cebmf_torch`
+  backend runs the pure-PyTorch cEBMF implementation (pinned upstream
+  `william-denault/cebmf_torch@34abac5`) through the `cebmf_ext`
+  adapter, with a registered numerical guard set (sebetahat floor 1e-4,
+  tau precision cap 1e8, explicit seeding, seed-family fallback with
+  diagnostics) and a strict mapping contract: the bridge never
+  manufactures flashier-only quantities, so `elbo`, `L_psd`, `F_psd`,
+  and `F_lfsr` are NULL on this backend and
+  [`program_summary()`](https://mdmanurung.github.io/cellprograms/reference/program_summary.md)
+  reports `elbo = NA`. Fixed-mode covariates are refused on this backend
+  (no fixed-loadings path); use the default
+  `covariate_mode = "residualize"`. Python resolution:
+  `options(cellprograms.cebmf_python_env = ...)` (python binary or venv
+  with `cebmf_ext` importable), else basilisk (pinned `torch==2.7.1` CPU
+  — the pin is load-bearing, 2.14.1+cpu diverges on inputs where
+  2.7.1+cpu is green), else a fail-closed error. No flashier-style
+  fallback ladder: backend failures abort loudly per cell type.
+- [`fit_celltype_programs()`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)
+  gains `var_floor = "none" | "vignette" | <positive scalar>`: fix the
+  residual SD instead of estimating it. `"vignette"` uses the flashier
+  single-cell vignette’s floor, `S = sd(log(Poisson(1/n) + 1))` with `n`
+  the cell type’s donor count, drawn once per cell type at a fixed local
+  seed (deterministic, fit-seed-independent). A `var_floor`-derived S is
+  not mappable through
+  [`flashier.utils::fit_ebmf()`](https://mdmanurung.github.io/flashier-utils/reference/fit_ebmf.html),
+  so on the fast path the fit reroutes through
+  [`flashier::flash()`](https://rdrr.io/pkg/flashier/man/flash.html)
+  with a warning; the cebmf_torch backend passes S through as KNOWN
+  noise. The default `"none"` preserves existing behavior exactly.
+  Calibration evidence: CAND-13 demonstrator
+  (`reports/audit/E_programs/`).
+- Covariate-audit patches (R2/F1-F4): gene-drop blocks now subset the
+  projection-replay `center`/`scale` vectors to retained genes (F1);
+  `covariate_mode = "fixed"` with `center = FALSE` is refused even when
+  the combination arrives through a frozen preprocessing spec (F3);
+  covariate terms referencing within-cell-type-constant variables —
+  including interaction terms — are dropped instead of crashing
+  [`model.matrix()`](https://rdrr.io/r/stats/model.matrix.html) (F4);
+  aliased rank-deficient replay designs zero their NA coefficients at
+  projection instead of propagating NaN activities (F2).
+
+### New features (spec v2 execution segment)
+
+- [`assess_cmp_stability()`](https://mdmanurung.github.io/cellprograms/reference/assess_cmp_stability.md)
+  (CP-2): stability of coordinated multicellular programs under
+  SYNCHRONIZED donor resampling. Donors are drawn once per replicate
+  (optionally within donor-level `donor_strata`) and the identical donor
+  set is applied to every cell type — independent per-type subsampling
+  ([`assess_program_stability()`](https://mdmanurung.github.io/cellprograms/reference/assess_program_stability.md))
+  changes donor overlap arbitrarily and cannot answer whether the same
+  donors support a CMP. Resampling is subsampling without replacement
+  (`subsample_frac`, default 0.8): duplicated donor rows would
+  pseudo-replicate the donor-level evidence the permutation null
+  evaluates. `donor_col` promotes resampling to the biological donor
+  when it differs from `observation_ids` (all of a donor’s observations
+  are kept together; missing cell types/visits are never synthesized);
+  `visit_col` is required when donors contribute \> 1 observation,
+  making the paired-observation estimand explicit. Each replicate reruns
+  [`find_coordinated_programs()`](https://mdmanurung.github.io/cellprograms/reference/find_coordinated_programs.md)
+  with the caller’s predeclared `cmp_args` and reports per-CMP
+  membership recovery (Jaccard), assignment-ambiguity margins, sign
+  concordance up to one global flip, donor-score concordance, cell-type
+  survival, and CP-1-style failure accounting (`valid_refits` /
+  `failed_refits`, conditional rates, NA on all-fail). When the
+  reference fit yields no CMPs, stability is reported as ineligible
+  rather than zero.
+
+### Audit remediations
+
+- [`find_coordinated_programs()`](https://mdmanurung.github.io/cellprograms/reference/find_coordinated_programs.md):
+  missing donor scores (NA) are no longer silently converted into top
+  ranks. Rank transformation and strata residualization keep NA donors
+  as NA, cross-cell-type correlations use pairwise-complete donors, edge
+  `n` reports the pairwise-complete donor count for each program pair,
+  and a warning lists programs with missing scores. Previously,
+  [`rank()`](https://rdrr.io/r/base/rank.html)’s default `na.last=TRUE`
+  manufactured fake top-scoring donors, which either destroyed detection
+  power (donor-specific missingness) or inflated significance
+  (missingness shared across programs); a planted pair with 20%
+  missingness could be missed entirely with no warning. Regression
+  tests: `tests/testthat/test-cmp-missingness.R`.
+
+### Remediation queue (2026-10-18): CAND-01, CAND-05, CAND-07, D-2a, CAND-03+D-3b, CAND-12
+
+- [`assess_program_stability()`](https://mdmanurung.github.io/cellprograms/reference/assess_program_stability.md)
+  (CAND-01/CP-1, P1): subsample refit failures are now counted and
+  reported (`fit$stability$valid_refits`/`failed_refits`, warning on any
+  failure) with a per-replicate `replicate_log` (status, error
+  class/message, elapsed time, sampled observations and factor counts
+  per cell type, matching eligibility). `recovery_freq` keeps its LEGACY
+  meaning (unconditional hit fraction over requested iterations,
+  `n_hit / n_boot`); the new `conditional_recovery_freq` is defined over
+  SUCCESSFUL refits (`n_hit / valid_refits`) — previously the silent
+  denominator was `n_boot`, so a 30% refit-failure rate read as a 30%
+  recovery loss with zero user-facing signal, and an all-fail run was
+  indistinguishable from zero stability. All-fail now yields NA rates
+  with a distinct warning; per-program `n_hit` and `n_eligible` added.
+  Subsampled refit objects now carry consistent
+  `observation_ids`/`sample_metadata`/`dims` (previously stale full-data
+  values).
+- [`find_coordinated_programs()`](https://mdmanurung.github.io/cellprograms/reference/find_coordinated_programs.md)
+  (CAND-05, P2): CMP member orientation now propagates along the linking
+  edges that formed the CMP (product of edge signs along the path from
+  the reference member). Chain-joined members previously inherited the
+  sign of the direct reference–member edge from the full edge table —
+  which can be a non-linking noise edge, i.e. a random +/- that
+  propagated into
+  [`cmp_scores()`](https://mdmanurung.github.io/cellprograms/reference/cmp_scores.md),
+  [`annotate_cmp_tf()`](https://mdmanurung.github.io/cellprograms/reference/annotate_cmp_tf.md)
+  and
+  [`cmp_triage()`](https://mdmanurung.github.io/cellprograms/reference/cmp_triage.md)
+  direction calls.
+- [`program_sharing()`](https://mdmanurung.github.io/cellprograms/reference/program_sharing.md)
+  (D-2a/D-2c, P1): `matches=` references are validated (unknown programs
+  abort informatively instead of crashing in the mashr layer) and every
+  forced-matches call warns that the “shared” label counts top genes
+  ACTIVE (lfsr \< thresh) in \>= 2 conditions — which independent
+  loadings can also reach at high loading SNR (audit D-2a: 30/30 false
+  “shared” for forced independent pairs at loading SE 0.125, while
+  mashr’s own mixture put 96% weight on the identity pattern,
+  p_all_shared ~ 0.001); `p_all_shared` is the diagnostic. The
+  classification rule itself is unchanged pending a registered benchmark
+  of any replacement.
+- Matching-step documentation (CAND-07, P1): the gene-permutation null’s
+  exchangeability caveat is now stated where matching q-values are
+  produced (mirroring `cmp-interpret.R`): block-correlated genes inflate
+  false matches (audit D-1: 67.0% type-I under block equicorrelation
+  0.55 vs 2.0% iid). The null itself is UNCHANGED — a registered
+  mini-benchmark (null calibration at block equicorrelation +
+  planted-truth power) precedes any null change.
+- [`as_cell_program_data()`](https://mdmanurung.github.io/cellprograms/reference/as_cell_program_data.md)
+  (CAND-03, P2): rejects ALL non-finite entries (NA/NaN/Inf) with a
+  count-bearing abort; Inf previously passed the NA-only check and
+  crashed validate/fit with an opaque “missing value where TRUE/FALSE
+  needed”.
+- `.greedy_match()` (D-3b, P2): non-finite similarities are demoted to
+  “unmatched” with a warning instead of crashing on
+  [`max()`](https://rdrr.io/r/base/Extremes.html) of an NA-bearing
+  matrix.
+- [`fit_celltype_programs()`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md) +
+  [`assess_program_stability()`](https://mdmanurung.github.io/cellprograms/reference/assess_program_stability.md)
+  (CAND-12, P2): the full frozen `preprocessing_spec` is stored on the
+  fit (not just its digest) and stability refits REPLAY it through the
+  MR-0 fail-closed checks; `feature_scale` joined the MR-0 conflict list
+  and is passed through in legacy-path refits (previously silently
+  “unknown” in refit manifests).
+
 ## cellprograms 0.2.0
 
 ### Stage B: frozen preprocessing and cell-level projection
@@ -105,3 +275,25 @@
   1051-1100, all 7 criteria passed) and dev verdicts for four challenger
   arms (joint-subspace rejected; two-stage identical to winner; Cauchy
   closest miss; EB shrinkage no-op).
+
+### Cross-cohort replication case study (CP-5, 2026-10-19)
+
+- New evaluated article
+  `vignettes/articles/cross_cohort_replication.Rmd`: an end-to-end
+  replication workflow on a three-cohort simulated fixture (conserved
+  outcome-linked program, cohort-specific program, nuisance-only batch
+  effect) orchestrating existing exports only — no new API. Shows the
+  fixed-basis pathway
+  ([`project_programs_to_cells()`](https://mdmanurung.github.io/cellprograms/reference/project_programs_to_cells.md),
+  learned transform applied) versus the de-novo pathway
+  ([`freeze_preprocessing()`](https://mdmanurung.github.io/cellprograms/reference/freeze_preprocessing.md) +
+  independent refit +
+  [`match_programs()`](https://mdmanurung.github.io/cellprograms/reference/match_programs.md)),
+  with predeclared same-sign-as-discovery replication rules, abstention
+  accounting (attempted/projected/matched/ineligible/replicated
+  denominators), three negative controls (200-fold permuted outcome at
+  null ~0.05; scrambled gene IDs abstain loudly; batch-only effect does
+  not replicate as biology), and a leave-one-cohort-out check in which
+  the cohort-specific program correctly abstains.
+  `confirm_programs_across_cohorts()` is deliberately NOT exported: no
+  multi-user need is proven.

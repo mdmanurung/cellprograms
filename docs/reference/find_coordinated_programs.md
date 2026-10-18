@@ -106,8 +106,9 @@ An object of class \`cmp_result\`, a list with
 - cmps:
 
   one row per (CMP, program): \`cmp\`, \`cell_type\`, \`program_id\`,
-  \`node_p\` (FWER-adjusted), \`sign\` (direction relative to the CMP's
-  first program) and \`ambient_flag\`.
+  \`node_p\` (FWER-adjusted), \`sign\` (orientation relative to the
+  CMP's first program, propagated along linking edges as the product of
+  edge signs along the path; CAND-05) and \`ambient_flag\`.
 
 - edges:
 
@@ -137,6 +138,16 @@ pooled membership F1 from 0.571 to 0.705 over the default \`max_factors
 is not changed; use \`max_factors = 30\` when the fit is intended for
 \`find_coordinated_programs()\`. A one-time message is shown when a fit
 with \`max_factors \< 30\` has a cell type at its cap.
+
+## Missing donor scores
+
+Programs with missing donor scores (NA) are handled by pairwise-complete
+donors: rank transformation and strata residualization keep NA donors as
+NA, cross-cell-type correlations use the donors observed in both
+programs, and edge \`n\` reports the pairwise-complete donor count for
+that program pair. A warning lists the affected programs. Missingness
+reduces power (fewer effective donors); it does not manufacture
+high-scoring donors.
 
 ## Examples
 
