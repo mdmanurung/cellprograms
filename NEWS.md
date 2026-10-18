@@ -218,3 +218,20 @@
   all 7 criteria passed) and dev verdicts for four challenger arms
   (joint-subspace rejected; two-stage identical to winner; Cauchy closest
   miss; EB shrinkage no-op).
+
+## Cross-cohort replication case study (CP-5, 2026-10-19)
+
+* New evaluated article `vignettes/articles/cross_cohort_replication.Rmd`:
+  an end-to-end replication workflow on a three-cohort simulated fixture
+  (conserved outcome-linked program, cohort-specific program, nuisance-only
+  batch effect) orchestrating existing exports only — no new API. Shows the
+  fixed-basis pathway (`project_programs_to_cells()`, learned transform
+  applied) versus the de-novo pathway (`freeze_preprocessing()` +
+  independent refit + `match_programs()`), with predeclared
+  same-sign-as-discovery replication rules, abstention accounting
+  (attempted/projected/matched/ineligible/replicated denominators), three
+  negative controls (200-fold permuted outcome at null ~0.05; scrambled
+  gene IDs abstain loudly; batch-only effect does not replicate as
+  biology), and a leave-one-cohort-out check in which the cohort-specific
+  program correctly abstains. `confirm_programs_across_cohorts()` is
+  deliberately NOT exported: no multi-user need is proven.

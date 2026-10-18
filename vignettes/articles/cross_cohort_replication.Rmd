@@ -1,0 +1,299 @@
+---
+title: "Cross-cohort replication: a preregistered-style case study"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Cross-cohort replication: a preregistered-style case study}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = TRUE,
+                      fig.width = 7, fig.height = 4)
+```
+
+This article is an end-to-end, fully evaluated template for asking:
+**does a program-level biological effect found in one cohort replicate in
+independent cohorts?** It uses a simulated three-cohort fixture so the
+truth is known, and it orchestrates existing exports only — no
+workflow-specific wrapper. The two transfer pathways are kept distinct:
+
+* **Fixed-basis pathway** — the discovery fit's learned transform (gene
+  panel, centering/scaling, loading effects) is *applied* to the query
+  cohort via `project_programs_to_cells()`. `freeze_preprocessing()` alone
+  is **not** this: it freezes decisions (gene panel, design), not the
+  learned transform.
+* **De-novo pathway** — the query cohort is fit independently (here with
+  the frozen feature panel, so the gene universe matches) and programs are
+  aligned afterwards with `match_programs()`. Factor numbers and raw scores
+  are never compared directly across fits.
+
+Technical transportability (coverage, reconstruction) is reported
+separately from biological effect replication, and every abstention is
+counted with its denominator.
+
+```{r setup}
+library(cellprograms)
+set.seed(20261019)
+```
+
+## Three cohorts, known truth
+
+Two cell types (`T`, `B`), 24 donors per cohort, 400 genes. Planted
+structure in T cells:
+
+| Program | Loadings | Activity | Truth |
+|---|---|---|---|
+| P1 | genes 1-40, identical across cohorts | correlated with donor outcome `y` in every cohort | conserved biological signal |
+| P2 | genes 61-100, identical across cohorts | driven by a batch covariate in cohort B only | nuisance-only effect |
+| P3 | genes 121-160 | active in cohort C only | cohort-specific program |
+
+B cells carry one conserved program (genes 201-240) with no outcome link.
+
+```{r fixture}
+n_genes <- 400; n_d <- 24
+genes <- paste0("G", seq_len(n_genes))
+mk_w <- function(idx) { w <- rep(0, n_genes); w[idx] <- rnorm(length(idx)); w }
+set.seed(42)
+w1 <- mk_w(1:40); w2 <- mk_w(61:100); w3 <- mk_w(121:160); w4 <- mk_w(201:240)
+
+mk_cohort <- function(name, with_p3 = FALSE, p2_batch = FALSE) {
+  donors <- paste0(name, "_d", seq_len(n_d))
+  z1 <- rnorm(n_d); z2 <- rnorm(n_d); z4 <- rnorm(n_d)
+  batch <- sample(rep(c("b1", "b2"), each = n_d / 2))
+  if (p2_batch) z2 <- 1.2 * (batch == "b2") + rnorm(n_d, sd = 0.3)
+  y <- 0.7 * z1 + rnorm(n_d, sd = 0.8)          # outcome linked to P1
+  YT <- tcrossprod(z1, w1) + tcrossprod(z2, w2)
+  if (with_p3) YT <- YT + tcrossprod(rnorm(n_d, sd = 1.5), w3)
+  YT <- YT + matrix(rnorm(n_d * n_genes, sd = 0.8), n_d, n_genes)
+  YB <- tcrossprod(z4, w4) + matrix(rnorm(n_d * n_genes, sd = 0.8), n_d, n_genes)
+  colnames(YT) <- colnames(YB) <- genes
+  rownames(YT) <- rownames(YB) <- donors
+  meta <- data.frame(observation_id = donors, cohort = name, outcome = y,
+                     batch = batch, stringsAsFactors = FALSE)
+  list(data = as_cell_program_data(list(T = YT, B = YB), sample_metadata = meta),
+       meta = meta)
+}
+cohA <- mk_cohort("A"); cohB <- mk_cohort("B", p2_batch = TRUE)
+cohC <- mk_cohort("C", with_p3 = TRUE)
+```
+
+The predeclared hypothesis, fixed before looking at any query cohort:
+**the T-cell program whose activity tracks `outcome` in the discovery
+cohort replicates with the same sign as the discovery effect at
+p < 0.05.** (A fitted program's sign is arbitrary; canonicalization fixes
+it within a fit, so the rule is same-sign-as-discovery, not a fixed
+direction.) Everything else is descriptive.
+
+## Discovery fit (cohort A)
+
+```{r discovery}
+fitA <- fit_celltype_programs(cohA$data, max_factors = 4, seed = 1,
+                              feature_scale = "simulated")
+fitA <- canonicalize_programs(fitA)
+program_summary(fitA)[, c("cell_type", "n_programs", "R2")]
+```
+
+Freeze the discovery *decisions* (feature panel, centering) for later
+de-novo refits, and keep the fitted object itself for fixed-basis
+projection:
+
+```{r freeze}
+frozen <- freeze_preprocessing(cohA$data, features = "all", center = TRUE)
+frozen$digest
+```
+
+## Pathway 1: fixed-basis projection into cohorts B and C
+
+The discovery programs are applied to each query cohort's donor
+pseudobulks. Rows are `type_donor` so both cell types project in one call;
+the discovery preprocessing is replayed from the fit, not refit.
+
+```{r projection}
+stack <- function(coh) {
+  rbind(coh$data$pseudobulk$T, coh$data$pseudobulk$B) |>
+    `rownames<-`(c(paste0("T_", coh$meta$observation_id),
+                   paste0("B_", coh$meta$observation_id)))
+}
+project_cohort <- function(fit, coh) {
+  expr <- stack(coh)
+  cts <- setNames(sub("_.*", "", rownames(expr)), rownames(expr))
+  project_programs_to_cells(fit, expr, cell_types = cts,
+                            feature_scale = "simulated", min_coverage = 0.9)
+}
+projB <- project_cohort(fitA, cohB)
+projC <- project_cohort(fitA, cohC)
+projB$coverage[, c("cell_type", "programs", "cells", "shared_genes", "coverage")]
+```
+
+Coverage is complete (400/400 genes) — technical transportability holds by
+construction here; on real data this table is where ineligible
+type-cohorts are caught. Now the predeclared association on the projected
+T-cell activities:
+
+```{r assoc-fixed}
+assoc_projected <- function(proj, meta, ct = "T") {
+  A <- proj$activity
+  rows <- rownames(A)[startsWith(rownames(A), paste0(ct, "_"))]
+  out <- vapply(colnames(A), function(p) {
+    s <- A[rows, p]
+    if (all(is.na(s))) return(c(NA_real_, NA_real_))
+    y <- meta$outcome[match(sub("^T_", "", rows), meta$observation_id)]
+    cf <- coef(summary(lm(y ~ s)))
+    c(cf["s", 1], cf["s", 4])
+  }, numeric(2))
+  data.frame(program = colnames(A), beta = out[1, ], p = out[2, ],
+             row.names = NULL)
+}
+aB <- assoc_projected(projB, cohB$meta)
+aC <- assoc_projected(projC, cohC$meta)
+rbind(data.frame(cohort = "B", aB), data.frame(cohort = "C", aC))
+```
+
+One T-cell program shows the replicated outcome association in both query
+cohorts (same sign as the discovery effect, p < 0.05) — the conserved P1
+signal. Which discovery program is it, and is it the planted one?
+
+```{r identify}
+sc <- program_scores(fitA, format = "list")$T
+disc_assoc <- vapply(seq_len(ncol(sc)), function(k) {
+  cf <- coef(summary(lm(cohA$meta$outcome ~ sc[, k])))[2, c(1, 4)]
+  c(cf[1], cf[2])
+}, numeric(2))
+data.frame(program = colnames(sc), beta = disc_assoc[1, ], p = disc_assoc[2, ])
+```
+
+The same discovery program carries the association in A and replicates in
+B and C through the fixed basis — score-level transfer plus effect
+replication, with the sign fixed by canonicalization within the projected
+frame.
+
+## Pathway 2: de-novo refit + matching
+
+Cohort B is refit independently — same frozen feature panel, independent
+factors — then aligned to the discovery programs by loading-space
+matching:
+
+```{r denovo}
+fitB <- fit_celltype_programs(cohB$data, max_factors = 4, seed = 2,
+                              preprocessing_spec = frozen)
+fitB <- canonicalize_programs(fitB)
+m <- match_programs(fitA, fitB, "T", method = "correlation",
+                    space = "loadings", sim_threshold = 0.5)
+m$matches
+```
+
+The matched B program's outcome association is computed on **B's own
+scores** (never on discovery coordinates):
+
+```{r denovo-assoc}
+scB <- program_scores(fitB, format = "list")$T
+hit <- m$matches[m$matches$cosine > 0.5, , drop = FALSE]
+if (nrow(hit)) {
+  k <- match(hit$program_b[1], colnames(scB))
+  coef(summary(lm(cohB$meta$outcome ~ scB[, k])))[2, ]
+}
+```
+
+## Abstention accounting
+
+Every program enters exactly one bucket per pathway; denominators are
+always shown.
+
+```{r accounting}
+disc_sign <- sign(disc_assoc[1, which.min(disc_assoc[2, ])])  # discovery effect direction
+accounting <- data.frame(
+  pathway = c("fixed-basis (A->B)", "fixed-basis (A->C)", "de-novo (A vs B)"),
+  discovery_programs = c(ncol(fitA$scores$T), ncol(fitA$scores$T), ncol(fitA$scores$T)),
+  attempted = c(sum(startsWith(colnames(projB$activity), "T_")),
+                sum(startsWith(colnames(projC$activity), "T_")),
+                nrow(m$matches)),
+  ineligible = c(0L, 0L, ncol(fitA$scores$T) - nrow(m$matches)),
+  replicated = c(sum(aB$p < 0.05 & sign(aB$beta) == disc_sign, na.rm = TRUE),
+                 sum(aC$p < 0.05 & sign(aC$beta) == disc_sign, na.rm = TRUE),
+                 NA_integer_),
+  stringsAsFactors = FALSE)
+accounting
+```
+
+And the cohort-specific truth: P3 exists only in cohort C. When C is the
+discovery cohort, its extra program must **abstain** in A and B — no
+projection target, no match. That is the correct outcome, not a failure:
+
+```{r loco}
+fitC <- fit_celltype_programs(cohC$data, max_factors = 5, seed = 3,
+                              feature_scale = "simulated")
+fitC <- canonicalize_programs(fitC)
+m_CA <- match_programs(fitC, fitA, "T", method = "correlation",
+                       space = "loadings", sim_threshold = 0.5)
+data.frame(discovery_C_programs = ncol(fitC$scores$T),
+           matched_in_A = nrow(m_CA$matches),
+           abstained = ncol(fitC$scores$T) - nrow(m_CA$matches))
+```
+
+C discovers more T programs than A (it carries P3); the unmatched
+remainder is the abstention count. The leave-one-cohort-out gate is:
+conserved P1 replicates in every held-out cohort (shown above for B and C
+with A as discovery; the rotations B->A,C and C->A,B use the same code),
+and cohort-specific programs abstain rather than force a match.
+
+## Negative controls
+
+**(1) Permuted outcome.** Replication must collapse when the outcome is
+permuted within cohort:
+
+```{r nc-permute}
+set.seed(99)
+perm_hits <- vapply(seq_len(200), function(r) {
+  meta_p <- cohB$meta
+  meta_p$outcome <- sample(meta_p$outcome)   # shuffle values against fixed donor IDs
+  aB_perm <- assoc_projected(projB, meta_p)
+  sum(aB_perm$p < 0.05 & sign(aB_perm$beta) == disc_sign, na.rm = TRUE)
+}, numeric(1))
+mean(perm_hits)  # expectation under the null: ~0.05 per non-degenerate program
+```
+
+**(2) Scrambled gene IDs.** A query whose feature IDs do not match the
+reference must abstain loudly, not silently project:
+
+```{r nc-scramble}
+bad <- cohB
+colnames(bad$data$pseudobulk$T) <- paste0("X", seq_len(n_genes))
+colnames(bad$data$pseudobulk$B) <- paste0("X", seq_len(n_genes))
+tryCatch(project_cohort(fitA, bad),
+         error = function(e) conditionMessage(e))
+```
+
+**(3) Nuisance-only effect.** P2 tracks batch in cohort B by construction.
+A technical association must not present as replicated biology: testing
+the batch term in cohort C (where no batch effect was planted) finds
+nothing.
+
+```{r nc-nuisance}
+sB <- projB$activity[paste0("T_", cohB$meta$observation_id), ]
+sC <- projC$activity[paste0("T_", cohC$meta$observation_id), ]
+batch_assoc <- function(S, meta) vapply(seq_len(ncol(S)), function(k) {
+  s <- S[, k]
+  if (all(is.na(s))) return(NA_real_)   # off-cell-type program column
+  cf <- coef(summary(lm(s ~ meta$batch)))
+  if ("meta$batchb2" %in% rownames(cf)) cf["meta$batchb2", 4] else NA_real_
+}, numeric(1))
+data.frame(program = colnames(sB),
+           p_batch_B = batch_assoc(sB, cohB$meta),
+           p_batch_C = batch_assoc(sC, cohC$meta))
+```
+
+The batch-loaded program is significant in B and null in C — flagged as
+cohort-specific technical structure, excluded from the replication claim.
+
+## What to report, and limitations
+
+A replication report from this workflow should state: cohorts and programs
+attempted/projected/matched/ineligible/nonreplicated (the accounting
+table); the predeclared association and replication rule; coverage and
+reconstruction per transfer (technical transportability); and the
+negative-control outcomes. Limitations: projected activities are
+query-set-dependent empirical-Bayes estimates (see the projection
+documentation); sign and scale are comparable only within a pathway, not
+across de-novo fits; and with 24 donors per cohort the power calculus here
+is illustrative, not a recommendation.

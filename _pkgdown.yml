@@ -46,6 +46,7 @@ articles:
   contents:
   - articles/real_data_case_study
   - articles/divas_case_study
+  - articles/cross_cohort_replication
 
 - title: Applications
   navbar: ~
