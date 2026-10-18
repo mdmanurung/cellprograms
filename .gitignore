@@ -46,3 +46,5 @@ biomni/*.zip
 # testthat failure snapshots (regenerated on every failing run)
 tests/testthat/_problems/
 tests/testthat/testthat-problems.rds
+*.pyc
+__pycache__/

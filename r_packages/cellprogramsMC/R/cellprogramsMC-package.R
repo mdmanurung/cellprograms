@@ -26,7 +26,9 @@ seacells_env <- basilisk::BasiliskEnvironment(
     envname = "seacells_env",
     pkgname = "cellprogramsMC",
     packages = c("python=3.11"),
-    pip = c("SEACells")
+    # ipywidgets: SEACells imports tqdm.notebook (progress bars), which raises
+    # ImportError("IProgress not found") in headless envs without it.
+    pip = c("SEACells==0.3.3", "ipywidgets==8.1.7")
 )
 
 #' cellprogramsMC: SEACells-backed metacells with mcRigor QC

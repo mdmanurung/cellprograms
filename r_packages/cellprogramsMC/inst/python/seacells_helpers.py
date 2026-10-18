@@ -43,8 +43,8 @@ def run_seacells_group(mtx_path, cells_csv, genes_csv, out_dir,
     import SEACells
 
     os.makedirs(out_dir, exist_ok=True)
-    rng = np.random.RandomState(seed)
-    np.random.seed(seed)
+    rng = np.random.RandomState(int(seed))  # R numerics arrive as float64
+    np.random.seed(int(seed))
 
     # ---- load counts (genes x cells as written by R) -> cells x genes ----
     X_gxc = scipy.io.mmread(mtx_path)
@@ -56,7 +56,10 @@ def run_seacells_group(mtx_path, cells_csv, genes_csv, out_dir,
             "counts matrix shape %s does not match genes/cells (%d, %d)"
             % (X_gxc.shape, len(genes), len(cells))
         )
-    X = X_gxc.T.tocsr()  # cells x genes
+    X = X_gxc.T.tocsr()
+    # R-written mtx loads as integer dtype; in-place normalize_per_cell would
+    # fail casting float64 output back into int64. Cast to float up front.
+    X = X.astype(np.float32)
 
     ad = sc.AnnData(X)
     ad.obs_names = cells
@@ -95,11 +98,24 @@ def run_seacells_group(mtx_path, cells_csv, genes_csv, out_dir,
         n_waypoint_eigs=int(n_waypoint_eigs),
         n_neighbors=int(n_neighbors),
         convergence_epsilon=float(convergence_epsilon),
-        use_sparse=bool(use_sparse),
+        # NOTE: SEACells 0.3.3 (PyPI GPU fork) has no use_sparse kwarg; the
+        # parameter is kept in the signature for API compatibility but not
+        # passed through (W5 scratch variant first documented this drift).
     )
     model.waypt_proportion = float(waypt_proportion)
+    # SEACells 0.3.3 (GPU-accelerated fork) defers kernel construction:
+    # __init__ sets K=None and initialize_archetypes/_fit require an explicit
+    # construct_kernel_matrix() call first (upstream tutorial API drift).
+    model.construct_kernel_matrix()
     model.initialize_archetypes()
-    model.fit(max_iter=int(max_iter))
+    converged = True
+    try:
+        model.fit(max_iter=int(max_iter))
+    except RuntimeWarning as w:
+        # this fork raises on non-convergence; record and continue — the RSS
+        # trace in fit_stats documents how close the fit got
+        converged = False
+        print("SEACells fit did not converge: %s" % w)
 
     # ---- assignments ----
     hard = model.get_hard_assignments()  # DataFrame 'SEACell', index = cells
@@ -145,12 +161,13 @@ def run_seacells_group(mtx_path, cells_csv, genes_csv, out_dir,
         "max_mc_size": [int(sizes.max())],
         "seed": [int(seed)],
     }
-    rss = getattr(model, "rss", None)
+    rss = getattr(model, "RSS_iters", None)
     if rss is not None and len(rss) > 0:
         rss_arr = np.asarray(rss).reshape(-1)
         stats["rss_initial"] = [float(rss_arr[0])]
         stats["rss_final"] = [float(rss_arr[-1])]
         stats["rss_n_iter"] = [int(len(rss_arr))]
+    stats["converged"] = [bool(converged)]
     pd.DataFrame(stats).to_csv(os.path.join(out_dir, "fit_stats.csv"), index=False)
 
     return {

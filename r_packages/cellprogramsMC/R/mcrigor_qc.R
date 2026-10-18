@@ -10,12 +10,20 @@
 .mcrigor_detect_group <- function(counts_g, membership, mode, mcrigor_args,
                                   group_id) {
     stopifnot(requireNamespace("mcRigor", quietly = TRUE))
+    # mcRigor's buildmc only aligns per-metacell metadata for NUMERIC
+    # membership labels (its numeric branch strips Seurat's AggregateExpression
+    # "g" prefix; string labels crash with "No cell overlap between new meta
+    # data and Seurat object"). Map labels to integer codes here and remap the
+    # normalized table back to the original metacell names below.
+    lab <- as.character(membership)
+    codes <- as.integer(factor(lab, levels = sort(unique(lab))))
+    names(codes) <- names(membership)
     # minimal Seurat object holding the group's single-cell counts
     obj_g <- Seurat::CreateSeuratObject(
         counts = counts_g, assay = "RNA", min.features = 0, min.cells = 0
     )
     membership_df <- data.frame(
-        matrix(membership, ncol = 1, dimnames = list(names(membership),
+        matrix(codes, ncol = 1, dimnames = list(names(codes),
                                                      as.character(1))),
         stringsAsFactors = FALSE, check.names = FALSE
     )
@@ -23,7 +31,12 @@
         Nrep = 50, gene_filter = 0.1, feature_use = 2000,
         test_cutoff = 0.01, cor_method = "pearson",
         aggregate_method = if (identical(mode, "average")) "mean" else "sum",
-        draw = FALSE, step_save = FALSE, output_file = tempfile(fileext = ".rds")
+        draw = FALSE, step_save = FALSE, output_file = tempfile(fileext = ".rds"),
+        # skip mcRigor's per-metacell covariate transfer: it crashes with
+        # string metacell labels (Seurat name mangling misaligns value names
+        # vs the metacell object cells) and is not needed for the QC
+        # statistics (mcDiv / DubRate / ZeroRate / Score)
+        fields = character(0)
     )
     args <- utils::modifyList(args, mcrigor_args)
     base_args <- list(
@@ -32,14 +45,26 @@
         tgamma = as.character(1)
     )
     res <- do.call(mcRigor::mcRigor_DETECT, utils::modifyList(base_args, args))
-    .mcrigor_normalize(res, group_id = group_id)
+    out <- .mcrigor_normalize(res, group_id = group_id)
+    # remap integer codes back to the original metacell labels
+    code_to_lab <- sort(unique(lab))
+    code_idx <- suppressWarnings(as.integer(out$metacell))
+    if (!any(is.na(code_idx)) && max(code_idx) <= length(code_to_lab)) {
+        out$metacell <- code_to_lab[code_idx]
+    }
+    out
 }
 
 .mcrigor_normalize <- function(res, group_id) {
-    # Defensive normalization of mcRigor_DETECT output into a per-metacell
-    # data.frame with columns: metacell, mcDiv, mcDiv_threshold, dubious.
-    # The exact return structure is pinned during the smoke test; handle the
-    # common shapes here.
+    # Normalization of mcRigor_DETECT output into a per-metacell data.frame
+    # with columns: metacell, mcDiv, mcDiv_threshold, dubious.
+    # Pinned against mcRigor (Liu & Li 2025) return structure:
+    #   res$TabMC: gamma, ZeroRate, size, T_org (observed divergence),
+    #     T_colperm, T_rowperm*, T_bothperm*, TT_div, depctr_TT_div,
+    #     mcRigor (per-metacell verdict string, e.g. "trustworthy")
+    #   res$thre: data.frame(size, thre) with metacell ids as rownames
+    #     (size-specific divergence threshold)
+    #   res$mc_res: named chr verdict per metacell
     tab <- NULL
     if (is.data.frame(res)) {
         tab <- res
@@ -71,11 +96,24 @@
     out <- data.frame(
         metacell = as.character(mc_col),
         Group = group_id,
-        mcDiv = as.numeric(pick(c("mcDiv", "divergence", "score"))),
+        mcDiv = as.numeric(pick(c("mcDiv", "T_org", "divergence", "score"))),
         mcDiv_threshold = as.numeric(pick(c("threshold", "cutoff", "mcDiv_threshold"))),
         dubious = as.logical(pick(c("dubious", "is_dubious", "flag"))),
         stringsAsFactors = FALSE
     )
+    # size-specific threshold from res$thre (metacell ids as rownames)
+    if (all(is.na(out$mcDiv_threshold)) && !is.null(res$thre) &&
+            is.data.frame(res$thre) && "thre" %in% colnames(res$thre)) {
+        idx <- match(out$metacell, rownames(res$thre))
+        out$mcDiv_threshold <- as.numeric(res$thre$thre[idx])
+    }
+    # per-metacell verdict string ("trustworthy" / otherwise dubious)
+    if (all(is.na(out$dubious))) {
+        verdict <- pick(c("mcRigor", "verdict", "mc_res"))
+        if (is.character(verdict) && !all(is.na(verdict))) {
+            out$dubious <- !verdict %in% c("trustworthy", "TRUE", "good")
+        }
+    }
     if (all(is.na(out$dubious)) && !all(is.na(out$mcDiv)) &&
             !all(is.na(out$mcDiv_threshold))) {
         out$dubious <- out$mcDiv > out$mcDiv_threshold

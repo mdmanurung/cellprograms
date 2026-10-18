@@ -64,7 +64,7 @@
         waypt_proportion = params$waypt_proportion,
         n_neighbors = params$n_neighbors,
         convergence_epsilon = params$convergence_epsilon,
-        max_iter = params$max_iter, seed = seed,
+        max_iter = params$max_iter, seed = as.integer(seed),
         use_sparse = params$use_sparse, mode = params$mode
     )
     out
@@ -121,7 +121,8 @@
 #' @param n_neighbors Number of neighbors for the SEACells graph. Default 15.
 #' @param convergence_epsilon Franke-Wolfe convergence threshold. Default 1e-5
 #'   (hdWGCNA vignette value).
-#' @param max_iter Maximum SEACells fit iterations. Default 20.
+#' @param max_iter Maximum SEACells fit iterations. Default 100 (the SEACells
+#'   0.3.3 fork default; non-convergence is recorded in fit_stats, not fatal).
 #' @param use_sparse Use sparse matrix operations in SEACells (CPU only).
 #'   Default TRUE.
 #' @param use_soft_assignments If TRUE (default), export the cells x metacells
@@ -310,7 +311,9 @@ MetacellsByGroupsSEACells <- function(
         stop("no groups passed min_cells = ", min_cells)
     }
 
-    mc_all <- do.call(Matrix::cbind2, mc_list)
+    # cbind2 is a BINARY S4 generic: do.call with >2 groups passes N args and
+    # the selected method fails ('argument "x" is missing'). Reduce instead.
+    mc_all <- Reduce(Matrix::cbind2, mc_list)
     obs_all <- do.call(rbind, obs_list)
     qc_all <- do.call(rbind, qc_list)
     soft_all <- if (length(soft_list) > 0 && use_soft_assignments) {
@@ -365,6 +368,14 @@ MetacellsByGroupsSEACells <- function(
     soft <- mc_out$soft
     if (is.null(soft)) {
         stop("soft assignments required for mcRigor membership reconstruction")
+    }
+    # the soft matrix is exported as a bare MTX (no dimnames); rows are in the
+    # exported cell order (ad.obs order = cells_g order)
+    if (is.null(rownames(soft))) {
+        if (nrow(soft) != length(cells_g)) {
+            stop("soft assignment rows do not match group cells")
+        }
+        rownames(soft) <- cells_g
     }
     s <- as(soft, "dgTMatrix")
     trip <- data.frame(i = s@i + 1L, j = s@j + 1L, x = s@x)
