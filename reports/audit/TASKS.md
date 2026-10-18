@@ -288,3 +288,40 @@ firing in the end-to-end sharing test, and a mashr V=identity toy note).
 All edited Rd files parse (tools::parse_Rd). Queue CLOSED; remaining open
 items unchanged (M4/M5, E-M3.2/E-M3.4, Zenodo, upstream x2, CAND-07
 mini-benchmark RUN, flashier var_floor fail-closed, GitHub push 403).
+
+## Documentation website refresh (2026-10-18, docs-only)
+
+* Audit: pkgdown reference auto-generates from man/ (no reference: section in
+  _pkgdown.yml), so coverage is complete by construction; the gaps were
+  content staleness. fit_celltype_programs() signature had grown `backend`
+  and `var_floor` with no @param entries (man + site usage showed the args
+  undocumented). README lacked freeze/project/stability and the backend
+  choice. Committed docs/ build (the GitHub Pages artifact; no pkgdown GHA
+  workflow in this repo) was stale on all of these.
+* Fixes: @param backend + @param var_floor added to the roxygen docstring
+  (R/ebmf.R) and regenerated via roxygen2 (man/fit_celltype_programs.Rd);
+  README function list + installation (cebmf_torch env) + new "Frozen
+  preprocessing and out-of-sample projection" section + Status additions;
+  quickstart.Rmd stability section documents n_failed/n_success semantics;
+  NEWS.md restructured (remediation-queue section moved under the
+  0.2.0.9000 development heading — pkgdown requires consistent heading
+  levels). Site rebuilt: reference (128 pages), home, news, quickstart.
+* flashier-utils audit (271f583): all 54 exports have man pages and are in
+  the pkgdown reference section; GB-005 args documented in man; pkgdown.yaml
+  GHA deployed successfully from HEAD; NEWS current. No changes needed.
+* Committed locally as afed02f (push still blocked: git CLI has no
+  credentials; MCP integration 403 on this repo).
+
+## pkgdown CI workflow (2026-10-18, docs-only)
+
+* Added .github/workflows/pkgdown.yaml: artifact-based Pages deployment
+  mirroring flashier-utils (r-lib setup-r/dependencies with RSPM binaries,
+  GSL for mashr, Remotes pins, pkgdown::build_site_github_pages, PR builds
+  upload without deploying). Articles verified CI-safe: case-study chunks
+  are eval = FALSE display code; mofacellular_comparison loads its committed
+  cache; quickstart is simulation-based. docs/cebmf-extension/ (static audit
+  narrative) asserted present in the built artifact.
+* Deployment switch (user-side, one-time): Settings -> Pages -> Source ->
+  "GitHub Actions". The committed docs/ directory keeps serving the site
+  until that switch; after the first successful deploy, docs/ can be
+  untracked and the build committed to git history only.
