@@ -233,8 +233,9 @@
 #' @return An object of class `cmp_result`, a list with
 #'   \describe{
 #'     \item{cmps}{one row per (CMP, program): `cmp`, `cell_type`,
-#'       `program_id`, `node_p` (FWER-adjusted), `sign` (direction relative to
-#'       the CMP's first program) and `ambient_flag`.}
+#'       `program_id`, `node_p` (FWER-adjusted), `sign` (orientation relative
+#'       to the CMP's first program, propagated along linking edges as the
+#'       product of edge signs along the path; CAND-05) and `ambient_flag`.}
 #'     \item{edges}{edges among members of the same CMP (`stat` = |T|).}
 #'     \item{nodes}{all tested programs with node statistic, adjusted p-value
 #'       and ambient score.}
@@ -342,13 +343,35 @@ find_coordinated_programs <- function(fit, strata = NULL, context = NULL,
                      stringsAsFactors = FALSE)
   key <- g$node
   cmps$sign <- NA_real_
+  # CAND-05: orientation propagates along the LINKING edges (the kept edge set
+  # that formed the CMP): a member's sign is the product of edge signs along
+  # its path from the reference member. The previous lookup read the sign of
+  # the DIRECT ref--member edge from the FULL edge table; for chain-joined
+  # members that edge can be a non-linking noise edge, giving a random +/-1
+  # orientation that propagated into cmp_scores/annotate_cmp_tf/cmp_triage.
+  kn_a <- idx$ka[keep]; kn_b <- idx$kb[keep]; kn_s <- edges$sign[keep]
   for (k in unique(cmps$cmp)) {
     ii <- which(cmps$cmp == k)
     ref <- key[ii[1]]
     cmps$sign[ii[1]] <- 1
-    for (i in ii[-1]) {
-      e <- which((idx$ka == ref & idx$kb == key[i]) | (idx$kb == ref & idx$ka == key[i]))
-      cmps$sign[i] <- if (length(e)) edges$sign[e[1]] else NA_real_
+    oriented <- ref
+    signs <- 1
+    pending <- ii[-1]
+    while (length(pending)) {
+      hit <- vapply(pending, function(i) {
+        m <- key[i]
+        any((kn_a == m & kn_b %in% oriented) | (kn_b == m & kn_a %in% oriented))
+      }, logical(1))
+      if (!any(hit)) break  # defensive: .cmp_group components are connected
+      i <- pending[which(hit)[1L]]
+      m <- key[i]
+      e <- which((kn_a == m & kn_b %in% oriented) |
+                   (kn_b == m & kn_a %in% oriented))[1L]
+      u <- if (kn_a[e] %in% oriented) kn_a[e] else kn_b[e]
+      cmps$sign[i] <- signs[match(u, oriented)] * kn_s[e]
+      oriented <- c(oriented, m)
+      signs <- c(signs, cmps$sign[i])
+      pending <- setdiff(pending, i)
     }
   }
   cmps$ambient_flag <- if (is.null(amb)) NA else

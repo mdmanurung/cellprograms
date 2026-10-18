@@ -78,6 +78,23 @@
 #'   frozen panel), and the spec's digest is recorded in the fit's
 #'   preprocessing provenance. The spec's cell types must cover `x` and all
 #'   frozen genes must be present in the dataset.
+#' @param backend EBMF implementation: `"flashier"` (default; the
+#'   flashier.utils R backend, with a nullcheck fallback ladder) or
+#'   `"cebmf_torch"` (the covariate-EBMF torch backend, which fails loudly
+#'   instead of falling back). Both backends share preprocessing, program
+#'   extraction, and the output contract. The torch backend runs in a pinned
+#'   Python environment: set options(cellprograms.cebmf_python_env = ...) to
+#'   point at an existing environment, otherwise a basilisk environment is
+#'   used.
+#' @param var_floor Residual SD handling: `"none"` (default; residual SDs are
+#'   estimated as usual), `"vignette"` (fixed at the flashier single-cell
+#'   vignette's S = sd(log(Poisson(1/n) + 1)), drawn once per cell type with a
+#'   fixed local seed, so the value is deterministic and independent of
+#'   `seed`), or a positive numeric scalar S (residual SDs fixed at S). Fixed
+#'   S binds on the `cebmf_torch` backend. On the `flashier` backend the
+#'   value is passed through but does not currently bind (CAND-13: fits with
+#'   and without a fixed scalar S are bit-identical at the pinned flashier
+#'   version); a fail-closed remediation is pending.
 #'
 #' @return The input object augmented with class `cell_program_fit` and
 #'   components `fits`, `programs`, `scores`, `loadings`, `preprocessing`,
@@ -102,9 +119,31 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
                                   covariate_mode = c("residualize", "fixed"),
                                   seed = 1, flash_control = list(),
                                   feature_scale = "unknown",
-                                  preprocessing_spec = NULL) {
+                                  preprocessing_spec = NULL,
+                                  backend = c("flashier", "cebmf_torch"),
+                                  var_floor = "none") {
   stopifnot(inherits(x, "cell_program_data"))
   covariate_mode <- match.arg(covariate_mode)
+  backend <- match.arg(backend)
+  # var_floor: "none" (default, behavior-preserving) | "vignette" (the flashier
+  # single-cell vignette's fixed residual SD, S = sd(log(Poisson(1/n)+1)), n =
+  # donors in the fit matrix; drawn once per cell type with a fixed local seed
+  # so the value is deterministic and independent of the fit seed) | a numeric
+  # scalar S. When supplied, the residual SDs are FIXED at S (flashier and
+  # cebmf_torch both stop estimating variances) — see the CAND-13 demonstrator
+  # for the calibration evidence (reports/audit/E_programs/).
+  S_value <- NULL
+  vignette_floor <- FALSE
+  if (identical(var_floor, "vignette")) {
+    vignette_floor <- TRUE
+  } else if (is.numeric(var_floor)) {
+    if (length(var_floor) != 1L || !is.finite(var_floor) || var_floor <= 0) {
+      cli::cli_abort("{.arg var_floor} must be \"none\", \"vignette\", or a positive finite scalar.")
+    }
+    S_value <- as.numeric(var_floor)
+  } else if (!identical(var_floor, "none")) {
+    cli::cli_abort("{.arg var_floor} must be \"none\", \"vignette\", or a positive finite scalar.")
+  }
   if (!is.null(exclude_genes) &&
       (!is.character(exclude_genes) || anyNA(exclude_genes))) {
     cli::cli_abort("{.arg exclude_genes} must be NULL or a character vector of gene IDs.")
@@ -115,6 +154,9 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
   }
   if (covariate_mode == "fixed" && !is.null(covariates) && !center) {
     cli::cli_abort("{.code covariate_mode = \"fixed\"} requires {.code center = TRUE}.")
+  }
+  if (backend == "cebmf_torch" && covariate_mode == "fixed" && !is.null(covariates)) {
+    cli::cli_abort("{.code covariate_mode = \"fixed\"} requires {.code backend = \"flashier\"}: the cebmf_torch backend has no fixed-loadings path. Use {.code covariate_mode = \"residualize\"} (the default) with this backend.")
   }
   if (!requireNamespace("flashier", quietly = TRUE) ||
       !requireNamespace("ebnm", quietly = TRUE)) {
@@ -152,10 +194,10 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     provided <- list(features = features, n_variable_genes = n_variable_genes,
       exclude_genes = exclude_genes, exclude_artifacts = exclude_artifacts,
       covariates = covariates, covariate_mode = covariate_mode,
-      center = center, scale = scale)
+      center = center, scale = scale, feature_scale = feature_scale)
     defaults <- list(features = "all", n_variable_genes = 2000, exclude_genes = NULL,
       exclude_artifacts = FALSE, covariates = NULL, covariate_mode = "residualize",
-      center = TRUE, scale = FALSE)
+      center = TRUE, scale = FALSE, feature_scale = "unknown")
     conflicts <- names(provided)[vapply(names(provided),
       function(n) !identical(provided[[n]], defaults[[n]]), logical(1))]
     if (length(conflicts)) {
@@ -178,6 +220,13 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     center <- preprocessing_spec$center
     scale <- preprocessing_spec$scale
     frozen_digest <- preprocessing_spec$digest
+  }
+
+  # R2/F3 (covariate audit): the fixed-mode centering guard above ran before
+  # spec substitution; a spec frozen with covariate_mode = "fixed",
+  # center = FALSE must not bypass it.
+  if (covariate_mode == "fixed" && !is.null(covariates) && !center) {
+    cli::cli_abort("{.code covariate_mode = \"fixed\"} requires {.code center = TRUE}.")
   }
 
   # Without a frozen spec, resolve the feature panel from the arguments.
@@ -247,6 +296,10 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
       cli::cli_inform("Dropping {sum(!keep_cols)} zero-variance gene(s) in cell type {.val {ct}}.")
       Y <- Y[, keep_cols, drop = FALSE]
       genes <- genes[keep_cols]
+      # R2/F1 (covariate audit): subset the replay vectors to the retained
+      # genes so projection replay indexes the same positions as Y_used.
+      replay$center <- replay$center[keep_cols]
+      replay$scale  <- replay$scale[keep_cols]
     }
 
     # C4 safety guard (ROADMAP M6, D7c): the requested number of factors must
@@ -279,6 +332,19 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
       verbose = 0L
     ), flash_control)
 
+    # Per-cell-type vignette floor: n = donors in this cell type's fit matrix.
+    # S_vf is the var_floor-derived S (distinct from a flash_control$S override,
+    # which keeps the registered fail-closed rejection in the flashier.utils
+    # fast path — only var_floor-derived S reroutes the fit).
+    S_vf <- NULL
+    if (vignette_floor) {
+      set.seed(20261016)  # fixed local seed: S is deterministic, fit-seed-independent
+      S_vf <- sd(log(stats::rpois(1e7, 1 / nrow(Y)) + 1))
+    } else if (!is.null(S_value)) {
+      S_vf <- S_value
+    }
+    if (!is.null(S_vf)) args$S <- S_vf
+
     t0 <- Sys.time()
     set.seed(seed)
     # Ordinary fits (no fixed covariates) go through flashier.utils::fit_ebmf()
@@ -286,7 +352,12 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     # precision against do.call(flashier::flash, args)). flash_control members
     # that fit_ebmf() does not expose are rejected explicitly rather than
     # silently dropped. The fixed-covariate path always uses .flash_fixed().
-    ordinary <- is.null(Xc) && use_fu
+    # A var_floor-derived S is not mappable through fit_ebmf(): route the fit
+    # through the legacy backend with a warning.
+    ordinary <- is.null(Xc) && use_fu && is.null(S_vf)
+    if (!is.null(S_vf) && use_fu && is.null(Xc)) {
+      cli::cli_warn("{.arg var_floor} requires the legacy flashier backend for this fit (flashier.utils::fit_ebmf() does not expose S); routing through {.fn flashier::flash}.")
+    }
     run_flash <- function(args) {
       if (!is.null(Xc)) return(.flash_fixed(args, Xc))
       if (ordinary) return(.fit_via_flashier_utils(args, seed, feature_scale))
@@ -311,23 +382,40 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
       }
     }
     fit <- NULL; fallback <- "none"; first_err <- NULL
-    for (at in attempts) {
-      set.seed(seed)                       # every attempt starts from the same RNG state
-      fit <- tryCatch(run_flash(at$args), error = function(e) {
-        if (is.null(first_err)) first_err <<- e
-        NULL
-      })
-      if (!is.null(fit) && !.fit_ok(fit)) {   # silent NaN ELBO is a failure too
-        if (is.null(first_err)) first_err <<- simpleError("flashier returned a non-finite ELBO")
-        fit <- NULL
+    if (backend == "cebmf_torch") {
+      # M6 adoption: the cebmf_ext wrapper carries its own numerical guard set
+      # (sebetahat floor, tau cap, seed-family fallback) and raises loudly on
+      # objective divergence — no flashier-style fallback ladder here.
+      fit <- tryCatch(.fit_via_cebmf(Y, max_factors, seed, S = args$S),
+                      error = function(e) {
+                        if (is.null(first_err)) first_err <<- e
+                        NULL
+                      })
+      if (is.null(fit)) {
+        cli::cli_abort("cebmf_torch failed in cell type {.val {ct}}: {conditionMessage(first_err)}")
       }
-      if (!is.null(fit)) { fallback <- at$label; break }
-    }
-    if (is.null(fit)) {
-      cli::cli_abort("flashier failed in cell type {.val {ct}}: {conditionMessage(first_err)}")
-    }
-    if (fallback != "none") {
-      cli::cli_warn("flashier needed fallback {.val {fallback}} in cell type {.val {ct}}.")
+      if (!.cebmf_fit_ok(fit)) {
+        cli::cli_abort("cebmf_torch returned a non-finite objective in cell type {.val {ct}}.")
+      }
+    } else {
+      for (at in attempts) {
+        set.seed(seed)                       # every attempt starts from the same RNG state
+        fit <- tryCatch(run_flash(at$args), error = function(e) {
+          if (is.null(first_err)) first_err <<- e
+          NULL
+        })
+        if (!is.null(fit) && !.fit_ok(fit)) {   # silent NaN ELBO is a failure too
+          if (is.null(first_err)) first_err <<- simpleError("flashier returned a non-finite ELBO")
+          fit <- NULL
+        }
+        if (!is.null(fit)) { fallback <- at$label; break }
+      }
+      if (is.null(fit)) {
+        cli::cli_abort("flashier failed in cell type {.val {ct}}: {conditionMessage(first_err)}")
+      }
+      if (fallback != "none") {
+        cli::cli_warn("flashier needed fallback {.val {fallback}} in cell type {.val {ct}}.")
+      }
     }
     elapsed <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
 
@@ -338,6 +426,7 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
       genes = genes,
       elapsed_secs = elapsed,
       fallback = fallback,
+      S_used = args$S,
       preproc_replay = replay
     )
   }
@@ -354,14 +443,22 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     covariates = covariates, covariate_mode = covariate_mode,
     flash_control = flash_control,
     feature_scale = feature_scale,
-    frozen_spec = frozen_digest
+    frozen_spec = frozen_digest,
+    # CAND-12: store the FULL frozen spec, not just its digest — the digest
+    # alone made replay impossible in principle and let stability refits
+    # bypass the MR-0 fail-closed checks. NULL for unfrozen fits.
+    spec = preprocessing_spec,
+    backend = backend,
+    var_floor = var_floor
   )
   x$provenance <- list(
     seed = seed,
     timestamp = Sys.time(),
     r_version = R.version.string,
     flashier_version = as.character(utils::packageVersion("flashier")),
-    ebnm_version = as.character(utils::packageVersion("ebnm"))
+    ebnm_version = as.character(utils::packageVersion("ebnm")),
+    backend = backend,
+    var_floor = var_floor
   )
   x$canonicalization <- NULL
   x$stability <- NULL
@@ -398,8 +495,14 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
   }
   if (any(const)) {
     cli::cli_inform("Covariate(s) {.val {vars[const]}} constant in cell type {.val {ct}}; dropped for this cell type.")
-    f <- stats::drop.terms(stats::terms(f), which(attr(stats::terms(f), "term.labels") %in% vars[const]),
-                           keep.response = FALSE)
+    # R2/F4 (covariate audit): drop every TERM that references a
+    # within-ct-constant variable, including interaction terms — drop.terms()
+    # on main-effect labels alone leaves e.g. age:sex in the formula and
+    # model.matrix() crashes obscurely ("variable lengths differ").
+    tl <- attr(stats::terms(f), "term.labels")
+    tl <- tl[vapply(tl, function(t) !any(all.vars(stats::as.formula(paste("~", t))) %in% vars[const]),
+                    logical(1))]
+    f <- stats::reformulate(tl)   # all-constant case already returned NULL above
     m <- m[, vars[!const], drop = FALSE]
   }
   X <- stats::model.matrix(f, m)

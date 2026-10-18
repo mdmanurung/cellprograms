@@ -37,8 +37,15 @@ as_cell_program_data <- function(pseudobulk, sample_metadata = NULL,
     if (!is.matrix(m) || !is.numeric(m)) {
       cli::cli_abort("Element {.val {ct}} of {.arg pseudobulk} must be a numeric matrix.")
     }
-    if (any(is.na(m))) {
-      cli::cli_abort("Element {.val {ct}} contains NA values; pseudobulk matrices must be complete.")
+    # CAND-03: reject ALL non-finite entries (NA/NaN/Inf), not just NA — Inf
+    # previously passed this check and crashed validate/fit with an opaque
+    # "missing value where TRUE/FALSE needed" error.
+    if (any(!is.finite(m))) {
+      n_bad <- sum(!is.finite(m))
+      cli::cli_abort(
+        "Element {.val {ct}} contains {n_bad} non-finite value(s) (NA/NaN/Inf); \\
+         pseudobulk matrices must be complete and finite."
+      )
     }
     if (is.null(rownames(m)) || any(!nzchar(rownames(m)))) {
       cli::cli_abort("Element {.val {ct}} must have non-empty row names (observation IDs).")

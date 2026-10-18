@@ -17,8 +17,11 @@
 #' @param seed Random seed.
 #' @param progress Print progress messages.
 #' @return The fit with `fit$stability` populated: per-program recovery
-#'   frequency, median score correlation, median loading cosine, sign
-#'   consistency, and top-gene Jaccard.
+#'   frequency (fraction of SUCCESSFUL subsample refits whose match recovers
+#'   the program; failed refits are excluded from the denominator and reported
+#'   in `n_failed`/`n_success`, with a warning; all-fail yields NA, not 0),
+#'   median score correlation, median loading cosine, sign consistency, and
+#'   top-gene Jaccard.
 #' @examples
 #' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
 #' x <- as_cell_program_data(sim$pseudobulk)
@@ -43,6 +46,7 @@ assess_program_stability <- function(fit, n_boot = 100L,
                      sign_consistent = 0L, top_jaccard = c())
   }
 
+  n_failed <- 0L
   for (b in seq_len(n_boot)) {
     if (progress && b %% 10L == 0L) message(sprintf("subsample %d/%d", b, n_boot))
     x_b <- fit[c("sample_metadata", "feature_metadata", "cell_types", "observation_ids", "shared_genes", "dims")]
@@ -50,17 +54,39 @@ assess_program_stability <- function(fit, n_boot = 100L,
       Y[sample.int(nrow(Y), max(5L, floor(resample_frac * nrow(Y)))), , drop = FALSE]
     })
     class(x_b) <- "cell_program_data"
+    # CAND-12: replay the frozen preprocessing spec through the MR-0
+    # fail-closed checks when the fit carries one, instead of re-deriving
+    # preprocessing from recorded settings (which bypassed the checks).
+    # Legacy fits without a stored spec keep the explicit-args path, now with
+    # feature_scale passed through (it was silently "unknown" in refits).
+    spec <- fit$preprocessing$spec
+    fit_args <- if (is.null(spec)) {
+      list(x_b, loading_prior = pre$loading_prior, max_factors = pre$max_factors,
+           center = pre$centered, scale = pre$scaled, features = pre$feature_sets,
+           var_type = pre$var_type, backfit = pre$backfit, nullcheck = pre$nullcheck,
+           covariates = pre$covariates, covariate_mode = pre$covariate_mode,
+           flash_control = pre$flash_control, feature_scale = pre$feature_scale,
+           seed = fit$provenance$seed + b)
+    } else {
+      list(x_b, preprocessing_spec = spec,
+           loading_prior = pre$loading_prior, max_factors = pre$max_factors,
+           var_type = pre$var_type, backfit = pre$backfit, nullcheck = pre$nullcheck,
+           flash_control = pre$flash_control,
+           backend = if (is.null(pre$backend)) "flashier" else pre$backend,
+           var_floor = if (is.null(pre$var_floor)) "none" else pre$var_floor,
+           seed = fit$provenance$seed + b)
+    }
     fit_b <- tryCatch(
-      fit_celltype_programs(
-        x_b, loading_prior = pre$loading_prior, max_factors = pre$max_factors,
-        center = pre$centered, scale = pre$scaled, features = pre$feature_sets,
-        var_type = pre$var_type, backfit = pre$backfit, nullcheck = pre$nullcheck,
-        covariates = pre$covariates, covariate_mode = pre$covariate_mode,
-        flash_control = pre$flash_control, seed = fit$provenance$seed + b
-      ) |> canonicalize_programs(),
+      do.call(fit_celltype_programs, fit_args) |> canonicalize_programs(),
       error = function(e) NULL
     )
-    if (is.null(fit_b)) next
+    # CAND-01: failed refits are counted and reported, never silently dropped
+    # from the denominator (a 30% failure rate used to read as a 30% recovery
+    # loss with zero user-facing signal).
+    if (is.null(fit_b)) {
+      n_failed <- n_failed + 1L
+      next
+    }
 
     for (ct in names(fit$fits)) {
       K0 <- ncol(fit$scores[[ct]])
@@ -89,12 +115,26 @@ assess_program_stability <- function(fit, n_boot = 100L,
     }
   }
 
+  # CAND-01: recovery is defined over SUCCESSFUL refits; failures are
+  # reported explicitly. All-fail is NA (undefined), never 0 (which read as
+  # "zero stability" — indistinguishable from a genuinely unstable program).
+  n_success <- as.integer(n_boot) - n_failed
+  if (n_failed == n_boot) {
+    warning(sprintf(paste0("assess_program_stability(): all %d subsample refits failed; ",
+                           "stability metrics are undefined (NA), not zero."), n_boot),
+            call. = FALSE)
+  } else if (n_failed > 0L) {
+    warning(sprintf(paste0("assess_program_stability(): %d of %d subsample refits failed; ",
+                           "recovery frequencies are computed over the %d successful refits."),
+                    n_failed, n_boot, n_success), call. = FALSE)
+  }
   stab <- do.call(rbind, lapply(prog_ids, function(p) {
     r <- rec[[p]]
     data.frame(
       program_id = p,
       cell_type = .program_table(fit)$cell_type[match(p, prog_ids)],
-      recovery_freq = r$hit / n_boot,
+      n_hit = r$hit,
+      recovery_freq = if (n_success > 0L) r$hit / n_success else NA_real_,
       median_score_cor = if (length(r$score_cor)) stats::median(r$score_cor) else NA_real_,
       median_loading_cos = if (length(r$loading_cos)) stats::median(r$loading_cos) else NA_real_,
       sign_consistency = if (r$hit > 0L) r$sign_consistent / r$hit else NA_real_,
@@ -103,6 +143,7 @@ assess_program_stability <- function(fit, n_boot = 100L,
     )
   }))
   fit$stability <- list(per_program = stab, n_boot = n_boot,
+                        n_failed = n_failed, n_success = n_success,
                         match_method = match_method, sim_threshold = sim_threshold)
   fit
 }

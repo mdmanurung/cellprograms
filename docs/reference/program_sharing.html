@@ -121,7 +121,13 @@ fractions (default 50).</p></dd>
 
 
 <dt id="arg-n-perm-seed">n_perm, seed<a class="anchor" aria-label="anchor" href="#arg-n-perm-seed"></a></dt>
-<dd><p>Permutation calibration for the matching step.</p></dd>
+<dd><p>Permutation calibration for the matching step. CAND-07
+caveat: the gene-permutation null treats genes as exchangeable;
+block-correlated (co-regulated) genes violate that assumption, so
+matching q-values are anticonservative when a large correlated gene block
+drives both programs (audit D-1: 67.0<!-- % false-match rate under block -->
+equicorrelation 0.55 vs 2.0<!-- % iid). A block-aware null is pending a -->
+registered calibration benchmark; interpret marginal matches accordingly.</p></dd>
 
 
 <dt id="arg-min-genes">min_genes<a class="anchor" aria-label="anchor" href="#arg-min-genes"></a></dt>
@@ -168,7 +174,12 @@ empty; raise to ~1.5 for large matched groups.</p></dd>
     `frac_top_private` (fraction of the top `n_top` genes with lfsr &lt;
     `lfsr_thresh` in &gt;= 2 / exactly 1 conditions), `classification`
     ("shared" if frac_top_shared &gt;= 0.5, "private" if frac_top_private &gt;=
-    0.5, else "partial"), and the full `mash` result;
+    0.5, else "partial"). D-2a caveat: "shared" means active-in-both, not
+    proven shared structure — at high loading SNR, independent loadings
+    also reach frac_top_shared &gt;= 0.5 (forced-pair diagnostic: 30/30 false
+    "shared" at loading SE = 0.125 while mashr's mixture put 96<!-- % weight on -->
+    the identity pattern, p_all_shared ~ 0.001). Check `p_all_shared`.
+    Each per-group result also carries the full `mash` fit;
   * `summary`: one row per program. Programs in no matched group are
     classified "private" with evidence "no_significant_match".</p>
     </div>
@@ -192,10 +203,11 @@ workstream; a shared program need not have correlated donor scores.</p>
 <span class="r-in"><span>  <span class="va">res</span> <span class="op">&lt;-</span> <span class="fu">program_sharing</span><span class="op">(</span><span class="va">fit</span>, matches <span class="op">=</span> <span class="va">grp</span>, n_top <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">res</span><span class="op">$</span><span class="va">summary</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`matches` supplied: matched sets are user-forced, not data-driven. The 'shared' classification counts top genes active (lfsr &lt; 0.05) in &gt;= 2 conditions and can label independent loadings 'shared' at high loading SNR; check `p_all_shared` (mixture weight of the equal-effects pattern) before interpretation.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - Computing 73 x 241 likelihood matrix.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - Likelihood calculations took 0.01 seconds.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - Fitting model with 241 mixture components.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  - Model fitting took 0.07 seconds.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - Model fitting took 0.21 seconds.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - Computing posterior matrices.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - Computation allocated took 0.00 seconds.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   program_id cell_type group_id n_conditions classification frac_top_shared</span>

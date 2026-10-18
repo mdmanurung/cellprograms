@@ -8,6 +8,14 @@
 > only); mcRigor is MIT. See `reports/audit/TASKS.md` ledger entries and
 > `07-metacell-builder.md` for the cebmf_torch integration stages. The plan text below
 > is preserved as registered.
+>
+> **Status (2026-10-18, execution close-out).** W5 battery gates honestly FAIL
+> (G1/G2/G4, mechanisms recorded) and the M6 gate is decided: ADOPT WITH
+> REVISIONS R1-R4 (`07-m6-gate-review.md`). The R3 fixed-K + ZeroRate/K_eff
+> workflow join and the R4 aggregation-scale (Jensen) caveat are documented in
+> `05-granularity-case-study.md`; the cebmf_torch backend and the `var_floor`
+> exposure are merged into the package (see NEWS.md). Open queue: M4 1M-cell
+> chunked run, M5 500k shard, upstream frozen-prior request, Zenodo deposit.
 
 ## Summary
 

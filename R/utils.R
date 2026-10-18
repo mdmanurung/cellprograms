@@ -19,6 +19,14 @@
 ## Greedy is adequate for the small factor counts involved (k <= max_factors).
 .greedy_match <- function(sim) {
   sim <- abs(sim)
+  # D-3b: NA/NaN in the similarity matrix made max(S) NA and crashed the loop
+  # with "missing value where TRUE/FALSE needed". A non-finite similarity
+  # carries no matching information: demote to -Inf (never selected) and say so.
+  bad <- !is.finite(sim)
+  if (any(bad)) {
+    cli::cli_warn("{sum(bad)} non-finite similarity value(s) treated as unmatched.")
+    sim[bad] <- -Inf
+  }
   matches <- data.frame(a = integer(0), b = integer(0), sim = numeric(0))
   if (nrow(sim) == 0L || ncol(sim) == 0L) return(matches)
   ## track ORIGINAL row/col indices: submatrix coordinates shift after removal

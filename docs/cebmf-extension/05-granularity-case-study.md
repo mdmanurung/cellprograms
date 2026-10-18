@@ -222,9 +222,43 @@ comparisons are not interchangeable.
   sharing is statistically detectable but weak in magnitude (zero edges at
   |cor|>=0.8). A laplace-EBNM NaN mode (sebetahat -> 0 on exactly-fittable
   genes) was root-caused and guarded (sebetahat floor, registered deviation).
-- **Pending**: W5 SEACells-builder battery gates (running); M4 1M-cell chunked
-  run; M5 500k shard scaling; M6 adopt/revise/abandon gate; upstream
-  frozen-prior request (weak-factor projection fidelity, M2).
+- **M6 gate review (2026-10-18, ADOPT WITH REVISIONS)**: the cebmf_torch
+  backend is adopted into the package behind the `backend = "cebmf_torch"`
+  argument (R/ebmf_backend.R bridge; python/src/cebmf_ext is the only permitted
+  entry point), with the registered numerical guard set (sebetahat floor,
+  tau cap, explicit seeding, seed-family fallback with diagnostics) and the
+  mapping contract that the bridge never manufactures flashier-only
+  quantities (elbo/psd/lfsr stay NULL). Two revisions bind the metacell
+  workflow:
+  - **R3 (workflow join, design requirement)**: a metacell-backed fit is
+    build -> vet -> fixed-K fit -> report. Concretely: build metacells
+    (cellprogramsMC), vet them with the mcRigor QC budget (ZeroRate /
+    dubious-score / connectivity, exposed by `GetMetacellSEACells` as
+    `zerorate_overall` / `dubrate_overall` / `score_overall`), fit at a FIXED
+    K (density-silhouette K selection degenerates on abundant observations —
+    k=2 silhouette 1.00 — so K comes from the analysis plan, with pruning via
+    `prune_thresh`), and report the realized `K_eff` per fit (cebmf_ext
+    `FitResult.effective_k`, surfaced through the R bridge as
+    `fits[[ct]]$flash$effective_k`) next to the build-time ZeroRate. A fit
+    whose K_eff collapses relative to the planned K on a high-ZeroRate build
+    is a granularity artifact, not a biological null.
+  - **R4 (aggregation-scale caveat, documentation)**: program scores computed
+    on sum-aggregated pseudobulk and on per-cell or metacell log-scale inputs
+    are not comparable. Sum aggregation averages the COUNTS before the log,
+    per-cell/metacell pipelines log first: by Jensen's inequality the
+    log-of-mean and mean-of-log differ systematically, and the W5 G4 gate
+    measured the consequence directly (soft-projection 0.365 between
+    sum-aggregated and per-cell log scales). Rule: fit, project, and compare
+    program activities at ONE aggregation scale per analysis; state the scale
+    in the fit's preprocessing provenance; never mix scales in a
+    cross-granularity concordance claim.
+- **Pending**: M4 1M-cell chunked run; M5 500k shard scaling; upstream
+  frozen-prior request (weak-factor projection fidelity, M2); Zenodo deposit
+  (403 at registration time). Closed since the last update: W5 SEACells-builder
+  battery gates (30/30 complete — G1 rare-lift and G2 all-pairs detection and
+  G4 scale-consistency honestly FAIL with mechanisms recorded; G3 not directly
+  measured) and the M6 adopt/revise/abandon gate (ADOPT WITH REVISIONS R1-R4,
+  `07-m6-gate-review.md`).
 
 ## Reproduction
 

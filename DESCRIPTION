@@ -19,7 +19,8 @@ Imports:
     digest,
     flashier,
     ebnm,
-    flashier.utils
+    flashier.utils,
+    reticulate
 VignetteBuilder: knitr
 Suggests:
     knitr,
@@ -29,7 +30,8 @@ Suggests:
     data.table,
     mashr,
     igraph,
-    withr
+    withr,
+    basilisk
 Remotes:
     willwerscheid/flashier@fd44811ab22d61ee905e1964175571c452fe7683,
     flashier.utils=mdmanurung/flashier-utils

@@ -208,6 +208,24 @@
   g
 }
 
+# D-2a/D-2c: validate that every referenced (cell_type, program_id) exists in
+# the fit BEFORE the mashr layer indexes into it — unknown references used to
+# crash with opaque subscript errors deep in .sharing_matrices.
+.validate_groups <- function(fit, groups) {
+  tab <- .program_table(fit)
+  have <- paste(tab$cell_type, tab$program_id, sep = "\r")
+  for (gi in seq_along(groups)) {
+    g <- groups[[gi]]
+    want <- paste(g$cell_type, g$program_id, sep = "\r")
+    bad <- !want %in% have
+    if (any(bad)) {
+      .stopf("matches[[%d]] references unknown program(s): %s.",
+             gi, paste(sprintf("%s/%s", g$cell_type[bad], g$program_id[bad]), collapse = ", "))
+    }
+  }
+  invisible(TRUE)
+}
+
 # G x C sign-aligned loading (B) and SE (S) matrices for one matched set over
 # the shared gene panel. Loadings are already canonicalized within each cell
 # type; members matched on |cor| are additionally sign-aligned to the first
@@ -358,7 +376,13 @@
 #'   fractions (default 50).
 #' @param lfsr_thresh lfsr threshold calling a gene active in a condition
 #'   (default 0.05).
-#' @param n_perm,seed Permutation calibration for the matching step.
+#' @param n_perm,seed Permutation calibration for the matching step. CAND-07
+#'   caveat: the gene-permutation null treats genes as exchangeable;
+#'   block-correlated (co-regulated) genes violate that assumption, so
+#'   matching q-values are anticonservative when a large correlated gene block
+#'   drives both programs (audit D-1: 67.0% false-match rate under block
+#'   equicorrelation 0.55 vs 2.0% iid). A block-aware null is pending a
+#'   registered calibration benchmark; interpret marginal matches accordingly.
 #' @param min_genes Minimum shared-panel size per group (default 50).
 #' @param min_null Minimum null genes for V estimation (else identity).
 #' @param z_thresh |z| below this in every condition marks a null gene for V
@@ -380,7 +404,12 @@
 #'     `frac_top_private` (fraction of the top `n_top` genes with lfsr <
 #'     `lfsr_thresh` in >= 2 / exactly 1 conditions), `classification`
 #'     ("shared" if frac_top_shared >= 0.5, "private" if frac_top_private >=
-#'     0.5, else "partial"), and the full `mash` result;
+#'     0.5, else "partial"). D-2a caveat: "shared" means active-in-both, not
+#'     proven shared structure — at high loading SNR, independent loadings
+#'     also reach frac_top_shared >= 0.5 (forced-pair diagnostic: 30/30 false
+#'     "shared" at loading SE = 0.125 while mashr's mixture put 96% weight on
+#'     the identity pattern, p_all_shared ~ 0.001). Check `p_all_shared`.
+#'     Each per-group result also carries the full `mash` fit;
 #'   * `summary`: one row per program. Programs in no matched group are
 #'     classified "private" with evidence "no_significant_match".
 #' @examples
@@ -419,6 +448,22 @@ program_sharing <- function(fit, matches = NULL, alpha = 0.05, n_top = 50L,
     groups <- lapply(matches, .as_group)
   } else {
     .stopf("Unsupported `matches`; see ?program_sharing.")
+  }
+  .validate_groups(fit, groups)
+  if (!is.null(matches)) {
+    # D-2a: user-forced matches bypass the data-driven matching step, and the
+    # "shared" label reflects the forced grouping. The classification counts
+    # genes ACTIVE (lfsr < lfsr_thresh) in >= 2 conditions, which independent
+    # loadings can also reach at high loading SNR (audit D-2a: 30/30 false
+    # "shared" for forced independent pairs at loading SE = 0.125, while
+    # mashr's own mixture put 96% weight on the identity pattern,
+    # p_all_shared ~ 0.001). Check p_all_shared before interpreting "shared"
+    # as shared structure.
+    .warnf(paste0("`matches` supplied: matched sets are user-forced, not data-driven. ",
+                   "The 'shared' classification counts top genes active (lfsr < %g) in >= 2 conditions ",
+                   "and can label independent loadings 'shared' at high loading SNR; ",
+                   "check `p_all_shared` (mixture weight of the equal-effects pattern) before interpretation."),
+           lfsr_thresh)
   }
 
   results <- list()

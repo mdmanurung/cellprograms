@@ -166,6 +166,10 @@ project_programs_to_cells <- function(fit, expression, cell_types,
                           .spec_covariates(fit$preprocessing$covariates),
                           replay$design_columns, ct)
       beta <- replay$residualize_coefficients
+      # R2/F2 (covariate audit): aliased columns of a rank-deficient design
+      # carry NA coefficients (lm.fit pivot); the in-sample fitted values used
+      # the pivoted solution, i.e. NA <=> 0.
+      beta[is.na(beta)] <- 0
       Q <- as.matrix(expression[cells_ct, shared, drop = FALSE]) -
         X %*% beta[replay$design_columns, shared, drop = FALSE]
     } else {

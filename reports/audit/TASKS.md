@@ -141,3 +141,150 @@ Scope: bounded pilot comparison of the cellprograms ebmf pipeline against cNMF (
 - 2026-10-18: hdWGCNA wrapper arms W3+W4 COMPLETE (worker-1, hdWGCNA 0.4.12, all 3 granularities non-degenerate). Pipeline corrections: (1) power-rule CONFIRMED DEFECT in our D2 code fixed - which.max(SFT.R.sq) -> FIRST power with SFT.R.sq >= 0.80 (tutorial basic_tutorial.Rmd ~line 320 + ConstructNetwork auto-selection convention); singlecell arm went DEGENERATE (power 30 at cap, 0 modules) -> 2 modules at power 5; old exports archived (powmax_archive/). (2) ModuleEigengenes returns per-CELL MEs on the parent object even when metacells are built (tutorial line 413 - designed quantity); donor aggregation made adaptive (n_cells-weighted metacell mean for direct-network arms; per-cell mean for the metacell-built arm). (3) min_cells deviation registered: singlecell 25 -> 80 (ConstructMetacells feasible only when group n > k^2/max_shared ~= 63 for k=25/max_shared=10; hdWGCNA 0.4.12 crashes on per-group failure - empirical n=27 -> "Metacell failed" -> NULL deref; 93/99 donors retained). (4) ModuleConnectivity tryCatch-guarded with degenerate-arm else-branch. Arm results: metacell 709 genes/2 modules/power 3; pseudobulk 1486/2/4; singlecell 447/2/5. G5 (descriptive): SVD reconstruction mean |cor| 0.96 (min 0.95), top-50 Jaccard 0.66. 12-arm concordance (comparison_table.csv, 66 pairs, concordance_heatmap.png; genenmf arms absent = documented K=0 limitation): hdwgna_metacell vs hdwgna_singlecell 0.96; cebmf route concordance 0.82; cebmf vs hdwgna at matched granularity 0.72-0.76; cnmf ~0.00 against everything (consistent with the S5 anchor finding); ebmf pseudobulk-vs-singlecell 0.19 (much less route-robust than cebmf). compare_F_hdwgna.py loader bug fixed en route (obs_meta.tsv 'id' consumed by index_col=0 after the file's regeneration; cnmf arms recovered; original compare_F.py has the same latent bug).
 - 2026-10-18: cellprogramsMC (basilisk R-Python interop package) SMOKE TEST PASSED END-TO-END - full R -> basilisk -> SEACells 0.3.3 -> mcRigor -> QC chain on the synthetic 2000-cell/4-donor/8-group object: all 8 groups built (0 skipped), metacells aggregated, mcRigor QC populated (mcDiv = T_org, size-specific thresholds from res$thre, dubious verdicts real booleans; ZeroRate 0.000-0.278). Eight bridge bugs fixed this segment, all in shared source with package reinstall each time: (1) R double seed -> np.random.RandomState(float64) TypeError (int(seed) + as.integer(seed)); (2) integer-dtype mtx from R -> normalize_per_cell in-place cast error (X.astype(np.float32)); (3) SEACells 0.3.3 has no use_sparse kwarg (removed from constructor call, param kept for API compat); (4) missing ipywidgets -> tqdm.notebook ImportError (basilisk requires EXPLICIT version pins for ALL pip packages); (5) do.call(Matrix::cbind2, mc_list) - cbind2 is a BINARY S4 generic, crashes for N>2 groups -> Reduce(Matrix::cbind2, mc_list) (would also have crashed the 99-donor CD8T use case); (6) mcRigor_DETECT return structure not recognized by the normalizer (pinned against the real return: TabMC with T_org/T_colperm/T_rowperm*/T_bothperm*/TT_div/depctr_TT_div/mcRigor verdict column + separate thre data.frame with metacell ids as rownames; normalizer now maps mcDiv=T_org, threshold from res$thre, dubious from the verdict string); (7) mcRigor buildmc crashes with STRING metacell labels ("No cell overlap between new meta data and Seurat object" - its numeric branch strips Seurat's AggregateExpression "g" prefix, its string path does not; upstream mcRigor limitation) -> membership integer-coded in .mcrigor_detect_group and remapped after normalization; covariate transfer skipped via fields=character(0) (not needed for QC statistics); (8) soft_assignments.mtx is a bare MTX (no dimnames) -> .hard_labels_vector produced NA-named membership -> mcRigor "No cells found" -> rownames(soft) <- cells_g assigned when missing (rows are in exported cell order). Package source: shared store cellprogramsMC/; installed into worker-1 .Rlib. Smoke harness build_env3.R + logs smoke_full2..6.log in /workspace/mc_test/.
 - 2026-10-18: W5 SEACells-builder battery COMPLETE (30/30 combos: 3 dropout rates x 10 seeds; SEACells builder healthy throughout: 53 metacells/combo, all converged, align_mismatch=0, ~0 metacells under 10 cells, 0 zero-count metacells; harness certified by the 1.7e-5 k-means cross-check). REGISTERED GATES HONESTLY REPORTED AS FAIL: G1 rare-lift transfer FAIL at all rates (bar >=0.7x per-rep ceiling in >=8/10 seeds; rate 0.0: 3/10, mean ratio 0.658 - near-miss; rates 0.1/0.3: 0/10, ratios 0.092/0.053 - the rare 5% program's metacell-level recovery collapses under dropout as its cell mass dilutes in ~71-cell pooled metacells). G2 builder concordance FAIL (bar mean matched |cor| >=0.8 over all K=10 pairs; measured 0.427/0.411/0.330; matched-pair detail: the 5 REAL programs match at 0.67-0.86 (max 0.86), the 5 noise columns at 0.01-0.09 - the registered all-pairs mean is diluted by noise-noise matches, same K>p dilution as the CD8T route concordance). G4 soft-projection FAIL (bar >=0.99 on strong factors; strong_mean 0.365, strong_min 0.011; computation audited: alignment verified, soft rows sum to 1, correlations real; mechanism hypothesis = Jensen compression: metacell factors fit on SUM-aggregated counts vs per-cell exact projection - log(1+sum) vs log(1+cell) are different nonlinear transforms; the 0.99 bar assumed aggregation-scale compatibility and the assumption fails - the quantitative form of the registered sum-then-log1p replay concern). G3 NOT DIRECTLY MEASURED in the battery (mcRigor dubious runs in the W1/W2 smoke path, PASSED there; battery records ZeroRate proxies only). M6 interpretation: the builder is healthy and the S4-seacells refinement arm usable, but the transfer gates bound what metacells can claim - they trade rare-state fidelity and projection exactness for denoising/scale, motivating the plan's transparency requirements (ZeroRate/K_eff reporting, fixed-K + pruning). Execution note: the original aggregate_w5.py was lost to a worker-2 workspace snapshot restore; aggregation reconstructed from the JSON schema (aggregate_w5_v2.py) with all 30 result JSONs intact on the shared store.
+- 2026-10-18: FEATURE-COMPLETION REGISTRATION (re-registered; before any code change in this segment; user directive "finish all features new for cellprograms including the metacell and cebmf torch", post-M6). Scope registered as four work items: (1) CEBMF_TORCH BACKEND ADOPTION — R/ebmf_backend.R bridge (option cellprograms.cebmf_python_env -> basilisk -> fail-closed abort; FitResult -> flash-like mapping with L_pm/F_pm subset to non-degenerate columns, elbo/psd/lfsr = NULL per contract, objective trace + direction="loss" + effective_k + converged + tau + guard_diagnostics), backend arg on fit_celltype_programs, fixed-mode abort, no flashier fallback ladder; (2) VAR_FLOOR S EXPOSURE — var_floor = "none" | "vignette" | numeric scalar on fit_celltype_programs, vignette S = sd(log(rpois(1e7, 1/n)+1)) at fixed local seed 20261016, var_floor-derived S reroutes the flashier.utils fast path through legacy flash with a warning, FitConfig.S in cebmf_ext (KNOWN noise); (3) R2 COVARIATE PATCHES F1-F4 from the covariate audit (replay center/scale subset on gene drop; fixed-mode centering guard repeated after spec substitution; interaction-term drop for within-ct-constant covariates; NA beta zeroing in projection); (4) METACELL R3/R4 — ZeroRate/K_eff reporting join documented, aggregation-scale (Jensen) caveat documented, cellprogramsMC testthat suite + Rd pages. Approval basis: user finish-all directive + M6 review recommendation + standing delegation pattern.
+- 2026-10-18: INCIDENT + RECONSTRUCTION RECORD (P1, resolved). The 2026-10-18 registrations of R/ebmf_backend.R, tests/testthat/test-backend-cebmf.R, the TASKS.md registration above, the inst/python/src copy, and the cebmf_ext FitConfig.S edit existed only in a worker tree destroyed by a repo re-sync (rm -rf + untar from a canonical tree that never received those Write calls; tool-routing lesson recorded). Recovered/reconstructed this session: FitConfig.S + constructor pass-through (verified against cebmf.py S contract: KNOWN noise, noise_type ignored); R/ebmf_backend.R rewritten to the registered mapping contract; test-backend-cebmf.R rewritten (12 tests); TASKS.md registration re-appended; inst/python/src copy restored. HONEST DEVIATION: the python divergence suite was rewritten against OBSERVED behavior — on the registered diverging fixture (150x40, seed 2, K=6) all 3 seed-family members diverge, so the family-exhaustion RuntimeError is the tested contract; the fallback+RuntimeWarning path is tested via a simulated first-attempt failure (monkeypatched _fit_once), not via a recovering fixture. No recovering fixture is registered; do not claim seed-family recovery works on the ledger fixture. Python suite: 6/6 pass on torch 2.7.1+cpu. Process rule added: repo re-syncs must md5-verify EVERY critical file, and no rm -rf while jobs run from the tree.
+- 2026-10-18: METACELL (R3/R4) + CEBMF_TORCH + VAR_FLOOR EXECUTION RECORD. (1) cellprogramsMC testthat suite GREEN: FAIL 0 | WARN 0 | PASS 24 | SKIP 1 (opt-in CPMC_INTEGRATION=1 basilisk/SEACells end-to-end); all 4 hand-written Rd pages parse (tools::parse_Rd). Two test-contract fixes made during validation: .mc_n_seacells_for_group now returns integer (counts are counts; python call wants int); the export round-trip test asserts value fidelity + sparse class instead of pinning readMM's dgC/dgT representation (Matrix-version detail; names travel via cells.csv/genes.csv by design — MTX has no dimnames). (2) R3/R4 documentation landed: docs/cebmf-extension/05-granularity-case-study.md (M6 adoption record, R3 build->vet->fixed-K->report workflow join with ZeroRate/K_eff surfaces, R4 aggregation-scale/Jensen caveat with the G4 0.365 measurement, Pending list closed out for W5+M6); 06-metacell-plan.md execution close-out status. (3) cebmf_torch backend + var_floor + R2 patches reconstructed after the sync-loss incident (see INCIDENT + RECONSTRUCTION RECORD above); backend test file 12 tests GREEN (FAIL 0 | WARN 3 = the three registered var_floor routing warnings). (4) CAND-13 demonstrator: Part A (recovery_k3 generator, 10 reps x 3 dropout rates x 2 arms) completed; Part B initially failed twice (Matrix::rowsum not exported on the runner's Matrix version -> replaced with one-hot sparse aggregation; cell label "CD8 T" -> "CD8 T cell" per the h5ad categories) — rerunning. Honest note: the python divergence suite tests family-EXHAUSTION on the registered fixture (all 3 seeds diverge there); the fallback+warning path is covered by a simulated first-attempt failure, not a recovering fixture.
+- 2026-10-18: CAND-13 DEMONSTRATOR PART A VERDICT (P1 finding; var_floor calibration). Design: recovery_k3 generator (80x600, K_true=3, effect 1.0, seeds 1-10), dropout 0/0.1/0.3 (nested masks), arms default vs vignetteS (S = sd(log(rpois(1e7, 1/n)+1)) = 0.0771 at n=80, fixed local seed 20261016), registered flashier operating point (ebnm_normal + point_laplace, var_type=1, greedy_Kmax=10, backfit, nullcheck). RESULT: 30/30 arm pairs BIT-IDENTICAL (K, score_cor, jaccard, lfsr AUC, false_rate, mean_sd, ELBO) at every rate. Mechanism pinned by direct experiment: at flashier@fd44811 a scalar fixed-S passed to flasher::flash() does not bind — ELBO bit-identical with and without S at var_type 0 AND 1 (S is a documented formal: "standard errors... scalar if identical across observations", so the no-op is not a signature mismatch). CONSEQUENCE: the "vignette S floor" cannot mitigate the dropout collapse at this pin because it never takes effect through flasher::flash; the registered vignette recipe's S appears inert at this pin (upstream question, joins the frozen-prior queue). GUIDANCE (registered): var_floor default stays "none"; on backend="flashier" var_floor is recorded (S_used, provenance) but DOES NOT BIND — follow-up remediation should make the flashier var_floor path fail-closed (refuse or find a binding invocation) rather than silently no-op; on backend="cebmf_torch" var_floor DOES bind (KNOWN noise, noise_type ignored — python-verified). Part B (UCSF CD8T, 99 donors) running; same no-op expected on the flashier arms.
+
+---
+
+## INCORPORATION RECORD — original session artifacts (2026-10-18, P2)
+
+Directive: incorporate all outputs/analysis/plans from original session
+sess_a9d08850c561 (mounted at /mnt/user-results/sessions/sess_a9d08850c561,
+7.5 GB). Action: 712 files / 21.1 MB (docs, tables, figures, plans, scripts;
+5 MB/file cap; transcript + tool_outputs + npz + bundle binaries excluded)
+copied to the results bundle under incorporated_sess_a9d08850c561/, with
+INCORPORATION.md mapping every artifact group to current workstreams.
+
+Consequences registered:
+1. CAND-13 Part B CLOSED AS SUPERSEDED (P2): the original session's
+   cd8t_aging/ analysis already covers the demonstrator's Part B intent on the
+   same UCSF CD8 T cell data (99 donors) at the registered operating point,
+   with a strictly richer design (8 subsets x 2 routes: SEACells metacell +
+   donor pseudobulk; 19/160 FDR<0.05 age associations; route concordance).
+   The demonstrator's Part B bug (non-conformable product in the one-hot
+   pseudobulk aggregation, run 8) is documented, not fixed — no further
+   demonstrator iterations planned.
+2. Backend guard provenance CONFIRMED (P2): cd8t_aging/summary.md deviation 7
+   (GZMK+ incident) root-causes laplace-EBNM NaN to sebetahat -> 0 on
+   single-donor-spike genes; registered remedy = class-level sebetahat floor
+   1e-4 before every laplace prior fit. This matches the guard set implemented
+   in R/ebmf_backend.R + inst/python/src/cebmf_ext/fit.py exactly.
+3. Metacell docs CORROBORATED (P2): every quantitative claim in
+   docs/cebmf-extension/05-granularity-case-study.md traces to w5_battery/
+   gate verdicts (G1/G2/G4 FAIL at all rates; G4 strong_mean 0.365) or
+   vignette_granularity_case_study.md. R2 patches F1-F4 trace to
+   covariate_audit/report.md (46/46 post-patch).
+4. GitHub push STILL PENDING: first push_files attempt failed on a missing
+   message parameter; corrected call queued. Full changed set remains
+   delivered via the results bundle (cellprograms_feature_completion/).
+
+---
+
+## REMEDIATION QUEUE EXECUTION REGISTRATION (2026-10-18, directive: start CAND-01, CAND-05, CAND-07, D-2a, CAND-03+D-3b, CAND-12)
+
+Registered fix scopes (from the 2026-10-17 verdict queue, items 2-7), executed in one
+registered batch. Repo law honored: NO change to the program-sharing permutation null
+in this batch (CAND-07 code fix is calibration-gated; see below).
+
+1. CAND-01 (P1, R/stability.R): expose refit-failure accounting. recovery_freq
+   redefined over SUCCESSFUL refits (denominator n_success = n_boot - n_failed);
+   n_failed/n_success stored in fit$stability; warning when any refit fails;
+   distinct warning + NA (not 0) when ALL refits fail. Regression test:
+   deterministic injected-failure mock (partial + all-fail).
+2. CAND-05 (P2, R/coordination.R): member orientation propagates along LINKING
+   edges (BFS over the kept edge set that formed the CMP; sign = product of edge
+   signs along the path from the reference member). Removes the random +/-1
+   orientation chain members inherited from non-linking noise edges in the full
+   edge table. Regression test: planted chain A-B (+) / B-C (-) with a
+   noise-signed direct A-C edge; C's sign must be the path product.
+3. CAND-07 (P1, R/program-sharing.R matching step): (a) NOW: exchangeability
+   caveat added to the matching-step documentation, mirroring
+   cmp-interpret.R:92-96, citing D-1 (67.0% type-I under block equicorrelation
+   0.55 vs 2.0% iid); (b) REGISTERED for follow-up: mini-benchmark design =
+   null calibration at block equicorrelation + planted-truth power, current
+   gene-label permutation null vs a block-aware candidate null; the null change
+   happens only after that benchmark is registered AND run (repo law). No null
+   code change in this batch.
+4. D-2a (P1, R/program-sharing.R mashr layer): registered FALLBACK path (the
+   data_driven mechanism was refuted by the D2 diagnostic): matches= input
+   validation (informative aborts for malformed tables/unknown program ids;
+   resolves the D-2c crash class), explicit forced-pair warning on every
+   matches= call, and the classification docstring now states that "shared"
+   means >=50% of top genes ACTIVE (lfsr < thresh) in >=2 conditions - which
+   independent loadings can reach at high loading SNR (D-2a: 30/30 false
+   "shared" at SE=0.125 while mashr's mixture put 96% on the identity pattern,
+   p_all_shared ~ 0.001); p_all_shared named as the diagnostic. Classification
+   rule itself UNCHANGED pending a registered benchmark of any replacement.
+5. CAND-03 + D-3b (P2, R/data-model.R + R/utils.R): as_cell_program_data now
+   rejects ALL non-finite entries (NA/NaN/Inf) with a count-bearing abort
+   (was: is.na only, so Inf passed and crashed validate/fit opaquely);
+   .greedy_match demotes non-finite similarities to -Inf (never matched) with
+   a warning instead of crashing on NA max().
+6. CAND-12 (P2, R/ebmf.R + R/stability.R): the full preprocessing_spec object
+   is stored on the fit (fit$preprocessing$spec; frozen_spec digest field
+   unchanged for compatibility); stability refits REPLAY the spec through the
+   MR-0 fail-closed checks when present (explicit-args path retained for
+   legacy fits without a spec); feature_scale added to the MR-0 conflict list;
+   feature_scale now passed through in legacy-path refits (was silently
+   "unknown" in refit manifests).
+
+Test plan: new tests/testthat/test-remediation-cand.R covering all six;
+full testthat suite must stay FAIL 0 with the baseline WARN count explained.
+
+---
+
+## REMEDIATION QUEUE COMPLETION (2026-10-18)
+
+All six registered remediations implemented and verified (registration above):
+
+- CAND-01 (P1, stability.R): n_failed/n_success exposed; recovery_freq over
+  SUCCESSFUL refits; all-fail = NA + distinct warning (never 0); per-program
+  n_hit added. Regression: deterministic injected-failure mocks (partial 2/4,
+  all-fail).
+- CAND-05 (P2, coordination.R): member orientation = product of edge signs
+  along the linking-edge path from the reference (BFS over the kept edge set).
+  Regression test PROVEN bug-sensitive by revert-check: the pre-fix code fails
+  the test (chain member C inherited the noise-edge sign; sC != -sA), the
+  fixed code passes.
+- CAND-07 (P1, program-sharing.R): exchangeability caveat added to the
+  matching-step docs (docstring + Rd, mirrors cmp-interpret.R:92-96, cites
+  D-1: 67.0% type-I under block equicorrelation 0.55 vs 2.0% iid);
+  mini-benchmark design registered (null calibration at block equicorrelation
+  + planted-truth power). NO permutation-null change (repo law honored).
+- D-2a (P1, program-sharing.R): matches= validation (unknown program refs
+  abort informatively - closes the D-2c crash class; malformed shapes abort);
+  forced-pair warning on every matches= call; classification caveat documented
+  ("shared" = active-in-both, check p_all_shared). Rule unchanged pending a
+  registered benchmark of any replacement.
+- CAND-03+D-3b (P2, data-model.R + utils.R): as_cell_program_data rejects ALL
+  non-finite entries (NA/NaN/Inf) with a count-bearing abort; .greedy_match
+  demotes non-finite similarities to unmatched with a warning (was: opaque
+  crash on NA max()).
+- CAND-12 (P2, ebmf.R + stability.R): full frozen spec stored on the fit
+  (fit$preprocessing$spec; frozen_spec digest field unchanged); stability
+  refits REPLAY the spec through the MR-0 fail-closed checks (legacy fits
+  keep the explicit-args path, now with feature_scale passthrough);
+  feature_scale added to the MR-0 conflict list.
+
+En-route findings (honest):
+- basilisk API bug in the backend bridge (this session's feature work, not the
+  queue): the bridge called basilisk_start/basilisk_run/basilisk_stop, which
+  basilisk has never exported (real API: basiliskStart/basiliskRun/
+  basiliskStop). Latent - masked whenever the cebmf_python_env option path was
+  taken. FIXED; backend file 13/13 green through the option path.
+- The reconstructed F2 test violated the projection unit-declaration contract
+  (fit manifest feature_scale "unknown" + declared query units -> flashier.utils
+  refuses). Test fixed to declare feature_scale on both sides; intent
+  (aliased design -> NA coefficients zeroed -> finite activities) unchanged.
+- Suite-counting note: the progress reporter counts EXPECTATIONS, not
+  test_that blocks (baseline 620 and current 654 are expectation counts).
+
+Verification: full suite FAIL 0 | WARN 12 | SKIP 0 | PASS 654
+(baseline FAIL 0 | WARN 10 | PASS 620; +34 expectations = new regression file
++ F2 fix; +2 warnings both registered/expected: the D-2a forced-pair warning
+firing in the end-to-end sharing test, and a mashr V=identity toy note).
+All edited Rd files parse (tools::parse_Rd). Queue CLOSED; remaining open
+items unchanged (M4/M5, E-M3.2/E-M3.4, Zenodo, upstream x2, CAND-07
+mini-benchmark RUN, flashier var_floor fail-closed, GitHub push 403).

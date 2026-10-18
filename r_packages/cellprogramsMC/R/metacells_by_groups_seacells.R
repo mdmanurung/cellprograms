@@ -29,7 +29,8 @@
     if (!is.null(target_metacells)) {
         n <- min(n, target_metacells)
     }
-    max(1, n)
+    # integer: metacell counts are counts (and the python call wants an int)
+    as.integer(max(1, n))
 }
 
 .run_seacells_in_basilisk <- function(paths, out_dir, n_seacells, params, seed) {

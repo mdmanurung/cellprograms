@@ -1,5 +1,41 @@
 # cellprograms 0.2.0.9000 (development)
 
+## New features (2026-10-18 feature-completion segment)
+
+* `fit_celltype_programs()` gains `backend = c("flashier", "cebmf_torch")`.
+  The `cebmf_torch` backend runs the pure-PyTorch cEBMF implementation
+  (pinned upstream `william-denault/cebmf_torch@34abac5`) through the
+  `cebmf_ext` adapter, with a registered numerical guard set (sebetahat floor
+  1e-4, tau precision cap 1e8, explicit seeding, seed-family fallback with
+  diagnostics) and a strict mapping contract: the bridge never manufactures
+  flashier-only quantities, so `elbo`, `L_psd`, `F_psd`, and `F_lfsr` are NULL
+  on this backend and `program_summary()` reports `elbo = NA`. Fixed-mode
+  covariates are refused on this backend (no fixed-loadings path); use the
+  default `covariate_mode = "residualize"`. Python resolution:
+  `options(cellprograms.cebmf_python_env = ...)` (python binary or venv with
+  `cebmf_ext` importable), else basilisk (pinned `torch==2.7.1` CPU — the pin
+  is load-bearing, 2.14.1+cpu diverges on inputs where 2.7.1+cpu is green),
+  else a fail-closed error. No flashier-style fallback ladder: backend
+  failures abort loudly per cell type.
+* `fit_celltype_programs()` gains `var_floor = "none" | "vignette" | <positive
+  scalar>`: fix the residual SD instead of estimating it. `"vignette"` uses
+  the flashier single-cell vignette's floor, `S = sd(log(Poisson(1/n) + 1))`
+  with `n` the cell type's donor count, drawn once per cell type at a fixed
+  local seed (deterministic, fit-seed-independent). A `var_floor`-derived S is
+  not mappable through `flashier.utils::fit_ebmf()`, so on the fast path the
+  fit reroutes through `flashier::flash()` with a warning; the cebmf_torch
+  backend passes S through as KNOWN noise. The default `"none"` preserves
+  existing behavior exactly. Calibration evidence: CAND-13 demonstrator
+  (`reports/audit/E_programs/`).
+* Covariate-audit patches (R2/F1-F4): gene-drop blocks now subset the
+  projection-replay `center`/`scale` vectors to retained genes (F1);
+  `covariate_mode = "fixed"` with `center = FALSE` is refused even when the
+  combination arrives through a frozen preprocessing spec (F3); covariate
+  terms referencing within-cell-type-constant variables — including
+  interaction terms — are dropped instead of crashing `model.matrix()` (F4);
+  aliased rank-deficient replay designs zero their NA coefficients at
+  projection instead of propagating NaN activities (F2).
+
 ## Audit remediations
 
 * `find_coordinated_programs()`: missing donor scores (NA) are no longer
@@ -12,6 +48,50 @@
   missingness) or inflated significance (missingness shared across programs);
   a planted pair with 20% missingness could be missed entirely with no
   warning. Regression tests: `tests/testthat/test-cmp-missingness.R`.
+
+## Remediation queue (2026-10-18): CAND-01, CAND-05, CAND-07, D-2a, CAND-03+D-3b, CAND-12
+
+* `assess_program_stability()` (CAND-01, P1): subsample refit failures are now
+  counted and reported (`fit$stability$n_failed`/`n_success`, warning on any
+  failure); `recovery_freq` is defined over SUCCESSFUL refits — previously the
+  silent denominator was `n_boot`, so a 30% refit-failure rate read as a 30%
+  recovery loss with zero user-facing signal, and an all-fail run was
+  indistinguishable from zero stability. All-fail now yields NA with a
+  distinct warning; per-program `n_hit` added.
+* `find_coordinated_programs()` (CAND-05, P2): CMP member orientation now
+  propagates along the linking edges that formed the CMP (product of edge
+  signs along the path from the reference member). Chain-joined members
+  previously inherited the sign of the direct reference–member edge from the
+  full edge table — which can be a non-linking noise edge, i.e. a random +/-
+  that propagated into `cmp_scores()`, `annotate_cmp_tf()` and `cmp_triage()`
+  direction calls.
+* `program_sharing()` (D-2a/D-2c, P1): `matches=` references are validated
+  (unknown programs abort informatively instead of crashing in the mashr
+  layer) and every forced-matches call warns that the "shared" label counts
+  top genes ACTIVE (lfsr < thresh) in >= 2 conditions — which independent
+  loadings can also reach at high loading SNR (audit D-2a: 30/30 false
+  "shared" for forced independent pairs at loading SE 0.125, while mashr's
+  own mixture put 96% weight on the identity pattern, p_all_shared ~ 0.001);
+  `p_all_shared` is the diagnostic. The classification rule itself is
+  unchanged pending a registered benchmark of any replacement.
+* Matching-step documentation (CAND-07, P1): the gene-permutation null's
+  exchangeability caveat is now stated where matching q-values are produced
+  (mirroring `cmp-interpret.R`): block-correlated genes inflate false matches
+  (audit D-1: 67.0% type-I under block equicorrelation 0.55 vs 2.0% iid). The
+  null itself is UNCHANGED — a registered mini-benchmark (null calibration at
+  block equicorrelation + planted-truth power) precedes any null change.
+* `as_cell_program_data()` (CAND-03, P2): rejects ALL non-finite entries
+  (NA/NaN/Inf) with a count-bearing abort; Inf previously passed the NA-only
+  check and crashed validate/fit with an opaque
+  "missing value where TRUE/FALSE needed".
+* `.greedy_match()` (D-3b, P2): non-finite similarities are demoted to
+  "unmatched" with a warning instead of crashing on `max()` of an NA-bearing
+  matrix.
+* `fit_celltype_programs()` + `assess_program_stability()` (CAND-12, P2): the
+  full frozen `preprocessing_spec` is stored on the fit (not just its digest)
+  and stability refits REPLAY it through the MR-0 fail-closed checks;
+  `feature_scale` joined the MR-0 conflict list and is passed through in
+  legacy-path refits (previously silently "unknown" in refit manifests).
 
 # cellprograms 0.2.0
 

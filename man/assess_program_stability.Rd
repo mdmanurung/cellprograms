@@ -35,8 +35,11 @@ preprocessing settings, gene sets and covariates).}
 }
 \value{
 The fit with `fit$stability` populated: per-program recovery
-  frequency, median score correlation, median loading cosine, sign
-  consistency, and top-gene Jaccard.
+  frequency (fraction of SUCCESSFUL subsample refits whose match recovers
+  the program; failed refits are excluded from the denominator and reported
+  in `n_failed`/`n_success`, with a warning; all-fail yields NA, not 0),
+  median score correlation, median loading cosine, sign consistency, and
+  top-gene Jaccard.
 }
 \description{
 Assess program stability by donor subsampling

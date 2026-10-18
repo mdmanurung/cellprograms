@@ -39,7 +39,13 @@ fractions (default 50).}
 \item{lfsr_thresh}{lfsr threshold calling a gene active in a condition
 (default 0.05).}
 
-\item{n_perm, seed}{Permutation calibration for the matching step.}
+\item{n_perm, seed}{Permutation calibration for the matching step. CAND-07
+caveat: the gene-permutation null treats genes as exchangeable;
+block-correlated (co-regulated) genes violate that assumption, so
+matching q-values are anticonservative when a large correlated gene block
+drives both programs (audit D-1: 67.0% false-match rate under block
+equicorrelation 0.55 vs 2.0% iid). A block-aware null is pending a
+registered calibration benchmark; interpret marginal matches accordingly.}
 
 \item{min_genes}{Minimum shared-panel size per group (default 50).}
 
@@ -70,7 +76,12 @@ An object of class `program_sharing`:
     `frac_top_private` (fraction of the top `n_top` genes with lfsr <
     `lfsr_thresh` in >= 2 / exactly 1 conditions), `classification`
     ("shared" if frac_top_shared >= 0.5, "private" if frac_top_private >=
-    0.5, else "partial"), and the full `mash` result;
+    0.5, else "partial"). D-2a caveat: "shared" means active-in-both, not
+    proven shared structure — at high loading SNR, independent loadings
+    also reach frac_top_shared >= 0.5 (forced-pair diagnostic: 30/30 false
+    "shared" at loading SE = 0.125 while mashr's mixture put 96% weight on
+    the identity pattern, p_all_shared ~ 0.001). Check `p_all_shared`.
+    Each per-group result also carries the full `mash` fit;
   * `summary`: one row per program. Programs in no matched group are
     classified "private" with evidence "no_significant_match".
 }
