@@ -65,6 +65,13 @@
 #'   `coverage` (per cell type: programs, cells, shared/reference genes,
 #'   coverage), `analysis_metadata`, and `provenance`.
 #'
+#' @details Projection is joint over the supplied cells within each cell type:
+#'   activity priors are re-estimated from the query set, so the same cell
+#'   projected in two different query sets can receive different activities.
+#'   Chunked projection would be an approximation and is not offered; oversize
+#'   queries are refused pre-flight against `dense_budget_bytes` (decision
+#'   record: flashier.utils `reports/FU3B_CP6_CHUNKING_DECISION.md`).
+#'
 #' @examples
 #' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
 #' x <- as_cell_program_data(sim$pseudobulk)

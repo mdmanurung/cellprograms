@@ -86,6 +86,13 @@ residualized covariates for a cell type, `donors` and `sample_metadata`
 are required so the adjustment can be rebuilt for the query cells; the
 rebuilt design must reproduce the fit's design columns exactly (fail
 closed on cohort changes that add or drop covariate levels).
+
+Projection is joint over the supplied cells within each cell type:
+  activity priors are re-estimated from the query set, so the same cell
+  projected in two different query sets can receive different activities.
+  Chunked projection would be an approximation and is not offered; oversize
+  queries are refused pre-flight against `dense_budget_bytes` (decision
+  record: flashier.utils `reports/FU3B_CP6_CHUNKING_DECISION.md`).
 }
 \examples{
 sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
