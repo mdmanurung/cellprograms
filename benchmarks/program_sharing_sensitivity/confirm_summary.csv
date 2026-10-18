@@ -1,0 +1,19 @@
+"scenario","arm","n_reps","promo_rate","promo_lo","promo_hi","mean_artifact_frac_top","mean_frac_top_shared","gate"
+"P1_shared_biology","full",20,1,0.831566529016915,1,0,1,"recovery 1.000 [0.832, 1.000] (gate >= 0.80): PASS"
+"P1_shared_biology","prespecified",20,1,0.831566529016915,1,0,1,"recovery 1.000 [0.832, 1.000] (gate >= 0.80): PASS"
+"P1_shared_biology","posthoc",20,1,0.831566529016915,1,0,1,"recovery 1.000 [0.832, 1.000] (gate >= 0.80): PASS"
+"N0_unrelated","full",20,0,0,0.168433470983085,NA,NA,NA
+"N0_unrelated","prespecified",20,0,0,0.168433470983085,NA,NA,NA
+"N0_unrelated","posthoc",20,0,0,0.168433470983085,NA,NA,NA
+"N1_ambient_ig","full",20,1,0.831566529016915,1,1,0.8,NA
+"N1_ambient_ig","prespecified",20,0,0,0.168433470983085,NA,NA,NA
+"N1_ambient_ig","posthoc",20,0.6,0.36054258730749,0.808809939274693,1,0.516666666666667,NA
+"N2_vdj_lineage","full",20,0,0,0.168433470983085,NA,NA,NA
+"N2_vdj_lineage","prespecified",20,0,0,0.168433470983085,NA,NA,NA
+"N2_vdj_lineage","posthoc",20,0,0,0.168433470983085,NA,NA,NA
+"N3_sex_shared","full",20,0,0,0.168433470983085,NA,NA,NA
+"N3_sex_shared","prespecified",20,0,0,0.168433470983085,NA,NA,NA
+"N3_sex_shared","posthoc",20,0,0,0.168433470983085,NA,NA,NA
+"N4_genotype_shared","full",20,0,0,0.168433470983085,NA,NA,NA
+"N4_genotype_shared","prespecified",20,0,0,0.168433470983085,NA,NA,NA
+"N4_genotype_shared","posthoc",20,0,0,0.168433470983085,NA,NA,NA
