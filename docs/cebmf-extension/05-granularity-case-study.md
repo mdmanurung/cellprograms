@@ -197,9 +197,34 @@ comparisons are not interchangeable.
   argues for metacell construction BEFORE fitting when zeros are mean-dependent.
 - **mcRigor link (MR-3)**: the ZeroRate budget that drives the ebmf dropout collapse
   is a per-granularity design constraint for any metacell builder cellprograms adopts.
-- **Pending**: cNMF anchor battery S5 (running); M4 1M-cell chunked run; M5 500k
-  shard scaling; M6 adopt/revise/abandon gate; upstream frozen-prior request
-  (weak-factor projection fidelity, M2).
+- **Metacell plan execution (W1-W7, cellprogramsMC)**: the SEACells + mcRigor
+  builder now exists as the companion R package `r_packages/cellprogramsMC`
+  (basilisk-isolated SEACells 0.3.3 backend, mcRigor MIT as a direct R
+  dependency; SEACells GPLv2 / hdWGCNA GPLv3 are dependencies/wrappers only,
+  never source-copied into the MIT package). Smoke test passed end-to-end
+  (R -> basilisk -> SEACells -> mcRigor -> QC populated) after eight bridge
+  fixes, all ledgered (2026-10-18 entry). The hdWGCNA wrapper arm (W3+W4) is
+  complete at all three granularities (2 non-grey modules each under the
+  tutorial power rule; min_cells deviation registered for the singlecell arm)
+  and joins the concordance comparison as arms 10-12: hdwgna_metacell vs
+  hdwgna_singlecell 0.96; cebmf vs hdwgna at matched granularity 0.72-0.76;
+  cnmf ~0.00 against everything. The cNMF anchor battery (S5, 30 fits) found
+  cNMF's density-silhouette k-selection picks k_hat=2 vs 4 planted programs at
+  low dropout and never recovers the rare 5% program there - supporting the
+  plan's fixed-K + pruning + ZeroRate/K_eff transparency design.
+- **CD8T aging case study (program effect)**: cEBMF programs within 8 CD8T
+  subsets x 2 routes (SEACells metacells + donor pseudobulk), 99 donors:
+  19/160 FDR<0.05 age associations; strongest = an effector program
+  (CST7/MYO1F/KLRB1/PRF1) declining with age within naive CD8T (beta=-6.88,
+  FDR=6.9e-5); cytotoxic GZMA/GZMH program increasing in GZMB+ Tem; ROR1/CTSV
+  ontogeny program increasing in RTE. Honest caveats: several significant
+  programs are ribosomal/mitochondrial content blocks; cross-subset program
+  sharing is statistically detectable but weak in magnitude (zero edges at
+  |cor|>=0.8). A laplace-EBNM NaN mode (sebetahat -> 0 on exactly-fittable
+  genes) was root-caused and guarded (sebetahat floor, registered deviation).
+- **Pending**: W5 SEACells-builder battery gates (running); M4 1M-cell chunked
+  run; M5 500k shard scaling; M6 adopt/revise/abandon gate; upstream
+  frozen-prior request (weak-factor projection fidelity, M2).
 
 ## Reproduction
 
