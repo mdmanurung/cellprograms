@@ -15,10 +15,11 @@ Gene classes that can produce cross-donor co-variation without coordinated
 biology, used for flagging called programs and for fit-time exclusion:
 }
 \details{
-* `vdj`: immunoglobulin and T-cell-receptor V(D)J and constant genes.
-  Stored as a single regular expression,
-  `^(IG[HKL]V|IG[KL]C|IGH[GAMDE]|JCHAIN|TR[ABGD][VC])`, not an enumerated
-  gene list, because the full V-gene complement is
+* `vdj`: immunoglobulin and T-cell-receptor V, D, J and constant genes
+  (including the lambda-like surrogates IGLL1/IGLL5). Stored as a single
+  regular expression,
+  `^(IG[HKL][VDJC]|IGH[GAMDE]|IGLL[0-9]|JCHAIN|TR[ABGD][VDJC])`, not an
+  enumerated gene list, because the full V-gene complement is
   genome-annotation-dependent; expand it against a gene universe with
   `.expand_vdj()` (or use `artifact_genes()`, which expands every set).
 * `genotype_marker`: genes with common germline deletion, copy-number or

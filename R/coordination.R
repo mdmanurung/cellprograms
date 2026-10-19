@@ -76,7 +76,11 @@
 }
 
 .cmp_prep <- function(scores, blocks, min_donors) {
-  scores <- scores[vapply(scores, function(S) !is.null(S) && ncol(S) > 0L && nrow(S) >= min_donors, TRUE)]
+  # Count OBSERVED donors, not rows: score matrices carry NA rows for donors
+  # never observed in that cell type, so nrow() overstates the usable n.
+  scores <- scores[vapply(scores, function(S) {
+    !is.null(S) && ncol(S) > 0L && sum(rowSums(!is.na(S)) > 0L) >= min_donors
+  }, TRUE)]
   lapply(scores, function(S) {
     R0 <- .cmp_rank_gauss(S)
     f <- factor(blocks[rownames(S)])
@@ -316,7 +320,7 @@ find_coordinated_programs <- function(fit, strata = NULL, context = NULL,
   pairs <- .cmp_pairs(Z, min_shared)
   if (!length(pairs)) return(res)
 
-  set.seed(seed)
+  withr::local_seed(seed)
   edges <- .cmp_edges(Z, pairs)
   idx <- .cmp_node_index(edges)
   A <- .cmp_node_stat(edges$stat, idx, tau)

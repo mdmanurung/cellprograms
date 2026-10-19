@@ -123,10 +123,11 @@
 #' @param n_neighbors Number of neighbors for the SEACells graph. Default 15.
 #' @param convergence_epsilon Franke-Wolfe convergence threshold. Default 1e-5
 #'   (hdWGCNA vignette value).
-#' @param max_iter Maximum SEACells fit iterations. Default 100 (the SEACells
-#'   0.3.3 fork default; non-convergence is recorded in fit_stats, not fatal).
-#' @param use_sparse Use sparse matrix operations in SEACells (CPU only).
-#'   Default TRUE.
+#' @param max_iter Maximum SEACells fit iterations. Default 20;
+#'   non-convergence is recorded in fit_stats, not fatal.
+#' @param use_sparse Reserved for API compatibility; currently **ignored** —
+#'   the pinned SEACells 0.3.3 fork has no `use_sparse` kwarg (a warning is
+#'   issued when set to a non-default value). Default TRUE.
 #' @param use_soft_assignments If TRUE (default), export the cells x metacells
 #'   soft-assignment matrix (`A_.T`) and store it on the output.
 #' @param run_mcrigor If TRUE (default), run mcRigor dubious-metacell
@@ -209,6 +210,17 @@ MetacellsByGroupsSEACells <- function(
         stop("group.by columns not found in meta.data: ",
              paste(missing_cols, collapse = ", "))
     }
+    clashing <- intersect(group.by, c("Group", "n_cells"))
+    if (length(clashing) > 0) {
+        cli::cli_abort("{.arg group.by} column(s) {.val {clashing}} clash with reserved metacell metadata names; rename the metadata column first.")
+    }
+    if (!isTRUE(use_sparse)) {
+        cli::cli_warn("{.arg use_sparse} is currently ignored: the pinned SEACells 0.3.3 fork has no {.code use_sparse} kwarg.")
+    }
+    if (isTRUE(run_mcrigor) && !requireNamespace("mcRigor", quietly = TRUE)) {
+        cli::cli_warn("{.pkg mcRigor} is not installed; skipping dubious-metacell QC (QC columns will be NA). Install it with {.code remotes::install_github('JSB-UCLA/mcRigor')}.")
+        run_mcrigor <- FALSE
+    }
     if (!is.null(reduction) && !(reduction %in% names(seurat_obj@reductions))) {
         stop("reduction '", reduction, "' not found; available: ",
              paste(names(seurat_obj@reductions), collapse = ", "))
@@ -233,7 +245,9 @@ MetacellsByGroupsSEACells <- function(
 
     mc_list <- list(); obs_list <- list(); soft_list <- list(); qc_list <- list()
     skipped <- list(); fit_stats_list <- list()
-    tmp_root <- file.path(tempdir(), paste0("cpmc_", as.integer(Sys.time())))
+    # tempfile() guarantees a unique directory name; an integer-seconds
+    # timestamp collides for concurrent or same-second runs.
+    tmp_root <- tempfile(pattern = "cpmc_")
     dir.create(tmp_root, recursive = TRUE, showWarnings = FALSE)
 
     for (gi in seq_along(levels_g)) {
@@ -243,6 +257,8 @@ MetacellsByGroupsSEACells <- function(
         if (verbose) message("[", gi, "/", length(levels_g), "] group '", g,
                              "': ", length(cells_g), " cells")
         if (length(cells_g) < min_cells) {
+            warning("group '", g, "' skipped: ", length(cells_g),
+                    " cells < min_cells = ", min_cells, call. = FALSE)
             skipped[[g]] <- data.frame(group = g, n_cells = length(cells_g),
                                        reason = "below min_cells")
             next
@@ -310,6 +326,16 @@ MetacellsByGroupsSEACells <- function(
                 dubious = NA, stringsAsFactors = FALSE
             )
         }
+        # Harmonize columns between the mcRigor table and the fallback so the
+        # per-group rbind cannot fail when only some groups have real QC (the
+        # mcRigor table lacks n_cells; the fallback carries it).
+        if (!"n_cells" %in% colnames(qc_g)) {
+            qc_g$n_cells <- mc_obs$n_cells[match(qc_g$metacell, mc_names)]
+        }
+        for (cc in setdiff(c("metacell", "Group", "n_cells", "mcDiv",
+                             "mcDiv_threshold", "dubious"), colnames(qc_g))) {
+            qc_g[[cc]] <- NA
+        }
         # ZeroRate + Score (mcRigor paper: Score = 1 - w*DubRate - (1-w)*ZeroRate)
         zr_mc <- 1 - Matrix::colSums(mc_mtx != 0) / nrow(mc_mtx)
         qc_g$zerorate_mc <- as.numeric(zr_mc)[match(qc_g$metacell, mc_names)]
@@ -331,7 +357,7 @@ MetacellsByGroupsSEACells <- function(
     obs_all <- do.call(rbind, obs_list)
     qc_all <- do.call(rbind, qc_list)
     soft_all <- if (length(soft_list) > 0 && use_soft_assignments) {
-        do.call(rbind, soft_list)  # cells x metacells
+        .combine_soft_assignments(soft_list)
     } else {
         NULL
     }
@@ -358,6 +384,12 @@ MetacellsByGroupsSEACells <- function(
     for (col in group.by) {
         m_obj[[col]] <- obs_all[[col]]
     }
+    # mcRigor QC columns on the metacell metadata (promised in @return),
+    # matched by metacell name; columns already present are not overwritten.
+    qc_idx <- match(colnames(m_obj), qc_all$metacell)
+    for (col in setdiff(colnames(qc_all), c("metacell", "Group", "n_cells", group.by))) {
+        m_obj[[col]] <- qc_all[[col]][qc_idx]
+    }
 
     skipped_df <- if (length(skipped) > 0) do.call(rbind, skipped) else
         data.frame(group = character(0), n_cells = integer(0), reason = character(0))
@@ -376,6 +408,23 @@ MetacellsByGroupsSEACells <- function(
     )
     seurat_obj@misc[[wgcna_name]] <- out
     invisible(seurat_obj)
+}
+
+.combine_soft_assignments <- function(soft_list) {
+    # Metacells are group-local and their names are globally unique (group
+    # prefix), so the joint assignment matrix is block-diagonal: group g's
+    # cells carry weights on g's metacells and zeros elsewhere. A plain rbind
+    # would misalign columns across groups (silently wrong when per-group
+    # metacell counts happen to match, an error when they differ).
+    out <- as(do.call(Matrix::bdiag, soft_list), "dgCMatrix")
+    # bdiag does not reliably propagate dimnames across Matrix versions; set
+    # them explicitly when every block carries them (bare-MTX imports stay
+    # unnamed, matching the positional contract in .hard_labels_vector).
+    rn <- lapply(soft_list, rownames)
+    cn <- lapply(soft_list, colnames)
+    if (!any(vapply(rn, is.null, TRUE))) rownames(out) <- unlist(rn, use.names = FALSE)
+    if (!any(vapply(cn, is.null, TRUE))) colnames(out) <- unlist(cn, use.names = FALSE)
+    out
 }
 
 .hard_labels_vector <- function(mc_out, cells_g, mc_names) {
@@ -405,6 +454,11 @@ MetacellsByGroupsSEACells <- function(
     lab <- rep(NA_character_, nrow(soft))
     lab[lab_row] <- mc_names[lab_idx]
     names(lab) <- rownames(soft)
+    n_zero <- sum(is.na(lab))
+    if (n_zero > 0) {
+        warning(n_zero, " cell(s) have all-zero soft-assignment rows; assigning to the group's first metacell",
+                call. = FALSE)
+    }
     lab[is.na(lab)] <- mc_names[1]  # all-zero rows: argmax undefined -> first
     lab[cells_g]
 }

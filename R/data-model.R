@@ -85,6 +85,23 @@ as_cell_program_data <- function(pseudobulk, sample_metadata = NULL,
     )
   }
 
+  if (!is.null(feature_metadata)) {
+    if (!is.data.frame(feature_metadata)) {
+      cli::cli_abort("{.arg feature_metadata} must be a data.frame keyed by gene ID.")
+    }
+    genes_all <- unique(unlist(lapply(pseudobulk, colnames), use.names = FALSE))
+    keyed <- if (!is.null(feature_metadata$gene_id)) {
+      feature_metadata$gene_id
+    } else if (!is.null(feature_metadata$gene)) {
+      feature_metadata$gene
+    } else {
+      rownames(feature_metadata)
+    }
+    if (length(intersect(keyed, genes_all)) == 0L) {
+      cli::cli_warn("{.arg feature_metadata} shares no gene IDs with the pseudobulk matrices; check its key (rownames or a {.val gene}/{.val gene_id} column).")
+    }
+  }
+
   # Gene consistency check: overlapping cell types should share gene IDs,
   # but different cell types may use different gene sets (per plan Section 8).
   # We record, not enforce, the intersection.
@@ -128,7 +145,9 @@ validate_cell_program_data <- function(x) {
     }
     m <- x$pseudobulk[[ct]]
     gene_var <- apply(m, 2, stats::var)
-    n_zero <- sum(gene_var < .Machine$double.eps)
+    # n = 1: var() is NA for every gene; na.rm keeps the small-N warning above
+    # as the signal instead of crashing `if (n_zero > 0)` on an NA.
+    n_zero <- sum(gene_var < .Machine$double.eps, na.rm = TRUE)
     if (n_zero > 0) {
       cli::cli_warn(
         "Cell type {.val {ct}}: {n_zero} gene(s) have near-zero variance."

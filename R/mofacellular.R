@@ -47,6 +47,9 @@ as_mofacellular_input <- function(x, cell_counts = NULL) {
   ct_list <- list()
   for (ct in x$cell_types) {
     m <- x$pseudobulk[[ct]]
+    if (nrow(m) == 0L) {
+      cli::cli_abort("Cell type {.val {ct}} has zero pseudobulk observations; nothing to export.")
+    }
     # genes x observations for this cell type
     counts_list[[ct]] <- t(m)
     donor_list[[ct]] <- rownames(m)
@@ -54,9 +57,17 @@ as_mofacellular_input <- function(x, cell_counts = NULL) {
   }
 
   counts <- do.call(cbind, counts_list)
-  colnames(counts) <- unlist(lapply(x$cell_types, function(ct) {
+  profile_names <- unlist(lapply(x$cell_types, function(ct) {
     paste0(ct, "_", donor_list[[ct]])
   }), use.names = FALSE)
+  # The <cell_type>_<observation_id> scheme is ambiguous when the names
+  # themselves contain "_" ("B_cell" + "1" vs "B" + "cell_1"); colliding
+  # composites would silently alias two profiles in downstream joins.
+  if (anyDuplicated(profile_names)) {
+    dups <- unique(profile_names[duplicated(profile_names)])
+    cli::cli_abort("Composite profile names are not unique: {.val {dups}}. Rename cell types or observation IDs so {.val <cell_type>_<observation_id>} is unique.")
+  }
+  colnames(counts) <- profile_names
 
   coldata <- data.frame(
     donor_id = unlist(donor_list, use.names = FALSE),
@@ -76,6 +87,11 @@ as_mofacellular_input <- function(x, cell_counts = NULL) {
     }
     key <- paste0(coldata$cell_type, "_", coldata$donor_id)
     ckey <- paste0(cell_counts$cell_type, "_", cell_counts$observation_id)
+    # match() would silently take the first of duplicate keys.
+    if (anyDuplicated(ckey)) {
+      dups <- unique(ckey[duplicated(ckey)])
+      cli::cli_abort("{.arg cell_counts} has duplicate {.val cell_type}/{.val observation_id} key(s): {.val {dups}}.")
+    }
     idx <- match(key, ckey)
     if (anyNA(idx)) {
       cli::cli_abort("{.arg cell_counts} is missing {sum(is.na(idx))} pseudobulk profile(s).")

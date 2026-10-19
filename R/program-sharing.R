@@ -57,11 +57,13 @@
     W <- fit$loadings[[ct]]
     if (!ncol(W)) next
     sc <- apply(abs(W), 2L, stats::median)
-    bad <- sc < rel_tol * max(sc)
+    bad <- !is.na(sc) & sc < rel_tol * max(sc)
     if (!is.null(fit$fits[[ct]]$flash$F_psd)) {
       sdm <- apply(fit$fits[[ct]]$flash$F_psd, 2L, stats::median) *
         fit$canonicalization[[ct]]$scale_multiplier
-      bad <- bad | (sdm <= sd_floor)
+      # NA sd (unassessable uncertainty) is not evidence of degeneracy;
+      # propagating it would crash any() or inject NA program names downstream
+      bad <- bad | (!is.na(sdm) & sdm <= sd_floor)
     }
     if (any(bad)) out[[ct]] <- colnames(W)[bad]
   }
@@ -108,7 +110,7 @@
     Wa <- Wa[genes, , drop = FALSE]; Wb <- Wb[genes, , drop = FALSE]
     obs <- stats::cor(Wa, Wb)
     exc <- matrix(0, nrow(obs), ncol(obs))
-    set.seed(.pair_seed(seed, pr))
+    withr::local_seed(.pair_seed(seed, pr))
     G <- length(genes)
     for (p in seq_len(n_perm)) {
       null <- stats::cor(Wa[sample.int(G), , drop = FALSE],
@@ -319,9 +321,12 @@
 #' @return The shrunk C x C correlation matrix (dimnames = cell types), with
 #'   attributes `n_null` and `lambda`.
 #' @keywords internal
-.estimate_V <- function(fit, matches, z_thresh = 1, min_null = 20L) {
+.estimate_V <- function(fit, matches, z_thresh = 1, min_null = 20L, mats = NULL) {
   group <- .as_group(matches)
-  mats <- .sharing_matrices(fit, group, min_genes = 10L)
+  # Callers that already built the sharing matrices pass them in: building
+  # twice per group wasted compute and estimated V on a different (min_genes =
+  # 10) panel than the mash fit.
+  if (is.null(mats)) mats <- .sharing_matrices(fit, group, min_genes = 10L)
   Z <- mats$B / mats$S
   C <- ncol(Z)
   null_g <- rowSums(abs(Z) >= z_thresh) == 0L
@@ -480,7 +485,7 @@ program_sharing <- function(fit, matches = NULL, alpha = 0.05, n_top = 50L,
   for (gi in seq_along(groups)) {
     g <- groups[[gi]]
     mats <- .sharing_matrices(fit, g, min_genes = min_genes)
-    V <- .estimate_V(fit, g, z_thresh = z_thresh, min_null = min_null)
+    V <- .estimate_V(fit, g, z_thresh = z_thresh, min_null = min_null, mats = mats)
     data <- mashr::mash_set_data(mats$B, mats$S, V = V)
     U <- mashr::cov_canonical(data)
     if (data_driven) {

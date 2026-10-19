@@ -112,6 +112,9 @@ assess_cmp_stability <- function(fit, donor_col = NULL, visit_col = NULL,
   if (!is.list(cmp_args) || "fit" %in% names(cmp_args)) {
     .stopf("`cmp_args` must be a named list of find_coordinated_programs() arguments without `fit`.")
   }
+  if (length(cmp_args) && (is.null(names(cmp_args)) || any(!nzchar(names(cmp_args))))) {
+    .stopf("`cmp_args` must be fully named; unnamed elements would bind positionally in find_coordinated_programs().")
+  }
   if (!is.numeric(subsample_frac) || length(subsample_frac) != 1L ||
       subsample_frac <= 0 || subsample_frac > 1) {
     .stopf("`subsample_frac` must be a single number in (0, 1].")
@@ -140,7 +143,9 @@ assess_cmp_stability <- function(fit, donor_col = NULL, visit_col = NULL,
   ref_scores <- cmp_scores(fit, ref)
   min_donors <- if (is.null(cmp_args$min_donors)) 20L else cmp_args$min_donors
 
-  if (!is.null(seed)) set.seed(seed)
+  # No master-seed call here: with a non-NULL seed every replicate reseeds
+  # deterministically (seed + b - 1), so a function-level seed would be dead;
+  # with seed = NULL the replicate seeds are drawn from the user's RNG stream.
   rep_seeds <- if (is.null(seed)) sample.int(.Machine$integer.max, n_boot) else seed + seq_len(n_boot) - 1L
 
   K <- length(ref_members)
@@ -166,7 +171,7 @@ assess_cmp_stability <- function(fit, donor_col = NULL, visit_col = NULL,
     t0 <- Sys.time()
     rs <- rep_seeds[b]
     rec <- tryCatch({
-      set.seed(rs)
+      withr::local_seed(rs)
       drawn <- .cmpstab_draw(map$donor, subsample_frac, map$strata)
       obs_keep <- map$observation_id[map$donor %in% drawn]
       fit_b <- .cmpstab_build_fit(fit, obs_keep)
@@ -231,13 +236,21 @@ assess_cmp_stability <- function(fit, donor_col = NULL, visit_col = NULL,
       acc[[k]]$matched <- c(acc[[k]]$matched, j)
       # sign concordance over shared members, up to one global flip
       shared <- intersect(mk, rep_members[[as.character(j)]])
-      if (length(shared)) {
-        ps <- ref_signs[[k]][match(shared, mk)] * rep_signs[[as.character(j)]][match(shared, rep_members[[as.character(j)]])]
-        flip <- sign(sum(ps, na.rm = TRUE))
-        acc[[k]]$concordant <- c(acc[[k]]$concordant, is.finite(flip) && all(ps == flip, na.rm = TRUE))
+      ps <- if (length(shared)) {
+        ref_signs[[k]][match(shared, mk)] * rep_signs[[as.character(j)]][match(shared, rep_members[[as.character(j)]])]
       } else {
-        acc[[k]]$concordant <- c(acc[[k]]$concordant, NA)
+        numeric(0)
       }
+      ps <- ps[!is.na(ps)]
+      flip <- NA_real_
+      if (length(ps)) {
+        s <- sign(sum(ps))
+        # a perfectly balanced sign sum has no majority orientation:
+        # concordance is undefined (NA), not discordant
+        if (s != 0) flip <- s
+      }
+      acc[[k]]$concordant <- c(acc[[k]]$concordant,
+                               if (is.na(flip)) NA else all(ps == flip))
       # donor-score concordance on shared donors
       sc <- NA_real_
       if (best >= jaccard_threshold && !is.null(rep_scores) && paste0("CMP", j) %in% colnames(rep_scores)) {
@@ -256,7 +269,7 @@ assess_cmp_stability <- function(fit, donor_col = NULL, visit_col = NULL,
         memb_hit[[k]][[m]] <- c(memb_hit[[k]][[m]], present)
         if (present) {
           pr <- ref_signs[[k]][match(m, mk)] * rep_signs[[as.character(j)]][match(m, rep_members[[as.character(j)]])]
-          memb_sign[[k]][[m]] <- c(memb_sign[[k]][[m]], is.finite(pr) && pr == flip)
+          memb_sign[[k]][[m]] <- c(memb_sign[[k]][[m]], is.finite(pr) && !is.na(flip) && pr == flip)
         }
       }
     }

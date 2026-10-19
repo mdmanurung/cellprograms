@@ -4,7 +4,7 @@
 \alias{.estimate_V}
 \title{CorShrink-style null-correlation estimate for a matched program set}
 \usage{
-.estimate_V(fit, matches, z_thresh = 1, min_null = 20L)
+.estimate_V(fit, matches, z_thresh = 1, min_null = 20L, mats = NULL)
 }
 \arguments{
 \item{fit}{A canonicalized `cell_program_fit`.}

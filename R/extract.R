@@ -184,6 +184,7 @@ union_panel_loadings <- function(fit, genes = NULL) {
                 dimnames = list(panel, if (is.null(S)) NULL else colnames(S)))
     if (!K) return(G)
     avail <- intersect(panel, colnames(fit$pseudobulk[[ct]]))
+    if (!length(avail)) return(G)   # no panel genes observed in this cell type: leave NA
     Y <- as.matrix(fit$pseudobulk[[ct]][rownames(S), avail, drop = FALSE])
     # Replay the fit's covariate handling: residualize (residualize mode) or
     # subtract the OLS covariate part under the fit's own fixed design (fixed
@@ -193,12 +194,24 @@ union_panel_loadings <- function(fit, genes = NULL) {
       if (!is.null(X)) Y <- stats::lm.fit(X, Y)$residuals
     } else {
       Xc <- fit$fits[[ct]]$flash$fixed_L
-      if (!is.null(Xc)) Y <- Y - Xc %*% solve(crossprod(Xc), crossprod(Xc, Y))
+      if (!is.null(Xc)) {
+        # lm.fit's pivoted solution handles a rank-deficient fixed design
+        # (solve(crossprod()) would crash); aliased columns contributed 0.
+        beta <- stats::lm.fit(Xc, Y)$coefficients
+        beta[is.na(beta)] <- 0
+        Y <- Y - Xc %*% beta
+      }
     }
     if (isTRUE(pp$centered)) Y <- scale(Y, center = TRUE, scale = isTRUE(pp$scaled))
     else if (isTRUE(pp$scaled)) Y <- scale(Y, center = FALSE, scale = TRUE)
-    G[avail, ] <- t(stats::lm.fit(S, Y)$coefficients)   # genes x programs
-    G[is.nan(G)] <- NA_real_   # degenerate panel genes under scaling
+    # Constant genes turn NaN under scaling and would abort lm.fit; leave
+    # their panel rows NA (no signal) instead of failing the whole cell type.
+    ok <- colSums(!is.finite(Y)) == 0L
+    if (any(!ok)) {
+      Y <- Y[, ok, drop = FALSE]
+      avail <- avail[ok]
+    }
+    if (length(avail)) G[avail, ] <- t(stats::lm.fit(S, Y)$coefficients)   # genes x programs
     G
   }), names(fit$fits))
   list(loadings = loadings, genes = panel)

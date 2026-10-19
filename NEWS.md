@@ -1,5 +1,83 @@
 # cellprograms 0.2.0.9000 (development)
 
+## Bug fixes and hardening (2026-10-19 implementation-review segment)
+
+Full implementation review follow-through: 2 critical correctness fixes, 12
+major fixes, and 50 minor fixes. Regression coverage for every fixed finding
+lives in `tests/testthat/test-review-fixes.R` and
+`tests/testthat/test-artifact-genes.R`.
+
+### Critical
+
+* `GetMetacellSEACells()`: multi-group soft-assignment matrices are now
+  combined block-diagonally (one block per group) instead of row-binding
+  group-local column indices, which crashed or silently misassigned cells to
+  metacells when more than one group was processed.
+* `cmp_context_association()`: the context term is selected exactly through
+  the model-matrix term assignment instead of a `^x` prefix grep that also
+  captured adjustment covariates whose names start with "x" (e.g. `xsite`).
+  Covariates named `y` or `.ctx` are refused (reserved internal names).
+
+### Major
+
+* `fit_celltype_programs()`: within-cell-type constant genes no longer crash
+  the gene filter under `scale = TRUE`; their non-finite column mass is
+  treated as degenerate and the genes are dropped.
+* `fit_celltype_programs(backend = "cebmf_torch")` warns when a cell type's
+  fit exhausts `maxit` without converging (the flag was stored but never
+  surfaced).
+* `assess_program_stability()` warns and skips cell types with fewer than 5
+  donors instead of crashing during resampling.
+* `plot_program_scores()` handles per-cell-type observation sets (union of
+  donors, NA where a cell type was not observed) instead of requiring equal
+  row counts; z-scoring is NA-aware.
+* `plot_sharing_spectrum()` rewritten: significance class (shared / n.s. /
+  underpowered) drives a fixed colorblind-safe palette, q-values are carried
+  in the pair labels, and >9 pairs no longer break the color scale.
+* `plot_artifact_flags()` detects any `*_frac` column set (not just the
+  built-in screens) and accepts CMP-shaped flag tables.
+* `union_panel_loadings()` leaves zero-overlap or constant panel genes NA
+  (with warnings) instead of aborting, and replays rank-deficient fixed
+  covariate designs via least squares instead of crashing in `solve()`.
+* `project_programs_to_cells()` refuses a `feature_scale` declaration that
+  contradicts the fit's recorded units (previously silently accepted).
+* `flag_artifact_genes()`: the V(D)J screen now also covers J/D segments,
+  IGLL-family genes, and JCHAIN.
+* Metacells: `max_iter` documentation corrected (wrapped SEACells default is
+  20); `use_sparse` warns when set (ignored by the wrapped SEACells version);
+  per-metacell QC columns are joined into the result metadata.
+
+### Minor (selected)
+
+* All internal RNG is now scoped with `withr::local_seed()`; no `set.seed()`
+  leaks into the user session.
+* `plot_variance_explained()` maps PVEs to programs through the flashbridge
+  native-factor mapping and skips (with a warning) cell types whose PVE
+  vector cannot be reconciled, instead of positionally truncating.
+* `plot_context_association()` omits confidence intervals for associations
+  with a zero t statistic (previously infinite whiskers) and labels the
+  context term plainly after the `.ctx` internal rename.
+* `plot_program_scores()` fails closed when an annotation data.frame lacks
+  an `observation_id` column (previously a silent all-NA strip).
+* `match_programs()` documents that `space` only affects the subspace angles
+  (factor-level matches are always loading-cosine based) and fails closed
+  when `space = "scores"` has fewer than 2 shared observations.
+* `as_mofacellular_input()` aborts on composite-name collisions under the
+  `<cell_type>_<observation_id>` scheme, on duplicate `cell_counts` keys, and
+  on zero-observation cell types.
+* Metacell IO: missing counts-like layers warn or abort, `dims` are
+  validated, and numeric-like cell names abort (they would be mangled by the
+  Python bridge).
+* CMP machinery: sign-concordance ties and all-NA sign vectors no longer
+  score deterministically; `prepare_collectri()` parses integer 0/1 `mor`
+  correctly; NA `mor` edges are dropped with a warning;
+  `cmp_gene_overlap()` is schema-stable on empty and single-member input.
+* Sharing/alignment: degenerate-program NA propagation fixed;
+  `sharing_spectrum()` gains an explicit `seed` argument; the variance
+  estimate reuses the sharing matrices (single computation, consistent
+  panels); principal-angle p-value NA handling no longer biases the
+  permutation null.
+
 ## New features (2026-10-18 feature-completion segment)
 
 * Metacell construction is folded into `cellprograms` from the retired

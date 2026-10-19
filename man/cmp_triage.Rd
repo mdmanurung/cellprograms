@@ -18,7 +18,8 @@ cmp_triage(
   max_vdj_frac = 0.5,
   min_marker_genes = 2L,
   min_concordance = 0.75,
-  min_level_donors = 15L
+  min_level_donors = 15L,
+  min_ieg = 3L
 )
 }
 \arguments{
@@ -46,6 +47,9 @@ the fraction that are positive.}
 \item{max_ambient_frac, max_vdj_frac, min_marker_genes, min_concordance}{Flag thresholds.}
 
 \item{min_level_donors}{Minimum donors per `replicate_by` level (default 15).}
+
+\item{min_ieg}{Minimum number of immediate-early genes among the recurrent
+top genes for the `stress_ieg` flag (default 3).}
 }
 \value{
 Data frame, one row per CMP.
@@ -66,7 +70,7 @@ loadings in each member, ranked by how many members share them; the first
 (>= `min_marker_genes` contamination markers), `vdj` (V(D)J fraction of
 recurrent genes >= `max_vdj_frac`), `sex_chromosome` and
 `genotype_candidate` (>= `min_marker_genes` marker genes), `stress_ieg`
-(>= 3 IEGs), plus soft notes `genotype_marker_single` (one marker gene) and
+(>= `min_ieg` IEGs), plus soft notes `genotype_marker_single` (one marker gene) and
 `low_replication` (minimum within-level concordance < `min_concordance`).
 `label` is the first hard flag in that order, else `"candidate"`, or
 `"candidate_associated"` when the context association has p < 0.05. Labels

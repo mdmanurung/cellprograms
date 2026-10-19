@@ -25,7 +25,10 @@
 #'       over all REQUESTED iterations, `n_hit / n_boot` — not an estimate of
 #'       biological recovery conditional on successful refitting),
 #'       `conditional_recovery_freq` (`n_hit / valid_refits`, NA when no
-#'       refit succeeded), median score correlation, median loading cosine,
+#'       refit succeeded; the denominator counts successful refits, not the
+#'       replicates where the program's cell type retained a factor — use
+#'       `n_hit / n_eligible` for the per-program conditional rate), median
+#'       score correlation, median loading cosine,
 #'       sign consistency, and top-gene Jaccard.}
 #'     \item{valid_refits, failed_refits}{Refit denominator accounting.
 #'       Failed refits are never silently dropped: any failure warns, and an
@@ -52,8 +55,15 @@ assess_program_stability <- function(fit, n_boot = 100L,
                                      resample_frac = 0.8,
                                      seed = NULL, progress = TRUE) {
   match_method <- match.arg(match_method)
-  if (!is.null(seed)) set.seed(seed)
+  if (!is.null(seed)) withr::local_seed(seed)
   pre <- fit$preprocessing
+  # Legacy fits can carry provenance$seed = numeric(0); numeric(0) + b would
+  # propagate an empty seed into every refit. Fall back to 1 with a warning.
+  fit_seed <- fit$provenance$seed
+  if (is.null(fit_seed) || length(fit_seed) == 0L || !is.finite(fit_seed)) {
+    cli::cli_warn("The fit carries no usable provenance seed (legacy object); using {.code seed = 1} for replicate refits.")
+    fit_seed <- 1
+  }
   prog_tab <- .program_table(fit)
   prog_ids <- prog_tab$program_id
   rec <- stats::setNames(vector("list", length(prog_ids)), prog_ids)
@@ -64,6 +74,13 @@ assess_program_stability <- function(fit, n_boot = 100L,
 
   failed_refits <- 0L
   repl_log <- vector("list", n_boot)
+  # Cell types with fewer than 5 donors cannot be subsampled at the floor of
+  # 5 (sample.int would error); they enter every replicate intact, which makes
+  # their stability optimistic -- warn once rather than crash the run.
+  small_cts <- names(fit$pseudobulk)[vapply(fit$pseudobulk, nrow, integer(1)) < 5L]
+  if (length(small_cts)) {
+    cli::cli_warn("Cell type(s) {.val {small_cts}} have fewer than 5 donors and cannot be subsampled; their replicates reuse all donors (stability is optimistic for them).")
+  }
   for (b in seq_len(n_boot)) {
     if (progress && b %% 10L == 0L) message(sprintf("subsample %d/%d", b, n_boot))
     t0 <- Sys.time()
@@ -72,7 +89,7 @@ assess_program_stability <- function(fit, n_boot = 100L,
     # rows (previously the full-data values were retained, leaving dims and
     # metadata stale relative to the subsampled matrices).
     sampled_ids <- lapply(fit$pseudobulk, function(Y) {
-      Y[sample.int(nrow(Y), max(5L, floor(resample_frac * nrow(Y)))), , drop = FALSE]
+      Y[sample.int(nrow(Y), min(nrow(Y), max(5L, floor(resample_frac * nrow(Y))))), , drop = FALSE]
     })
     keep <- unique(unlist(lapply(sampled_ids, rownames)))
     x_b <- list(
@@ -98,7 +115,7 @@ assess_program_stability <- function(fit, n_boot = 100L,
            var_type = pre$var_type, backfit = pre$backfit, nullcheck = pre$nullcheck,
            covariates = pre$covariates, covariate_mode = pre$covariate_mode,
            flash_control = pre$flash_control, feature_scale = pre$feature_scale,
-           seed = fit$provenance$seed + b)
+           seed = fit_seed + b)
     } else {
       list(x_b, preprocessing_spec = spec,
            loading_prior = pre$loading_prior, max_factors = pre$max_factors,
@@ -106,7 +123,7 @@ assess_program_stability <- function(fit, n_boot = 100L,
            flash_control = pre$flash_control,
            backend = if (is.null(pre$backend)) "flashier" else pre$backend,
            var_floor = if (is.null(pre$var_floor)) "none" else pre$var_floor,
-           seed = fit$provenance$seed + b)
+           seed = fit_seed + b)
     }
     # CP-1: failures are captured with their condition class/message into the
     # replicate log — never collapsed invisibly into zero scientific recovery.
@@ -119,7 +136,7 @@ assess_program_stability <- function(fit, n_boot = 100L,
     if (is.null(fit_b)) {
       failed_refits <- failed_refits + 1L
       repl_log[[b]] <- data.frame(
-        replicate = b, seed = fit$provenance$seed + b, status = "error",
+        replicate = b, seed = fit_seed + b, status = "error",
         error_class = class(refit_err)[1],
         error_message = substr(conditionMessage(refit_err), 1, 200),
         elapsed_seconds = elapsed,
@@ -131,7 +148,7 @@ assess_program_stability <- function(fit, n_boot = 100L,
     }
     k_by_ct <- vapply(fit_b$scores, function(s) if (is.null(s)) 0L else ncol(s), integer(1))
     repl_log[[b]] <- data.frame(
-      replicate = b, seed = fit$provenance$seed + b, status = "ok",
+      replicate = b, seed = fit_seed + b, status = "ok",
       error_class = NA_character_, error_message = NA_character_,
       elapsed_seconds = elapsed,
       n_obs = I(list(n_obs)), n_factors = I(list(k_by_ct)),

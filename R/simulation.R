@@ -31,7 +31,7 @@ simulate_pseudobulk <- function(scenario = "mixed", n_samples = 150,
                                 signal_sd = 1.5, noise_sd = 1.0,
                                 cell_types = c("B", "CD4", "CD8", "NK", "Mono"),
                                 seed = 1) {
-  set.seed(seed)
+  withr::local_seed(seed)
   stopifnot(scenario %in% c("private", "mixed", "same_genes_independent", "global"))
 
   gene_pool <- paste0("G", seq_len(n_genes))

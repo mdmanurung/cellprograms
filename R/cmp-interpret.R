@@ -36,8 +36,23 @@ prepare_collectri <- function(raw) {
   ap1 <- c("JUN", "JUNB", "JUND", "FOS", "FOSB", "FOSL1", "FOSL2")
   tf[cx & vapply(parts, function(p) all(p %in% nfkb), TRUE)] <- "NFKB"
   tf[cx & vapply(parts, function(p) all(p %in% ap1), TRUE)] <- "AP1"
-  .lgl <- function(x) as.logical(toupper(as.character(x)))
-  inh <- .lgl(raw$consensus_inhibition) %in% TRUE & !(.lgl(raw$consensus_stimulation) %in% TRUE)
+  # as.logical() does not parse "0"/"1" or numerics: integer consensus flags
+  # (a common OmniPath export) became NA -> FALSE, flipping every inhibitory
+  # edge to mor = +1. Parse logical/numeric/string explicitly.
+  .lgl <- function(x, what) {
+    if (is.logical(x)) return(x)
+    if (is.numeric(x)) return(x != 0)
+    v <- tolower(trimws(as.character(x)))
+    out <- ifelse(v %in% c("true", "t", "1", "yes"), TRUE,
+                  ifelse(v %in% c("false", "f", "0", "no"), FALSE, NA))
+    if (anyNA(out)) {
+      .warnf("%d `%s` value(s) could not be parsed as TRUE/FALSE; treating as FALSE.",
+             sum(is.na(out)), what)
+    }
+    out
+  }
+  inh <- .lgl(raw$consensus_inhibition, "consensus_inhibition") %in% TRUE &
+    !(.lgl(raw$consensus_stimulation, "consensus_stimulation") %in% TRUE)
   out <- data.frame(source = tf, target = as.character(raw$target_genesymbol), mor = ifelse(inh, -1, 1),
                     stringsAsFactors = FALSE)
   out <- out[!duplicated(out[, c("source", "target")]), , drop = FALSE]
@@ -146,7 +161,12 @@ annotate_cmp_tf <- function(fit, cmp, net, min_size = 5L, n_perm = 1000L, q = 0.
   tab <- .cmp_table(cmp)
   if (!all(c("source", "target", "mor") %in% names(net))) .stopf("`net` needs columns source, target, mor.")
   if (!nrow(tab)) return(structure(list(members = NULL, summary = NULL), class = "cmp_tf"))
-  set.seed(seed)
+  n_na_mor <- sum(is.na(net$mor))
+  if (n_na_mor > 0L) {
+    .warnf("Dropping %d network edge(s) with NA `mor`; NA weights would propagate into every TF statistic.", n_na_mor)
+    net <- net[!is.na(net$mor), , drop = FALSE]
+  }
+  withr::local_seed(seed)
   tfs_all <- unique(net$source)
   mem <- lapply(seq_len(nrow(tab)), function(i) {
     ct <- tab$cell_type[i]; pr <- tab$program_id[i]
@@ -271,7 +291,7 @@ cmp_nuisance_genes <- function() {
 #' (>= `min_marker_genes` contamination markers), `vdj` (V(D)J fraction of
 #' recurrent genes >= `max_vdj_frac`), `sex_chromosome` and
 #' `genotype_candidate` (>= `min_marker_genes` marker genes), `stress_ieg`
-#' (>= 3 IEGs), plus soft notes `genotype_marker_single` (one marker gene) and
+#' (>= `min_ieg` IEGs), plus soft notes `genotype_marker_single` (one marker gene) and
 #' `low_replication` (minimum within-level concordance < `min_concordance`).
 #' `label` is the first hard flag in that order, else `"candidate"`, or
 #' `"candidate_associated"` when the context association has p < 0.05. Labels
@@ -292,6 +312,8 @@ cmp_nuisance_genes <- function() {
 #' @param top_n,n_recurrent Top genes per member (15) and recurrent genes kept (12).
 #' @param max_ambient_frac,max_vdj_frac,min_marker_genes,min_concordance Flag thresholds.
 #' @param min_level_donors Minimum donors per `replicate_by` level (default 15).
+#' @param min_ieg Minimum number of immediate-early genes among the recurrent
+#'   top genes for the `stress_ieg` flag (default 3).
 #' @return Data frame, one row per CMP.
 #' @examples
 #' # Toy canonicalized fit: program 1 of cell types A and B shares donor
@@ -321,7 +343,7 @@ cmp_nuisance_genes <- function() {
 cmp_triage <- function(fit, cmp, context = NULL, covariates = NULL, replicate_by = NULL, tf = NULL,
                        nuisance = cmp_nuisance_genes(), top_n = 15L, n_recurrent = 12L,
                        max_ambient_frac = 0.5, max_vdj_frac = 0.5, min_marker_genes = 2L,
-                       min_concordance = 0.75, min_level_donors = 15L) {
+                       min_concordance = 0.75, min_level_donors = 15L, min_ieg = 3L) {
   tab <- .cmp_table(cmp)
   if (!nrow(tab)) return(data.frame())
   cnt <- function(g, cl) if (cl %in% names(nuisance)) g[grepl(nuisance[[cl]], g)] else character()
@@ -338,7 +360,10 @@ cmp_triage <- function(fit, cmp, context = NULL, covariates = NULL, replicate_by
     data.frame(cmp = k, n_members = nrow(m), cell_types = paste(m$cell_type, collapse = ","),
                members = paste0(m$program_id, ifelse(!is.null(m$sign) & m$sign < 0, "(-)", ""), collapse = ","),
                recurrent_top_genes = paste(rec, collapse = ","),
-               ambient_frac = if (is.null(m$ambient_flag)) NA_real_ else mean(m$ambient_flag %in% TRUE),
+               # NA ambient flags mean "not assessed", not "not ambient":
+               # average over assessed members only (NA when none were).
+               ambient_frac = if (is.null(m$ambient_flag) || all(is.na(m$ambient_flag))) NA_real_
+                              else mean(m$ambient_flag[!is.na(m$ambient_flag)] %in% TRUE),
                vdj_frac = length(cnt(rec, "vdj")) / max(length(rec), 1L),
                n_genotype_markers = length(gt), genotype_markers = paste(gt, collapse = ","),
                n_sex_markers = length(sx), sex_markers = paste(sx, collapse = ","),
@@ -401,7 +426,7 @@ cmp_triage <- function(fit, cmp, context = NULL, covariates = NULL, replicate_by
                 vdj = out$vdj_frac >= max_vdj_frac,
                 sex_chromosome = out$n_sex_markers >= min_marker_genes,
                 genotype_candidate = out$n_genotype_markers >= min_marker_genes,
-                stress_ieg = out$n_ieg >= 3L)
+                stress_ieg = out$n_ieg >= min_ieg)
   soft <- cbind(genotype_marker_single = out$n_genotype_markers > 0 & out$n_genotype_markers < min_marker_genes,
                 low_replication = !is.na(out$min_concordance) & out$min_concordance < min_concordance)
   fl <- cbind(hard, soft)

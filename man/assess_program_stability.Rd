@@ -43,7 +43,10 @@ The fit with `fit$stability` populated:
       over all REQUESTED iterations, `n_hit / n_boot` — not an estimate of
       biological recovery conditional on successful refitting),
       `conditional_recovery_freq` (`n_hit / valid_refits`, NA when no
-      refit succeeded), median score correlation, median loading cosine,
+      refit succeeded; the denominator counts successful refits, not the
+      replicates where the program's cell type retained a factor — use
+      `n_hit / n_eligible` for the per-program conditional rate), median
+      score correlation, median loading cosine,
       sign consistency, and top-gene Jaccard.}
     \item{valid_refits, failed_refits}{Refit denominator accounting.
       Failed refits are never silently dropped: any failure warns, and an

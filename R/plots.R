@@ -44,6 +44,22 @@
 ## Clip to symmetric limits (avoids a scales dependency for oob handling).
 .clip_sym <- function(x, lim) pmax(pmin(x, lim), -lim)
 
+# Per-cell-type score matrices may carry different observation sets (the data
+# model allows per-type donors); align on the union of row names with NA where
+# a cell type was not observed for that donor. A plain cbind requires equal
+# row counts and crashes on valid fits.
+.cbind_score_matrices <- function(mats) {
+  ids <- unique(unlist(lapply(mats, rownames), use.names = FALSE))
+  out <- matrix(NA_real_, length(ids), sum(vapply(mats, ncol, integer(1))),
+                dimnames = list(ids, unlist(lapply(mats, colnames), use.names = FALSE)))
+  j <- 0L
+  for (m in mats) {
+    out[rownames(m), j + seq_len(ncol(m))] <- m
+    j <- j + ncol(m)
+  }
+  out
+}
+
 ## ---------------------------------------------------------------------------
 ## 1. program scores heatmap
 ## ---------------------------------------------------------------------------
@@ -79,10 +95,13 @@ plot_program_scores <- function(fit, cell_types = NULL, annotation = NULL, zscor
   cts <- (cell_types %||% names(fit$scores))
   cts <- cts[vapply(cts, function(ct) ncol(fit$scores[[ct]]) > 0L, TRUE)]
   if (!length(cts)) return(.empty_plot("No programs retained: nothing to plot."))
-  S <- do.call(cbind, lapply(cts, function(ct) fit$scores[[ct]]))
+  S <- .cbind_score_matrices(fit$scores[cts])
   if (zscore) {
-    sds <- apply(S, 2, stats::sd); sds[sds == 0] <- 1
-    S <- scale(S, center = TRUE, scale = sds)
+    # NA-aware: union-aligned score matrices carry NA where a cell type was
+    # not observed for a donor.
+    sds <- apply(S, 2, stats::sd, na.rm = TRUE); sds[is.na(sds) | sds == 0] <- 1
+    ctr <- colMeans(S, na.rm = TRUE); ctr[is.na(ctr)] <- 0
+    S <- scale(S, center = ctr, scale = sds)
   }
   lims <- max(abs(S), na.rm = TRUE); if (!is.finite(lims) || lims == 0) lims <- 1
   df <- .melt_matrix(S)
@@ -96,11 +115,27 @@ plot_program_scores <- function(fit, cell_types = NULL, annotation = NULL, zscor
   ann <- NULL
   if (!is.null(annotation)) {
     if (is.character(annotation)) {
-      md <- fit$sample_metadata[match(rownames(S), fit$sample_metadata$observation_id), , drop = FALSE]
-      ann <- md[, annotation, drop = FALSE]
+      md <- fit$sample_metadata
+      if (!is.data.frame(md) || !"observation_id" %in% names(md)) {
+        cli::cli_abort("{.arg fit} carries no {.field sample_metadata} with an {.val observation_id} column to join annotation {.val {annotation}} on.")
+      }
+      missing_cols <- setdiff(annotation, names(md))
+      if (length(missing_cols)) {
+        cli::cli_abort("Annotation column(s) {.val {missing_cols}} not found in {.field fit$sample_metadata}.")
+      }
+      i <- match(rownames(S), md$observation_id)
+      ann <- md[i, annotation, drop = FALSE]
     } else {
+      # Fail closed: without an observation_id key the join below is silently
+      # all-NA (match() against NULL returns only NAs).
+      if (!is.data.frame(annotation) || !"observation_id" %in% names(annotation)) {
+        cli::cli_abort("A data.frame {.arg annotation} must carry an {.val observation_id} column joining to the score matrix row names.")
+      }
       i <- match(rownames(S), annotation$observation_id)
       ann <- annotation[i, setdiff(names(annotation), "observation_id"), drop = FALSE]
+    }
+    if (all(is.na(i))) {
+      cli::cli_warn("No {.val observation_id} values match the score matrix row names; the annotation strip is all {.val NA}.")
     }
     rownames(ann) <- rownames(S)
     ann_cols <- setdiff(names(ann), "donor")
@@ -204,14 +239,30 @@ plot_top_genes <- function(fit, programs, n = 10) {
 #' plot_variance_explained(fit)
 #' @export
 plot_variance_explained <- function(fit) {
+  if (is.null(fit$scores)) {
+    cli::cli_abort("{.arg fit} has no canonicalized scores; run {.fn canonicalize_programs} first.")
+  }
   rows <- lapply(names(fit$fits), function(ct) {
     fl <- fit$fits[[ct]]$flash
     pve <- if (!is.null(fl) && !is.null(fl$pve)) fl$pve else return(NULL)
     kn <- ncol(fit$scores[[ct]])
     if (!length(pve) || kn == 0L) return(NULL)
-    m <- min(kn, length(pve))
-    data.frame(cell_type = ct, program = colnames(fit$scores[[ct]])[seq_len(m)],
-               pve = pve[seq_len(m)], stringsAsFactors = FALSE)
+    if (length(pve) != kn) {
+      # The flash object can hold factors that canonicalization dropped (e.g.
+      # a fixed intercept stripped via the flashbridge native_indices map);
+      # positional truncation would silently mislabel PVEs. Recover the
+      # retained-factor positions from the metadata when available, else skip
+      # this cell type rather than misassign.
+      idx <- attr(fl, "flashbridge_metadata")$native_indices
+      if (!is.null(idx) && length(idx) == kn && all(idx %in% seq_along(pve))) {
+        pve <- pve[idx]
+      } else {
+        cli::cli_warn("Cell type {.val {ct}}: PVE length ({length(pve)}) does not match retained programs ({kn}); skipping.")
+        return(NULL)
+      }
+    }
+    data.frame(cell_type = ct, program = colnames(fit$scores[[ct]]),
+               pve = pve, stringsAsFactors = FALSE)
   })
   df <- do.call(rbind, rows)
   if (is.null(df) || !nrow(df)) return(.empty_plot("No fitted programs: variance explained unavailable."))
@@ -338,13 +389,20 @@ plot_sharing <- function(share, level = c("program", "cell_type"), q_alpha = 0.0
 plot_sharing_spectrum <- function(spectrum) {
   s <- spectrum$summary
   if (is.null(s) || !nrow(s)) return(.empty_plot("Empty sharing spectrum."))
-  s$label <- ifelse(s$underpowered, "underpowered",
-                    ifelse(isTRUE(s$shared), sprintf("q = %.3f", s$q_pair), "n.s."))
-  ggplot2::ggplot(s, ggplot2::aes(min_angle_deg, pair)) +
-    ggplot2::geom_point(ggplot2::aes(size = n_shared_05, color = label, shape = underpowered),
+  # Color encodes the significance class (3 levels, safe for any number of
+  # pairs; a per-pair q-value color label overflows brewer Set1 beyond 9
+  # pairs, and isTRUE() on the vector never worked for multi-pair spectra).
+  # The q-value itself moves onto the pair label of shared pairs.
+  s$sig <- ifelse(s$underpowered, "underpowered",
+                  ifelse(!is.na(s$shared) & s$shared, "shared", "n.s."))
+  s$pair_lab <- ifelse(s$sig == "shared", sprintf("%s (q = %.3f)", s$pair, s$q_pair), s$pair)
+  s$pair_lab <- factor(s$pair_lab, levels = s$pair_lab[order(s$pair)])
+  ggplot2::ggplot(s, ggplot2::aes(min_angle_deg, pair_lab)) +
+    ggplot2::geom_point(ggplot2::aes(size = n_shared_05, color = sig),
                         stroke = 1.2) +
-    ggplot2::scale_shape_manual(values = c(`FALSE` = 16, `TRUE` = 21), guide = "none") +
-    ggplot2::scale_color_brewer(palette = "Set1", name = NULL) +
+    ggplot2::scale_color_manual(values = c(shared = "#0072B2", `n.s.` = "grey60",
+                                           underpowered = "#E69F00"),
+                                name = NULL) +
     ggplot2::scale_size_continuous(name = "shared dims\n(cos > 0.5)", range = c(3, 8)) +
     ggplot2::labs(x = "smallest principal angle (deg)", y = NULL) +
     .theme_programs()
@@ -370,16 +428,28 @@ plot_sharing_spectrum <- function(spectrum) {
 #' @export
 plot_artifact_flags <- function(flags, threshold = 0.2) {
   if (is.null(flags) || !nrow(flags)) return(.empty_plot("No programs to flag."))
-  df <- data.frame(program = paste(flags$cell_type, flags$program_id, sep = "_"),
-                   vdj = flags$vdj_frac, genotype = flags$genotype_marker_frac,
-                   vdj_flag = flags$vdj_flag, genotype_flag = flags$genotype_marker_flag,
-                   stringsAsFactors = FALSE)
-  long <- do.call(rbind, lapply(seq_len(nrow(df)), function(i)
-    data.frame(program = df$program[i],
-               set = c("V(D)J", "genotype marker"),
-               fraction = c(df$vdj[i], df$genotype[i]),
-               flagged = c(df$vdj_flag[i], df$genotype_flag[i]),
-               stringsAsFactors = FALSE)))
+  # Detect the screened sets generically from `<set>_frac` columns so any
+  # `sets` subset of flag_artifact_genes() plots (the previous hardcoded
+  # vdj/genotype columns crashed e.g. sets = "sex").
+  frac_cols <- grep("_frac$", names(flags), value = TRUE)
+  if (!length(frac_cols)) {
+    cli::cli_abort("{.arg flags} has no {.val *_frac} columns; pass the output of {.fn flag_artifact_genes}.")
+  }
+  sets <- sub("_frac$", "", frac_cols)
+  pretty <- c(vdj = "V(D)J", genotype_marker = "genotype marker",
+              sex = "sex", canonical_marker = "canonical marker")
+  program <- if ("cmp" %in% names(flags)) {
+    paste0("CMP", flags$cmp)
+  } else {
+    paste(flags$cell_type, flags$program_id, sep = "_")
+  }
+  long <- do.call(rbind, lapply(sets, function(s) {
+    data.frame(program = program,
+               set = if (s %in% names(pretty)) unname(pretty[s]) else s,
+               fraction = flags[[paste0(s, "_frac")]],
+               flagged = flags[[paste0(s, "_flag")]],
+               stringsAsFactors = FALSE)
+  }))
   ggplot2::ggplot(long, ggplot2::aes(fraction, program, fill = set)) +
     ggplot2::geom_col(position = ggplot2::position_dodge(width = 0.8), width = 0.7) +
     ggplot2::geom_vline(xintercept = threshold, linetype = "dashed", color = "grey40") +
@@ -435,7 +505,7 @@ plot_cmp_network <- function(cmp, max_edges = NULL, seed = 1) {
 
   pos <- tryCatch({
     if (!requireNamespace("igraph", quietly = TRUE)) stop("igraph not installed")
-    set.seed(seed)
+    withr::local_seed(seed)
     g <- igraph::graph_from_data_frame(ed[, c("from", "to")], directed = FALSE,
                                        vertices = data.frame(name = nd$label))
     lay <- igraph::layout_with_fr(g)
@@ -738,12 +808,26 @@ plot_context_association <- function(assoc, p_alpha = 0.05) {
   if (is.null(assoc) || !nrow(assoc)) return(.empty_plot("No context associations to plot."))
   df <- assoc
   df$se <- abs(df$estimate / df$t)
+  # t == 0 (e.g. an exactly-zero effect) gives se = Inf/NaN; infinite whiskers
+  # are unplottable, so omit the interval for those rows only.
+  bad_se <- !is.finite(df$se)
+  if (any(bad_se)) {
+    cli::cli_warn("{sum(bad_se)} association(s) have a zero {.field t} statistic; confidence interval omitted.")
+  }
+  df_ci <- df[!bad_se, , drop = FALSE]
   df$cmp_lab <- paste0("CMP", df$cmp)
-  ## the context term is named "x" by the model formula; label it plainly
-  df$term <- ifelse(df$term == "x", "context variable", df$term)
+  df_ci$cmp_lab <- paste0("CMP", df_ci$cmp)
+  ## the context term uses the reserved internal name ".ctx" (a factor context
+  ## appends its level, e.g. ".ctxhigh"); label it plainly
+  ctx_lab <- function(tm) ifelse(tm == ".ctx", "context variable",
+                                 ifelse(startsWith(tm, ".ctx"),
+                                        paste0("context variable: ", substring(tm, 5L)), tm))
+  df$term <- ctx_lab(df$term)
+  df_ci$term <- ctx_lab(df_ci$term)
   ggplot2::ggplot(df, ggplot2::aes(estimate, cmp_lab, color = p < p_alpha)) +
     ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "grey60") +
-    ggplot2::geom_errorbar(ggplot2::aes(xmin = estimate - 1.96 * se, xmax = estimate + 1.96 * se),
+    ggplot2::geom_errorbar(data = df_ci,
+                           ggplot2::aes(xmin = estimate - 1.96 * se, xmax = estimate + 1.96 * se),
                            orientation = "y", width = 0.15, linewidth = 0.6) +
     ggplot2::geom_point(ggplot2::aes(shape = p < p_alpha), size = 3) +
     ggplot2::scale_color_manual(values = c(`TRUE` = "#B2182B", `FALSE` = "grey40"),

@@ -115,7 +115,9 @@
     if (all(is.na(out$dubious))) {
         verdict <- pick(c("mcRigor", "verdict", "mc_res"))
         if (is.character(verdict) && !all(is.na(verdict))) {
-            out$dubious <- !verdict %in% c("trustworthy", "TRUE", "good")
+            # NA verdicts stay NA: `!NA %in% ...` would coerce them to TRUE
+            out$dubious <- ifelse(is.na(verdict), NA,
+                                  !verdict %in% c("trustworthy", "TRUE", "good"))
         }
     }
     if (all(is.na(out$dubious)) && !all(is.na(out$mcDiv)) &&
@@ -145,10 +147,10 @@
 #' @param mcrigor_args Optional named list overriding mcRigor_OPTIMIZE
 #'   arguments (`D_bw`, `optim_method`, `weight`, `Nrep`, ...).
 #'
-#' @return A list with `optimal_gamma` (per group), `scores` (per group x
-#'   gamma Score table), and `membership` (the per-cell membership data.frame
-#'   for the chosen partition, usable with `mcRigor::mcRigorTS_Step1/Step2`
-#'   for two-step re-partitioning).
+#' @return A list with `optimal_gamma` (named list, per group), `scores` (per
+#'   group x gamma Score table), and `membership` (named list of per-group
+#'   membership vectors for the chosen granularity, one entry per cell; NULL
+#'   when no group produced a result).
 #'
 #' @export
 OptimizeGammaSEACells <- function(
@@ -190,10 +192,15 @@ OptimizeGammaSEACells <- function(
     score_rows <- list()
     optimal <- list()
 
+    opt_root <- tempfile(pattern = "cpmc_opt_")   # unique per run (no same-second collisions)
     for (gi in seq_along(levels_g)) {
         g <- levels_g[gi]
         cells_g <- names(group_ids)[group_ids == g]
-        if (length(cells_g) < min_cells) next
+        if (length(cells_g) < min_cells) {
+            warning("group '", g, "' skipped: ", length(cells_g),
+                    " cells < min_cells = ", min_cells, call. = FALSE)
+            next
+        }
         if (verbose) message("[OptimizeGamma] group '", g, "': ",
                              length(gammas), " granularities")
         counts_g <- .get_counts_matrix(seurat_obj, assay, slot, layer, cells_g)
@@ -206,7 +213,7 @@ OptimizeGammaSEACells <- function(
         for (k in seq_along(gammas)) {
             gamma <- gammas[k]
             n_seacells <- .mc_n_seacells_for_group(length(cells_g), gamma, NULL)
-            out_dir <- file.path(tempdir(), paste0("cpmc_opt_", gi, "_", k))
+            out_dir <- file.path(opt_root, paste0("g", gi, "_", k))
             paths <- .export_group_for_python(counts_g, emb_g, out_dir)
             params <- list(
                 n_top_genes = n_top_genes, n_pc = n_pc,
@@ -282,13 +289,17 @@ OptimizeGammaSEACells <- function(
     }
     if (!is.na(gamma_col)) {
         gvals <- tab[[gamma_col]]
-        scores <- scores[match(as.character(gammas), as.character(gvals))]
-        if (any(is.na(scores))) scores <- as.numeric(tab[[score_col]])
+        aligned <- scores[match(as.character(gammas), as.character(gvals))]
+        # Keep the alignment whenever at least one gamma matched; the previous
+        # any(NA) fallback discarded correct matches and restored raw order,
+        # misaligning every score after a partial match.
+        if (!all(is.na(aligned))) scores <- aligned
     }
     if (length(scores) != length(gammas)) {
         scores <- rep(NA_real_, length(gammas))
     }
-    list(gamma = gammas[which.max(scores)], scores = scores)
+    best_idx <- if (all(is.na(scores))) NA_integer_ else which.max(scores)
+    list(gamma = gammas[best_idx], scores = scores)
 }
 
 #' Access metacell results stored by MetacellsByGroupsSEACells

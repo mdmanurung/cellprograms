@@ -52,7 +52,9 @@
 #'   vector of `sample_metadata` column names or a one-sided formula, e.g.
 #'   `~ age + sex + batch`. Programs are then fit to the residuals. Do not
 #'   include the outcome you plan to test. Variable-gene selection is done
-#'   before adjustment.
+#'   before adjustment. The covariate design must leave >= 10 residual
+#'   degrees of freedom in every cell type (fail-closed abort otherwise);
+#'   levels carried by a single donor trigger a leverage warning.
 #' @param covariate_mode How `covariates` are handled: `"residualize"`
 #'   (default; hard adjustment: regress out of `Y` before factorization) or
 #'   `"fixed"` (soft, SOFA-style: the covariate design columns enter flashier as
@@ -60,7 +62,10 @@
 #'   programs are fit jointly with them; free programs can still share
 #'   variance with a covariate. Requires `center = TRUE`, ignores
 #'   `flash_control`). Fixed columns are not returned as programs;
-#'   `Y_used` is `Y` minus the fitted covariate part.
+#'   `Y_used` is `Y` minus the fitted covariate part. Note: `"fixed"` fits
+#'   cannot be projected to single cells — `project_programs_to_cells()`
+#'   refuses them because the fixed covariate adjustment cannot be replayed
+#'   on a query.
 #' @param seed Random seed for reproducibility.
 #' @param flash_control Optional list overriding flashier::flash arguments.
 #' @param feature_scale Declared measurement units of the pseudobulk
@@ -82,7 +87,10 @@
 #'   flashier.utils R backend, with a nullcheck fallback ladder) or
 #'   `"cebmf_torch"` (the covariate-EBMF torch backend, which fails loudly
 #'   instead of falling back). Both backends share preprocessing, program
-#'   extraction, and the output contract. The torch backend runs in a pinned
+#'   extraction, and the output contract, with two exceptions: torch fits
+#'   carry no posterior SDs (so `program_sharing()` is unavailable) and
+#'   cannot be projected to single cells with `project_programs_to_cells()`
+#'   (no flashier.utils manifest). The torch backend runs in a pinned
 #'   Python environment: set options(cellprograms.cebmf_python_env = ...) to
 #'   point at an existing environment, otherwise a basilisk environment is
 #'   used.
@@ -97,8 +105,11 @@
 #'   version); a fail-closed remediation is pending.
 #'
 #' @return The input object augmented with class `cell_program_fit` and
-#'   components `fits`, `programs`, `scores`, `loadings`, `preprocessing`,
-#'   `provenance`.
+#'   components `fits` (per-cell-type backend fits with preprocessing replay
+#'   records), `preprocessing`, and `provenance`. Program `scores` and
+#'   `loadings` are added by `canonicalize_programs()` — run it before
+#'   downstream analysis. (There is no `programs` component; an earlier
+#'   version of this documentation listed one in error.)
 #'
 #' @examples
 #' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
@@ -125,6 +136,15 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
   stopifnot(inherits(x, "cell_program_data"))
   covariate_mode <- match.arg(covariate_mode)
   backend <- match.arg(backend)
+  if (!is.numeric(max_factors) || length(max_factors) != 1L ||
+      !is.finite(max_factors) || max_factors < 1 || max_factors != round(max_factors)) {
+    cli::cli_abort("{.arg max_factors} must be a single positive integer, not {.val {max_factors}}.")
+  }
+  if (!is.numeric(n_variable_genes) || length(n_variable_genes) != 1L ||
+      !is.finite(n_variable_genes) || n_variable_genes < 1 ||
+      n_variable_genes != round(n_variable_genes)) {
+    cli::cli_abort("{.arg n_variable_genes} must be a single positive integer, not {.val {n_variable_genes}}.")
+  }
   # var_floor: "none" (default, behavior-preserving) | "vignette" (the flashier
   # single-cell vignette's fixed residual SD, S = sd(log(Poisson(1/n)+1)), n =
   # donors in the fit matrix; drawn once per cell type with a fixed local seed
@@ -198,8 +218,10 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     defaults <- list(features = "all", n_variable_genes = 2000, exclude_genes = NULL,
       exclude_artifacts = FALSE, covariates = NULL, covariate_mode = "residualize",
       center = TRUE, scale = FALSE, feature_scale = "unknown")
+    # all.equal, not identical(): an explicit n_variable_genes = 2000L
+    # (integer) equals the 2000 default and must not raise a false conflict.
     conflicts <- names(provided)[vapply(names(provided),
-      function(n) !identical(provided[[n]], defaults[[n]]), logical(1))]
+      function(n) !isTRUE(all.equal(provided[[n]], defaults[[n]])), logical(1))]
     if (length(conflicts)) {
       cli::cli_abort("{.arg preprocessing_spec} is frozen: leave {conflicts} at their defaults; the spec governs.")
     }
@@ -275,6 +297,10 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     # cell type, or constant and centered away): flashier rejects all-zero
     # columns and they carry no factor signal.
     cs <- colSums(abs(Y))
+    # scale() on a zero-variance gene yields a NaN column (0/0); treat
+    # non-finite column mass as degenerate so the gene is dropped below
+    # instead of crashing `if (!any(keep_cols))` on an NA.
+    cs[!is.finite(cs)] <- 0
     keep_cols <- cs > 1e-10 * max(cs, 1)   # tolerance: centered constant genes leave ~1e-16 dust
     if (!any(keep_cols)) {
       # No informative genes in this cell type (e.g. a pseudobulk profile that
@@ -338,7 +364,7 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     # fast path — only var_floor-derived S reroutes the fit).
     S_vf <- NULL
     if (vignette_floor) {
-      set.seed(20261016)  # fixed local seed: S is deterministic, fit-seed-independent
+      withr::local_seed(20261016)  # fixed local seed: S is deterministic, fit-seed-independent
       S_vf <- sd(log(stats::rpois(1e7, 1 / nrow(Y)) + 1))
     } else if (!is.null(S_value)) {
       S_vf <- S_value
@@ -346,7 +372,7 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     if (!is.null(S_vf)) args$S <- S_vf
 
     t0 <- Sys.time()
-    set.seed(seed)
+    withr::local_seed(seed)
     # Ordinary fits (no fixed covariates) go through flashier.utils::fit_ebmf()
     # when available; the argument mapping below is exact (verified to machine
     # precision against do.call(flashier::flash, args)). flash_control members
@@ -397,9 +423,15 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
       if (!.cebmf_fit_ok(fit)) {
         cli::cli_abort("cebmf_torch returned a non-finite objective in cell type {.val {ct}}.")
       }
+      if (!isTRUE(fit$converged)) {
+        # converged is a scalar bool (TRUE = stopped by plateau, FALSE = maxit
+        # exhausted); it was stored but never gated, so non-converged fits
+        # passed silently.
+        cli::cli_warn("cebmf_torch did not converge in cell type {.val {ct}} (maxit exhausted; effective_k = {fit$effective_k}). Interpret this cell type's programs with caution.")
+      }
     } else {
       for (at in attempts) {
-        set.seed(seed)                       # every attempt starts from the same RNG state
+        withr::local_seed(seed)              # every attempt starts from the same RNG state
         fit <- tryCatch(run_flash(at$args), error = function(e) {
           if (is.null(first_err)) first_err <<- e
           NULL
@@ -688,7 +720,8 @@ canonicalize_programs <- function(fit) {
       # sign: gene with largest |loading|; ties broken by gene name (deterministic)
       sign_k <- apply(W, 2, function(w) {
         am <- which(abs(w) == max(abs(w)))
-        am <- am[order(fit$fits[[ct]]$genes[am], w[am])]
+        # radix ordering is locale-independent: ties break the same way everywhere
+        am <- am[order(fit$fits[[ct]]$genes[am], w[am], method = "radix")]
         sign(w[am[1]])
       })
       sign_k[sign_k == 0] <- 1

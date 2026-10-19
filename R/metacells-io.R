@@ -13,6 +13,10 @@
                 lay <- layer
                 if (!(lay %in% lays)) {
                     lay <- grep("counts", lays, value = TRUE)[1]
+                    if (is.na(lay)) {
+                        cli::cli_abort("Assay {.val {assay}} has no layer {.val {layer}} and no counts-like fallback layer; available layers: {.val {lays}}.")
+                    }
+                    cli::cli_warn("Layer {.val {layer}} not found in assay {.val {assay}}; falling back to layer {.val {lay}}.")
                 }
                 SeuratObject::LayerData(seurat_obj[[assay]], layer = lay)
             } else {
@@ -30,6 +34,15 @@
 .get_reduction_embeddings <- function(seurat_obj, reduction, dims, cells) {
     emb <- SeuratObject::Embeddings(seurat_obj, reduction)
     if (!is.null(dims)) {
+        if (is.character(dims)) {
+            missing_d <- setdiff(dims, colnames(emb))
+            if (length(missing_d)) {
+                cli::cli_abort("{.arg dims} {.val {missing_d}} not found among the {.val {reduction}} reduction's columns ({.val {colnames(emb)}}).")
+            }
+        } else if (!is.numeric(dims) || any(!is.finite(dims)) ||
+                   any(dims < 1) || any(dims > ncol(emb))) {
+            cli::cli_abort("{.arg dims} must be column names or valid indices (1..{ncol(emb)}) of the {.val {reduction}} embedding.")
+        }
         emb <- emb[, dims, drop = FALSE]
     }
     emb[cells, , drop = FALSE]
@@ -37,6 +50,15 @@
 
 .export_group_for_python <- function(counts_g, emb_g, out_dir) {
     # counts_g: genes x cells (dgCMatrix); emb_g: cells x dims (matrix) or NULL
+    # Cell names that pandas would re-infer as numbers get mangled on the CSV
+    # round trip ("01" -> "1", "1e5" -> "100000") and later KeyError in
+    # Python; fail closed here with an actionable message.
+    cells <- colnames(counts_g)
+    num <- suppressWarnings(as.numeric(cells))
+    mangled <- !is.na(num) & as.character(num) != cells
+    if (any(mangled)) {
+        cli::cli_abort("{sum(mangled)} cell name(s) look numeric and would not survive the CSV round trip (e.g. {.val {cells[which(mangled)][1]}}); rename cells with a non-numeric prefix first.")
+    }
     dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
     mtx_path <- file.path(out_dir, "counts_genes_by_cells.mtx")
     Matrix::writeMM(as(counts_g, "dgCMatrix"), mtx_path)

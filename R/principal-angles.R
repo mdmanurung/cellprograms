@@ -69,7 +69,7 @@
   null_sigma <- NULL; p_values <- NULL; p_pair <- NA_real_
   z_pair <- excess_frac <- NA_real_
   if (n_perm > 0L) {
-    if (!is.null(seed)) set.seed(seed)
+    if (!is.null(seed)) withr::local_seed(seed)
     null_sigma <- matrix(NA_real_, nrow = n_perm, ncol = length(sigma))
     for (p in seq_len(n_perm)) {
       Mb_p <- Mb[.perm_within(nrow(Mb), strata), , drop = FALSE]
@@ -78,7 +78,12 @@
       null_sigma[p, seq_along(d_p)] <- pmin(d_p, 1)
     }
     p_values <- vapply(seq_along(sigma), function(i) {
-      (1 + sum(null_sigma[, i] >= sigma[i], na.rm = TRUE)) / (n_perm + 1)
+      # A permutation whose subspace rank drops below i has no i-th cosine:
+      # treat it as 0 (no alignment on that direction). Dropping it with
+      # na.rm while keeping the n_perm + 1 denominator would bias p downward.
+      nv <- null_sigma[, i]
+      nv[is.na(nv)] <- 0
+      (1 + sum(nv >= sigma[i])) / (n_perm + 1)
     }, numeric(1L))
     ## one pair-level test: T = sum(cos^2) = ||Ua'Ub||_F^2 (rotation-invariant;
     ## no multiplicity over directions), same permutation null
@@ -168,6 +173,10 @@ principal_angles <- function(fit, ct_a, ct_b,
       .stopf("Both cell types must retain >= 1 program.")
     }
     ids <- intersect(rownames(Za), rownames(Zb))
+    if (length(ids) == 0L) {
+      .stopf("No shared observations between %s and %s; scores-space principal angles need overlapping donors.",
+             ct_a, ct_b)
+    }
     if (length(ids) < 20L) {
       .warnf("Only %d shared observations for %s vs %s; angles may be unstable.",
              length(ids), ct_a, ct_b)
@@ -275,7 +284,9 @@ print.principal_angles <- function(x, ...) {
 #'   pairs, `max(999, 40 * #pairs)`, so that the permutation floor `1/(n_perm+1)`
 #'   is below the BH level of a single true pair (`0.05 / #pairs`); a smaller
 #'   value warns. Pairs get distinct seeds derived from `seed`.
-#' @param ... Passed to `principal_angles` (e.g. `seed`, `strata`).
+#' @param seed Master seed (default 1, so default runs are reproducible); each
+#'   pair gets a deterministic sub-seed. `NULL` leaves the RNG unseeded.
+#' @param ... Passed to `principal_angles` (e.g. `strata`).
 #' @return Per-pair `principal_angles` objects plus a summary table. `p_pair` is
 #'   a single permutation p-value per pair (statistic sum of squared cosines);
 #'   `z_pair` and `excess_frac` are graded effect sizes against the
@@ -292,7 +303,7 @@ print.principal_angles <- function(x, ...) {
 #' ss$summary
 #' @export
 sharing_spectrum <- function(fit, pairs = NULL, space = c("scores", "loadings"),
-                             n_perm = NULL, ...) {
+                             n_perm = NULL, seed = 1L, ...) {
   space <- match.arg(space)
   cts <- names(fit$loadings)
   cts <- cts[vapply(fit$loadings, function(W) ncol(W) > 0L, logical(1L))]
@@ -309,9 +320,13 @@ sharing_spectrum <- function(fit, pairs = NULL, space = c("scores", "loadings"),
            n_perm, 1 / (n_perm + 1), length(pairs), 0.05 / length(pairs), 20L * length(pairs))
   }
   dots <- list(...)
+  if ("seed" %in% names(dots)) {
+    .stopf("Pass `seed` as a named argument of sharing_spectrum(), not via `...`.")
+  }
   res <- lapply(pairs, function(pr) {
     a <- dots
-    if (!is.null(a$seed)) a$seed <- .pair_seed(a$seed, pr)   # distinct stream per pair
+    # distinct deterministic stream per pair; seed = NULL opts out (unseeded)
+    a$seed <- if (!is.null(seed)) .pair_seed(seed, pr) else NULL
     do.call(principal_angles, c(list(fit, pr[1L], pr[2L], space = space, n_perm = n_perm), a))
   })
   names(res) <- vapply(pairs, paste, character(1L), collapse = " vs ")
@@ -375,8 +390,11 @@ align_programs <- function(fit, reference = NULL, space = c("scores", "loadings"
 #'   additionally returns principal `angles` and a `split_map` (heuristic
 #'   thresholds: cosine > 0.5, |weight| > 0.3; weights carry a singular-value
 #'   scale and are not comparable across cell types).
-#' @param space Subspace geometry for matching: `"loadings"` (default; gene
-#'   identity) or `"scores"` (activity; requires shared observations).
+#' @param space Geometry for the subspace `angles`/`split_map`, used only when
+#'   `method = "subspace"`: `"loadings"` (default; gene identity) or
+#'   `"scores"` (activity; requires >= 2 shared observations between the
+#'   fits). The factor-level `matches` are always loading-cosine based,
+#'   regardless of `space`.
 #' @param sim_threshold Minimum |cosine| to report a factor-level match.
 #' @examples
 #' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
@@ -423,13 +441,16 @@ match_programs <- function(fit_a, fit_b, cell_type,
 
   angles <- NULL; split_map <- NULL
   if (method == "subspace") {
-    Ma <- if (space == "loadings") Wa else {
+    if (space == "scores") {
       ids <- intersect(rownames(fit_a$scores[[cell_type]]), rownames(fit_b$scores[[cell_type]]))
-      fit_a$scores[[cell_type]][ids, , drop = FALSE]
-    }
-    Mb <- if (space == "loadings") Wb else {
-      ids <- intersect(rownames(fit_a$scores[[cell_type]]), rownames(fit_b$scores[[cell_type]]))
-      fit_b$scores[[cell_type]][ids, , drop = FALSE]
+      if (length(ids) < 2L) {
+        .stopf("Cell type '%s': space = \"scores\" requires >= 2 shared observations between the fits; found %d.",
+               cell_type, length(ids))
+      }
+      Ma <- fit_a$scores[[cell_type]][ids, , drop = FALSE]
+      Mb <- fit_b$scores[[cell_type]][ids, , drop = FALSE]
+    } else {
+      Ma <- Wa; Mb <- Wb
     }
     sa <- .subspace(Ma); sb <- .subspace(Mb)
     s <- svd(crossprod(sa$U, sb$U))

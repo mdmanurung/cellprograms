@@ -46,10 +46,10 @@ Passed to [MetacellsByGroupsSEACells()] internals.}
 arguments (`D_bw`, `optim_method`, `weight`, `Nrep`, ...).}
 }
 \value{
-A list with `optimal_gamma` (per group), `scores` (per group x
-  gamma Score table), and `membership` (the per-cell membership data.frame
-  for the chosen partition, usable with `mcRigor::mcRigorTS_Step1/Step2`
-  for two-step re-partitioning).
+A list with `optimal_gamma` (named list, per group), `scores` (per
+  group x gamma Score table), and `membership` (named list of per-group
+  membership vectors for the chosen granularity, one entry per cell; NULL
+  when no group produced a result).
 }
 \description{
 Runs SEACells at several granularities (cells per metacell) per group and

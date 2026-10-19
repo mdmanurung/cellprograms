@@ -24,8 +24,11 @@ additionally returns principal `angles` and a `split_map` (heuristic
 thresholds: cosine > 0.5, |weight| > 0.3; weights carry a singular-value
 scale and are not comparable across cell types).}
 
-\item{space}{Subspace geometry for matching: `"loadings"` (default; gene
-identity) or `"scores"` (activity; requires shared observations).}
+\item{space}{Geometry for the subspace `angles`/`split_map`, used only when
+`method = "subspace"`: `"loadings"` (default; gene identity) or
+`"scores"` (activity; requires >= 2 shared observations between the
+fits). The factor-level `matches` are always loading-cosine based,
+regardless of `space`.}
 
 \item{sim_threshold}{Minimum |cosine| to report a factor-level match.}
 }

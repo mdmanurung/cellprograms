@@ -47,6 +47,17 @@ test_that("artifact_gene_sets stores the documented sets and .expand_vdj expands
   expect_error(artifact_genes(universe, "nope"), "Unknown artifact gene set")
 })
 
+test_that("vdj regex covers J/D segments and IGLL surrogates (M-10)", {
+  universe <- c("IGHJ6", "IGKJ1", "IGLJ3", "TRAJ4", "TRBJ2-1", "TRGJ1", "TRDJ1",
+                "IGHD1-1", "TRBD1", "TRDD1", "IGLL1", "IGLL5",
+                "TRBC1", "TRDC", "IGHA1", "IGHM", "IGHE",
+                "TRABD", "TRA2A", "TRDMT1", "MALAT1", "IGF1")
+  expect_setequal(.expand_vdj(universe),
+                  c("IGHJ6", "IGKJ1", "IGLJ3", "TRAJ4", "TRBJ2-1", "TRGJ1", "TRDJ1",
+                    "IGHD1-1", "TRBD1", "TRDD1", "IGLL1", "IGLL5",
+                    "TRBC1", "TRDC", "IGHA1", "IGHM", "IGHE"))
+})
+
 test_that("flag_artifact_genes flags a planted V(D)J-carrying program (cmp = NULL)", {
   fit <- .artifact_toy()
   fl <- flag_artifact_genes(fit)

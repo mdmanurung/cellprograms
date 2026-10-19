@@ -114,7 +114,30 @@ project_programs_to_cells <- function(fit, expression, cell_types,
       !"observation_id" %in% names(sample_metadata)) {
     cli::cli_abort("{.arg sample_metadata} must contain an {.val observation_id} column.")
   }
-  fs <- if (!is.null(feature_scale)) feature_scale else fit$preprocessing$feature_scale
+  if (!is.numeric(min_coverage) || length(min_coverage) != 1L ||
+      !is.finite(min_coverage) || min_coverage < 0 || min_coverage > 1) {
+    cli::cli_abort("{.arg min_coverage} must be a single number in [0, 1].")
+  }
+  if (!is.numeric(maxiter) || length(maxiter) != 1L ||
+      !is.finite(maxiter) || maxiter < 1 || maxiter != round(maxiter)) {
+    cli::cli_abort("{.arg maxiter} must be a single positive integer.")
+  }
+  fit_fs <- fit$preprocessing$feature_scale
+  if (!is.null(feature_scale)) {
+    if (!is.character(feature_scale) || length(feature_scale) != 1L) {
+      cli::cli_abort("{.arg feature_scale} must be a single string (e.g. {.val logcounts}).")
+    }
+    # Documented refusal: a query whose declared units differ from the fit's
+    # recorded units is rejected (previously the user's value was adopted
+    # silently). A fit with undeclared units ("unknown") may still be
+    # rescued by an explicit declaration here.
+    if (!is.null(fit_fs) && !identical(fit_fs, "unknown") && !identical(feature_scale, fit_fs)) {
+      cli::cli_abort("Query {.arg feature_scale} {.val {feature_scale}} differs from the fit's recorded units {.val {fit_fs}}; refusing to project across measurement units.")
+    }
+    fs <- feature_scale
+  } else {
+    fs <- fit_fs
+  }
   if (is.null(fs) || !is.character(fs) || length(fs) != 1L ||
       identical(fs, "unknown")) {
     cli::cli_abort(c(
@@ -152,7 +175,7 @@ project_programs_to_cells <- function(fit, expression, cell_types,
     if (length(cells_ct) == 0L) next
     f <- fit$fits[[ct]]$flash
     if (!is.null(f$fixed_L) || is.null(attr(f, "flashbridge_metadata"))) {
-      cli::cli_abort("Cell type {.val {ct}}: the stored fit has no flashier.utils manifest (legacy or fixed-covariate backend) and its adjustment cannot be replayed; refit with the default backend to project.")
+      cli::cli_abort("Cell type {.val {ct}}: the stored fit has no flashier.utils manifest (legacy, fixed-covariate, or cebmf_torch backend) and its adjustment cannot be replayed; refit with the default flashier backend to project.")
     }
     replay <- fit$fits[[ct]]$preproc_replay
     if (is.null(replay)) {
@@ -184,7 +207,9 @@ project_programs_to_cells <- function(fit, expression, cell_types,
     }
     idx <- match(shared, genes_ct)
     Q <- sweep(Q, 2, replay$center[idx], "-")
-    Q <- sweep(Q, 2, replay$scale[idx], "/")
+    sc <- replay$scale[idx]
+    sc[!is.finite(sc) | sc == 0] <- 1   # degenerate recorded scale: no-op instead of NaN
+    Q <- sweep(Q, 2, sc, "/")
 
     pr <- flashier.utils::project_factor_activity(
       fit = f, query = Q, sample_side = "rows", feature_scale = fs,

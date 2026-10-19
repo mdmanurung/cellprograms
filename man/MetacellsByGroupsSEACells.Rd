@@ -88,11 +88,12 @@ analysis. Default 0.9.}
 \item{convergence_epsilon}{Franke-Wolfe convergence threshold. Default 1e-5
 (hdWGCNA vignette value).}
 
-\item{max_iter}{Maximum SEACells fit iterations. Default 100 (the SEACells
-0.3.3 fork default; non-convergence is recorded in fit_stats, not fatal).}
+\item{max_iter}{Maximum SEACells fit iterations. Default 20;
+non-convergence is recorded in fit_stats, not fatal.}
 
-\item{use_sparse}{Use sparse matrix operations in SEACells (CPU only).
-Default TRUE.}
+\item{use_sparse}{Reserved for API compatibility; currently **ignored** —
+the pinned SEACells 0.3.3 fork has no `use_sparse` kwarg (a warning is
+issued when set to a non-default value). Default TRUE.}
 
 \item{use_soft_assignments}{If TRUE (default), export the cells x metacells
 soft-assignment matrix (`A_.T`) and store it on the output.}

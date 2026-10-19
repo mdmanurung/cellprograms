@@ -9,6 +9,7 @@ sharing_spectrum(
   pairs = NULL,
   space = c("scores", "loadings"),
   n_perm = NULL,
+  seed = 1L,
   ...
 )
 }
@@ -24,7 +25,10 @@ pairs, `max(999, 40 * #pairs)`, so that the permutation floor `1/(n_perm+1)`
 is below the BH level of a single true pair (`0.05 / #pairs`); a smaller
 value warns. Pairs get distinct seeds derived from `seed`.}
 
-\item{...}{Passed to `principal_angles` (e.g. `seed`, `strata`).}
+\item{seed}{Master seed (default 1, so default runs are reproducible); each
+pair gets a deterministic sub-seed. `NULL` leaves the RNG unseeded.}
+
+\item{...}{Passed to `principal_angles` (e.g. `strata`).}
 }
 \value{
 Per-pair `principal_angles` objects plus a summary table. `p_pair` is

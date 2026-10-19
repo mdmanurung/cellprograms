@@ -104,7 +104,7 @@ annotate_cmp_lr <- function(fit, cmp, lr, n_perm = 499L, alpha = 0.05, top = 10L
       }
       m
     }
-    set.seed(seed + k)
+    withr::local_seed(seed + k)
     L0 <- gw(lr$ligand); R0 <- gw(lr$receptor)
     obs <- do.call(rbind, lapply(seq_along(nn), function(a) {
       b <- which(ok[a, ]); if (!length(b)) return(NULL)
@@ -145,10 +145,20 @@ annotate_cmp_lr <- function(fit, cmp, lr, n_perm = 499L, alpha = 0.05, top = 10L
   })
   out <- do.call(rbind, out)
   if (is.null(out)) {
-    return(data.frame(cmp = integer(), sender = character(), receiver = character(), ligand = character(),
-                      receptor = character(), score = numeric(), p = numeric(), stringsAsFactors = FALSE))
+    empty <- data.frame(cmp = integer(), sender = character(), receiver = character(), ligand = character(),
+                        receptor = character(), score = numeric(), p = numeric(), stringsAsFactors = FALSE)
+    if (donor_check) {
+      # keep the documented schema stable even for an empty result
+      empty$donor_cor <- numeric(); empty$donor_p <- numeric(); empty$n_donors <- numeric()
+    }
+    return(empty)
   }
-  if (donor_check && !is.null(fit$pseudobulk)) {
+  if (donor_check && is.null(fit$pseudobulk)) {
+    .warnf("`fit` has no pseudobulk component; `donor_check` columns are NA.")
+    out$donor_cor <- NA_real_; out$donor_p <- NA_real_; out$n_donors <- NA_real_
+    donor_check <- FALSE
+  }
+  if (donor_check) {
     dc <- t(vapply(seq_len(nrow(out)), function(i) {
       cs <- sub("\\|.*", "", out$sender[i]); cr <- sub("\\|.*", "", out$receiver[i])
       Ys <- fit$pseudobulk[[cs]]; Yr <- fit$pseudobulk[[cr]]
@@ -277,6 +287,12 @@ cmp_gene_overlap <- function(fit, cmp, top_n = 100L, q = 0.05) {
   tab <- .cmp_table(cmp)
   out <- lapply(unique(tab$cmp), function(k) {
     m <- tab[tab$cmp == k, , drop = FALSE]
+    if (nrow(m) < 2L) {
+      # no member pair to test; mean(logical(0)) would be NaN and crash the
+      # class branch on an NA comparison
+      return(data.frame(cmp = k, n_pairs = 0L, frac_overlapping = NA_real_,
+                        class = "single-member", stringsAsFactors = FALSE))
+    }
     W <- lapply(seq_len(nrow(m)), function(i) fit$loadings[[m$cell_type[i]]][, m$program_id[i]])
     tops <- lapply(W, function(w) names(sort(-abs(w)))[seq_len(min(top_n, length(w)))])
     ps <- c()
@@ -291,7 +307,14 @@ cmp_gene_overlap <- function(fit, cmp, top_n = 100L, q = 0.05) {
                class = if (f >= 0.5) "shared-genes" else if (f > 0) "partial-overlap" else "distinct-genes",
                stringsAsFactors = FALSE)
   })
-  do.call(rbind, out)
+  res <- do.call(rbind, out)
+  if (is.null(res)) {
+    # empty CMP table: return the documented schema, not NULL
+    res <- data.frame(cmp = integer(0), n_pairs = integer(0),
+                      frac_overlapping = numeric(0), class = character(0),
+                      stringsAsFactors = FALSE)
+  }
+  res
 }
 
 #' Association of coordinated programs with a donor variable
@@ -331,16 +354,24 @@ cmp_gene_overlap <- function(fit, cmp, top_n = 100L, q = 0.05) {
 #' @export
 cmp_context_association <- function(fit, cmp, variable, covariates = NULL) {
   S <- cmp_scores(fit, cmp)
+  if (any(covariates %in% c("y", ".ctx"))) {
+    cli::cli_abort("{.arg covariates} must not use the reserved names {.val y} or {.val .ctx}.")
+  }
   v <- .cmp_resolve_var(fit, variable, "variable", allow_na = TRUE)   # donors with NA are dropped
   md <- fit$sample_metadata[match(rownames(S), fit$sample_metadata$observation_id), , drop = FALSE]
   out <- lapply(seq_len(ncol(S)), function(j) {
-    d <- data.frame(y = S[, j], x = v[rownames(S)])
+    d <- data.frame(y = S[, j], .ctx = v[rownames(S)])
     for (cv in covariates) d[[cv]] <- md[[cv]]
     d <- d[stats::complete.cases(d), , drop = FALSE]
     cvs <- covariates[vapply(covariates, function(cv) length(unique(d[[cv]])) > 1L, TRUE)]   # drop constant covariates
-    fm <- stats::as.formula(paste("y ~ x", paste(c("", cvs), collapse = " + ")))
+    fm <- stats::as.formula(paste("y ~ .ctx", paste(c("", cvs), collapse = " + ")))
     co <- summary(stats::lm(fm, d))$coefficients
-    rr <- grep("^x", rownames(co))
+    # Exact context-term selection via the model-matrix term assignment (term 1
+    # is .ctx). A prefix grep would also capture adjustment covariates whose
+    # names start with the same letter (e.g. "xsite").
+    mm <- stats::model.matrix(fm, d)
+    ctx_terms <- colnames(mm)[attr(mm, "assign") == 1L]
+    rr <- rownames(co) %in% ctx_terms
     data.frame(cmp = sub("^CMP", "", colnames(S)[j]), term = rownames(co)[rr], estimate = co[rr, 1],
                t = co[rr, 3], p = co[rr, 4], n = nrow(d), stringsAsFactors = FALSE)
   })

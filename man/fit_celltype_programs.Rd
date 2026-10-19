@@ -86,7 +86,9 @@ the donors observed in that cell type) before factorization: a character
 vector of `sample_metadata` column names or a one-sided formula, e.g.
 `~ age + sex + batch`. Programs are then fit to the residuals. Do not
 include the outcome you plan to test. Variable-gene selection is done
-before adjustment.}
+before adjustment. The covariate design must leave >= 10 residual
+degrees of freedom in every cell type (fail-closed abort otherwise);
+levels carried by a single donor trigger a leverage warning.}
 
 \item{covariate_mode}{How `covariates` are handled: `"residualize"`
 (default; hard adjustment: regress out of `Y` before factorization) or
@@ -95,7 +97,10 @@ fixed sample-side factors with unshrunk gene effects, and the K free
 programs are fit jointly with them; free programs can still share
 variance with a covariate. Requires `center = TRUE`, ignores
 `flash_control`). Fixed columns are not returned as programs;
-`Y_used` is `Y` minus the fitted covariate part.}
+`Y_used` is `Y` minus the fitted covariate part. Note: `"fixed"` fits
+cannot be projected to single cells — `project_programs_to_cells()`
+refuses them because the fixed covariate adjustment cannot be replayed
+on a query.}
 
 \item{seed}{Random seed for reproducibility.}
 
@@ -122,7 +127,10 @@ frozen genes must be present in the dataset.}
 flashier.utils R backend, with a nullcheck fallback ladder) or
 `"cebmf_torch"` (the covariate-EBMF torch backend, which fails loudly
 instead of falling back). Both backends share preprocessing, program
-extraction, and the output contract. The torch backend runs in a pinned
+extraction, and the output contract, with two exceptions: torch fits
+carry no posterior SDs (so `program_sharing()` is unavailable) and
+cannot be projected to single cells with `project_programs_to_cells()`
+(no flashier.utils manifest). The torch backend runs in a pinned
 Python environment: set options(cellprograms.cebmf_python_env = ...) to
 point at an existing environment, otherwise a basilisk environment is
 used.}
@@ -139,8 +147,11 @@ version); a fail-closed remediation is pending.}
 }
 \value{
 The input object augmented with class `cell_program_fit` and
-  components `fits`, `programs`, `scores`, `loadings`, `preprocessing`,
-  `provenance`.
+  components `fits` (per-cell-type backend fits with preprocessing replay
+  records), `preprocessing`, and `provenance`. Program `scores` and
+  `loadings` are added by `canonicalize_programs()` — run it before
+  downstream analysis. (There is no `programs` component; an earlier
+  version of this documentation listed one in error.)
 }
 \description{
 Fit cell-type-specific programs with flashier
