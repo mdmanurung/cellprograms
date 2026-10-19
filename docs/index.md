@@ -312,6 +312,30 @@ program (ambient/clonal leakage), while interferon and cell-cycle
 programs replicated as genuinely shared across both cohorts — mask
 artifact genes before interpreting sharing.
 
+## Known limitations
+
+Established by the confirm-scale benchmark evidence (full register:
+[`reports/audit/LIMITATIONS.md`](https://github.com/mdmanurung/cellprograms/blob/main/reports/audit/LIMITATIONS.md)):
+
+- **Projection is query-set dependent.**
+  [`project_programs_to_cells()`](https://mdmanurung.github.io/cellprograms/reference/project_programs_to_cells.md)
+  re-estimates activity priors over the query cells, so the same cell
+  can receive different activities in different query sets; chunked
+  projection is not offered (oversize queries are refused, not silently
+  approximated).
+- **Sharing detection is conservative for narrow shared programs.**
+  [`program_sharing()`](https://mdmanurung.github.io/cellprograms/reference/program_sharing.md)
+  classifies on the top `n_top` genes; a program whose shared support is
+  smaller than `n_top`/2 cannot reach the “shared” label (see
+  [`?program_sharing`](https://mdmanurung.github.io/cellprograms/reference/program_sharing.md)
+  for choosing `n_top`).
+- **CMP association is calibrated on null and independent-predictor
+  designs**; correlated-predictor FWER sits at the alpha boundary
+  (0.040–0.058 at confirm scale) and is documented rather than patched.
+- **Cross-cohort sign/scale comparability holds only within a transfer
+  pathway** — fixed-basis projection or de-novo fit after matching,
+  never across (see the cross-cohort replication article).
+
 ## License
 
 MIT

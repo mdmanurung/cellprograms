@@ -55,7 +55,17 @@ program_sharing(
 - n_top:
 
   Number of top-\|loading\| genes per group for the summary fractions
-  (default 50).
+  (default 50). Choose relative to the smallest shared support you want
+  to detect: a group sharing S genes can reach \`frac_top_shared\` at
+  most S/\`n_top\`, so with the 0.5 "shared" threshold any support
+  smaller than \`n_top\`/2 (25 at the default) classifies at best
+  "partial" — never "shared" — no matter how clean the signal
+  (confirm-scale evidence: planted 10-gene sex/genotype-shared programs
+  were never promoted in any arm; CP-4 Amendment 1, limitation register
+  L3). For narrow shared modules (VDJ/sex/genotype scale, ~10-30 genes),
+  lower \`n_top\` accordingly, and report \`frac_top_shared\`,
+  \`frac_top_private\` and \`p_all_shared\` directly rather than the
+  ternary label alone.
 
 - lfsr_thresh:
 
@@ -146,9 +156,9 @@ if (requireNamespace("mashr", quietly = TRUE)) {
 }
 #> Warning: `matches` supplied: matched sets are user-forced, not data-driven. The 'shared' classification counts top genes active (lfsr < 0.05) in >= 2 conditions and can label independent loadings 'shared' at high loading SNR; check `p_all_shared` (mixture weight of the equal-effects pattern) before interpretation.
 #>  - Computing 73 x 241 likelihood matrix.
-#>  - Likelihood calculations took 0.01 seconds.
+#>  - Likelihood calculations took 0.00 seconds.
 #>  - Fitting model with 241 mixture components.
-#>  - Model fitting took 0.15 seconds.
+#>  - Model fitting took 0.07 seconds.
 #>  - Computing posterior matrices.
 #>  - Computation allocated took 0.00 seconds.
 #>   program_id cell_type group_id n_conditions classification frac_top_shared

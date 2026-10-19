@@ -214,6 +214,21 @@
 <p>On the Stephenson and COMBAT COVID cohorts (K = 30), the broadest cross-cell-type “shared” program was the immunoglobulin/V(D)J artifact program (ambient/clonal leakage), while interferon and cell-cycle programs replicated as genuinely shared across both cohorts — mask artifact genes before interpreting sharing.</p>
 </div>
 <div class="section level2">
+<h2 id="known-limitations">Known limitations<a class="anchor" aria-label="anchor" href="#known-limitations"></a>
+</h2>
+<p>Established by the confirm-scale benchmark evidence (full register: <a href="https://github.com/mdmanurung/cellprograms/blob/main/reports/audit/LIMITATIONS.md" class="external-link"><code>reports/audit/LIMITATIONS.md</code></a>):</p>
+<ul>
+<li>
+<strong>Projection is query-set dependent.</strong> <code><a href="reference/project_programs_to_cells.html">project_programs_to_cells()</a></code> re-estimates activity priors over the query cells, so the same cell can receive different activities in different query sets; chunked projection is not offered (oversize queries are refused, not silently approximated).</li>
+<li>
+<strong>Sharing detection is conservative for narrow shared programs.</strong> <code><a href="reference/program_sharing.html">program_sharing()</a></code> classifies on the top <code>n_top</code> genes; a program whose shared support is smaller than <code>n_top</code>/2 cannot reach the “shared” label (see <code><a href="reference/program_sharing.html">?program_sharing</a></code> for choosing <code>n_top</code>).</li>
+<li>
+<strong>CMP association is calibrated on null and independent-predictor designs</strong>; correlated-predictor FWER sits at the alpha boundary (0.040–0.058 at confirm scale) and is documented rather than patched.</li>
+<li>
+<strong>Cross-cohort sign/scale comparability holds only within a transfer pathway</strong> — fixed-basis projection or de-novo fit after matching, never across (see the cross-cohort replication article).</li>
+</ul>
+</div>
+<div class="section level2">
 <h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>
 </h2>
 <p>MIT</p>

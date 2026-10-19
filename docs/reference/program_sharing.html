@@ -113,7 +113,17 @@ data-driven covariances (default 0.05).</p></dd>
 
 <dt id="arg-n-top">n_top<a class="anchor" aria-label="anchor" href="#arg-n-top"></a></dt>
 <dd><p>Number of top-|loading| genes per group for the summary
-fractions (default 50).</p></dd>
+fractions (default 50). Choose relative to the smallest shared support
+you want to detect: a group sharing S genes can reach
+`frac_top_shared` at most S/`n_top`, so with the 0.5 "shared" threshold
+any support smaller than `n_top`/2 (25 at the default) classifies at
+best "partial" — never "shared" — no matter how clean the signal
+(confirm-scale evidence: planted 10-gene sex/genotype-shared programs
+were never promoted in any arm; CP-4 Amendment 1, limitation register
+L3). For narrow shared modules (VDJ/sex/genotype scale, ~10-30 genes),
+lower `n_top` accordingly, and report `frac_top_shared`,
+`frac_top_private` and `p_all_shared` directly rather than the ternary
+label alone.</p></dd>
 
 
 <dt id="arg-lfsr-thresh">lfsr_thresh<a class="anchor" aria-label="anchor" href="#arg-lfsr-thresh"></a></dt>
@@ -206,9 +216,9 @@ workstream; a shared program need not have correlated donor scores.</p>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`matches` supplied: matched sets are user-forced, not data-driven. The 'shared' classification counts top genes active (lfsr &lt; 0.05) in &gt;= 2 conditions and can label independent loadings 'shared' at high loading SNR; check `p_all_shared` (mixture weight of the equal-effects pattern) before interpretation.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - Computing 73 x 241 likelihood matrix.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  - Likelihood calculations took 0.01 seconds.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - Likelihood calculations took 0.00 seconds.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - Fitting model with 241 mixture components.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  - Model fitting took 0.15 seconds.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  - Model fitting took 0.07 seconds.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - Computing posterior matrices.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  - Computation allocated took 0.00 seconds.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   program_id cell_type group_id n_conditions classification frac_top_shared</span>
