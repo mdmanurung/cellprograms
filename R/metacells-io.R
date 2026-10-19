@@ -61,7 +61,9 @@
     }
     dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
     mtx_path <- file.path(out_dir, "counts_genes_by_cells.mtx")
-    Matrix::writeMM(as(counts_g, "dgCMatrix"), mtx_path)
+    # CsparseMatrix: the direct dgCMatrix coercion is deprecated (and errors
+    # under Matrix.warnDeprecatedCoerce = 2, which flashier's .onLoad sets).
+    Matrix::writeMM(as(counts_g, "CsparseMatrix"), mtx_path)
     utils::write.csv(data.frame(cell = colnames(counts_g)),
                      file.path(out_dir, "cells.csv"), row.names = FALSE)
     utils::write.csv(data.frame(gene = rownames(counts_g)),
@@ -77,12 +79,14 @@
 
 .read_metacell_outputs <- function(out_dir) {
     # metacell matrix: genes x metacells (as written by the python helper)
-    mc_mtx <- as(Matrix::readMM(file.path(out_dir, "metacell_mtx.mtx")), "dgCMatrix")
+    # readMM returns dgTMatrix; coerce via CsparseMatrix (the direct dgCMatrix
+    # coercion is deprecated and errors under Matrix.warnDeprecatedCoerce = 2).
+    mc_mtx <- as(Matrix::readMM(file.path(out_dir, "metacell_mtx.mtx")), "CsparseMatrix")
     mc_obs <- utils::read.csv(file.path(out_dir, "metacell_obs.csv"),
                               row.names = 1, stringsAsFactors = FALSE)
     soft_path <- file.path(out_dir, "soft_assignments.mtx")
     soft <- if (file.exists(soft_path)) {
-        as(Matrix::readMM(soft_path), "dgCMatrix")  # cells x metacells
+        as(Matrix::readMM(soft_path), "CsparseMatrix")  # cells x metacells
     } else {
         NULL
     }

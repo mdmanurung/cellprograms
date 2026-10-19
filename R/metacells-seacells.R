@@ -416,7 +416,10 @@ MetacellsByGroupsSEACells <- function(
     # cells carry weights on g's metacells and zeros elsewhere. A plain rbind
     # would misalign columns across groups (silently wrong when per-group
     # metacell counts happen to match, an error when they differ).
-    out <- as(do.call(Matrix::bdiag, soft_list), "dgCMatrix")
+    # bdiag already returns Csparse; the CsparseMatrix form is the
+    # non-deprecated spelling (dgCMatrix coercion errors under
+    # Matrix.warnDeprecatedCoerce = 2, which flashier's .onLoad sets).
+    out <- as(do.call(Matrix::bdiag, soft_list), "CsparseMatrix")
     # bdiag does not reliably propagate dimnames across Matrix versions; set
     # them explicitly when every block carries them (bare-MTX imports stay
     # unnamed, matching the positional contract in .hard_labels_vector).

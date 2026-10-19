@@ -46,6 +46,13 @@ lives in `tests/testthat/test-review-fixes.R` and
 * Metacells: `max_iter` documentation corrected (wrapped SEACells default is
   20); `use_sparse` warns when set (ignored by the wrapped SEACells version);
   per-metacell QC columns are joined into the result metadata.
+* Metacell IO coercions use the non-deprecated `CsparseMatrix` form
+  throughout: the pinned flashier's `.onLoad` sets
+  `Matrix.warnDeprecatedCoerce = 2`, under which the previous `dgCMatrix`
+  coercions of `readMM()` output error out (exposed by the first
+  `CPMC_INTEGRATION=1` end-to-end run, which now passes).
+* `withr` moved from Suggests to Imports: `withr::local_seed()` is called
+  unconditionally by the fitting code since the scoped-RNG fix.
 
 ### Minor (selected)
 

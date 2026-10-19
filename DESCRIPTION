@@ -22,7 +22,8 @@ Imports:
     flashier,
     ebnm,
     flashier.utils,
-    reticulate
+    reticulate,
+    withr
 VignetteBuilder: knitr
 Suggests:
     knitr,
@@ -32,7 +33,6 @@ Suggests:
     data.table,
     mashr,
     igraph,
-    withr,
     basilisk,
     Seurat,
     SeuratObject,

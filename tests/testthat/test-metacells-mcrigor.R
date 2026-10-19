@@ -135,11 +135,15 @@ test_that("MetacellsByGroupsSEACells end-to-end on a tiny synthetic object", {
   rownames(meta) <- colnames(counts)
   obj <- Seurat::CreateSeuratObject(counts = counts, meta.data = meta)
   obj <- Seurat::NormalizeData(obj, verbose = FALSE)
+  # Seurat v5's PrepDR5 errors without variable features (older versions
+  # silently used all genes); select them explicitly.
+  obj <- Seurat::FindVariableFeatures(obj, nfeatures = 30, verbose = FALSE)
   obj <- Seurat::ScaleData(obj, verbose = FALSE)
   obj <- Seurat::RunPCA(obj, npcs = 5, verbose = FALSE)
   out <- MetacellsByGroupsSEACells(obj, group.by = c("donor", "group"),
                                    n_top_genes = 30, n_pc = 5,
                                    min_cells = 50, seed = 5, verbose = FALSE)
   expect_false(is.null(out@misc$SEACells))
-  expect_true(length(out@misc$SEACells$skipped_groups) < 2)
+  # skipped_groups is a data.frame: count ROWS (length() would count columns)
+  expect_true(nrow(out@misc$SEACells$skipped_groups) < 2)
 })
