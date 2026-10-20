@@ -35,13 +35,14 @@
     pkgname = "cellprograms",
     packages = c("python=3.11"),
     pip = c(
-      # The CPU-only torch wheel lives on the pytorch wheel index, not PyPI.
-      # Index flags are global pip options, not part of a requirement, and
-      # basilisk passes pip entries as separate argv tokens of one
-      # `pip install` call, so the flag must be its own entry. Using
-      # --extra-index-url (not --index-url) keeps PyPI reachable for the
-      # remaining entries; the +cpu local version forces the CPU build.
-      "--extra-index-url https://download.pytorch.org/whl/cpu",
+      # The CPU-only torch wheel (+cpu local version) lives on the pytorch
+      # wheel index, not PyPI; the index is supplied via PIP_EXTRA_INDEX_URL
+      # in .cebmf_basilisk_start(). It cannot travel as a pip entry: basilisk
+      # 1.18 passes pip entries through system2 unquoted (the shell splits
+      # them) and basilisk 1.24 shell-quotes each entry (reticulate
+      # virtualenv_create), so a flag entry breaks one or the other. An
+      # environment variable passes through both paths. PyPI stays reachable
+      # for the remaining entries.
       "torch==2.7.1+cpu",
       # cebmf_ext imports numpy and scipy directly (io.py, project.py);
       # torch does not pull either, so they must be pinned here. pandas is
@@ -73,6 +74,14 @@
   if (basilisk::getBasiliskCheckVersions()) {
     on.exit(basilisk::setBasiliskCheckVersions(TRUE), add = TRUE)
     basilisk::setBasiliskCheckVersions(FALSE)
+  }
+  # The CPU torch wheel needs the pytorch wheel index. A pip entry cannot
+  # carry the index flag (basilisk 1.18: unquoted system2, shell splitting;
+  # basilisk 1.24: reticulate shell-quotes each entry) - pip reads the index
+  # from the environment instead, which passes through both code paths.
+  if (!nzchar(Sys.getenv("PIP_EXTRA_INDEX_URL", ""))) {
+    on.exit(Sys.unsetenv("PIP_EXTRA_INDEX_URL"), add = TRUE)
+    Sys.setenv(PIP_EXTRA_INDEX_URL = "https://download.pytorch.org/whl/cpu")
   }
   basilisk::basiliskStart(env)
 }
