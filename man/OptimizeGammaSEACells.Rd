@@ -49,7 +49,9 @@ arguments (`D_bw`, `optim_method`, `weight`, `Nrep`, ...).}
 A list with `optimal_gamma` (named list, per group), `scores` (per
   group x gamma Score table), and `membership` (named list of per-group
   membership vectors for the chosen granularity, one entry per cell; NULL
-  when no group produced a result).
+  when no group produced a result). Gammas whose membership collapses to a
+  single metacell cannot be scored by mcRigor and are dropped with a
+  warning (`NA` in `scores`).
 }
 \description{
 Runs SEACells at several granularities (cells per metacell) per group and
