@@ -45,20 +45,44 @@ jobs:
         with:
           extra-packages: any::remotes
 
-      # cebmf_torch backend venv (pins mirror the audit ledger)
-      - name: Build cebmf python env
+      # Preflight: fail fast with readable errors before the suite runs.
+      # 1. mashr installs from the RSPM binary but can fail to LOAD on
+      #    fresh R releases (observed on R 4.6.1, run #2); print the real
+      #    load error and fall back to a source build.
+      # 2. Build the cebmf basilisk env up front (the suite would build it
+      #    lazily anyway; here a spec break surfaces as a clear preflight
+      #    failure instead of a confusing mid-suite error).
+      - name: Preflight R/python environment
         run: |
-          python3 -m venv /opt/cebmf-venv
-          /opt/cebmf-venv/bin/pip install torch==2.7.1 --index-url https://download.pytorch.org/whl/cpu
-          /opt/cebmf-venv/bin/pip install "cebmf_torch @ git+https://github.com/william-denault/cebmf_torch.git@34abac5a7d05b6fc5c6f8052c5fc4fd96628597d"
+          Rscript -e '
+            ok <- requireNamespace("mashr", quietly = TRUE)
+            if (!ok) {
+              err <- tryCatch({ library(mashr); NULL },
+                              error = function(e) conditionMessage(e))
+              message("mashr binary load failed: ", err)
+              message("retrying mashr from source ...")
+              install.packages("mashr", repos = "https://cran.r-project.org",
+                               type = "source")
+              stopifnot(requireNamespace("mashr", quietly = TRUE))
+            }
+            pkgload::load_all(".", quiet = TRUE)
+            env <- cellprograms:::.cebmf_basilisk_env()
+            proc <- cellprograms:::.cebmf_basilisk_start(env)
+            basilisk::basiliskStop(proc)
+            cat("preflight OK: mashr loads, cebmf basilisk env built\n")
+          '
 
+      # The suite runs with NO cellprograms.cebmf_python_env option: the
+      # cebmf backend takes its default basilisk path - the same path users
+      # hit. (A dedicated venv lane existed until run #2; it never installed
+      # numpy/scipy and duplicated the pins the basilisk spec already owns.)
       - name: Run integration suite
         shell: bash
         env:
           CPMC_INTEGRATION: "1"
         run: |
           set -o pipefail
-          Rscript -e 'options(cellprograms.cebmf_python_env = "/opt/cebmf-venv"); testthat::test_local(".", reporter = "summary", stop_on_failure = TRUE)' 2>&1 | tee integration_suite.log
+          Rscript -e 'testthat::test_local(".", reporter = "summary", stop_on_failure = TRUE)' 2>&1 | tee integration_suite.log
 
       - name: Upload suite log
         if: always()

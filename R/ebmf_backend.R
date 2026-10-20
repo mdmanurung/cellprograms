@@ -35,13 +35,46 @@
     pkgname = "cellprograms",
     packages = c("python=3.11"),
     pip = c(
-      "torch==2.7.1 --index-url https://download.pytorch.org/whl/cpu",
+      # The CPU-only torch wheel lives on the pytorch wheel index, not PyPI.
+      # Index flags are global pip options, not part of a requirement, and
+      # basilisk passes pip entries as separate argv tokens of one
+      # `pip install` call, so the flag must be its own entry. Using
+      # --extra-index-url (not --index-url) keeps PyPI reachable for the
+      # remaining entries; the +cpu local version forces the CPU build.
+      "--extra-index-url https://download.pytorch.org/whl/cpu",
+      "torch==2.7.1+cpu",
+      # cebmf_ext imports numpy and scipy directly (io.py, project.py);
+      # torch does not pull either, so they must be pinned here. pandas is
+      # the same story: cebmf_torch's fit path imports it but does not
+      # declare it (surface: ModuleNotFoundError mid-fit, not at import).
+      "numpy==2.4.6",
+      "scipy==1.17.1",
+      "pandas==3.0.6",
+      # PEP 508 direct reference, commit-pinned (same pin as the venv path).
+      # No spaces around "@": basilisk passes pip entries through system2
+      # unquoted, so the shell would split a spaced reference into
+      # "cebmf_torch", "@", "git+..." and pip would reject the bare "@".
       paste0(
-        "cebmf_torch @ git+https://github.com/william-denault/cebmf_torch.git@",
+        "cebmf_torch@git+https://github.com/william-denault/cebmf_torch.git@",
         "34abac5a7d05b6fc5c6f8052c5fc4fd96628597d"
       )
     )
   )
+}
+
+.cebmf_basilisk_start <- function(env) {
+  # basilisk's pip-spec check greps every pip entry for "==" and cannot parse
+  # PEP 508 direct references, so the commit-pinned cebmf_torch entry is
+  # rejected even though a commit pin is fully reproducible. Relax the check
+  # only while the environment is created (one-time; basilisk re-checks
+  # nothing once the env directory exists). Upstream marks this knob
+  # development-phase-only; the deviation is deliberate and documented in
+  # reports/audit/TASKS.md.
+  if (basilisk::getBasiliskCheckVersions()) {
+    on.exit(basilisk::setBasiliskCheckVersions(TRUE), add = TRUE)
+    basilisk::setBasiliskCheckVersions(FALSE)
+  }
+  basilisk::basiliskStart(env)
 }
 
 .cebmf_use_python_env <- function(opt) {
@@ -129,7 +162,7 @@
     .cebmf_fit_impl(Y, max_factors, seed, S)
   } else if (requireNamespace("basilisk", quietly = TRUE)) {
     env <- .cebmf_basilisk_env()
-    cl <- basilisk::basiliskStart(env)   # camelCase: basilisk exports basiliskStart/Run/Stop
+    cl <- .cebmf_basilisk_start(env)   # camelCase: basilisk exports basiliskStart/Run/Stop
     on.exit(basilisk::basiliskStop(cl), add = TRUE)
     basilisk::basiliskRun(cl, fun = .cebmf_fit_impl,
                           Y = Y, max_factors = max_factors, seed = seed, S = S)

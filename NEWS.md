@@ -1,5 +1,20 @@
 # cellprograms 0.2.0.9000 (development)
 
+## Bug fixes and hardening (2026-10-20 cebmf basilisk segment)
+
+* The cebmf_torch backend's basilisk environment was never constructible and
+  the defect was masked by every audit run setting the venv option. Three
+  fixes: the pip spec now pins `numpy`/`scipy` (which `cebmf_ext` imports
+  directly and torch does not provide), the CPU torch wheel is selected via
+  `--extra-index-url` as its own pip token (index flags are global pip
+  options, not requirement syntax), and the commit-pinned `cebmf_torch`
+  direct reference is written unspaced so the shell cannot split it when
+  basilisk passes pip entries through `system2` unquoted. The basilisk
+  version-spec check is relaxed only while this one environment is created
+  (it cannot parse PEP 508 direct references; the commit pin is fully
+  reproducible). The env now builds and the backend fits through it with no
+  option set.
+
 ## Bug fixes and hardening (2026-10-19 implementation-review segment)
 
 Full implementation review follow-through: 2 critical correctness fixes, 12

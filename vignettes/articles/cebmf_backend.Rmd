@@ -1,0 +1,182 @@
+---
+title: "The cebmf_torch backend: covariate-EBMF in torch"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{The cebmf_torch backend: covariate-EBMF in torch}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>",
+                      fig.width = 7, fig.height = 5, dpi = 150)
+has_cebmf <- requireNamespace("basilisk", quietly = TRUE) ||
+  !is.null(getOption("cellprograms.cebmf_python_env"))
+```
+
+`fit_celltype_programs()` ships two interchangeable EBMF backends:
+
+| | `backend = "flashier"` (default) | `backend = "cebmf_torch"` |
+|---|---|---|
+| Implementation | R (flashier.utils) | Python (torch, covariate-EBMF) |
+| Failure mode | nullcheck fallback ladder | fails loudly, no fallback |
+| ELBO | reported | `NA` (not produced; the trace is) |
+| Convergence record | ELBO trace | `objective_trace` |
+
+Everything around the factorization — preprocessing, canonicalization,
+program extraction, plots, sharing — is backend-agnostic. This vignette runs
+the torch backend on a small simulated count dataset and shows where the two
+contracts differ.
+
+## Python environment
+
+The torch backend needs a Python environment with `torch`, `numpy`, `scipy`,
+`pandas`, and `cebmf_torch`. By default the package uses a **basilisk-managed
+environment** with pinned versions (Python 3.11, `torch==2.7.1` CPU build,
+`cebmf_torch` at a pinned commit), built automatically on first use and
+cached across sessions. To point at your own environment instead:
+
+```{r env-option, eval = FALSE}
+options(cellprograms.cebmf_python_env = "/path/to/venv")  # venv dir or python binary
+```
+
+## Input regime: normalize counts first
+
+The torch backend estimates column-wise noise and **diverges immediately on
+raw unnormalized Gaussian-scale matrices** (the objective goes non-finite at
+iteration 0; the backend fails loudly rather than returning a garbage fit —
+this is by design and is the documented reason the test suite's registered
+fixture normalizes counts). Feed it what the single-cell pipeline produces:
+counts, size-factor normalization, log1p, gene z-scaling.
+
+```{r recipe}
+library(cellprograms)
+set.seed(3)
+n <- 60; g <- 400; p <- 2
+
+# block-structured counts: 2 planted programs over private gene sets
+W <- matrix(0, g, p)
+for (j in seq_len(p)) W[sample.int(g, 60), j] <- runif(60, 0.5, 1.5)
+S <- matrix(0, n, p)
+for (j in seq_len(p)) S[sample.int(n, 20), j] <- runif(20, 1, 2.5)
+lam <- exp(pmin(pmax(S %*% t(W), 0), 4)) + 0.05
+counts <- matrix(rpois(n * g, as.vector(lam)), n, g)
+
+# size-factor log1p + gene z-scale: the backend's input regime
+sf <- rowSums(counts); sf <- sf / mean(sf)
+Y <- scale(log1p(counts / sf))
+dimnames(Y) <- list(paste0("s", seq_len(n)), paste0("g", seq_len(g)))
+
+x <- as_cell_program_data(list(CT1 = Y))
+validate_cell_program_data(x)
+```
+
+## Fit with the torch backend
+
+```{r fit, eval = has_cebmf}
+fit <- fit_celltype_programs(x, backend = "cebmf_torch",
+                             max_factors = 6, seed = 1)
+fl <- fit$fits$CT1$flash
+fl$backend
+fl$n_factors
+head(fl$objective_trace)   # convergence record (the torch backend's ELBO analogue)
+```
+
+The registered mapping contract: the torch backend does not produce an ELBO,
+so `program_summary()` reports `NA` there and nothing is manufactured to fill
+the gap; `objective_trace` is the honest convergence record. Loadings and
+scores arrive in the same shapes as the flashier backend:
+
+```{r shapes, eval = has_cebmf}
+dim(fl$L_pm)   # samples x factors
+dim(fl$F_pm)   # genes x factors
+```
+
+## Determinism at a fixed seed
+
+```{r determinism, eval = has_cebmf}
+fit2 <- fit_celltype_programs(x, backend = "cebmf_torch",
+                              max_factors = 6, seed = 1)
+identical(fit$fits$CT1$flash$L_pm, fit2$fits$CT1$flash$L_pm)
+```
+
+## var_floor passes through
+
+`var_floor` (a positive scalar) is forwarded to the torch fit as a known
+noise standard deviation, replacing the column-wise noise estimate:
+
+```{r varfloor, eval = has_cebmf}
+fit3 <- fit_celltype_programs(x, backend = "cebmf_torch",
+                              max_factors = 6, seed = 1, var_floor = 0.5)
+all(is.finite(fit3$fits$CT1$flash$objective_trace))
+```
+
+## Covariate adjustment (residualize mode)
+
+Sample-level covariates are regressed out of the pseudobulk before
+factorization — pass column names of `sample_metadata` (or a one-sided
+formula). To show the adjustment doing real work, plant a known batch effect
+(a global shift on a nuisance gene set for the `b2` samples), fit with and
+without adjustment, and compare how much program activity aligns with batch:
+
+```{r covariates, eval = has_cebmf}
+batch_genes <- sort(sample.int(g, 60))
+batch <- rep(c("b1", "b2"), c(40, 20))
+Yb <- Y
+Yb[batch == "b2", batch_genes] <- Yb[batch == "b2", batch_genes] + 1.2
+meta <- data.frame(observation_id = rownames(Yb), batch = batch)
+x_batch <- as_cell_program_data(list(CT1 = Yb), sample_metadata = meta)
+
+fit_raw <- fit_celltype_programs(x_batch, backend = "cebmf_torch",
+                                 max_factors = 6, seed = 1)
+fit_adj <- fit_celltype_programs(x_batch, backend = "cebmf_torch",
+                                 covariates = "batch",
+                                 max_factors = 6, seed = 1)
+
+batch_num <- as.numeric(batch == "b2")
+max_batch_corr <- function(fit) {
+  Z <- fit$scores$CT1
+  if (is.null(Z) || ncol(Z) == 0) return(NA_real_)
+  max(abs(apply(Z, 2, cor, y = batch_num)))
+}
+round(c(unadjusted = max_batch_corr(fit_raw),
+        adjusted   = max_batch_corr(fit_adj)), 3)
+```
+
+The unadjusted fit devotes its strongest component to the batch shift; after
+`covariates = "batch"` the alignment drops and the planted programs — which
+are independent of batch — carry the factorization instead.
+
+Two contract notes: `covariate_mode = "fixed"` (covariates as fixed loadings
+inside the factorization) is **flashier-only** — the torch backend aborts
+with guidance rather than silently residualizing. And the covariate design
+must leave at least 10 residual degrees of freedom in every cell type; the
+fit fails closed otherwise.
+
+## Downstream is backend-agnostic
+
+```{r downstream, eval = has_cebmf}
+fit <- canonicalize_programs(fit)
+program_summary(fit)[, c("cell_type", "n_obs", "n_programs", "R2", "elbo")]
+
+pid <- head(colnames(program_scores(fit)), 1)
+top_genes(fit, pid, n = 8)
+```
+
+```{r viz, eval = has_cebmf, fig.width = 8, fig.height = 5.5}
+plot_top_genes(fit, programs = head(colnames(program_scores(fit)), 2), n = 8)
+```
+
+## When to prefer which backend
+
+- **flashier (default)**: pure R, ELBO-based null checks with a fallback
+  ladder, mature on small pseudobulk problems, and the only backend with a
+  `covariate_mode = "fixed"` path.
+- **cebmf_torch**: torch acceleration, covariate-EBMF machinery, and loud
+  failure when the fit is unusable (no silent fallback). Covariates are
+  handled identically for both backends — residualized in the R
+  preprocessing stage (`covariate_mode = "residualize"`, the default).
+
+```{r session-info, echo = FALSE}
+sessionInfo()
+```

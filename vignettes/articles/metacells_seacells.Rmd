@@ -1,0 +1,162 @@
+---
+title: "Metacells with SEACells and mcRigor gamma optimization"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Metacells with SEACells and mcRigor gamma optimization}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>",
+                      fig.width = 7, fig.height = 5, dpi = 150)
+has_metacells <- requireNamespace("Seurat", quietly = TRUE) &&
+  requireNamespace("basilisk", quietly = TRUE)
+```
+
+When the starting point is single-cell data, `cellprograms` can aggregate
+cells into **metacells** — transcriptomically homogeneous small groups —
+before pseudobulk factorization. Metacells are built with
+[SEACells](https://github.com/dpeerlab/SEACells) (run in an isolated,
+pinned basilisk Python environment built on first use) and QC'd with
+mcRigor, stratified so that **metacells never cross the grouping variables**
+(donor x cell type by default).
+
+This vignette runs the full workflow on a simulated dataset with planted
+cell-type identity, then feeds the metacell counts into
+`fit_celltype_programs()`.
+
+## Simulate a small single-cell dataset
+
+Two donors x two cell types, 80 cells each, 200 genes. Each cell type gets a
+private marker block; everything else is background Poisson noise.
+
+```{r fixture}
+library(cellprograms)
+set.seed(11)
+
+n_per <- 80
+types <- c("Tcells", "Bcells")
+donors <- c("donor1", "donor2")
+groups <- rep(paste0(rep(donors, each = length(types)), "_", rep(types, length(donors))),
+              each = n_per)
+
+lam <- matrix(0.5, nrow = 200, ncol = length(groups))
+markers <- list(Tcells = 1:12, Bcells = 13:24)
+for (g in unique(groups)) {
+  type <- sub(".*_", "", g)
+  cols <- which(groups == g)
+  lam[markers[[type]], cols] <- 8
+}
+counts <- Matrix::Matrix(rpois(200 * length(groups), as.vector(lam)),
+                         nrow = 200, ncol = length(groups), sparse = TRUE)
+rownames(counts) <- paste0("gene", seq_len(200))
+colnames(counts) <- paste0("cell", seq_len(length(groups)))
+
+meta <- data.frame(
+  donor = sub("_.*", "", groups),
+  celltype = sub(".*_", "", groups),
+  row.names = colnames(counts)
+)
+
+obj <- Seurat::CreateSeuratObject(counts = counts, meta.data = meta)
+obj <- Seurat::NormalizeData(obj, verbose = FALSE)
+obj <- Seurat::FindVariableFeatures(obj, nfeatures = 60, verbose = FALSE)
+obj <- Seurat::ScaleData(obj, verbose = FALSE)
+obj <- Seurat::RunPCA(obj, npcs = 10, verbose = FALSE)
+```
+
+## Build metacells per group
+
+`MetacellsByGroupsSEACells()` fits SEACells separately within each
+`group.by` stratum and stores everything under the Seurat object's `misc`:
+
+```{r metacells, eval = has_metacells}
+obj <- MetacellsByGroupsSEACells(obj,
+                                 group.by = c("donor", "celltype"),
+                                 cells_per_metacell = 20,
+                                 min_cells = 50,
+                                 n_top_genes = 60,
+                                 n_pc = 10,
+                                 seed = 11, verbose = FALSE)
+res <- GetMetacellSEACells(obj)
+names(res)
+```
+
+The result carries the metacell Seurat object, the soft (cells x archetypes)
+assignment matrix, per-metacell mcRigor QC, fit statistics, the parameters
+used, and any skipped groups:
+
+```{r qc, eval = has_metacells}
+head(res$qc)                 # mcDiv, dubious flag, ZeroRate per metacell
+res$skipped_groups           # groups dropped (e.g. too few cells) - usually empty
+```
+
+Groups with too few cells (below `min_cells`) are skipped with a warning
+rather than failing the call, and degenerate SEACells fits (all hard
+assignments collapsing to one archetype) drop that group's soft assignments
+gracefully — check `skipped_groups` when working with small strata.
+
+## Optimize the number of metacells (gamma)
+
+SEACells' `gamma` is the number of archetypes — the granularity.
+`OptimizeGammaSEACells()` refits SEACells across candidate gammas per group
+and picks the winner by the mcRigor optimization score:
+
+```{r optimize, eval = has_metacells}
+opt <- OptimizeGammaSEACells(obj,
+                             group.by = "donor",
+                             gammas = c(10, 20),
+                             n_top_genes = 60,
+                             n_pc = 10,
+                             min_cells = 50,
+                             mcrigor_args = list(Nrep = 5),
+                             seed = 11, verbose = FALSE)
+opt$optimal_gamma            # winning gamma per donor group
+opt$scores                   # mcRigor score per gamma x group
+```
+
+Gammas whose membership labels degenerate (fewer than two distinct labels
+after Seurat v5 aggregation) are dropped with a warning and excluded from
+the pick rather than crashing the run.
+
+## Metacell counts feed the program fit directly
+
+```{r programs, eval = has_metacells}
+mc <- res$metacell_object
+counts_mc <- SeuratObject::LayerData(mc[["RNA"]], layer = "counts")  # genes x metacells
+by_type <- split(colnames(mc), mc$celltype)
+pb <- lapply(by_type, function(cells) t(as.matrix(counts_mc[, cells, drop = FALSE])))
+
+x <- as_cell_program_data(pb)
+fit <- fit_celltype_programs(x, loading_prior = "point_laplace",
+                             max_factors = 4, features = "variable",
+                             n_variable_genes = 100)
+fit <- canonicalize_programs(fit)
+program_summary(fit)[, c("cell_type", "n_programs", "R2", "elbo")]
+```
+
+The planted structure survives the aggregation: each cell type's programs
+are dominated by its private marker block.
+
+```{r markers, eval = has_metacells, fig.width = 7, fig.height = 4.5}
+marker_expr <- as.matrix(counts_mc[unlist(markers), , drop = FALSE])
+marker_expr <- t(scale(t(marker_expr)))
+df <- data.frame(
+  metacell = factor(colnames(marker_expr), levels = colnames(marker_expr)),
+  gene = rep(rownames(marker_expr), times = ncol(marker_expr)),
+  z = as.vector(marker_expr)
+)
+ggplot2::ggplot(df, ggplot2::aes(metacell, gene, fill = z)) +
+  ggplot2::geom_tile() +
+  ggplot2::scale_fill_gradient2() +
+  ggplot2::labs(x = "metacell", y = "marker gene") +
+  ggplot2::theme(axis.text.x = ggplot2::element_blank(),
+                 axis.text.y = ggplot2::element_text(size = 6))
+```
+
+## Session info
+
+```{r session-info, echo = FALSE}
+sessionInfo()
+```
