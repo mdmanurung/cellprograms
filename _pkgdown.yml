@@ -35,11 +35,13 @@ articles:
   navbar: ~
   contents:
   - quickstart
+  - articles/metacells_seacells
 
 - title: Methods
   navbar: ~
   contents:
   - articles/model_mechanisms
+  - articles/cebmf_backend
 
 - title: Case studies
   navbar: ~
