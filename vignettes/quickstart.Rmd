@@ -71,7 +71,7 @@ seu <- MetacellsByGroupsSEACells(
 )
 res <- GetMetacellSEACells(seu)
 mc <- res$metacell_object
-head(res$qc)  # per-metacell mcRigor QC (mcDiv, dubious flag, ZeroRate)
+head(res$qc)  # per-metacell mcRigor QC (mcDiv, divergence threshold, dubious flag)
 
 # Metacell counts -> named list of metacells x genes matrices, one per cell type
 counts <- SeuratObject::LayerData(mc[["RNA"]], layer = "counts")  # genes x metacells
@@ -90,7 +90,7 @@ the mcRigor score when you prefer data-driven granularity over the default.
 ## Inspect programs
 
 ```{r inspect}
-program_summary(fit)          # one row per cell type: K, R2, ELBO
+program_summary(fit)          # one row per cell type: n_programs, R2, elbo
 top_genes(fit, "B_1", n = 8)  # top loadings of program B_1
 ```
 

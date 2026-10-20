@@ -152,7 +152,7 @@ directly:</p>
 <span><span class="op">)</span></span>
 <span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetMetacellSEACells.html">GetMetacellSEACells</a></span><span class="op">(</span><span class="va">seu</span><span class="op">)</span></span>
 <span><span class="va">mc</span> <span class="op">&lt;-</span> <span class="va">res</span><span class="op">$</span><span class="va">metacell_object</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res</span><span class="op">$</span><span class="va">qc</span><span class="op">)</span>  <span class="co"># per-metacell mcRigor QC (mcDiv, dubious flag, ZeroRate)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res</span><span class="op">$</span><span class="va">qc</span><span class="op">)</span>  <span class="co"># per-metacell mcRigor QC (mcDiv, divergence threshold, dubious flag)</span></span>
 <span></span>
 <span><span class="co"># Metacell counts -&gt; named list of metacells x genes matrices, one per cell type</span></span>
 <span><span class="va">counts</span> <span class="op">&lt;-</span> <span class="fu">SeuratObject</span><span class="fu">::</span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/Layers.html" class="external-link">LayerData</a></span><span class="op">(</span><span class="va">mc</span><span class="op">[[</span><span class="st">"RNA"</span><span class="op">]</span><span class="op">]</span>, layer <span class="op">=</span> <span class="st">"counts"</span><span class="op">)</span>  <span class="co"># genes x metacells</span></span>
@@ -171,7 +171,7 @@ data-driven granularity over the default.</p>
 <h2 id="inspect-programs">Inspect programs<a class="anchor" aria-label="anchor" href="#inspect-programs"></a>
 </h2>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/program_summary.html">program_summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>          <span class="co"># one row per cell type: K, R2, ELBO</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/program_summary.html">program_summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>          <span class="co"># one row per cell type: n_programs, R2, elbo</span></span>
 <span><span class="co">#&gt;   cell_type n_obs n_genes n_programs        R2      elbo</span></span>
 <span><span class="co">#&gt; 1         B    60     400          2 0.2439779 -36065.09</span></span>
 <span><span class="co">#&gt; 2       CD4    60     400          1 0.1707640 -35709.99</span></span>

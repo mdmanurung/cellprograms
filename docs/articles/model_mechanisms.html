@@ -207,7 +207,7 @@ the fit’s <code>scores</code> (observations x programs) and
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">Z</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/program_scores.html">program_scores</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>    <span class="co"># observations x all programs (wide matrix)</span></span>
 <span><span class="va">W</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/program_loadings.html">program_loadings</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>  <span class="co"># genes x all programs</span></span>
-<span><span class="fu"><a href="../reference/program_summary.html">program_summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>        <span class="co"># per cell type: K, R2, ELBO</span></span>
+<span><span class="fu"><a href="../reference/program_summary.html">program_summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>        <span class="co"># per cell type: n_programs, R2, elbo</span></span>
 <span><span class="fu"><a href="../reference/top_genes.html">top_genes</a></span><span class="op">(</span><span class="va">fit</span>, <span class="st">"CD4_1"</span>, n <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="loadings-on-a-common-gene-panel">Loadings on a common gene panel<a class="anchor" aria-label="anchor" href="#loadings-on-a-common-gene-panel"></a>
