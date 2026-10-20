@@ -53,6 +53,16 @@ lives in `tests/testthat/test-review-fixes.R` and
   `CPMC_INTEGRATION=1` end-to-end run, which now passes).
 * `withr` moved from Suggests to Imports: `withr::local_seed()` is called
   unconditionally by the fitting code since the scoped-RNG fix.
+* `OptimizeGammaSEACells()` now works under Seurat v5: mcRigor's
+  `buildmc` aligns per-metacell sizes through `AggregateExpression`
+  colnames, which mangle membership labels (digit-leading values gain a
+  "g" prefix; "_" becomes "-") and only undo the digit case — the
+  `"mc_<k>"` labels used here never realigned, so every group failed with
+  "No cell overlap between new meta data and Seurat object". Membership is
+  now integer-coded per gamma column (the same contract as the
+  `mcRigor_DETECT` path) and gamma candidates whose membership collapses
+  to a single metacell are dropped with a warning (`NA` in `scores`)
+  instead of failing the whole group's optimization.
 
 ### Minor (selected)
 

@@ -147,3 +147,44 @@ test_that("MetacellsByGroupsSEACells end-to-end on a tiny synthetic object", {
   # skipped_groups is a data.frame: count ROWS (length() would count columns)
   expect_true(nrow(out@misc$SEACells$skipped_groups) < 2)
 })
+
+# ---- OptimizeGammaSEACells membership coding (Seurat v5 mangling guard) ----
+test_that("membership coding drops single-metacell gammas and integer-codes the rest", {
+  cells <- paste0("cell", 1:50)
+  mklab <- function(sizes) rep(paste0("mc_", seq_along(sizes)), sizes)
+  mem_cols <- list(
+    mklab(c(13, 12, 13, 12)),   # gamma 25: 4 metacells
+    mklab(c(25, 25)),           # gamma 50: 2 metacells
+    mklab(c(50))                # gamma 100: collapsed to 1 -> not scoreable
+  )
+  coded <- cellprograms:::.mc_optimize_membership_codes(mem_cols, c(25, 50, 100), cells)
+  expect_equal(coded$keep_gamma, c(25, 50))
+  expect_equal(coded$drop_gamma, 100)
+  expect_equal(colnames(coded$code_df), c("25", "50"))
+  expect_equal(rownames(coded$code_df), cells)
+  # codes are per-column integers 1..K (buildmc's g-strip contract)
+  expect_equal(sort(unique(coded$code_df[["25"]])), 1:4)
+  expect_equal(sort(unique(coded$code_df[["50"]])), 1:2)
+  # labels are recoverable: code 1 maps back to mc_1 in every column
+  expect_equal(unique(mem_cols[[1]][coded$code_df[["25"]] == 1]), "mc_1")
+  # all gammas collapsed -> nothing to optimize
+  collapsed <- list(mklab(c(50)), mklab(c(50)))
+  coded0 <- cellprograms:::.mc_optimize_membership_codes(collapsed, c(50, 100), cells)
+  expect_equal(length(coded0$keep_gamma), 0L)
+  expect_null(coded0$code_df)
+})
+
+test_that("GetMetacellSEACells returns stored results or stops informatively", {
+  # 2 genes x 1 cell: a 1x1 sparse matrix is diagonal (ddiMatrix) and Seurat's
+  # coercion warning would pollute the suite warning tally
+  obj <- Seurat::CreateSeuratObject(
+    counts = Matrix::Matrix(c(1, 2), 2, 1, sparse = TRUE,
+                            dimnames = list(c("g1", "g2"), "c1")))
+  expect_error(GetMetacellSEACells(obj), "run MetacellsByGroupsSEACells first")
+  obj@misc$SEACells <- list(metacell_object = "x", qc = data.frame())
+  out <- GetMetacellSEACells(obj)
+  expect_identical(out$metacell_object, "x")
+  # custom storage name
+  obj@misc$other <- list(y = 2)
+  expect_identical(GetMetacellSEACells(obj, wgcna_name = "other")$y, 2)
+})

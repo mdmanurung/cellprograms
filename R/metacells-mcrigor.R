@@ -150,7 +150,9 @@
 #' @return A list with `optimal_gamma` (named list, per group), `scores` (per
 #'   group x gamma Score table), and `membership` (named list of per-group
 #'   membership vectors for the chosen granularity, one entry per cell; NULL
-#'   when no group produced a result).
+#'   when no group produced a result). Gammas whose membership collapses to a
+#'   single metacell cannot be scored by mcRigor and are dropped with a
+#'   warning (`NA` in `scores`).
 #'
 #' @export
 OptimizeGammaSEACells <- function(
@@ -234,6 +236,30 @@ OptimizeGammaSEACells <- function(
         colnames(membership_df) <- as.character(gammas)
         rownames(membership_df) <- cells_g
 
+        # mcRigor's buildmc aligns per-metacell sizes through Seurat's
+        # AggregateExpression colnames, which mangle membership labels
+        # (digit-leading values gain a "g" prefix; "_" becomes "-" under
+        # Seurat v5) and only undo the digit case (an is.numeric gate) —
+        # the "mc_<k>" labels used here would never realign, failing every
+        # group with "No cell overlap between new meta data and Seurat
+        # object". Score on integer codes per gamma column (the same
+        # contract as .mcrigor_detect_group) and keep the labels for the
+        # return value. A gamma whose membership collapsed to a single
+        # metacell cannot be scored (no between-metacell variance, and
+        # AggregateExpression ignores 1-value groupings) — drop it up
+        # front with a warning instead of failing the whole group.
+        coded <- .mc_optimize_membership_codes(mem_cols, gammas, cells_g)
+        if (length(coded$drop_gamma)) {
+            warning("group '", g, "': gamma ", paste(coded$drop_gamma, collapse = ", "),
+                    " yield(s) a single metacell; mcRigor cannot score it — dropped",
+                    call. = FALSE)
+        }
+        if (!length(coded$keep_gamma)) {
+            warning("group '", g, "': no candidate granularity produced >= 2 metacells",
+                    call. = FALSE)
+            next
+        }
+
         obj_g <- Seurat::CreateSeuratObject(
             counts = counts_g, assay = "RNA", min.features = 0, min.cells = 0
         )
@@ -244,7 +270,7 @@ OptimizeGammaSEACells <- function(
             do.call(
                 mcRigor::mcRigor_OPTIMIZE,
                 utils::modifyList(
-                    list(obj_singlecell = obj_g, cell_membership = membership_df),
+                    list(obj_singlecell = obj_g, cell_membership = coded$code_df),
                     args
                 )
             ),
@@ -256,10 +282,12 @@ OptimizeGammaSEACells <- function(
         )
         if (is.null(res)) next
         # normalize: expect per-gamma scores; pin exact structure at smoke test
-        best <- .mcrigor_optimize_pick(res, gammas)
+        best <- .mcrigor_optimize_pick(res, coded$keep_gamma)
         optimal[[g]] <- best$gamma
-        score_rows[[g]] <- data.frame(group = g, gamma = gammas,
-                                      score = best$scores)
+        # keep the full gamma grid in the scores table; dropped gammas score NA
+        sc <- rep(NA_real_, length(gammas))
+        sc[match(as.character(coded$keep_gamma), as.character(gammas))] <- best$scores
+        score_rows[[g]] <- data.frame(group = g, gamma = gammas, score = sc)
         membership_cols[[g]] <- membership_df[[as.character(best$gamma)]]
     }
 
@@ -268,6 +296,31 @@ OptimizeGammaSEACells <- function(
         scores = do.call(rbind, score_rows),
         membership = if (length(membership_cols) > 0) membership_cols else NULL
     )
+}
+
+.mc_optimize_membership_codes <- function(mem_cols, gammas, cells_g) {
+    # Prepare OptimizeGammaSEACells' membership table for mcRigor_OPTIMIZE:
+    # drop gammas whose membership collapsed to a single metacell (mcRigor
+    # cannot score them) and integer-code the remaining columns so buildmc's
+    # size alignment survives Seurat's AggregateExpression label mangling
+    # ("g" prefix on digit-leading values, "_" -> "-" under Seurat v5).
+    n_unique <- vapply(mem_cols, function(l) length(unique(l)), integer(1))
+    keep_idx <- which(n_unique >= 2L)
+    keep_gamma <- gammas[keep_idx]
+    drop_gamma <- gammas[n_unique < 2L]
+    code_df <- if (length(keep_idx)) {
+        df <- as.data.frame(
+            lapply(mem_cols[keep_idx],
+                   function(l) as.integer(factor(l, levels = unique(l)))),
+            stringsAsFactors = FALSE, check.names = FALSE
+        )
+        colnames(df) <- as.character(keep_gamma)
+        rownames(df) <- cells_g
+        df
+    } else {
+        NULL
+    }
+    list(keep_gamma = keep_gamma, drop_gamma = drop_gamma, code_df = code_df)
 }
 
 .mcrigor_optimize_pick <- function(res, gammas) {
