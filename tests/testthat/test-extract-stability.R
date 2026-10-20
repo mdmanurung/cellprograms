@@ -41,3 +41,30 @@ test_that("stability refits keep covariate_mode and flash_control", {
     expect_identical(s$flash_control, list(backfit = FALSE))
   }
 })
+
+test_that("fit consumers fail closed with a clear message on a non-canonicalized fit", {
+  sim <- simulate_pseudobulk(n_samples = 24, n_genes = 200, seed = 1)
+  x <- as_cell_program_data(sim$pseudobulk)
+  fit_raw <- fit_celltype_programs(x, max_factors = 2, seed = 1)  # NOT canonicalized
+  expect_null(fit_raw$canonicalization)
+
+  guarded <- list(
+    ~program_summary(fit_raw),
+    ~program_metadata(fit_raw),
+    ~program_scores(fit_raw),
+    ~program_loadings(fit_raw),
+    ~top_genes(fit_raw, "B_1"),
+    ~assess_program_stability(fit_raw, n_boot = 2, seed = 1),
+    ~principal_angles(fit_raw, "B", "CD4", n_perm = 20),
+    ~sharing_spectrum(fit_raw, n_perm = 20),
+    ~align_programs(fit_raw),
+    ~match_programs(fit_raw, fit_raw, "B")
+  )
+  for (g in guarded) {
+    expect_error(eval(g[[2]], envir = environment(g)), "canonicalize_programs",
+                 label = "raw fit rejected with the fix named")
+  }
+  # and the guard is silent on a canonicalized fit
+  fit_c <- canonicalize_programs(fit_raw)
+  expect_s3_class(program_summary(fit_c), "data.frame")
+})

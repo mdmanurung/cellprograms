@@ -43,3 +43,19 @@
   }
   matches
 }
+
+# Fail-closed guard for fit consumers: fit$scores / fit$loadings per-type
+# entries are populated by canonicalize_programs() only. On a raw fit these
+# are empty lists, and indexing them crashes opaquely ("argument is of length
+# zero" via ncol(NULL)) or returns silently-empty tables. The codebase already
+# guards three entry points this way (coordination.R, cell-projection.R,
+# plots.R); this helper makes the message uniform. The condition is the actual
+# broken state (no populated scores/loadings) rather than the canonicalization
+# marker alone, so minimal hand-constructed fits with valid matrices pass.
+.require_canonicalized <- function(fit, fn) {
+  has_scores <- !is.null(fit$scores) && length(fit$scores) > 0L
+  has_loadings <- !is.null(fit$loadings) && length(fit$loadings) > 0L
+  if (is.null(fit$canonicalization) && (!has_scores || !has_loadings)) {
+    .stopf("%s requires a canonicalized fit; run canonicalize_programs() first.", fn)
+  }
+}

@@ -159,6 +159,7 @@ principal_angles <- function(fit, ct_a, ct_b,
                              space = c("scores", "loadings"),
                              weight = c("none", "residual_sd"),
                              n_perm = 200L, seed = NULL, strata = NULL) {
+  .require_canonicalized(fit, "principal_angles()")
   space <- match.arg(space)
   weight <- match.arg(weight)
   if (!is.null(strata) && space != "scores") {
@@ -304,6 +305,7 @@ print.principal_angles <- function(x, ...) {
 #' @export
 sharing_spectrum <- function(fit, pairs = NULL, space = c("scores", "loadings"),
                              n_perm = NULL, seed = 1L, ...) {
+  .require_canonicalized(fit, "sharing_spectrum()")
   space <- match.arg(space)
   cts <- names(fit$loadings)
   cts <- cts[vapply(fit$loadings, function(W) ncol(W) > 0L, logical(1L))]
@@ -367,6 +369,7 @@ sharing_spectrum <- function(fit, pairs = NULL, space = c("scores", "loadings"),
 #' al[[1]]$cosines
 #' @export
 align_programs <- function(fit, reference = NULL, space = c("scores", "loadings"), ...) {
+  .require_canonicalized(fit, "align_programs()")
   space <- match.arg(space)
   cts <- names(fit$loadings)
   cts <- cts[vapply(fit$loadings, function(W) ncol(W) > 0L, logical(1L))]
@@ -411,6 +414,8 @@ match_programs <- function(fit_a, fit_b, cell_type,
                            method = c("subspace", "correlation"),
                            space = c("loadings", "scores"),
                            sim_threshold = 0.5) {
+  .require_canonicalized(fit_a, "match_programs()")
+  .require_canonicalized(fit_b, "match_programs()")
   method <- match.arg(method)
   space <- match.arg(space)
   W_a <- fit_a$loadings[[cell_type]]; W_b <- fit_b$loadings[[cell_type]]

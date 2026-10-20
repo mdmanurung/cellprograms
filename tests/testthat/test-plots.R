@@ -100,3 +100,17 @@ test_that("plot_cmp_membership classifies, canonicalizes labels, and degrades", 
   expect_error(plot_cmp_membership(list(cmp_d)), "named list")
   expect_error(plot_cmp_membership(list(a = fit)), "cmp_result")
 })
+
+test_that("plot_cmp_network handles results computed with ambient = 'none' (no ambient_score column)", {
+  skip_if_not_installed("ggplot2")
+  sim <- simulate_pseudobulk(n_samples = 30, n_genes = 300, program_size = 30, seed = 1)
+  md <- data.frame(observation_id = paste0("obs", seq_len(30)),
+                   site = rep(c("s1", "s2"), length.out = 30))
+  x <- as_cell_program_data(sim$pseudobulk, sample_metadata = md)
+  fit <- canonicalize_programs(fit_celltype_programs(x, max_factors = 5, seed = 1))
+  cm_none <- find_coordinated_programs(fit, strata = "site", n_perm = 99,
+                                       ambient = "none", seed = 1)
+  expect_null(cm_none$nodes$ambient_score)   # the column is genuinely absent
+  p <- plot_cmp_network(cm_none)             # regressed: setNames length mismatch
+  expect_true(inherits(p, "ggplot"))
+})

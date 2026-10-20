@@ -488,9 +488,11 @@ plot_cmp_network <- function(cmp, max_edges = NULL, seed = 1) {
     e <- e[order(-abs(e$stat)), ][seq_len(max_edges), , drop = FALSE]
   }
   memb <- stats::setNames(as.character(cmp$cmps$cmp), cmp$cmps$program_id)
-  amb <- stats::setNames(
-    n$ambient_score >= (cmp$settings$ambient_threshold %||% 0.3),
-    paste(n$cell_type, n$program_id, sep = "_"))
+  ## ambient_score is absent from results computed with ambient = "none";
+  ## no exclusion was applied, so no node is ambient-flagged.
+  amb_raw <- if (is.null(n$ambient_score)) rep(FALSE, nrow(n)) else
+    n$ambient_score >= (cmp$settings$ambient_threshold %||% 0.3)
+  amb <- stats::setNames(amb_raw, paste(n$cell_type, n$program_id, sep = "_"))
 
   nodes <- unique(c(e$prog_a, e$prog_b))
   nd <- data.frame(label = nodes, cmp_lab = ifelse(is.na(memb[nodes]), "unassigned",

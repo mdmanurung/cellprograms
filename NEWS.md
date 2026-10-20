@@ -1,5 +1,23 @@
 # cellprograms 0.2.0.9000 (development)
 
+## Bug fixes and hardening (2026-10-21 all-exports smoke sweep)
+
+* `plot_cmp_network()`: no longer crashes on CMP results computed with
+  `ambient = "none"` — those results carry no `ambient_score` column (nothing
+  was excluded), and the plot assumed it existed (`setNames` length mismatch).
+  Nodes are now unflagged for ambient in that case.
+* Fit consumers fail closed on a non-canonicalized fit: `program_summary()`,
+  `program_metadata()`, `program_scores()`, `program_loadings()`,
+  `top_genes()`, `assess_program_stability()`, `principal_angles()`,
+  `sharing_spectrum()`, `align_programs()` and `match_programs()` now abort
+  with "run canonicalize_programs() first" instead of the opaque
+  "argument is of length zero" (`ncol(NULL)` on the unpopulated scores list)
+  or silently empty tables. Three entry points already had this guard
+  (`find_coordinated_programs()`, `project_programs_to_cells()`,
+  `plot_variance_explained()`); the message is now uniform across the API.
+* Regression test: every guarded consumer rejects a raw `fit_celltype_programs()`
+  output with the fix named, and passes a canonicalized fit through unchanged.
+
 ## Bug fixes and hardening (2026-10-20 edge-case segment)
 
 * `OptimizeGammaSEACells()`: `gammas` is now validated (positive integers)

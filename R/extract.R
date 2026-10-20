@@ -1,7 +1,8 @@
 # cellprograms: extraction helpers (scores, loadings, summaries, top genes).
 # All take a canonicalized `cell_program_fit`; program ids are `<cell_type>_<k>`.
 
-.program_table <- function(fit) {
+.program_table <- function(fit, fn = "program_metadata()") {
+  .require_canonicalized(fit, fn)
   do.call(rbind, lapply(names(fit$loadings), function(ct) {
     p <- colnames(fit$loadings[[ct]])
     if (!length(p)) return(NULL)
@@ -36,6 +37,7 @@ program_metadata <- function(fit) .program_table(fit)
 #' @export
 program_scores <- function(fit, format = c("wide", "long", "list")) {
   format <- match.arg(format)
+  .require_canonicalized(fit, "program_scores()")
   if (format == "list") return(fit$scores)
   if (format == "long") {
     return(do.call(rbind, lapply(names(fit$scores), function(ct) {
@@ -66,6 +68,7 @@ program_scores <- function(fit, format = c("wide", "long", "list")) {
 #' @export
 program_loadings <- function(fit, format = c("list", "long")) {
   format <- match.arg(format)
+  .require_canonicalized(fit, "program_loadings()")
   if (format == "list") return(fit$loadings)
   do.call(rbind, lapply(names(fit$loadings), function(ct) {
     W <- fit$loadings[[ct]]
@@ -86,6 +89,7 @@ program_loadings <- function(fit, format = c("list", "long")) {
 #' program_summary(fit)
 #' @export
 program_summary <- function(fit) {
+  .require_canonicalized(fit, "program_summary()")
   do.call(rbind, lapply(names(fit$fits), function(ct) {
     Y <- fit$fits[[ct]]$Y_used
     K <- ncol(fit$scores[[ct]])
@@ -117,7 +121,8 @@ program_summary <- function(fit) {
 #' @export
 top_genes <- function(fit, program, n = 20L, by = c("abs_loading", "lfsr")) {
   by <- match.arg(by)
-  tab <- .program_table(fit)
+  .require_canonicalized(fit, "top_genes()")
+  tab <- .program_table(fit, "top_genes()")
   ct <- tab$cell_type[match(program, tab$program_id)]
   if (is.na(ct)) .stopf("Unknown program '%s'.", program)
   W <- fit$loadings[[ct]][, program]

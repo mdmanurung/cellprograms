@@ -54,6 +54,7 @@ assess_program_stability <- function(fit, n_boot = 100L,
                                      sim_threshold = 0.5, top_n = 20L,
                                      resample_frac = 0.8,
                                      seed = NULL, progress = TRUE) {
+  .require_canonicalized(fit, "assess_program_stability()")
   match_method <- match.arg(match_method)
   if (!is.null(seed)) withr::local_seed(seed)
   pre <- fit$preprocessing
