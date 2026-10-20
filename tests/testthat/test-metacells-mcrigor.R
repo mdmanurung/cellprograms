@@ -188,3 +188,122 @@ test_that("GetMetacellSEACells returns stored results or stops informatively", {
   obj@misc$other <- list(y = 2)
   expect_identical(GetMetacellSEACells(obj, wgcna_name = "other")$y, 2)
 })
+
+test_that("mcRigor_OPTIMIZE accepts integer-coded membership (Seurat v5 regression)", {
+  skip_if_not(requireNamespace("Seurat", quietly = TRUE))
+  skip_if_not(requireNamespace("mcRigor", quietly = TRUE))
+  set.seed(11)
+  counts <- Matrix::Matrix(rpois(360, 2), nrow = 6, ncol = 60, sparse = TRUE,
+                           dimnames = list(paste0("gene", 1:6), paste0("cell", 1:60)))
+  obj <- Seurat::CreateSeuratObject(counts = counts)
+  obj <- Seurat::NormalizeData(obj, verbose = FALSE)
+  # Integer codes, the post-fix contract: buildmc aligns sizes through
+  # AggregateExpression colnames ("g1,g2,g3" -> strip -> "1","2","3").
+  # Pre-fix, "mc_<k>" labels mangled to "mc-1,..." died in buildmc with
+  # "No cell overlap between new meta data and Seurat object".
+  lab <- rep(1:3, each = 20)
+  code_df <- data.frame(`5` = lab, `10` = lab, check.names = FALSE,
+                        stringsAsFactors = FALSE)
+  # buildmc derives cell IDs from membership rownames (the wrapper sets
+  # rownames(df) <- cells_g); without them the cell subset is empty
+  rownames(code_df) <- paste0("cell", 1:60)
+  args <- list(Nrep = 5, gene_filter = 0.1, feature_use = 2000,
+               test_cutoff = 0.01, cor_method = "pearson",
+               aggregate_method = "mean", draw = FALSE, step_save = FALSE,
+               output_file = tempfile(fileext = ".rds"), fields = character(0))
+  # mcRigor emits numerical chatter on random data (documented in the ledger);
+  # the assertion is on the result structure.
+  res <- suppressWarnings(do.call(mcRigor::mcRigor_OPTIMIZE,
+    utils::modifyList(list(obj_singlecell = obj, cell_membership = code_df), args)))
+  best <- cellprograms:::.mcrigor_optimize_pick(res, c(5, 10))
+  expect_length(best$scores, 2L)
+  expect_true(is.na(best$gamma) || best$gamma %in% c(5, 10))
+})
+
+# Planted-archetype fixture: 5 subpopulations per 50-cell stratum, each with a
+# private 6-gene marker block (lambda 8 vs 0.5 background), so SEACells has
+# real structure to find and the mcRigor QC path runs on genuine multi-metacell
+# output. The default cells_per_metacell = 75 gives 1 metacell per group and
+# skips QC entirely (the single-metacell edge case); random data collapses to
+# 1 metacell even at cells_per_metacell = 10 (see the collapse test below).
+.planted_metacell_fixture <- function() {
+  set.seed(5)
+  lam <- matrix(0.5, nrow = 60, ncol = 50)
+  for (s in 1:5) {
+    cells <- ((s - 1L) * 10L + 1L):(s * 10L)
+    genes <- ((s - 1L) * 6L + 1L):(s * 6L)
+    lam[genes, cells] <- 8
+  }
+  counts <- Matrix::Matrix(
+    rpois(60 * 200, as.vector(do.call(cbind, rep(list(lam), 4)))),
+    nrow = 60, ncol = 200, sparse = TRUE
+  )
+  rownames(counts) <- paste0("gene", 1:60)
+  colnames(counts) <- paste0("cell", 1:200)
+  meta <- data.frame(
+    donor = rep(c("d1", "d2"), each = 100),
+    group = rep(c("A", "B"), times = 100)
+  )
+  rownames(meta) <- colnames(counts)
+  obj <- Seurat::CreateSeuratObject(counts = counts, meta.data = meta)
+  obj <- Seurat::NormalizeData(obj, verbose = FALSE)
+  obj <- Seurat::FindVariableFeatures(obj, nfeatures = 30, verbose = FALSE)
+  obj <- Seurat::ScaleData(obj, verbose = FALSE)
+  obj <- Seurat::RunPCA(obj, npcs = 5, verbose = FALSE)
+  obj
+}
+
+test_that("integration: mcRigor QC and gamma optimization on planted multi-metacell groups", {
+  skip_if_not(identical(Sys.getenv("CPMC_INTEGRATION"), "1"),
+              "set CPMC_INTEGRATION=1 to run the basilisk/SEACells integration test")
+  skip_if_not(requireNamespace("Seurat", quietly = TRUE))
+  obj <- .planted_metacell_fixture()
+
+  # QC path: mcRigor_DETECT runs on real SEACells output with >= 2 metacells
+  out <- MetacellsByGroupsSEACells(obj, group.by = c("donor", "group"),
+                                   n_top_genes = 30, n_pc = 5,
+                                   min_cells = 50, cells_per_metacell = 10,
+                                   seed = 5, verbose = FALSE)
+  mc <- out@misc$SEACells
+  expect_equal(nrow(mc$skipped_groups), 0L)
+  expect_setequal(unique(mc$qc$Group), c("d1_A", "d1_B", "d2_A", "d2_B"))
+  expect_true(all(table(mc$qc$Group) >= 2L))  # fixture point: multi-metacell groups
+  expect_true(any(is.finite(mc$qc$mcDiv)))  # mcRigor ran (fallback rows are NA)
+
+  # Optimization path: 2 donor groups x 2 gammas; pre-fix, every group died in
+  # buildmc's size assignment under Seurat v5.
+  opt <- OptimizeGammaSEACells(out, group.by = "donor", gammas = c(5, 10),
+                               n_top_genes = 30, n_pc = 5, min_cells = 50,
+                               mcrigor_args = list(Nrep = 5), seed = 5,
+                               verbose = FALSE)
+  expect_true(length(opt$optimal_gamma) > 0)
+  expect_true(all(opt$optimal_gamma %in% c(5, 10)))
+  expect_true(nrow(opt$scores) >= 2L)
+})
+
+test_that("integration: archetype collapse drops misaligned soft assignments gracefully", {
+  skip_if_not(identical(Sys.getenv("CPMC_INTEGRATION"), "1"),
+              "set CPMC_INTEGRATION=1 to run the basilisk/SEACells integration test")
+  skip_if_not(requireNamespace("Seurat", quietly = TRUE))
+  set.seed(5)
+  counts <- Matrix::Matrix(rpois(600, 2), nrow = 60, ncol = 100, sparse = TRUE)
+  rownames(counts) <- paste0("gene", 1:60)
+  colnames(counts) <- paste0("cell", 1:100)
+  meta <- data.frame(donor = rep("d1", 100))
+  rownames(meta) <- colnames(counts)
+  obj <- Seurat::CreateSeuratObject(counts = counts, meta.data = meta)
+  obj <- Seurat::NormalizeData(obj, verbose = FALSE)
+  obj <- Seurat::FindVariableFeatures(obj, nfeatures = 30, verbose = FALSE)
+  obj <- Seurat::ScaleData(obj, verbose = FALSE)
+  obj <- Seurat::RunPCA(obj, npcs = 5, verbose = FALSE)
+  # Random data: SEACells fits 10 archetypes but the hard assignments collapse
+  # (diagnostic: all cells -> 1 metacell). Pre-fix this crashed naming the
+  # archetype-columned soft matrix with metacell names.
+  out <- suppressWarnings(MetacellsByGroupsSEACells(
+    obj, group.by = "donor", n_top_genes = 30, n_pc = 5, min_cells = 50,
+    cells_per_metacell = 10, seed = 5, verbose = FALSE))
+  mc <- out@misc$SEACells
+  expect_equal(nrow(mc$skipped_groups), 0L)
+  expect_true(nrow(mc$qc) < 10L)  # collapse happened (10 archetypes requested)
+  expect_true(is.null(mc$soft_assignments))  # misaligned soft matrix dropped
+})

@@ -63,6 +63,12 @@ lives in `tests/testthat/test-review-fixes.R` and
   `mcRigor_DETECT` path) and gamma candidates whose membership collapses
   to a single metacell are dropped with a warning (`NA` in `scores`)
   instead of failing the whole group's optimization.
+* `MetacellsByGroupsSEACells()` no longer crashes when SEACells collapses
+  a group to fewer metacells than archetypes fitted (degenerate fits on
+  weak structure): the soft-assignment matrix has one column per
+  archetype and cannot be renamed to the realized metacell names, so it
+  is dropped for that group with a warning instead of erroring with
+  "length of Dimnames[[2]] is not equal to Dim[2]".
 
 ### Minor (selected)
 

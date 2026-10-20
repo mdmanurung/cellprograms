@@ -121,8 +121,11 @@ The Seurat object with results stored in `seurat_obj@misc[[wgcna_name]]`:
   expression, metadata = Group, n_cells, the individual `group.by` columns,
   and mcRigor QC columns),
   `soft_assignments` (dgCMatrix, cells x metacells, if
-  `use_soft_assignments`), `qc` (per-metacell QC data.frame), `params`
-  (all call parameters), `skipped_groups` (data.frame), and `call`.
+  `use_soft_assignments`; dropped with a warning for groups whose fit
+  collapses to fewer metacells than archetypes fitted, since archetype
+  columns are not metacell-aligned), `qc` (per-metacell QC data.frame),
+  `params` (all call parameters), `skipped_groups` (data.frame), and
+  `call`.
 }
 \description{
 Constructs transcriptomically homogeneous metacells from a Seurat object

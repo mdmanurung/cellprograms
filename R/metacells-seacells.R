@@ -147,8 +147,11 @@
 #'   expression, metadata = Group, n_cells, the individual `group.by` columns,
 #'   and mcRigor QC columns),
 #'   `soft_assignments` (dgCMatrix, cells x metacells, if
-#'   `use_soft_assignments`), `qc` (per-metacell QC data.frame), `params`
-#'   (all call parameters), `skipped_groups` (data.frame), and `call`.
+#'   `use_soft_assignments`; dropped with a warning for groups whose fit
+#'   collapses to fewer metacells than archetypes fitted, since archetype
+#'   columns are not metacell-aligned), `qc` (per-metacell QC data.frame),
+#'   `params` (all call parameters), `skipped_groups` (data.frame), and
+#'   `call`.
 #'
 #' @details Groups are processed independently; each group's cells are
 #'   exported (MatrixMarket + CSV, the hdWGCNA vignette round-trip pattern),
@@ -293,14 +296,23 @@ MetacellsByGroupsSEACells <- function(
         }
 
         if (!is.null(mc_out$soft) && use_soft_assignments) {
-            soft_g <- mc_out$soft  # cells x metacells
-            if (nrow(soft_g) == length(cells_g)) {
+            soft_g <- mc_out$soft  # cells x fitted archetypes
+            if (nrow(soft_g) != length(cells_g)) {
+                warning("soft assignment row mismatch in group '", g,
+                        "'; dropping soft assignments for this group")
+            } else if (ncol(soft_g) != m) {
+                # The soft matrix has one column per fitted archetype, but the
+                # hard assignments can collapse to fewer realized metacells
+                # (degenerate fits on weak structure). Archetype columns are
+                # not metacell-aligned, so they cannot be renamed to mc_names.
+                warning("SEACells collapsed group '", g, "' to ", m,
+                        " metacell(s) from ", ncol(soft_g),
+                        " archetypes; soft assignments are not metacell-aligned",
+                        " and are dropped for this group")
+            } else {
                 rownames(soft_g) <- cells_g
                 colnames(soft_g) <- mc_names
                 soft_list[[g]] <- soft_g
-            } else {
-                warning("soft assignment row mismatch in group '", g,
-                        "'; dropping soft assignments for this group")
             }
         }
 
