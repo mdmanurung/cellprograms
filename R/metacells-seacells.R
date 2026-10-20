@@ -16,9 +16,22 @@
 
 .mc_get_group_ids <- function(seurat_obj, group.by) {
     cols <- lapply(group.by, function(col) {
-        meta_col <- seurat_obj[[col]][[1]]
+        # Seurat's [[ errors on unknown columns; normalize to a clean abort.
+        meta_col <- tryCatch(seurat_obj[[col]][[1]], error = function(e) NULL)
+        if (is.null(meta_col)) {
+            cli::cli_abort("group.by column {.val {col}} not found in the Seurat object's metadata.")
+        }
         as.character(meta_col)
     })
+    # paste() renders NA as the literal string "NA", silently lumping
+    # unassigned cells into a group named "NA" - fail closed instead.
+    na_cells <- Reduce(`|`, lapply(cols, is.na))
+    if (any(na_cells)) {
+        bad <- group.by[vapply(cols, anyNA, logical(1))]
+        cli::cli_abort(
+            "{sum(na_cells)} cell(s) have NA in group.by column{?s} {.val {bad}}; subset or fill them before metacell construction."
+        )
+    }
     ids <- do.call(paste, c(cols, sep = "_"))
     names(ids) <- colnames(seurat_obj)
     ids

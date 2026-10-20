@@ -307,3 +307,114 @@ test_that("integration: archetype collapse drops misaligned soft assignments gra
   expect_true(nrow(mc$qc) < 10L)  # collapse happened (10 archetypes requested)
   expect_true(is.null(mc$soft_assignments))  # misaligned soft matrix dropped
 })
+
+# ---- edge cases (2026-10-20 segment) ----------------------------------------
+
+test_that(".mc_validate_gammas dedups, sorts, and rejects bad input", {
+  expect_identical(.mc_validate_gammas(c(10, 5, 10)), c(5L, 10L))
+  expect_identical(.mc_validate_gammas(7), 7L)
+  expect_error(.mc_validate_gammas("a"), "positive integers")
+  expect_error(.mc_validate_gammas(numeric(0)), "positive integers")
+  expect_error(.mc_validate_gammas(c(5, NA)), "positive integers")
+  expect_error(.mc_validate_gammas(c(5, -1)), "positive integers")
+  expect_error(.mc_validate_gammas(c(5, 2.5)), "positive integers")
+})
+
+test_that("membership coding excludes NA-labeled cells and never counts NA as a level", {
+  cells <- paste0("c", 1:6)
+  mem <- list(
+    "5"  = c("a", "a", "b", "b", NA, NA),   # 2 real labels + NA cells
+    "10" = c("a", "a", "a", "a", NA, "a")   # 1 real label once NA excluded
+  )
+  expect_warning(
+    coded <- .mc_optimize_membership_codes(mem, c(5, 10), cells),
+    "NA membership labels excluded"
+  )
+  # gamma 10 is degenerate once NA cells are gone (unique() would have
+  # counted NA as a second level pre-fix)
+  expect_identical(coded$keep_gamma, 5)
+  expect_identical(coded$drop_gamma, 10)
+  expect_identical(rownames(coded$code_df), cells[1:4])
+  expect_false(any(is.na(coded$code_df[[1]])))
+})
+
+test_that("membership coding keeps a single valid gamma and preserves input order", {
+  cells <- paste0("c", 1:4)
+  mem <- list("10" = c("a", "a", "b", "b"), "5" = c("x", "x", "y", "y"))
+  coded <- .mc_optimize_membership_codes(mem, c(10, 5), cells)
+  expect_identical(coded$keep_gamma, c(10, 5))   # input order, not sorted
+  expect_identical(colnames(coded$code_df), c("10", "5"))
+  single <- .mc_optimize_membership_codes(mem[1], 10, cells)
+  expect_identical(single$keep_gamma, 10)
+  expect_identical(sort(unique(single$code_df[[1]])), c(1L, 2L))
+})
+
+test_that("membership coding with all-degenerate gammas returns NULL code_df", {
+  cells <- paste0("c", 1:4)
+  mem <- list("5" = rep("a", 4), "10" = rep("b", 4))
+  coded <- .mc_optimize_membership_codes(mem, c(5, 10), cells)
+  expect_identical(coded$keep_gamma, numeric(0))
+  expect_identical(coded$drop_gamma, c(5, 10))
+  expect_null(coded$code_df)
+})
+
+test_that(".mcrigor_optimize_pick is honest about all-NA scores and single gamma", {
+  res <- data.frame(gamma = c(5, 10), Score = c(NA_real_, NA_real_))
+  pick <- .mcrigor_optimize_pick(res, c(5, 10))
+  expect_true(is.na(pick$gamma))
+  expect_true(all(is.na(pick$scores)))
+  one <- .mcrigor_optimize_pick(data.frame(gamma = 5, Score = 0.4), 5)
+  expect_identical(one$gamma, 5)
+})
+
+test_that(".mc_get_group_ids fails closed on NA or missing group.by columns", {
+  skip_if_not(requireNamespace("Seurat", quietly = TRUE))
+  counts <- Matrix::Matrix(rpois(40, 2), nrow = 10, ncol = 4, sparse = TRUE)
+  rownames(counts) <- paste0("gene", 1:10)
+  colnames(counts) <- paste0("cell", 1:4)
+  meta <- data.frame(donor = c("d1", "d1", NA, "d2"), row.names = colnames(counts))
+  obj <- Seurat::CreateSeuratObject(counts = counts, meta.data = meta)
+  expect_error(.mc_get_group_ids(obj, "donor"), "NA in group.by")
+  expect_error(.mc_get_group_ids(obj, "no_such_col"), "not found")
+  # clean metadata still works
+  meta$donor[is.na(meta$donor)] <- "d2"
+  obj2 <- Seurat::CreateSeuratObject(counts = counts, meta.data = meta)
+  ids <- .mc_get_group_ids(obj2, "donor")
+  expect_identical(unname(ids), c("d1", "d1", "d2", "d2"))
+})
+
+test_that("integration: single-gamma optimization and no-prior-run optimize", {
+  skip_if_not(identical(Sys.getenv("CPMC_INTEGRATION"), "1"),
+              "set CPMC_INTEGRATION=1 to run the basilisk/SEACells integration test")
+  skip_if_not(requireNamespace("Seurat", quietly = TRUE))
+  obj <- .planted_metacell_fixture()
+  # single candidate gamma: the pick must be that gamma for every group
+  opt1 <- OptimizeGammaSEACells(obj, group.by = "donor", gammas = 10,
+                                n_top_genes = 30, n_pc = 5, min_cells = 50,
+                                mcrigor_args = list(Nrep = 5), seed = 5,
+                                verbose = FALSE)
+  expect_true(all(unlist(opt1$optimal_gamma) == 10))
+  # OptimizeGammaSEACells refits SEACells per gamma and does not require a
+  # prior MetacellsByGroupsSEACells run on the object
+  fresh <- .planted_metacell_fixture()
+  expect_null(fresh@misc$SEACells)
+  opt2 <- OptimizeGammaSEACells(fresh, group.by = "donor", gammas = c(5, 10),
+                                n_top_genes = 30, n_pc = 5, min_cells = 50,
+                                mcrigor_args = list(Nrep = 5), seed = 5,
+                                verbose = FALSE)
+  expect_true(length(opt2$optimal_gamma) > 0)
+})
+
+test_that("integration: all groups below min_cells aborts fail-closed", {
+  skip_if_not(identical(Sys.getenv("CPMC_INTEGRATION"), "1"),
+              "set CPMC_INTEGRATION=1 to run the basilisk/SEACells integration test")
+  skip_if_not(requireNamespace("Seurat", quietly = TRUE))
+  obj <- .planted_metacell_fixture()
+  expect_error(
+    MetacellsByGroupsSEACells(obj, group.by = c("donor", "group"),
+                              n_top_genes = 30, n_pc = 5,
+                              min_cells = 10000, cells_per_metacell = 10,
+                              seed = 5, verbose = FALSE),
+    "no groups passed min_cells"
+  )
+})

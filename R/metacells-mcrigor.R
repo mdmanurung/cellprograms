@@ -189,6 +189,7 @@ OptimizeGammaSEACells <- function(
     }
     group_ids <- .mc_get_group_ids(seurat_obj, group.by)
     levels_g <- sort(unique(group_ids))
+    gammas <- .mc_validate_gammas(gammas)
 
     membership_cols <- list()
     score_rows <- list()
@@ -298,12 +299,34 @@ OptimizeGammaSEACells <- function(
     )
 }
 
+.mc_validate_gammas <- function(gammas) {
+    # OptimizeGammaSEACells candidate granularities: positive integers,
+    # deduplicated and sorted. Duplicates would produce identically named
+    # membership columns for mcRigor_OPTIMIZE; non-integers fail cryptically
+    # inside SEACells.
+    if (!is.numeric(gammas) || !length(gammas) || any(!is.finite(gammas)) ||
+        any(gammas < 1) || any(gammas != round(gammas))) {
+        cli::cli_abort("{.arg gammas} must be positive integers, got {.val {gammas}}.")
+    }
+    sort(unique(as.integer(gammas)))
+}
+
 .mc_optimize_membership_codes <- function(mem_cols, gammas, cells_g) {
     # Prepare OptimizeGammaSEACells' membership table for mcRigor_OPTIMIZE:
     # drop gammas whose membership collapsed to a single metacell (mcRigor
     # cannot score them) and integer-code the remaining columns so buildmc's
     # size alignment survives Seurat's AggregateExpression label mangling
     # ("g" prefix on digit-leading values, "_" -> "-" under Seurat v5).
+    # Cells with NA membership in ANY candidate gamma are excluded up front:
+    # unique() counts NA as a level (inflating n_unique) and factor() codes
+    # NA as NA, which mcRigor cannot consume.
+    complete <- Reduce(`&`, lapply(mem_cols, function(l) !is.na(l)))
+    if (!all(complete)) {
+        warning(sum(!complete), " cell(s) with NA membership labels excluded ",
+                "from gamma optimization")
+        mem_cols <- lapply(mem_cols, function(l) l[complete])
+        cells_g <- cells_g[complete]
+    }
     n_unique <- vapply(mem_cols, function(l) length(unique(l)), integer(1))
     keep_idx <- which(n_unique >= 2L)
     keep_gamma <- gammas[keep_idx]

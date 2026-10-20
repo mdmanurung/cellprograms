@@ -244,3 +244,37 @@ test_that("var_floor reroutes the flashier.utils fast path through legacy flash 
                  "legacy flashier backend")
   expect_identical(fit$fits$CT1$S_used, 0.5)
 })
+
+# ---- edge cases: basilisk env spec + python option handling -----------------
+
+test_that("cebmf basilisk env spec satisfies the pip invariants CI taught us", {
+  skip_if_not(requireNamespace("basilisk", quietly = TRUE))
+  env <- .cebmf_basilisk_env()
+  pip <- env@pip
+  # basilisk 1.18 passes pip entries through system2 unquoted (shell splits
+  # on whitespace); basilisk 1.24 shell-quotes each entry (a flag entry
+  # becomes a quoted "package name"). Both break on flag entries or spaces.
+  expect_false(any(startsWith(pip, "-")),
+               info = paste("flag entries break basilisk 1.24:", pip[startsWith(pip, "-")]))
+  expect_false(any(grepl("\\s", pip)),
+               info = paste("whitespace breaks basilisk 1.18 system2:", pip[grepl("\\s", pip)]))
+  # every entry is either ==-pinned or a PEP 508 direct reference
+  ok <- grepl("==", pip) | grepl("^[A-Za-z0-9_.-]+@git\\+", pip)
+  expect_true(all(ok), info = paste("unpinned/unparseable:", pip[!ok]))
+  # python itself is pinned in the conda/packages spec
+  expect_true(any(grepl("^python=", env@packages)))
+  # the direct reference stays commit-pinned (40 hex chars)
+  git_ref <- grep("@git\\+", pip, value = TRUE)
+  expect_true(all(grepl("@[0-9a-f]{40}$", git_ref)),
+              info = "cebmf_torch must be pinned to a full commit SHA")
+})
+
+test_that(".cebmf_use_python_env aborts cleanly on bad paths", {
+  skip_if_not(requireNamespace("reticulate", quietly = TRUE))
+  expect_error(.cebmf_use_python_env("/definitely/not/here"),
+               "non-existent python", fixed = TRUE)
+  # an existing directory WITHOUT bin/python must abort here too, not fall
+  # through to reticulate's use_python error (file.exists is TRUE for dirs)
+  d <- tempfile(); dir.create(d)
+  expect_error(.cebmf_use_python_env(d), "non-existent python", fixed = TRUE)
+})

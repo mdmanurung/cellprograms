@@ -1,5 +1,33 @@
 # cellprograms 0.2.0.9000 (development)
 
+## Bug fixes and hardening (2026-10-20 edge-case segment)
+
+* `OptimizeGammaSEACells()`: `gammas` is now validated (positive integers)
+  and deduplicated/sorted at entry — duplicate candidates previously
+  produced identically named membership columns for `mcRigor_OPTIMIZE`.
+* `.mc_get_group_ids()` (both metacell entry points): fails closed when a
+  `group.by` column is missing or contains NA — `paste()` previously rendered
+  NA as the literal string `"NA"`, silently lumping unassigned cells into a
+  spurious group.
+* `OptimizeGammaSEACells()` membership coding: cells with NA membership
+  labels in any candidate gamma are excluded with a warning before scoring;
+  `unique()` previously counted NA as a level, inflating the degeneracy
+  check and leaking NA codes into mcRigor.
+* `.cebmf_use_python_env()`: an existing directory without `bin/python` now
+  aborts with the registered message instead of falling through to
+  reticulate (`file.exists()` is TRUE for directories).
+* Regression test: the cebmf basilisk pip spec is checked for the
+  invariants the CI shakedown established (no flag entries, no whitespace,
+  `==` pins or commit-pinned direct references only).
+* Packaging: `hdWGCNA` removed from Suggests (never imported; design
+  attribution lives in comments). Its presence broke every CI dependency
+  solve — pak cannot resolve GitHub-only packages from CRAN/Bioconductor.
+* CI: workflow actions bumped to Node 24 majors (checkout v7,
+  upload-artifact v7, github-script v9, upload-pages-artifact v5,
+  deploy-pages v5); Node 20 was removed from runners on 2026-09-23. The
+  drift issue now also auto-closes on a green `workflow_dispatch` run, not
+  just scheduled runs.
+
 ## Bug fixes and hardening (2026-10-20 cebmf basilisk segment)
 
 * The cebmf_torch backend's basilisk environment was never constructible and
@@ -128,7 +156,7 @@ lives in `tests/testthat/test-review-fixes.R` and
   installing `cellprograms` never requires basilisk, Python, Seurat, or
   mcRigor; the exported `seacells_env` object from the sub-package is
   retired (nothing in the project referenced it). `Seurat`, `SeuratObject`,
-  `mcRigor`, and `hdWGCNA` are Suggests with explicit fail-closed guards;
+  and `mcRigor` are Suggests with explicit fail-closed guards;
   `Matrix` and `methods` move to Imports. Note: the basilisk environment is
   re-registered under `cellprograms`, so the first metacell run after this
   change rebuilds the SEACells conda environment (one-time, needs network).

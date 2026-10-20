@@ -20,7 +20,7 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: r-lib/actions/setup-pandoc@v2
       - uses: r-lib/actions/setup-r@v2
         with:
@@ -49,7 +49,7 @@ jobs:
             echo "::error::docs/cebmf-extension missing from built site"
             exit 1
           }
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: docs
   deploy:
@@ -65,4 +65,4 @@ jobs:
     steps:
       - name: Publish documentation
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

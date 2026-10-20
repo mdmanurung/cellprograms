@@ -95,7 +95,10 @@
   } else {
     opt
   }
-  if (!file.exists(py)) {
+  # file.exists() is TRUE for directories: an existing directory without
+  # bin/python must still abort here, not fall through to reticulate's
+  # less informative use_python() error.
+  if (!file.exists(py) || dir.exists(py)) {
     cli::cli_abort("{.option cellprograms.cebmf_python_env} points to a non-existent python: {.val {opt}}.")
   }
   reticulate::use_python(py, required = TRUE)
