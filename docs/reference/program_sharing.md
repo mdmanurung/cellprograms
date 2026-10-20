@@ -156,9 +156,9 @@ if (requireNamespace("mashr", quietly = TRUE)) {
 }
 #> Warning: `matches` supplied: matched sets are user-forced, not data-driven. The 'shared' classification counts top genes active (lfsr < 0.05) in >= 2 conditions and can label independent loadings 'shared' at high loading SNR; check `p_all_shared` (mixture weight of the equal-effects pattern) before interpretation.
 #>  - Computing 73 x 241 likelihood matrix.
-#>  - Likelihood calculations took 0.00 seconds.
+#>  - Likelihood calculations took 0.01 seconds.
 #>  - Fitting model with 241 mixture components.
-#>  - Model fitting took 0.07 seconds.
+#>  - Model fitting took 0.08 seconds.
 #>  - Computing posterior matrices.
 #>  - Computation allocated took 0.00 seconds.
 #>   program_id cell_type group_id n_conditions classification frac_top_shared

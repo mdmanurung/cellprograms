@@ -58,6 +58,6 @@ fit <- structure(list(
   class = c("cell_program_fit", "cell_program_data", "list"))
 res <- find_coordinated_programs(fit, n_perm = 99, ambient = "none")
 cmp_context_association(fit, res, "group")
-#>   cmp  term   estimate          t        p  n
-#> 1   1 xstim -0.1092466 -0.3519461 0.726823 40
+#>   cmp     term   estimate          t        p  n
+#> 1   1 .ctxstim -0.1092466 -0.3519461 0.726823 40
 ```

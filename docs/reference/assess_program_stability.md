@@ -65,8 +65,11 @@ The fit with \`fit\$stability\` populated:
   REQUESTED iterations, \`n_hit / n_boot\` — not an estimate of
   biological recovery conditional on successful refitting),
   \`conditional_recovery_freq\` (\`n_hit / valid_refits\`, NA when no
-  refit succeeded), median score correlation, median loading cosine,
-  sign consistency, and top-gene Jaccard.
+  refit succeeded; the denominator counts successful refits, not the
+  replicates where the program's cell type retained a factor — use
+  \`n_hit / n_eligible\` for the per-program conditional rate), median
+  score correlation, median loading cosine, sign consistency, and
+  top-gene Jaccard.
 
 - valid_refits, failed_refits:
 
@@ -103,12 +106,12 @@ fit$stability$per_program
 #> 7     Mono_1      Mono     2          2             1                         1
 #> 8     Mono_2      Mono     2          2             1                         1
 #>   median_score_cor median_loading_cos sign_consistency top_gene_jaccard
-#> 1        0.9999650          0.9971983                1        0.9047619
-#> 2        0.9997030          0.9870352                1        0.8614719
-#> 3        0.9998824          0.9921341                1        0.8614719
-#> 4        0.9993324          0.9828631                1        0.9090909
-#> 5        0.9999204          0.9946079                1        0.9523810
-#> 6        0.9999242          0.9946153                1        0.9090909
-#> 7        0.9999864          0.9985128                1        0.9523810
-#> 8        0.9998608          0.9920544                1        0.7424242
+#> 1        0.9998990          0.9945869                1        0.8614719
+#> 2        0.9997762          0.9910575                1        0.9047619
+#> 3        0.9998526          0.9907171                1        0.8614719
+#> 4        0.9992491          0.9792686                1        0.9090909
+#> 5        0.9998482          0.9894768                1        0.8614719
+#> 6        0.9996598          0.9930686                1        0.8614719
+#> 7        0.9999030          0.9952342                1        0.9090909
+#> 8        0.9997262          0.9925613                1        0.8181818
 ```

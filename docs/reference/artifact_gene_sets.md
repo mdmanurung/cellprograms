@@ -17,9 +17,10 @@ expression; the other sets are gene IDs).
 
 ## Details
 
-\* \`vdj\`: immunoglobulin and T-cell-receptor V(D)J and constant genes.
-Stored as a single regular expression,
-\`^(IG\[HKL\]V\|IG\[KL\]C\|IGH\[GAMDE\]\|JCHAIN\|TR\[ABGD\]\[VC\])\`,
+\* \`vdj\`: immunoglobulin and T-cell-receptor V, D, J and constant
+genes (including the lambda-like surrogates IGLL1/IGLL5). Stored as a
+single regular expression,
+\`^(IG\[HKL\]\[VDJC\]\|IGH\[GAMDE\]\|IGLL\[0-9\]\|JCHAIN\|TR\[ABGD\]\[VDJC\])\`,
 not an enumerated gene list, because the full V-gene complement is
 genome-annotation-dependent; expand it against a gene universe with
 \`.expand_vdj()\` (or use \`artifact_genes()\`, which expands every
@@ -50,7 +51,7 @@ panel directly.
 names(artifact_gene_sets)
 #> [1] "vdj"              "genotype_marker"  "sex"              "canonical_marker"
 artifact_gene_sets$vdj   # V(D)J genes are stored as a regular expression
-#> [1] "^(IG[HKL]V|IG[KL]C|IGH[GAMDE]|JCHAIN|TR[ABGD][VC])"
+#> [1] "^(IG[HKL][VDJC]|IGH[GAMDE]|IGLL[0-9]|JCHAIN|TR[ABGD][VDJC])"
 artifact_gene_sets$sex
 #>  [1] "XIST"   "RPS4Y1" "DDX3Y"  "UTY"    "KDM5D"  "EIF1AY" "NLGN4Y" "TMSB4Y"
 #>  [9] "USP9Y"  "ZFY"   

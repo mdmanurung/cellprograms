@@ -12,7 +12,7 @@ off-diagonal correlations, clipped to \[0, 1\]. With fewer than
 ## Usage
 
 ``` r
-.estimate_V(fit, matches, z_thresh = 1, min_null = 20L)
+.estimate_V(fit, matches, z_thresh = 1, min_null = 20L, mats = NULL)
 ```
 
 ## Arguments

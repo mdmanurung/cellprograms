@@ -29,7 +29,9 @@ and optional TF footprints from `annotate_cmp_tf()`."></head><body>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/quickstart.html">Quick start: from pseudobulk to shared programs</a></li>
+    <li><a class="dropdown-item" href="../articles/metacells_seacells.html">Metacells with SEACells and mcRigor gamma optimization</a></li>
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/cebmf_backend.html">The cebmf_torch backend: covariate-EBMF in torch</a></li>
     <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
@@ -77,7 +79,8 @@ and optional TF footprints from `annotate_cmp_tf()`.</p>
 <span>  max_vdj_frac <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>  min_marker_genes <span class="op">=</span> <span class="fl">2L</span>,</span>
 <span>  min_concordance <span class="op">=</span> <span class="fl">0.75</span>,</span>
-<span>  min_level_donors <span class="op">=</span> <span class="fl">15L</span></span>
+<span>  min_level_donors <span class="op">=</span> <span class="fl">15L</span>,</span>
+<span>  min_ieg <span class="op">=</span> <span class="fl">3L</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -129,6 +132,11 @@ the fraction that are positive.</p></dd>
 <dt id="arg-min-level-donors">min_level_donors<a class="anchor" aria-label="anchor" href="#arg-min-level-donors"></a></dt>
 <dd><p>Minimum donors per `replicate_by` level (default 15).</p></dd>
 
+
+<dt id="arg-min-ieg">min_ieg<a class="anchor" aria-label="anchor" href="#arg-min-ieg"></a></dt>
+<dd><p>Minimum number of immediate-early genes among the recurrent
+top genes for the `stress_ieg` flag (default 3).</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -143,7 +151,7 @@ loadings in each member, ranked by how many members share them; the first
 (&gt;= `min_marker_genes` contamination markers), `vdj` (V(D)J fraction of
 recurrent genes &gt;= `max_vdj_frac`), `sex_chromosome` and
 `genotype_candidate` (&gt;= `min_marker_genes` marker genes), `stress_ieg`
-(&gt;= 3 IEGs), plus soft notes `genotype_marker_single` (one marker gene) and
+(&gt;= `min_ieg` IEGs), plus soft notes `genotype_marker_single` (one marker gene) and
 `low_replication` (minimum within-level concordance &lt; `min_concordance`).
 `label` is the first hard flag in that order, else `"candidate"`, or
 `"candidate_associated"` when the context association has p &lt; 0.05. Labels
@@ -178,7 +186,7 @@ are heuristics for prioritization, not classifications.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   cmp n_members cell_types members                       recurrent_top_genes</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1   1         2        A,B A_1,B_1 G1,G10,G11,G12,G13,G14,G15,G2,G3,G4,G5,G6</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ambient_frac vdj_frac n_genotype_markers genotype_markers n_sex_markers</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1            0        0                  0                              0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1           NA        0                  0                              0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   sex_markers n_ieg n_platelet_rbc context_p context_estimate min_concordance</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1                 0              0  0.726823       -0.1092466               1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   concordance_by_level tf_specific tf_shared flags     label</span>

@@ -36,8 +36,11 @@ match_programs(
 
 - space:
 
-  Subspace geometry for matching: \`"loadings"\` (default; gene
-  identity) or \`"scores"\` (activity; requires shared observations).
+  Geometry for the subspace \`angles\`/\`split_map\`, used only when
+  \`method = "subspace"\`: \`"loadings"\` (default; gene identity) or
+  \`"scores"\` (activity; requires \>= 2 shared observations between the
+  fits). The factor-level \`matches\` are always loading-cosine based,
+  regardless of \`space\`.
 
 - sim_threshold:
 

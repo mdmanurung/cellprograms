@@ -115,6 +115,7 @@ set.seed(2)
 lr <- data.frame(ligand = c("G150", sample(paste0("G", 60:349), 300, replace = TRUE)),
                  receptor = c("G151", sample(paste0("G", 352:600), 300, replace = TRUE)))
 annotate_cmp_lr(fit, res, lr, n_perm = 99)
-#>   cmp sender receiver ligand receptor score    p
-#> 1   1  A|A_1    B|B_1   G150     G151     1 0.02
+#> Warning: `fit` has no pseudobulk component; `donor_check` columns are NA.
+#>   cmp sender receiver ligand receptor score    p donor_cor donor_p n_donors
+#> 1   1  A|A_1    B|B_1   G150     G151     1 0.02        NA      NA       NA
 ```

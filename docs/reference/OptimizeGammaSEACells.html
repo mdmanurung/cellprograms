@@ -25,7 +25,9 @@ per group per candidate granularity."></head><body>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/quickstart.html">Quick start: from pseudobulk to shared programs</a></li>
+    <li><a class="dropdown-item" href="../articles/metacells_seacells.html">Metacells with SEACells and mcRigor gamma optimization</a></li>
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/cebmf_backend.html">The cebmf_torch backend: covariate-EBMF in torch</a></li>
     <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
@@ -114,10 +116,12 @@ arguments (`D_bw`, `optim_method`, `weight`, `Nrep`, ...).</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list with `optimal_gamma` (per group), `scores` (per group x
-  gamma Score table), and `membership` (the per-cell membership data.frame
-  for the chosen partition, usable with `mcRigor::mcRigorTS_Step1/Step2`
-  for two-step re-partitioning).</p>
+    <p>A list with `optimal_gamma` (named list, per group), `scores` (per
+  group x gamma Score table), and `membership` (named list of per-group
+  membership vectors for the chosen granularity, one entry per cell; NULL
+  when no group produced a result). Gammas whose membership collapses to a
+  single metacell cannot be scored by mcRigor and are dropped with a
+  warning (`NA` in `scores`).</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

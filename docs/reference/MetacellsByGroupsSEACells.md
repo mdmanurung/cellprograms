@@ -134,12 +134,14 @@ MetacellsByGroupsSEACells(
 
 - max_iter:
 
-  Maximum SEACells fit iterations. Default 100 (the SEACells 0.3.3 fork
-  default; non-convergence is recorded in fit_stats, not fatal).
+  Maximum SEACells fit iterations. Default 20; non-convergence is
+  recorded in fit_stats, not fatal.
 
 - use_sparse:
 
-  Use sparse matrix operations in SEACells (CPU only). Default TRUE.
+  Reserved for API compatibility; currently \*\*ignored\*\* — the pinned
+  SEACells 0.3.3 fork has no \`use_sparse\` kwarg (a warning is issued
+  when set to a non-default value). Default TRUE.
 
 - use_soft_assignments:
 
@@ -182,7 +184,9 @@ The Seurat object with results stored in
 object of metacells, counts = aggregated expression, metadata = Group,
 n_cells, the individual \`group.by\` columns, and mcRigor QC columns),
 \`soft_assignments\` (dgCMatrix, cells x metacells, if
-\`use_soft_assignments\`), \`qc\` (per-metacell QC data.frame),
+\`use_soft_assignments\`; dropped with a warning for groups whose fit
+collapses to fewer metacells than archetypes fitted, since archetype
+columns are not metacell-aligned), \`qc\` (per-metacell QC data.frame),
 \`params\` (all call parameters), \`skipped_groups\` (data.frame), and
 \`call\`.
 

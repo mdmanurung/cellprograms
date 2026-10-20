@@ -21,7 +21,9 @@ biology, used for flagging called programs and for fit-time exclusion:"></head><
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/quickstart.html">Quick start: from pseudobulk to shared programs</a></li>
+    <li><a class="dropdown-item" href="../articles/metacells_seacells.html">Metacells with SEACells and mcRigor gamma optimization</a></li>
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/cebmf_backend.html">The cebmf_torch backend: covariate-EBMF in torch</a></li>
     <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
@@ -61,10 +63,11 @@ biology, used for flagging called programs and for fit-time exclusion:</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>* `vdj`: immunoglobulin and T-cell-receptor V(D)J and constant genes.
-  Stored as a single regular expression,
-  `^(IG[HKL]V|IG[KL]C|IGH[GAMDE]|JCHAIN|TR[ABGD][VC])`, not an enumerated
-  gene list, because the full V-gene complement is
+    <p>* `vdj`: immunoglobulin and T-cell-receptor V, D, J and constant genes
+  (including the lambda-like surrogates IGLL1/IGLL5). Stored as a single
+  regular expression,
+  `^(IG[HKL][VDJC]|IGH[GAMDE]|IGLL[0-9]|JCHAIN|TR[ABGD][VDJC])`, not an
+  enumerated gene list, because the full V-gene complement is
   genome-annotation-dependent; expand it against a gene universe with
   `.expand_vdj()` (or use `artifact_genes()`, which expands every set).
 * `genotype_marker`: genes with common germline deletion, copy-number or
@@ -92,7 +95,7 @@ is closed, so it can be subtracted from a feature panel directly.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">artifact_gene_sets</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "vdj"              "genotype_marker"  "sex"              "canonical_marker"</span>
 <span class="r-in"><span><span class="va">artifact_gene_sets</span><span class="op">$</span><span class="va">vdj</span>   <span class="co"># V(D)J genes are stored as a regular expression</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "^(IG[HKL]V|IG[KL]C|IGH[GAMDE]|JCHAIN|TR[ABGD][VC])"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "^(IG[HKL][VDJC]|IGH[GAMDE]|IGLL[0-9]|JCHAIN|TR[ABGD][VDJC])"</span>
 <span class="r-in"><span><span class="va">artifact_gene_sets</span><span class="op">$</span><span class="va">sex</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  [1] "XIST"   "RPS4Y1" "DDX3Y"  "UTY"    "KDM5D"  "EIF1AY" "NLGN4Y" "TMSB4Y"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  [9] "USP9Y"  "ZFY"   </span>

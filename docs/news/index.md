@@ -2,6 +2,183 @@
 
 ## cellprograms 0.2.0.9000 (development)
 
+### Bug fixes and hardening (2026-10-20 edge-case segment)
+
+- [`OptimizeGammaSEACells()`](https://mdmanurung.github.io/cellprograms/reference/OptimizeGammaSEACells.md):
+  `gammas` is now validated (positive integers) and deduplicated/sorted
+  at entry — duplicate candidates previously produced identically named
+  membership columns for `mcRigor_OPTIMIZE`.
+- `.mc_get_group_ids()` (both metacell entry points): fails closed when
+  a `group.by` column is missing or contains NA —
+  [`paste()`](https://rdrr.io/r/base/paste.html) previously rendered NA
+  as the literal string `"NA"`, silently lumping unassigned cells into a
+  spurious group.
+- [`OptimizeGammaSEACells()`](https://mdmanurung.github.io/cellprograms/reference/OptimizeGammaSEACells.md)
+  membership coding: cells with NA membership labels in any candidate
+  gamma are excluded with a warning before scoring;
+  [`unique()`](https://rdrr.io/r/base/unique.html) previously counted NA
+  as a level, inflating the degeneracy check and leaking NA codes into
+  mcRigor.
+- `.cebmf_use_python_env()`: an existing directory without `bin/python`
+  now aborts with the registered message instead of falling through to
+  reticulate ([`file.exists()`](https://rdrr.io/r/base/files.html) is
+  TRUE for directories).
+- Regression test: the cebmf basilisk pip spec is checked for the
+  invariants the CI shakedown established (no flag entries, no
+  whitespace, `==` pins or commit-pinned direct references only).
+- Packaging: `hdWGCNA` removed from Suggests (never imported; design
+  attribution lives in comments). Its presence broke every CI dependency
+  solve — pak cannot resolve GitHub-only packages from
+  CRAN/Bioconductor.
+- CI: workflow actions bumped to Node 24 majors (checkout v7,
+  upload-artifact v7, github-script v9, upload-pages-artifact v5,
+  deploy-pages v5); Node 20 was removed from runners on 2026-09-23. The
+  drift issue now also auto-closes on a green `workflow_dispatch` run,
+  not just scheduled runs.
+
+### Bug fixes and hardening (2026-10-20 cebmf basilisk segment)
+
+- The cebmf_torch backend’s basilisk environment was never constructible
+  and the defect was masked by every audit run setting the venv option.
+  Three fixes: the pip spec now pins `numpy`/`scipy` (which `cebmf_ext`
+  imports directly and torch does not provide), the CPU torch wheel is
+  selected via `--extra-index-url` as its own pip token (index flags are
+  global pip options, not requirement syntax), and the commit-pinned
+  `cebmf_torch` direct reference is written unspaced so the shell cannot
+  split it when basilisk passes pip entries through `system2` unquoted.
+  The basilisk version-spec check is relaxed only while this one
+  environment is created (it cannot parse PEP 508 direct references; the
+  commit pin is fully reproducible). The env now builds and the backend
+  fits through it with no option set.
+
+### Bug fixes and hardening (2026-10-19 implementation-review segment)
+
+Full implementation review follow-through: 2 critical correctness fixes,
+12 major fixes, and 50 minor fixes. Regression coverage for every fixed
+finding lives in `tests/testthat/test-review-fixes.R` and
+`tests/testthat/test-artifact-genes.R`.
+
+#### Critical
+
+- [`GetMetacellSEACells()`](https://mdmanurung.github.io/cellprograms/reference/GetMetacellSEACells.md):
+  multi-group soft-assignment matrices are now combined block-diagonally
+  (one block per group) instead of row-binding group-local column
+  indices, which crashed or silently misassigned cells to metacells when
+  more than one group was processed.
+- [`cmp_context_association()`](https://mdmanurung.github.io/cellprograms/reference/cmp_context_association.md):
+  the context term is selected exactly through the model-matrix term
+  assignment instead of a `^x` prefix grep that also captured adjustment
+  covariates whose names start with “x” (e.g. `xsite`). Covariates named
+  `y` or `.ctx` are refused (reserved internal names).
+
+#### Major
+
+- [`fit_celltype_programs()`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md):
+  within-cell-type constant genes no longer crash the gene filter under
+  `scale = TRUE`; their non-finite column mass is treated as degenerate
+  and the genes are dropped.
+- `fit_celltype_programs(backend = "cebmf_torch")` warns when a cell
+  type’s fit exhausts `maxit` without converging (the flag was stored
+  but never surfaced).
+- [`assess_program_stability()`](https://mdmanurung.github.io/cellprograms/reference/assess_program_stability.md)
+  warns and skips cell types with fewer than 5 donors instead of
+  crashing during resampling.
+- [`plot_program_scores()`](https://mdmanurung.github.io/cellprograms/reference/plot_program_scores.md)
+  handles per-cell-type observation sets (union of donors, NA where a
+  cell type was not observed) instead of requiring equal row counts;
+  z-scoring is NA-aware.
+- [`plot_sharing_spectrum()`](https://mdmanurung.github.io/cellprograms/reference/plot_sharing_spectrum.md)
+  rewritten: significance class (shared / n.s. / underpowered) drives a
+  fixed colorblind-safe palette, q-values are carried in the pair
+  labels, and \>9 pairs no longer break the color scale.
+- [`plot_artifact_flags()`](https://mdmanurung.github.io/cellprograms/reference/plot_artifact_flags.md)
+  detects any `*_frac` column set (not just the built-in screens) and
+  accepts CMP-shaped flag tables.
+- [`union_panel_loadings()`](https://mdmanurung.github.io/cellprograms/reference/union_panel_loadings.md)
+  leaves zero-overlap or constant panel genes NA (with warnings) instead
+  of aborting, and replays rank-deficient fixed covariate designs via
+  least squares instead of crashing in
+  [`solve()`](https://rdrr.io/r/base/solve.html).
+- [`project_programs_to_cells()`](https://mdmanurung.github.io/cellprograms/reference/project_programs_to_cells.md)
+  refuses a `feature_scale` declaration that contradicts the fit’s
+  recorded units (previously silently accepted).
+- [`flag_artifact_genes()`](https://mdmanurung.github.io/cellprograms/reference/flag_artifact_genes.md):
+  the V(D)J screen now also covers J/D segments, IGLL-family genes, and
+  JCHAIN.
+- Metacells: `max_iter` documentation corrected (wrapped SEACells
+  default is 20); `use_sparse` warns when set (ignored by the wrapped
+  SEACells version); per-metacell QC columns are joined into the result
+  metadata.
+- Metacell IO coercions use the non-deprecated `CsparseMatrix` form
+  throughout: the pinned flashier’s `.onLoad` sets
+  `Matrix.warnDeprecatedCoerce = 2`, under which the previous
+  `dgCMatrix` coercions of `readMM()` output error out (exposed by the
+  first `CPMC_INTEGRATION=1` end-to-end run, which now passes).
+- `withr` moved from Suggests to Imports:
+  [`withr::local_seed()`](https://withr.r-lib.org/reference/with_seed.html)
+  is called unconditionally by the fitting code since the scoped-RNG
+  fix.
+- [`OptimizeGammaSEACells()`](https://mdmanurung.github.io/cellprograms/reference/OptimizeGammaSEACells.md)
+  now works under Seurat v5: mcRigor’s `buildmc` aligns per-metacell
+  sizes through `AggregateExpression` colnames, which mangle membership
+  labels (digit-leading values gain a “g” prefix; “\_” becomes “-”) and
+  only undo the digit case — the `"mc_<k>"` labels used here never
+  realigned, so every group failed with “No cell overlap between new
+  meta data and Seurat object”. Membership is now integer-coded per
+  gamma column (the same contract as the `mcRigor_DETECT` path) and
+  gamma candidates whose membership collapses to a single metacell are
+  dropped with a warning (`NA` in `scores`) instead of failing the whole
+  group’s optimization.
+- [`MetacellsByGroupsSEACells()`](https://mdmanurung.github.io/cellprograms/reference/MetacellsByGroupsSEACells.md)
+  no longer crashes when SEACells collapses a group to fewer metacells
+  than archetypes fitted (degenerate fits on weak structure): the
+  soft-assignment matrix has one column per archetype and cannot be
+  renamed to the realized metacell names, so it is dropped for that
+  group with a warning instead of erroring with “length of
+  Dimnames\[\[2\]\] is not equal to Dim\[2\]”.
+
+#### Minor (selected)
+
+- All internal RNG is now scoped with
+  [`withr::local_seed()`](https://withr.r-lib.org/reference/with_seed.html);
+  no [`set.seed()`](https://rdrr.io/r/base/Random.html) leaks into the
+  user session.
+- [`plot_variance_explained()`](https://mdmanurung.github.io/cellprograms/reference/plot_variance_explained.md)
+  maps PVEs to programs through the flashbridge native-factor mapping
+  and skips (with a warning) cell types whose PVE vector cannot be
+  reconciled, instead of positionally truncating.
+- [`plot_context_association()`](https://mdmanurung.github.io/cellprograms/reference/plot_context_association.md)
+  omits confidence intervals for associations with a zero t statistic
+  (previously infinite whiskers) and labels the context term plainly
+  after the `.ctx` internal rename.
+- [`plot_program_scores()`](https://mdmanurung.github.io/cellprograms/reference/plot_program_scores.md)
+  fails closed when an annotation data.frame lacks an `observation_id`
+  column (previously a silent all-NA strip).
+- [`match_programs()`](https://mdmanurung.github.io/cellprograms/reference/match_programs.md)
+  documents that `space` only affects the subspace angles (factor-level
+  matches are always loading-cosine based) and fails closed when
+  `space = "scores"` has fewer than 2 shared observations.
+- [`as_mofacellular_input()`](https://mdmanurung.github.io/cellprograms/reference/as_mofacellular_input.md)
+  aborts on composite-name collisions under the
+  `<cell_type>_<observation_id>` scheme, on duplicate `cell_counts`
+  keys, and on zero-observation cell types.
+- Metacell IO: missing counts-like layers warn or abort, `dims` are
+  validated, and numeric-like cell names abort (they would be mangled by
+  the Python bridge).
+- CMP machinery: sign-concordance ties and all-NA sign vectors no longer
+  score deterministically;
+  [`prepare_collectri()`](https://mdmanurung.github.io/cellprograms/reference/prepare_collectri.md)
+  parses integer 0/1 `mor` correctly; NA `mor` edges are dropped with a
+  warning;
+  [`cmp_gene_overlap()`](https://mdmanurung.github.io/cellprograms/reference/cmp_gene_overlap.md)
+  is schema-stable on empty and single-member input.
+- Sharing/alignment: degenerate-program NA propagation fixed;
+  [`sharing_spectrum()`](https://mdmanurung.github.io/cellprograms/reference/sharing_spectrum.md)
+  gains an explicit `seed` argument; the variance estimate reuses the
+  sharing matrices (single computation, consistent panels);
+  principal-angle p-value NA handling no longer biases the permutation
+  null.
+
 ### New features (2026-10-18 feature-completion segment)
 
 - Metacell construction is folded into `cellprograms` from the retired
@@ -16,12 +193,12 @@
   cebmf backend), so `basilisk` stays in Suggests and installing
   `cellprograms` never requires basilisk, Python, Seurat, or mcRigor;
   the exported `seacells_env` object from the sub-package is retired
-  (nothing in the project referenced it). `Seurat`, `SeuratObject`,
-  `mcRigor`, and `hdWGCNA` are Suggests with explicit fail-closed
-  guards; `Matrix` and `methods` move to Imports. Note: the basilisk
-  environment is re-registered under `cellprograms`, so the first
-  metacell run after this change rebuilds the SEACells conda environment
-  (one-time, needs network).
+  (nothing in the project referenced it). `Seurat`, `SeuratObject`, and
+  `mcRigor` are Suggests with explicit fail-closed guards; `Matrix` and
+  `methods` move to Imports. Note: the basilisk environment is
+  re-registered under `cellprograms`, so the first metacell run after
+  this change rebuilds the SEACells conda environment (one-time, needs
+  network).
 - [`fit_celltype_programs()`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)
   gains `backend = c("flashier", "cebmf_torch")`. The `cebmf_torch`
   backend runs the pure-PyTorch cEBMF implementation (pinned upstream

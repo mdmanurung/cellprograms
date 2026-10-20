@@ -4,11 +4,15 @@
 
 - [Quick start: from pseudobulk to shared
   programs](https://mdmanurung.github.io/cellprograms/articles/quickstart.md):
+- [Metacells with SEACells and mcRigor gamma
+  optimization](https://mdmanurung.github.io/cellprograms/articles/metacells_seacells.md):
 
 ### Methods
 
 - [How the model works: mechanisms of
   cellprograms](https://mdmanurung.github.io/cellprograms/articles/model_mechanisms.md):
+- [The cebmf_torch backend: covariate-EBMF in
+  torch](https://mdmanurung.github.io/cellprograms/articles/cebmf_backend.md):
 
 ### Case studies
 

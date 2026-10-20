@@ -21,7 +21,9 @@ variable, optionally adjusting for covariates."></head><body>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/quickstart.html">Quick start: from pseudobulk to shared programs</a></li>
+    <li><a class="dropdown-item" href="../articles/metacells_seacells.html">Metacells with SEACells and mcRigor gamma optimization</a></li>
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/cebmf_backend.html">The cebmf_torch backend: covariate-EBMF in torch</a></li>
     <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
@@ -104,8 +106,8 @@ variable, optionally adjusting for covariates.</p>
 <span class="r-in"><span>  class <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cell_program_fit"</span>, <span class="st">"cell_program_data"</span>, <span class="st">"list"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="find_coordinated_programs.html">find_coordinated_programs</a></span><span class="op">(</span><span class="va">fit</span>, n_perm <span class="op">=</span> <span class="fl">99</span>, ambient <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">cmp_context_association</span><span class="op">(</span><span class="va">fit</span>, <span class="va">res</span>, <span class="st">"group"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   cmp  term   estimate          t        p  n</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1   1 xstim -0.1092466 -0.3519461 0.726823 40</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   cmp     term   estimate          t        p  n</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1   1 .ctxstim -0.1092466 -0.3519461 0.726823 40</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

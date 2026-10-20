@@ -10,6 +10,7 @@ sharing_spectrum(
   pairs = NULL,
   space = c("scores", "loadings"),
   n_perm = NULL,
+  seed = 1L,
   ...
 )
 ```
@@ -36,9 +37,14 @@ sharing_spectrum(
   \#pairs\`); a smaller value warns. Pairs get distinct seeds derived
   from \`seed\`.
 
+- seed:
+
+  Master seed (default 1, so default runs are reproducible); each pair
+  gets a deterministic sub-seed. \`NULL\` leaves the RNG unseeded.
+
 - ...:
 
-  Passed to \`principal_angles\` (e.g. \`seed\`, \`strata\`).
+  Passed to \`principal_angles\` (e.g. \`strata\`).
 
 ## Value
 

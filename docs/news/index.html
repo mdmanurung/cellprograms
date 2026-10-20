@@ -19,7 +19,9 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/quickstart.html">Quick start: from pseudobulk to shared programs</a></li>
+    <li><a class="dropdown-item" href="../articles/metacells_seacells.html">Metacells with SEACells and mcRigor gamma optimization</a></li>
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/cebmf_backend.html">The cebmf_torch backend: covariate-EBMF in torch</a></li>
     <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
@@ -44,8 +46,83 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0.9000" id="cellprograms-0209000-development">cellprograms 0.2.0.9000 (development)<a class="anchor" aria-label="anchor" href="#cellprograms-0209000-development"></a></h2>
 <div class="section level3">
+<h3 id="bug-fixes-and-hardening-edge-case-segment-0-2-0-9000">Bug fixes and hardening (2026-10-20 edge-case segment)<a class="anchor" aria-label="anchor" href="#bug-fixes-and-hardening-edge-case-segment-0-2-0-9000"></a></h3>
+<ul><li>
+<code><a href="../reference/OptimizeGammaSEACells.html">OptimizeGammaSEACells()</a></code>: <code>gammas</code> is now validated (positive integers) and deduplicated/sorted at entry — duplicate candidates previously produced identically named membership columns for <code>mcRigor_OPTIMIZE</code>.</li>
+<li>
+<code>.mc_get_group_ids()</code> (both metacell entry points): fails closed when a <code>group.by</code> column is missing or contains NA — <code><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste()</a></code> previously rendered NA as the literal string <code>"NA"</code>, silently lumping unassigned cells into a spurious group.</li>
+<li>
+<code><a href="../reference/OptimizeGammaSEACells.html">OptimizeGammaSEACells()</a></code> membership coding: cells with NA membership labels in any candidate gamma are excluded with a warning before scoring; <code><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique()</a></code> previously counted NA as a level, inflating the degeneracy check and leaking NA codes into mcRigor.</li>
+<li>
+<code>.cebmf_use_python_env()</code>: an existing directory without <code>bin/python</code> now aborts with the registered message instead of falling through to reticulate (<code><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists()</a></code> is TRUE for directories).</li>
+<li>Regression test: the cebmf basilisk pip spec is checked for the invariants the CI shakedown established (no flag entries, no whitespace, <code>==</code> pins or commit-pinned direct references only).</li>
+<li>Packaging: <code>hdWGCNA</code> removed from Suggests (never imported; design attribution lives in comments). Its presence broke every CI dependency solve — pak cannot resolve GitHub-only packages from CRAN/Bioconductor.</li>
+<li>CI: workflow actions bumped to Node 24 majors (checkout v7, upload-artifact v7, github-script v9, upload-pages-artifact v5, deploy-pages v5); Node 20 was removed from runners on 2026-09-23. The drift issue now also auto-closes on a green <code>workflow_dispatch</code> run, not just scheduled runs.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-and-hardening-cebmf-basilisk-segment-0-2-0-9000">Bug fixes and hardening (2026-10-20 cebmf basilisk segment)<a class="anchor" aria-label="anchor" href="#bug-fixes-and-hardening-cebmf-basilisk-segment-0-2-0-9000"></a></h3>
+<ul><li>The cebmf_torch backend’s basilisk environment was never constructible and the defect was masked by every audit run setting the venv option. Three fixes: the pip spec now pins <code>numpy</code>/<code>scipy</code> (which <code>cebmf_ext</code> imports directly and torch does not provide), the CPU torch wheel is selected via <code>--extra-index-url</code> as its own pip token (index flags are global pip options, not requirement syntax), and the commit-pinned <code>cebmf_torch</code> direct reference is written unspaced so the shell cannot split it when basilisk passes pip entries through <code>system2</code> unquoted. The basilisk version-spec check is relaxed only while this one environment is created (it cannot parse PEP 508 direct references; the commit pin is fully reproducible). The env now builds and the backend fits through it with no option set.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-and-hardening-implementation-review-segment-0-2-0-9000">Bug fixes and hardening (2026-10-19 implementation-review segment)<a class="anchor" aria-label="anchor" href="#bug-fixes-and-hardening-implementation-review-segment-0-2-0-9000"></a></h3>
+<p>Full implementation review follow-through: 2 critical correctness fixes, 12 major fixes, and 50 minor fixes. Regression coverage for every fixed finding lives in <code>tests/testthat/test-review-fixes.R</code> and <code>tests/testthat/test-artifact-genes.R</code>.</p>
+<div class="section level4">
+<h4 id="critical-0-2-0-9000">Critical<a class="anchor" aria-label="anchor" href="#critical-0-2-0-9000"></a></h4>
+<ul><li>
+<code><a href="../reference/GetMetacellSEACells.html">GetMetacellSEACells()</a></code>: multi-group soft-assignment matrices are now combined block-diagonally (one block per group) instead of row-binding group-local column indices, which crashed or silently misassigned cells to metacells when more than one group was processed.</li>
+<li>
+<code><a href="../reference/cmp_context_association.html">cmp_context_association()</a></code>: the context term is selected exactly through the model-matrix term assignment instead of a <code>^x</code> prefix grep that also captured adjustment covariates whose names start with “x” (e.g. <code>xsite</code>). Covariates named <code>y</code> or <code>.ctx</code> are refused (reserved internal names).</li>
+</ul></div>
+<div class="section level4">
+<h4 id="major-0-2-0-9000">Major<a class="anchor" aria-label="anchor" href="#major-0-2-0-9000"></a></h4>
+<ul><li>
+<code><a href="../reference/fit_celltype_programs.html">fit_celltype_programs()</a></code>: within-cell-type constant genes no longer crash the gene filter under <code>scale = TRUE</code>; their non-finite column mass is treated as degenerate and the genes are dropped.</li>
+<li>
+<code>fit_celltype_programs(backend = "cebmf_torch")</code> warns when a cell type’s fit exhausts <code>maxit</code> without converging (the flag was stored but never surfaced).</li>
+<li>
+<code><a href="../reference/assess_program_stability.html">assess_program_stability()</a></code> warns and skips cell types with fewer than 5 donors instead of crashing during resampling.</li>
+<li>
+<code><a href="../reference/plot_program_scores.html">plot_program_scores()</a></code> handles per-cell-type observation sets (union of donors, NA where a cell type was not observed) instead of requiring equal row counts; z-scoring is NA-aware.</li>
+<li>
+<code><a href="../reference/plot_sharing_spectrum.html">plot_sharing_spectrum()</a></code> rewritten: significance class (shared / n.s. / underpowered) drives a fixed colorblind-safe palette, q-values are carried in the pair labels, and &gt;9 pairs no longer break the color scale.</li>
+<li>
+<code><a href="../reference/plot_artifact_flags.html">plot_artifact_flags()</a></code> detects any <code>*_frac</code> column set (not just the built-in screens) and accepts CMP-shaped flag tables.</li>
+<li>
+<code><a href="../reference/union_panel_loadings.html">union_panel_loadings()</a></code> leaves zero-overlap or constant panel genes NA (with warnings) instead of aborting, and replays rank-deficient fixed covariate designs via least squares instead of crashing in <code><a href="https://rdrr.io/r/base/solve.html" class="external-link">solve()</a></code>.</li>
+<li>
+<code><a href="../reference/project_programs_to_cells.html">project_programs_to_cells()</a></code> refuses a <code>feature_scale</code> declaration that contradicts the fit’s recorded units (previously silently accepted).</li>
+<li>
+<code><a href="../reference/flag_artifact_genes.html">flag_artifact_genes()</a></code>: the V(D)J screen now also covers J/D segments, IGLL-family genes, and JCHAIN.</li>
+<li>Metacells: <code>max_iter</code> documentation corrected (wrapped SEACells default is 20); <code>use_sparse</code> warns when set (ignored by the wrapped SEACells version); per-metacell QC columns are joined into the result metadata.</li>
+<li>Metacell IO coercions use the non-deprecated <code>CsparseMatrix</code> form throughout: the pinned flashier’s <code>.onLoad</code> sets <code>Matrix.warnDeprecatedCoerce = 2</code>, under which the previous <code>dgCMatrix</code> coercions of <code>readMM()</code> output error out (exposed by the first <code>CPMC_INTEGRATION=1</code> end-to-end run, which now passes).</li>
+<li>
+<code>withr</code> moved from Suggests to Imports: <code><a href="https://withr.r-lib.org/reference/with_seed.html" class="external-link">withr::local_seed()</a></code> is called unconditionally by the fitting code since the scoped-RNG fix.</li>
+<li>
+<code><a href="../reference/OptimizeGammaSEACells.html">OptimizeGammaSEACells()</a></code> now works under Seurat v5: mcRigor’s <code>buildmc</code> aligns per-metacell sizes through <code>AggregateExpression</code> colnames, which mangle membership labels (digit-leading values gain a “g” prefix; “_” becomes “-”) and only undo the digit case — the <code>"mc_&lt;k&gt;"</code> labels used here never realigned, so every group failed with “No cell overlap between new meta data and Seurat object”. Membership is now integer-coded per gamma column (the same contract as the <code>mcRigor_DETECT</code> path) and gamma candidates whose membership collapses to a single metacell are dropped with a warning (<code>NA</code> in <code>scores</code>) instead of failing the whole group’s optimization.</li>
+<li>
+<code><a href="../reference/MetacellsByGroupsSEACells.html">MetacellsByGroupsSEACells()</a></code> no longer crashes when SEACells collapses a group to fewer metacells than archetypes fitted (degenerate fits on weak structure): the soft-assignment matrix has one column per archetype and cannot be renamed to the realized metacell names, so it is dropped for that group with a warning instead of erroring with “length of Dimnames[[2]] is not equal to Dim[2]”.</li>
+</ul></div>
+<div class="section level4">
+<h4 id="minor-selected-0-2-0-9000">Minor (selected)<a class="anchor" aria-label="anchor" href="#minor-selected-0-2-0-9000"></a></h4>
+<ul><li>All internal RNG is now scoped with <code><a href="https://withr.r-lib.org/reference/with_seed.html" class="external-link">withr::local_seed()</a></code>; no <code><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed()</a></code> leaks into the user session.</li>
+<li>
+<code><a href="../reference/plot_variance_explained.html">plot_variance_explained()</a></code> maps PVEs to programs through the flashbridge native-factor mapping and skips (with a warning) cell types whose PVE vector cannot be reconciled, instead of positionally truncating.</li>
+<li>
+<code><a href="../reference/plot_context_association.html">plot_context_association()</a></code> omits confidence intervals for associations with a zero t statistic (previously infinite whiskers) and labels the context term plainly after the <code>.ctx</code> internal rename.</li>
+<li>
+<code><a href="../reference/plot_program_scores.html">plot_program_scores()</a></code> fails closed when an annotation data.frame lacks an <code>observation_id</code> column (previously a silent all-NA strip).</li>
+<li>
+<code><a href="../reference/match_programs.html">match_programs()</a></code> documents that <code>space</code> only affects the subspace angles (factor-level matches are always loading-cosine based) and fails closed when <code>space = "scores"</code> has fewer than 2 shared observations.</li>
+<li>
+<code><a href="../reference/as_mofacellular_input.html">as_mofacellular_input()</a></code> aborts on composite-name collisions under the <code>&lt;cell_type&gt;_&lt;observation_id&gt;</code> scheme, on duplicate <code>cell_counts</code> keys, and on zero-observation cell types.</li>
+<li>Metacell IO: missing counts-like layers warn or abort, <code>dims</code> are validated, and numeric-like cell names abort (they would be mangled by the Python bridge).</li>
+<li>CMP machinery: sign-concordance ties and all-NA sign vectors no longer score deterministically; <code><a href="../reference/prepare_collectri.html">prepare_collectri()</a></code> parses integer 0/1 <code>mor</code> correctly; NA <code>mor</code> edges are dropped with a warning; <code><a href="../reference/cmp_gene_overlap.html">cmp_gene_overlap()</a></code> is schema-stable on empty and single-member input.</li>
+<li>Sharing/alignment: degenerate-program NA propagation fixed; <code><a href="../reference/sharing_spectrum.html">sharing_spectrum()</a></code> gains an explicit <code>seed</code> argument; the variance estimate reuses the sharing matrices (single computation, consistent panels); principal-angle p-value NA handling no longer biases the permutation null.</li>
+</ul></div>
+</div>
+<div class="section level3">
 <h3 id="new-features-feature-completion-segment-0-2-0-9000">New features (2026-10-18 feature-completion segment)<a class="anchor" aria-label="anchor" href="#new-features-feature-completion-segment-0-2-0-9000"></a></h3>
-<ul><li>Metacell construction is folded into <code>cellprograms</code> from the retired <code>r_packages/cellprogramsMC</code> sub-package: <code><a href="../reference/MetacellsByGroupsSEACells.html">MetacellsByGroupsSEACells()</a></code> (group-stratified SEACells metacells with mcRigor QC), <code><a href="../reference/OptimizeGammaSEACells.html">OptimizeGammaSEACells()</a></code> (mcRigor granularity selection), and <code><a href="../reference/GetMetacellSEACells.html">GetMetacellSEACells()</a></code> (result accessor). The basilisk Python environment is now created lazily on first use (internal <code>.seacells_env()</code>, same pattern as the cebmf backend), so <code>basilisk</code> stays in Suggests and installing <code>cellprograms</code> never requires basilisk, Python, Seurat, or mcRigor; the exported <code>seacells_env</code> object from the sub-package is retired (nothing in the project referenced it). <code>Seurat</code>, <code>SeuratObject</code>, <code>mcRigor</code>, and <code>hdWGCNA</code> are Suggests with explicit fail-closed guards; <code>Matrix</code> and <code>methods</code> move to Imports. Note: the basilisk environment is re-registered under <code>cellprograms</code>, so the first metacell run after this change rebuilds the SEACells conda environment (one-time, needs network).</li>
+<ul><li>Metacell construction is folded into <code>cellprograms</code> from the retired <code>r_packages/cellprogramsMC</code> sub-package: <code><a href="../reference/MetacellsByGroupsSEACells.html">MetacellsByGroupsSEACells()</a></code> (group-stratified SEACells metacells with mcRigor QC), <code><a href="../reference/OptimizeGammaSEACells.html">OptimizeGammaSEACells()</a></code> (mcRigor granularity selection), and <code><a href="../reference/GetMetacellSEACells.html">GetMetacellSEACells()</a></code> (result accessor). The basilisk Python environment is now created lazily on first use (internal <code>.seacells_env()</code>, same pattern as the cebmf backend), so <code>basilisk</code> stays in Suggests and installing <code>cellprograms</code> never requires basilisk, Python, Seurat, or mcRigor; the exported <code>seacells_env</code> object from the sub-package is retired (nothing in the project referenced it). <code>Seurat</code>, <code>SeuratObject</code>, and <code>mcRigor</code> are Suggests with explicit fail-closed guards; <code>Matrix</code> and <code>methods</code> move to Imports. Note: the basilisk environment is re-registered under <code>cellprograms</code>, so the first metacell run after this change rebuilds the SEACells conda environment (one-time, needs network).</li>
 <li>
 <code><a href="../reference/fit_celltype_programs.html">fit_celltype_programs()</a></code> gains <code>backend = c("flashier", "cebmf_torch")</code>. The <code>cebmf_torch</code> backend runs the pure-PyTorch cEBMF implementation (pinned upstream <code>william-denault/cebmf_torch@34abac5</code>) through the <code>cebmf_ext</code> adapter, with a registered numerical guard set (sebetahat floor 1e-4, tau precision cap 1e8, explicit seeding, seed-family fallback with diagnostics) and a strict mapping contract: the bridge never manufactures flashier-only quantities, so <code>elbo</code>, <code>L_psd</code>, <code>F_psd</code>, and <code>F_lfsr</code> are NULL on this backend and <code><a href="../reference/program_summary.html">program_summary()</a></code> reports <code>elbo = NA</code>. Fixed-mode covariates are refused on this backend (no fixed-loadings path); use the default <code>covariate_mode = "residualize"</code>. Python resolution: <code>options(cellprograms.cebmf_python_env = ...)</code> (python binary or venv with <code>cebmf_ext</code> importable), else basilisk (pinned <code>torch==2.7.1</code> CPU — the pin is load-bearing, 2.14.1+cpu diverges on inputs where 2.7.1+cpu is green), else a fail-closed error. No flashier-style fallback ladder: backend failures abort loudly per cell type.</li>
 <li>

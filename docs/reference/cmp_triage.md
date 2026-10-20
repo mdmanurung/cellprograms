@@ -24,7 +24,8 @@ cmp_triage(
   max_vdj_frac = 0.5,
   min_marker_genes = 2L,
   min_concordance = 0.75,
-  min_level_donors = 15L
+  min_level_donors = 15L,
+  min_ieg = 3L
 )
 ```
 
@@ -76,6 +77,11 @@ cmp_triage(
 
   Minimum donors per \`replicate_by\` level (default 15).
 
+- min_ieg:
+
+  Minimum number of immediate-early genes among the recurrent top genes
+  for the \`stress_ieg\` flag (default 3).
+
 ## Value
 
 Data frame, one row per CMP.
@@ -89,7 +95,7 @@ first \`n_recurrent\` are kept. Flags (all thresholds are arguments):
 \`platelet_rbc\` (\>= \`min_marker_genes\` contamination markers),
 \`vdj\` (V(D)J fraction of recurrent genes \>= \`max_vdj_frac\`),
 \`sex_chromosome\` and \`genotype_candidate\` (\>= \`min_marker_genes\`
-marker genes), \`stress_ieg\` (\>= 3 IEGs), plus soft notes
+marker genes), \`stress_ieg\` (\>= \`min_ieg\` IEGs), plus soft notes
 \`genotype_marker_single\` (one marker gene) and \`low_replication\`
 (minimum within-level concordance \< \`min_concordance\`). \`label\` is
 the first hard flag in that order, else \`"candidate"\`, or
@@ -125,7 +131,7 @@ cmp_triage(fit, res, context = "group", replicate_by = "group")
 #>   cmp n_members cell_types members                       recurrent_top_genes
 #> 1   1         2        A,B A_1,B_1 G1,G10,G11,G12,G13,G14,G15,G2,G3,G4,G5,G6
 #>   ambient_frac vdj_frac n_genotype_markers genotype_markers n_sex_markers
-#> 1            0        0                  0                              0
+#> 1           NA        0                  0                              0
 #>   sex_markers n_ieg n_platelet_rbc context_p context_estimate min_concordance
 #> 1                 0              0  0.726823       -0.1092466               1
 #>   concordance_by_level tf_specific tf_shared flags     label

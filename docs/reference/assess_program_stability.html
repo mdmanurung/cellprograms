@@ -19,7 +19,9 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/quickstart.html">Quick start: from pseudobulk to shared programs</a></li>
+    <li><a class="dropdown-item" href="../articles/metacells_seacells.html">Metacells with SEACells and mcRigor gamma optimization</a></li>
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/cebmf_backend.html">The cebmf_torch backend: covariate-EBMF in torch</a></li>
     <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
@@ -107,7 +109,10 @@ preprocessing settings, gene sets and covariates).</p></dd>
       over all REQUESTED iterations, `n_hit / n_boot` — not an estimate of
       biological recovery conditional on successful refitting),
       `conditional_recovery_freq` (`n_hit / valid_refits`, NA when no
-      refit succeeded), median score correlation, median loading cosine,
+      refit succeeded; the denominator counts successful refits, not the
+      replicates where the program's cell type retained a factor — use
+      `n_hit / n_eligible` for the per-program conditional rate), median
+      score correlation, median loading cosine,
       sign consistency, and top-gene Jaccard.</p></dd>
 
     <dt>valid_refits, failed_refits</dt>
@@ -145,14 +150,14 @@ preprocessing settings, gene sets and covariates).</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 7     Mono_1      Mono     2          2             1                         1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 8     Mono_2      Mono     2          2             1                         1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   median_score_cor median_loading_cos sign_consistency top_gene_jaccard</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1        0.9999650          0.9971983                1        0.9047619</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2        0.9997030          0.9870352                1        0.8614719</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3        0.9998824          0.9921341                1        0.8614719</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4        0.9993324          0.9828631                1        0.9090909</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5        0.9999204          0.9946079                1        0.9523810</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6        0.9999242          0.9946153                1        0.9090909</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7        0.9999864          0.9985128                1        0.9523810</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8        0.9998608          0.9920544                1        0.7424242</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1        0.9998990          0.9945869                1        0.8614719</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2        0.9997762          0.9910575                1        0.9047619</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3        0.9998526          0.9907171                1        0.8614719</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4        0.9992491          0.9792686                1        0.9090909</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5        0.9998482          0.9894768                1        0.8614719</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6        0.9996598          0.9930686                1        0.8614719</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7        0.9999030          0.9952342                1        0.9090909</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8        0.9997262          0.9925613                1        0.8181818</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
