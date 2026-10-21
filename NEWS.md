@@ -1,5 +1,14 @@
 # cellprograms 0.2.0.9000 (development)
 
+## Metacell benchmark (2026-10-22)
+
+* Preregistered benchmark of SEACells vs SuperCell 2.0 (pure R) with mcRigor
+  QC across 2 scales x 3 seeds x 4 granularities (`benchmarks/metacell_comparison/`).
+  Verdict: **REPLACE** - SuperCell 2.0 + mcRigor is the default R-native
+  metacell path (mean |ARI gap| 0.019 <= 0.05; mean relative fidelity gap
+  5.4% <= 10%; membership construction ~200x faster; downstream program fit
+  is N- and method-insensitive). SEACells remains available and unchanged.
+
 ## API streamlining (2026-10-21)
 
 * Eight internal helpers are no longer exported (still callable via
