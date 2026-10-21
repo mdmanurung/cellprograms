@@ -190,8 +190,8 @@ for institute and sex:
 ```{r cmp, eval = FALSE}
 cmp <- find_coordinated_programs(fit_masked, n_perm = 999, seed = 1, min_donors = 20)
 cmp$cmps          # per-CMP member programs and consensus scores
-cmp_context_association(fit_masked, cmp, "severity",
-                        covariates = c("institute", "sex"))
+cmp_triage(fit_masked, cmp, context = "severity",
+           covariates = c("institute", "sex"))
 ```
 
 The masked refits yield **24 CMPs** over 598 significant edges

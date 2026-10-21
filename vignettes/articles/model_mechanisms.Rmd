@@ -134,7 +134,8 @@ top_genes(fit, "CD4_1", n = 10)
 With `features = "variable"`, each cell type fits its own gene panel, so the
 per-cell-type loading matrices cannot be compared gene-by-gene across cell
 types. Rather than refitting on the union panel (which the model-selection
-benchmark showed does not improve recovery), `union_panel_loadings()` refits
+benchmark showed does not improve recovery), the internal helper
+`union_panel_loadings()` refits
 the loadings post hoc: it regresses each cell type's union-panel expression on
 its fixed program scores by least squares, replaying the fit's covariate
 handling and centering. Fits and scores are untouched; the result is a gene x
@@ -142,7 +143,7 @@ program matrix per cell type on the shared panel, for cross-cell-type loading
 comparisons.
 
 ```{r union-panel, eval = FALSE}
-up <- union_panel_loadings(fit)
+up <- cellprograms:::union_panel_loadings(fit)   # internal, shown for inspection
 up$loadings$CD4          # genes x programs on the common panel
 up$genes                 # the panel (union of per-cell-type fitted genes)
 ```
@@ -153,7 +154,7 @@ up$genes                 # the panel (union of per-cell-type fitted genes)
 ```{r cmp, eval = FALSE}
 res <- find_coordinated_programs(fit, strata = "site", ambient = "flag",
                                  n_perm = 999)
-cmp_scores(fit, res)   # donors x CMPs consensus scores
+cellprograms:::cmp_scores(fit, res)   # internal: donors x CMPs consensus scores
 ```
 
 A CMP is a set of programs from >= 2 cell types whose donor-level scores
@@ -166,8 +167,8 @@ role in the call. The procedure:
    calibration; ranks remove that failure mode.
 2. **Ambient filter.** Programs whose loadings track another cell type's
    expression specificity (ambient RNA / doublet leakage) are dropped
-   (`ambient = "drop"`) or flagged (`ambient = "flag"`), using
-   `ambient_program_scores()`.
+   (`ambient = "drop"`) or flagged (`ambient = "flag"`), using the internal
+   ambient-score table (surfaced as the `ambient` element of the result).
 3. **Edge statistic.** For every cross-cell-type program pair (over the
    donors the two cell types share), $T = \tanh^{-1}(r)\sqrt{n-3}$ where
    $r$ is the **Pearson correlation of the residualized Gaussian-rank
@@ -186,8 +187,8 @@ role in the call. The procedure:
    permutation maximum of $A$ (single-step max-T), so the family-wise error
    rate of calling *any* CMP is controlled at `alpha`.
 6. **Clustering.** Significant programs are grouped into CMPs by their edge
-   structure; `cmp_scores()` summarizes each CMP as a donor-level consensus
-   score.
+   structure; the internal `cmp_scores()` summarizes each CMP as a
+   donor-level consensus score.
 
 `mode = "within"` tests the same structure *within* levels of a context
 variable (e.g. severity) — coordination that survives is not an artifact of

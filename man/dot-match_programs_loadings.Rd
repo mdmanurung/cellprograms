@@ -25,3 +25,4 @@ null: gene labels are permuted within each cell type's loading matrix
 (`n_perm` permutations; per-pair p = (1 + exceedances) / (n_perm + 1)).
 `q` is BH across all tested program pairs.
 }
+\keyword{internal}

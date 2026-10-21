@@ -321,6 +321,7 @@ assess_cmp_stability <- function(fit, donor_col = NULL, visit_col = NULL,
   out
 }
 
+#' @keywords internal
 #' @export
 print.cmp_stability <- function(x, ...) {
   cat("CMP stability (", x$settings$n_boot, " replicates, fraction ",

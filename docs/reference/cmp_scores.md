@@ -49,12 +49,7 @@ fit <- structure(list(
   class = c("cell_program_fit", "cell_program_data", "list"))
 res <- find_coordinated_programs(fit, n_perm = 99, ambient = "none")
 S <- cmp_scores(fit, res)
+#> Error in cmp_scores(fit, res): could not find function "cmp_scores"
 head(S)
-#>          CMP1
-#> d1 -0.8192062
-#> d2  0.6363765
-#> d3 -0.9252171
-#> d4  1.7086485
-#> d5  0.3226828
-#> d6 -1.2226382
+#> Error: object 'S' not found
 ```

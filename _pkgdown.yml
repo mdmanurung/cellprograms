@@ -17,6 +17,57 @@ search:
   exclude: ['news/index.html']
 
 reference:
+- title: Data & simulation
+  desc: >
+    Build and check `cell_program_data` objects, simulate pseudobulk ground
+    truth, and bridge to MOFAcellular.
+  contents:
+  - simulate_pseudobulk
+  - as_cell_program_data
+  - validate_cell_program_data
+  - artifact_gene_sets
+  - artifact_genes
+  - as_mofacellular_input
+- title: Fit & canonicalize
+  desc: >
+    Fit per-cell-type programs (flashier R backend or cebmf_torch Python
+    backend), canonicalize sign/scale, freeze preprocessing, and flag
+    artifact-carrying programs.
+  contents:
+  - fit_celltype_programs
+  - canonicalize_programs
+  - freeze_preprocessing
+  - flag_artifact_genes
+- title: Extract
+  desc: Summaries, scores, loadings and top genes from a canonicalized fit.
+  contents:
+  - program_summary
+  - program_scores
+  - program_loadings
+  - top_genes
+  - project_programs_to_cells
+- title: Compare, align & share
+  desc: >
+    Program stability, cross-fit matching, within-fit alignment, and
+    donor-level sharing structure.
+  contents:
+  - assess_program_stability
+  - match_programs
+  - align_programs
+  - program_sharing
+  - sharing_spectrum
+- title: Coordination & annotation
+  desc: >
+    Cross-cell-type coordinated programs (CMPs): detection, triage, and
+    annotation against TF regulons, ligand-receptor pairs and gene sets.
+  contents:
+  - find_coordinated_programs
+  - cmp_triage
+  - annotate_cmp_tf
+  - annotate_cmp_lr
+  - annotate_cmp_themes
+  - assess_cmp_stability
+  - prepare_collectri
 - title: Metacells (SEACells + mcRigor)
   desc: >
     Optional upstream aggregation of single cells into metacells before
@@ -26,9 +77,24 @@ reference:
   - MetacellsByGroupsSEACells
   - OptimizeGammaSEACells
   - GetMetacellSEACells
-- title: All functions
+- title: Program plots
+  desc: Fit-level visualisations.
   contents:
-  - matches(".")
+  - plot_program_scores
+  - plot_top_genes
+  - plot_variance_explained
+  - plot_artifact_flags
+  - plot_stability
+  - plot_alignment
+- title: Coordination & sharing plots
+  desc: CMP and sharing visualisations.
+  contents:
+  - plot_cmp_network
+  - plot_cmp_nodes
+  - plot_cmp_membership
+  - plot_context_association
+  - plot_sharing
+  - plot_sharing_spectrum
 
 articles:
 - title: Getting started

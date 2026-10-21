@@ -24,3 +24,4 @@ data; extend or replace it for your cohort.
 cmp_nuisance_genes()
 grep(cmp_nuisance_genes()["vdj"], c("IGHV1-2", "IGKC", "GAPDH"), value = TRUE)
 }
+\keyword{internal}

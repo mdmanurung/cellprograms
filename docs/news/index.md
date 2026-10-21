@@ -2,6 +2,59 @@
 
 ## cellprograms 0.2.0.9000 (development)
 
+### API streamlining (2026-10-21)
+
+- Eight internal helpers are no longer exported (still callable via
+  `cellprograms:::`; nothing is deleted): `program_metadata` (derivable
+  from
+  [`program_loadings()`](https://mdmanurung.github.io/cellprograms/reference/program_loadings.md)
+  column names), `principal_angles` (pairwise primitive behind
+  [`align_programs()`](https://mdmanurung.github.io/cellprograms/reference/align_programs.md)
+  /
+  [`match_programs()`](https://mdmanurung.github.io/cellprograms/reference/match_programs.md)),
+  `cmp_scores`, `cmp_gene_overlap`, `cmp_context_association` and
+  `cmp_nuisance_genes` (components orchestrated by
+  [`cmp_triage()`](https://mdmanurung.github.io/cellprograms/reference/cmp_triage.md)),
+  `union_panel_loadings` and `ambient_program_scores` (coordination
+  machinery). The user-facing surface drops from 50 to 42 verbs.
+- The pkgdown reference index is reorganized from a flat 50-function
+  list into 8 curated family sections (Data & simulation / Fit &
+  canonicalize / Extract / Compare, align & share / Coordination &
+  annotation / Metacells / Program plots / Coordination & sharing
+  plots), following the mixOmics reference layout.
+
+### Bug fixes and hardening (2026-10-21 all-exports smoke sweep)
+
+- [`plot_cmp_network()`](https://mdmanurung.github.io/cellprograms/reference/plot_cmp_network.md):
+  no longer crashes on CMP results computed with `ambient = "none"` —
+  those results carry no `ambient_score` column (nothing was excluded),
+  and the plot assumed it existed (`setNames` length mismatch). Nodes
+  are now unflagged for ambient in that case.
+- Fit consumers fail closed on a non-canonicalized fit:
+  [`program_summary()`](https://mdmanurung.github.io/cellprograms/reference/program_summary.md),
+  [`program_metadata()`](https://mdmanurung.github.io/cellprograms/reference/program_metadata.md),
+  [`program_scores()`](https://mdmanurung.github.io/cellprograms/reference/program_scores.md),
+  [`program_loadings()`](https://mdmanurung.github.io/cellprograms/reference/program_loadings.md),
+  [`top_genes()`](https://mdmanurung.github.io/cellprograms/reference/top_genes.md),
+  [`assess_program_stability()`](https://mdmanurung.github.io/cellprograms/reference/assess_program_stability.md),
+  [`principal_angles()`](https://mdmanurung.github.io/cellprograms/reference/principal_angles.md),
+  [`sharing_spectrum()`](https://mdmanurung.github.io/cellprograms/reference/sharing_spectrum.md),
+  [`align_programs()`](https://mdmanurung.github.io/cellprograms/reference/align_programs.md)
+  and
+  [`match_programs()`](https://mdmanurung.github.io/cellprograms/reference/match_programs.md)
+  now abort with “run canonicalize_programs() first” instead of the
+  opaque “argument is of length zero” (`ncol(NULL)` on the unpopulated
+  scores list) or silently empty tables. Three entry points already had
+  this guard
+  ([`find_coordinated_programs()`](https://mdmanurung.github.io/cellprograms/reference/find_coordinated_programs.md),
+  [`project_programs_to_cells()`](https://mdmanurung.github.io/cellprograms/reference/project_programs_to_cells.md),
+  [`plot_variance_explained()`](https://mdmanurung.github.io/cellprograms/reference/plot_variance_explained.md));
+  the message is now uniform across the API.
+- Regression test: every guarded consumer rejects a raw
+  [`fit_celltype_programs()`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)
+  output with the fix named, and passes a canonicalized fit through
+  unchanged.
+
 ### Bug fixes and hardening (2026-10-20 edge-case segment)
 
 - [`OptimizeGammaSEACells()`](https://mdmanurung.github.io/cellprograms/reference/OptimizeGammaSEACells.md):

@@ -49,3 +49,4 @@ fit <- canonicalize_programs(fit)
 pa <- principal_angles(fit, "CD8", "NK", n_perm = 99, seed = 1)
 pa
 }
+\keyword{internal}

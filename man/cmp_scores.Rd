@@ -44,3 +44,4 @@ res <- find_coordinated_programs(fit, n_perm = 99, ambient = "none")
 S <- cmp_scores(fit, res)
 head(S)
 }
+\keyword{internal}

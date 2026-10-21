@@ -154,7 +154,7 @@
 #' # CD8 and NK share a planted donor-activity program in this simulation
 #' pa <- principal_angles(fit, "CD8", "NK", n_perm = 99, seed = 1)
 #' pa
-#' @export
+#' @keywords internal
 principal_angles <- function(fit, ct_a, ct_b,
                              space = c("scores", "loadings"),
                              weight = c("none", "residual_sd"),
@@ -253,6 +253,7 @@ principal_angles <- function(fit, ct_a, ct_b,
 #' @param x A `principal_angles` object from [principal_angles()].
 #' @param ... Ignored.
 #' @return `x`, invisibly.
+#' @keywords internal
 #' @export
 print.principal_angles <- function(x, ...) {
   cat(sprintf("principal_angles (%s space): %s vs %s\n", x$space, x$ct_a, x$ct_b))

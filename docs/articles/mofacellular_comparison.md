@@ -94,15 +94,15 @@ planted CMPs exactly — and the CD8–NK edge turns out to be the strongest
 edge in the entire analysis:
 
 \
-`amb`` ``<-`` `[`ambient_program_scores`](https://mdmanurung.github.io/cellprograms/reference/ambient_program_scores.md)`(``fit``)`\
+`cmp_flag`` ``<-`` `[`find_coordinated_programs`](https://mdmanurung.github.io/cellprograms/reference/find_coordinated_programs.md)`(``fit``, n_perm ``=`` ``999``, seed ``=`` ``1``,`\
+`                                      min_donors ``=`` ``20``, ambient ``=`` ``"flag"``)`\
+`amb`` ``<-`` ``cmp_flag``$``ambient``   ``# the guard's score table, shipped with the result`\
 `amb``[`[`order`](https://rdrr.io/r/base/order.html)`(``-``amb``$``ambient_score``)``, ``]``[``1``:``4``, ``]`\
 `#>   cell_type program_id ambient_score source`\
 `#> 4       CD8      CD8_1     0.4464663      B`\
 `#> 5        NK       NK_1     0.3852758      B`\
 `#> 8      Mono     Mono_2     0.2471914      B`\
 `#> 7      Mono     Mono_1     0.2398713    CD8`\
-`cmp_flag`` ``<-`` `[`find_coordinated_programs`](https://mdmanurung.github.io/cellprograms/reference/find_coordinated_programs.md)`(``fit``, n_perm ``=`` ``999``, seed ``=`` ``1``,`\
-`                                      min_donors ``=`` ``20``, ambient ``=`` ``"flag"``)`\
 `cmp_flag`\
 `#> <cmp_result> 2 coordinated multicellular program(s) at FWER 0.05 (mode: marginal, ambient: flag)`\
 `#>   CMP 1: CD8_1, NK_1`\
@@ -256,25 +256,24 @@ back as factors with weights in every view.
 The default run above illustrates the flip side of the local-first
 philosophy’s explicit guards: the ambient filter, doing its job on a
 signal it cannot verify, silently removed a true shared program. The
-guard is inspectable
-([`ambient_program_scores()`](https://mdmanurung.github.io/cellprograms/reference/ambient_program_scores.md))
-and configurable (`ambient = "flag"`), which is why flagging is the
-recommended setting when contamination status is unknown. MOFA2 has no
-analogous guard — and no analogous false positive; its risks sit
-elsewhere (view-dominant factors, no FWER control on “is this shared?”).
+guard is inspectable (the result’s `ambient` element) and configurable
+(`ambient = "flag"`), which is why flagging is the recommended setting
+when contamination status is unknown. MOFA2 has no analogous guard — and
+no analogous false positive; its risks sit elsewhere (view-dominant
+factors, no FWER control on “is this shared?”).
 
 ## Metadata associations
 
 The MOFAcellulaR tutorial associates factor scores with sample metadata
 (`get_associations`: ANOVA for categorical, linear for continuous). The
 cellprograms counterpart is
-[`cmp_context_association()`](https://mdmanurung.github.io/cellprograms/reference/cmp_context_association.md)
-on CMP consensus scores:
+[`cmp_triage()`](https://mdmanurung.github.io/cellprograms/reference/cmp_triage.md)
+on CMP consensus scores, which carries the context association per CMP:
 
 \
 `## cellprograms: CMP scores vs the planted context`\
-`ca`` ``<-`` `[`cmp_context_association`](https://mdmanurung.github.io/cellprograms/reference/cmp_context_association.md)`(``fit``, ``cmp``, ``"ifn_high"``)`\
-`ca``[`[`order`](https://rdrr.io/r/base/order.html)`(``ca``$``p``)``, ``]`\
+`ct`` ``<-`` `[`cmp_triage`](https://mdmanurung.github.io/cellprograms/reference/cmp_triage.md)`(``fit``, ``cmp``, context ``=`` ``"ifn_high"``)`\
+`ct``[`[`order`](https://rdrr.io/r/base/order.html)`(``ct``$``context_p``)``, ``]`\
 \
 `## MOFAcellulaR: factor scores vs the same context`\
 `md_f`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``sample ``=`` `[`rownames`](https://rdrr.io/r/base/colnames.html)`(``Z_mofa``)``, ifn_high ``=`` ``md``$``ifn_high``[`[`match`](https://rdrr.io/r/base/match.html)`(`[`rownames`](https://rdrr.io/r/base/colnames.html)`(``Z_mofa``)``, ``md``$``observation_id``)``]``)`\
@@ -490,5 +489,5 @@ normalization/coverage property of the data, not of the blacklist.
 The two are complementary:
 [`as_mofacellular_input()`](https://mdmanurung.github.io/cellprograms/reference/as_mofacellular_input.md)
 exists precisely so the same pseudobulk can be pushed through both, with
-[`principal_angles()`](https://mdmanurung.github.io/cellprograms/reference/principal_angles.md)/[`align_programs()`](https://mdmanurung.github.io/cellprograms/reference/align_programs.md)
+[`align_programs()`](https://mdmanurung.github.io/cellprograms/reference/align_programs.md)
 quantifying program-to-factor geometry when both are fit.

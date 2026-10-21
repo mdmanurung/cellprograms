@@ -33,3 +33,4 @@ fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variab
 fit <- canonicalize_programs(fit)
 ambient_program_scores(fit)
 }
+\keyword{internal}

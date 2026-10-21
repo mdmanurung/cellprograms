@@ -396,6 +396,7 @@ find_coordinated_programs <- function(fit, strata = NULL, context = NULL,
 #' @param x A `cmp_result` from [find_coordinated_programs()].
 #' @param ... Ignored.
 #' @return `x`, invisibly.
+#' @keywords internal
 #' @export
 print.cmp_result <- function(x, ...) {
   ks <- unique(x$cmps$cmp)
@@ -430,7 +431,7 @@ print.cmp_result <- function(x, ...) {
 #' fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 150)
 #' fit <- canonicalize_programs(fit)
 #' ambient_program_scores(fit)
-#' @export
+#' @keywords internal
 ambient_program_scores <- function(fit, profiles = NULL, min_genes = 50L) {
   if (is.null(profiles)) {
     if (is.null(fit$pseudobulk)) .stopf("No `profiles` given and `fit$pseudobulk` is absent.")
@@ -493,7 +494,7 @@ ambient_program_scores <- function(fit, profiles = NULL, min_genes = 50L) {
 #' res <- find_coordinated_programs(fit, n_perm = 99, ambient = "none")
 #' S <- cmp_scores(fit, res)
 #' head(S)
-#' @export
+#' @keywords internal
 cmp_scores <- function(fit, cmp) {
   tab <- if (inherits(cmp, "cmp_result")) cmp$cmps else cmp
   ks <- unique(tab$cmp)

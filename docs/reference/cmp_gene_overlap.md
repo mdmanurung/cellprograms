@@ -61,6 +61,5 @@ fit <- structure(list(
   class = c("cell_program_fit", "cell_program_data", "list"))
 res <- find_coordinated_programs(fit, n_perm = 99, ambient = "none")
 cmp_gene_overlap(fit, res, top_n = 20)
-#>   cmp n_pairs frac_overlapping        class
-#> 1   1       1                1 shared-genes
+#> Error in cmp_gene_overlap(fit, res, top_n = 20): could not find function "cmp_gene_overlap"
 ```

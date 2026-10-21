@@ -17,3 +17,4 @@
 \description{
 Print a principal-angles summary
 }
+\keyword{internal}

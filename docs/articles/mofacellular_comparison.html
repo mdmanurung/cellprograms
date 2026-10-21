@@ -165,15 +165,15 @@ the guard. Re-running with <code>ambient = "flag"</code> (flag, don’t
 drop) recovers both planted CMPs exactly — and the CD8–NK edge turns out
 to be the strongest edge in the entire analysis:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">amb</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ambient_program_scores.html">ambient_program_scores</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">cmp_flag</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/find_coordinated_programs.html">find_coordinated_programs</a></span><span class="op">(</span><span class="va">fit</span>, n_perm <span class="op">=</span> <span class="fl">999</span>, seed <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>                                      min_donors <span class="op">=</span> <span class="fl">20</span>, ambient <span class="op">=</span> <span class="st">"flag"</span><span class="op">)</span></span>
+<span><span class="va">amb</span> <span class="op">&lt;-</span> <span class="va">cmp_flag</span><span class="op">$</span><span class="va">ambient</span>   <span class="co"># the guard's score table, shipped with the result</span></span>
 <span><span class="va">amb</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="op">-</span><span class="va">amb</span><span class="op">$</span><span class="va">ambient_score</span><span class="op">)</span>, <span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>, <span class="op">]</span></span>
 <span><span class="co">#&gt;   cell_type program_id ambient_score source</span></span>
 <span><span class="co">#&gt; 4       CD8      CD8_1     0.4464663      B</span></span>
 <span><span class="co">#&gt; 5        NK       NK_1     0.3852758      B</span></span>
 <span><span class="co">#&gt; 8      Mono     Mono_2     0.2471914      B</span></span>
 <span><span class="co">#&gt; 7      Mono     Mono_1     0.2398713    CD8</span></span>
-<span><span class="va">cmp_flag</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/find_coordinated_programs.html">find_coordinated_programs</a></span><span class="op">(</span><span class="va">fit</span>, n_perm <span class="op">=</span> <span class="fl">999</span>, seed <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>                                      min_donors <span class="op">=</span> <span class="fl">20</span>, ambient <span class="op">=</span> <span class="st">"flag"</span><span class="op">)</span></span>
 <span><span class="va">cmp_flag</span></span>
 <span><span class="co">#&gt; &lt;cmp_result&gt; 2 coordinated multicellular program(s) at FWER 0.05 (mode: marginal, ambient: flag)</span></span>
 <span><span class="co">#&gt;   CMP 1: CD8_1, NK_1</span></span>
@@ -322,7 +322,7 @@ back as factors with weights in every view.</p>
 <p>The default run above illustrates the flip side of the local-first
 philosophy’s explicit guards: the ambient filter, doing its job on a
 signal it cannot verify, silently removed a true shared program. The
-guard is inspectable (<code><a href="../reference/ambient_program_scores.html">ambient_program_scores()</a></code>) and
+guard is inspectable (the result’s <code>ambient</code> element) and
 configurable (<code>ambient = "flag"</code>), which is why flagging is
 the recommended setting when contamination status is unknown. MOFA2 has
 no analogous guard — and no analogous false positive; its risks sit
@@ -335,11 +335,12 @@ shared?”).</p>
 <p>The MOFAcellulaR tutorial associates factor scores with sample
 metadata (<code>get_associations</code>: ANOVA for categorical, linear
 for continuous). The cellprograms counterpart is
-<code><a href="../reference/cmp_context_association.html">cmp_context_association()</a></code> on CMP consensus scores:</p>
+<code><a href="../reference/cmp_triage.html">cmp_triage()</a></code> on CMP consensus scores, which carries the
+context association per CMP:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## cellprograms: CMP scores vs the planted context</span></span>
-<span><span class="va">ca</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cmp_context_association.html">cmp_context_association</a></span><span class="op">(</span><span class="va">fit</span>, <span class="va">cmp</span>, <span class="st">"ifn_high"</span><span class="op">)</span></span>
-<span><span class="va">ca</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">ca</span><span class="op">$</span><span class="va">p</span><span class="op">)</span>, <span class="op">]</span></span>
+<span><span class="va">ct</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cmp_triage.html">cmp_triage</a></span><span class="op">(</span><span class="va">fit</span>, <span class="va">cmp</span>, context <span class="op">=</span> <span class="st">"ifn_high"</span><span class="op">)</span></span>
+<span><span class="va">ct</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">ct</span><span class="op">$</span><span class="va">context_p</span><span class="op">)</span>, <span class="op">]</span></span>
 <span></span>
 <span><span class="co">## MOFAcellulaR: factor scores vs the same context</span></span>
 <span><span class="va">md_f</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sample <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">Z_mofa</span><span class="op">)</span>, ifn_high <span class="op">=</span> <span class="va">md</span><span class="op">$</span><span class="va">ifn_high</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">Z_mofa</span><span class="op">)</span>, <span class="va">md</span><span class="op">$</span><span class="va">observation_id</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
@@ -586,8 +587,8 @@ normalization/coverage property of the data, not of the blacklist.</p>
 </table>
 <p>The two are complementary: <code><a href="../reference/as_mofacellular_input.html">as_mofacellular_input()</a></code>
 exists precisely so the same pseudobulk can be pushed through both, with
-<code><a href="../reference/principal_angles.html">principal_angles()</a></code>/<code><a href="../reference/align_programs.html">align_programs()</a></code>
-quantifying program-to-factor geometry when both are fit.</p>
+<code><a href="../reference/align_programs.html">align_programs()</a></code> quantifying program-to-factor geometry
+when both are fit.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

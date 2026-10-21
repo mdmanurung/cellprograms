@@ -81,7 +81,7 @@ directly:
 `)`\
 `res`` ``<-`` `[`GetMetacellSEACells`](https://mdmanurung.github.io/cellprograms/reference/GetMetacellSEACells.md)`(``seu``)`\
 `mc`` ``<-`` ``res``$``metacell_object`\
-[`head`](https://rdrr.io/r/utils/head.html)`(``res``$``qc``)``  ``# per-metacell mcRigor QC (mcDiv, dubious flag, ZeroRate)`\
+[`head`](https://rdrr.io/r/utils/head.html)`(``res``$``qc``)``  ``# per-metacell mcRigor QC (mcDiv, divergence threshold, dubious flag)`\
 \
 `# Metacell counts -> named list of metacells x genes matrices, one per cell type`\
 `counts`` ``<-`` ``SeuratObject``::`[`LayerData`](https://satijalab.github.io/seurat-object/reference/Layers.html)`(``mc``[[``"RNA"``]``]``, layer ``=`` ``"counts"``)``  ``# genes x metacells`\
@@ -100,7 +100,7 @@ you prefer data-driven granularity over the default.
 ## Inspect programs
 
 \
-[`program_summary`](https://mdmanurung.github.io/cellprograms/reference/program_summary.md)`(``fit``)``          ``# one row per cell type: K, R2, ELBO`\
+[`program_summary`](https://mdmanurung.github.io/cellprograms/reference/program_summary.md)`(``fit``)``          ``# one row per cell type: n_programs, R2, elbo`\
 `#>   cell_type n_obs n_genes n_programs        R2      elbo`\
 `#> 1         B    60     400          2 0.2439779 -36065.09`\
 `#> 2       CD4    60     400          1 0.1707640 -35709.99`\

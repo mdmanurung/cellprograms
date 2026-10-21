@@ -282,7 +282,7 @@ annotate_cmp_themes <- function(fit, cmp, sets, min_size = 10L, top = 3L, q = 0.
 #'   class = c("cell_program_fit", "cell_program_data", "list"))
 #' res <- find_coordinated_programs(fit, n_perm = 99, ambient = "none")
 #' cmp_gene_overlap(fit, res, top_n = 20)
-#' @export
+#' @keywords internal
 cmp_gene_overlap <- function(fit, cmp, top_n = 100L, q = 0.05) {
   tab <- .cmp_table(cmp)
   out <- lapply(unique(tab$cmp), function(k) {
@@ -351,7 +351,7 @@ cmp_gene_overlap <- function(fit, cmp, top_n = 100L, q = 0.05) {
 #'   class = c("cell_program_fit", "cell_program_data", "list"))
 #' res <- find_coordinated_programs(fit, n_perm = 99, ambient = "none")
 #' cmp_context_association(fit, res, "group")
-#' @export
+#' @keywords internal
 cmp_context_association <- function(fit, cmp, variable, covariates = NULL) {
   S <- cmp_scores(fit, cmp)
   if (any(covariates %in% c("y", ".ctx"))) {

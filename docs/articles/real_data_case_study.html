@@ -303,8 +303,8 @@ association adjusting for institute and sex:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/find_coordinated_programs.html">find_coordinated_programs</a></span><span class="op">(</span><span class="va">fit_masked</span>, n_perm <span class="op">=</span> <span class="fl">999</span>, seed <span class="op">=</span> <span class="fl">1</span>, min_donors <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span>
 <span><span class="va">cmp</span><span class="op">$</span><span class="va">cmps</span>          <span class="co"># per-CMP member programs and consensus scores</span></span>
-<span><span class="fu"><a href="../reference/cmp_context_association.html">cmp_context_association</a></span><span class="op">(</span><span class="va">fit_masked</span>, <span class="va">cmp</span>, <span class="st">"severity"</span>,</span>
-<span>                        covariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"institute"</span>, <span class="st">"sex"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/cmp_triage.html">cmp_triage</a></span><span class="op">(</span><span class="va">fit_masked</span>, <span class="va">cmp</span>, context <span class="op">=</span> <span class="st">"severity"</span>,</span>
+<span>           covariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"institute"</span>, <span class="st">"sex"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>The masked refits yield <strong>24 CMPs</strong> over 598 significant
 edges (Stephenson) and <strong>21 CMPs</strong> over 255 edges (COMBAT);
 the unmasked cap-30 fits give 27 and 25 (see

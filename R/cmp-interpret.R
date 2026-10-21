@@ -241,6 +241,7 @@ annotate_cmp_tf <- function(fit, cmp, net, min_size = 5L, n_perm = 1000L, q = 0.
 #' @param x A `cmp_tf` from [annotate_cmp_tf()].
 #' @param ... Ignored.
 #' @return `x`, invisibly.
+#' @keywords internal
 #' @export
 print.cmp_tf <- function(x, ...) {
   s <- x$summary
@@ -266,7 +267,7 @@ print.cmp_tf <- function(x, ...) {
 #' @examples
 #' cmp_nuisance_genes()
 #' grep(cmp_nuisance_genes()["vdj"], c("IGHV1-2", "IGKC", "GAPDH"), value = TRUE)
-#' @export
+#' @keywords internal
 cmp_nuisance_genes <- function() {
   c(vdj = "^(IG[HKL]V|IG[KL]C|IGH[GAMDE]|JCHAIN|TR[ABGD]V)",
     genotype = "^(GSTM1|GSTT1|GSTT2B?|UTS2|ERAP2|CCL3L1|CCL3L3|CCL4L2|HLA-DRB[345]|HLA-DQ[AB][12])$",

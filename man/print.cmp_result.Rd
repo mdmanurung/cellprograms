@@ -17,3 +17,4 @@
 \description{
 Print a CMP detection result
 }
+\keyword{internal}

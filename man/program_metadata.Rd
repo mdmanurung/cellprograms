@@ -19,3 +19,4 @@ fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variab
 fit <- canonicalize_programs(fit)
 program_metadata(fit)
 }
+\keyword{internal}

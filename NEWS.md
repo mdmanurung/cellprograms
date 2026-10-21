@@ -1,5 +1,21 @@
 # cellprograms 0.2.0.9000 (development)
 
+## API streamlining (2026-10-21)
+
+* Eight internal helpers are no longer exported (still callable via
+  `cellprograms:::`; nothing is deleted): `program_metadata` (derivable from
+  `program_loadings()` column names), `principal_angles` (pairwise primitive
+  behind `align_programs()` / `match_programs()`), `cmp_scores`,
+  `cmp_gene_overlap`, `cmp_context_association` and `cmp_nuisance_genes`
+  (components orchestrated by `cmp_triage()`), `union_panel_loadings` and
+  `ambient_program_scores` (coordination machinery). The user-facing surface
+  drops from 50 to 42 verbs.
+* The pkgdown reference index is reorganized from a flat 50-function list
+  into 8 curated family sections (Data & simulation / Fit & canonicalize /
+  Extract / Compare, align & share / Coordination & annotation / Metacells /
+  Program plots / Coordination & sharing plots), following the mixOmics
+  reference layout.
+
 ## Bug fixes and hardening (2026-10-21 all-exports smoke sweep)
 
 * `plot_cmp_network()`: no longer crashes on CMP results computed with

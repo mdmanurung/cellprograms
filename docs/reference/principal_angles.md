@@ -64,12 +64,7 @@ fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variab
 fit <- canonicalize_programs(fit)
 # CD8 and NK share a planted donor-activity program in this simulation
 pa <- principal_angles(fit, "CD8", "NK", n_perm = 99, seed = 1)
+#> Error in principal_angles(fit, "CD8", "NK", n_perm = 99, seed = 1): could not find function "principal_angles"
 pa
-#> principal_angles (scores space): CD8 vs NK
-#>   ranks 1 x 2, effective dim 24
-#>   cosines: 0.982 
-#>   perm p : 0.01 
-#>   shared directions (p < 0.05): 1  [asymptotic null ref 0.493]
-#>   effect: z = 13.8, excess fraction = 0.96 (0 chance, 1 nested)
-#>   pair-level p (sum cos^2): 0.0100
+#> Error: object 'pa' not found
 ```

@@ -111,14 +111,9 @@ structure shared by both cell types (blocked permutation).</p></dd>
 <span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="canonicalize_programs.html">canonicalize_programs</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># CD8 and NK share a planted donor-activity program in this simulation</span></span></span>
 <span class="r-in"><span><span class="va">pa</span> <span class="op">&lt;-</span> <span class="fu">principal_angles</span><span class="op">(</span><span class="va">fit</span>, <span class="st">"CD8"</span>, <span class="st">"NK"</span>, n_perm <span class="op">=</span> <span class="fl">99</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in principal_angles(fit, "CD8", "NK", n_perm = 99, seed = 1):</span> could not find function "principal_angles"</span>
 <span class="r-in"><span><span class="va">pa</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> principal_angles (scores space): CD8 vs NK</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ranks 1 x 2, effective dim 24</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   cosines: 0.982 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   perm p : 0.01 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   shared directions (p &lt; 0.05): 1  [asymptotic null ref 0.493]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   effect: z = 13.8, excess fraction = 0.96 (0 chance, 1 nested)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   pair-level p (sum cos^2): 0.0100</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'pa' not found</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

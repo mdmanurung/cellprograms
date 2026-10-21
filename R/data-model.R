@@ -170,6 +170,7 @@ validate_cell_program_data <- function(x) {
 #' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
 #' x <- as_cell_program_data(sim$pseudobulk)
 #' print(x)
+#' @keywords internal
 #' @export
 print.cell_program_data <- function(x, ...) {
   cli::cli_text("{.strong cell_program_data}")
@@ -189,6 +190,7 @@ print.cell_program_data <- function(x, ...) {
 #' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
 #' x <- as_cell_program_data(sim$pseudobulk)
 #' summary(x)
+#' @keywords internal
 #' @export
 summary.cell_program_data <- function(object, ...) {
   print(object)

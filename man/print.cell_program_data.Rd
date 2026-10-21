@@ -19,3 +19,4 @@ sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, see
 x <- as_cell_program_data(sim$pseudobulk)
 print(x)
 }
+\keyword{internal}

@@ -47,3 +47,4 @@ up <- union_panel_loadings(fit)
 sapply(up$loadings, nrow)   # same gene rows for every cell type
 up$genes[1:5]
 }
+\keyword{internal}

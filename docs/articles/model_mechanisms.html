@@ -216,14 +216,14 @@ the fit’s <code>scores</code> (observations x programs) and
 gene panel, so the per-cell-type loading matrices cannot be compared
 gene-by-gene across cell types. Rather than refitting on the union panel
 (which the model-selection benchmark showed does not improve recovery),
-<code><a href="../reference/union_panel_loadings.html">union_panel_loadings()</a></code> refits the loadings post hoc: it
-regresses each cell type’s union-panel expression on its fixed program
-scores by least squares, replaying the fit’s covariate handling and
-centering. Fits and scores are untouched; the result is a gene x program
-matrix per cell type on the shared panel, for cross-cell-type loading
-comparisons.</p>
+the internal helper <code><a href="../reference/union_panel_loadings.html">union_panel_loadings()</a></code> refits the
+loadings post hoc: it regresses each cell type’s union-panel expression
+on its fixed program scores by least squares, replaying the fit’s
+covariate handling and centering. Fits and scores are untouched; the
+result is a gene x program matrix per cell type on the shared panel, for
+cross-cell-type loading comparisons.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">up</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/union_panel_loadings.html">union_panel_loadings</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">up</span> <span class="op">&lt;-</span> <span class="fu">cellprograms</span><span class="fu">:::</span><span class="fu"><a href="../reference/union_panel_loadings.html">union_panel_loadings</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>   <span class="co"># internal, shown for inspection</span></span>
 <span><span class="va">up</span><span class="op">$</span><span class="va">loadings</span><span class="op">$</span><span class="va">CD4</span>          <span class="co"># genes x programs on the common panel</span></span>
 <span><span class="va">up</span><span class="op">$</span><span class="va">genes</span>                 <span class="co"># the panel (union of per-cell-type fitted genes)</span></span></code></pre></div>
 </div>
@@ -234,7 +234,7 @@ comparisons.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/find_coordinated_programs.html">find_coordinated_programs</a></span><span class="op">(</span><span class="va">fit</span>, strata <span class="op">=</span> <span class="st">"site"</span>, ambient <span class="op">=</span> <span class="st">"flag"</span>,</span>
 <span>                                 n_perm <span class="op">=</span> <span class="fl">999</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/cmp_scores.html">cmp_scores</a></span><span class="op">(</span><span class="va">fit</span>, <span class="va">res</span><span class="op">)</span>   <span class="co"># donors x CMPs consensus scores</span></span></code></pre></div>
+<span><span class="fu">cellprograms</span><span class="fu">:::</span><span class="fu"><a href="../reference/cmp_scores.html">cmp_scores</a></span><span class="op">(</span><span class="va">fit</span>, <span class="va">res</span><span class="op">)</span>   <span class="co"># internal: donors x CMPs consensus scores</span></span></code></pre></div>
 <p>A CMP is a set of programs from &gt;= 2 cell types whose donor-level
 scores co-vary — they track one shared latent donor activity. Gene
 overlap plays no role in the call. The procedure:</p>
@@ -249,8 +249,8 @@ mode.</li>
 <strong>Ambient filter.</strong> Programs whose loadings track
 another cell type’s expression specificity (ambient RNA / doublet
 leakage) are dropped (<code>ambient = "drop"</code>) or flagged
-(<code>ambient = "flag"</code>), using
-<code><a href="../reference/ambient_program_scores.html">ambient_program_scores()</a></code>.</li>
+(<code>ambient = "flag"</code>), using the internal ambient-score table
+(surfaced as the <code>ambient</code> element of the result).</li>
 <li>
 <strong>Edge statistic.</strong> For every cross-cell-type program
 pair (over the donors the two cell types share), <span class="math inline">T = \tanh^{-1}(r)\sqrt{n-3}</span> where <span class="math inline">r</span> is the <strong>Pearson correlation of the
@@ -274,8 +274,8 @@ error rate of calling <em>any</em> CMP is controlled at
 <code>alpha</code>.</li>
 <li>
 <strong>Clustering.</strong> Significant programs are grouped into
-CMPs by their edge structure; <code><a href="../reference/cmp_scores.html">cmp_scores()</a></code> summarizes each
-CMP as a donor-level consensus score.</li>
+CMPs by their edge structure; the internal <code><a href="../reference/cmp_scores.html">cmp_scores()</a></code>
+summarizes each CMP as a donor-level consensus score.</li>
 </ol>
 <p><code>mode = "within"</code> tests the same structure <em>within</em>
 levels of a context variable (e.g. severity) — coordination that

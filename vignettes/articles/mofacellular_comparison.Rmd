@@ -100,10 +100,10 @@ drop) recovers both planted CMPs exactly — and the CD8–NK edge turns out
 to be the strongest edge in the entire analysis:
 
 ```{r ambient-guard}
-amb <- ambient_program_scores(fit)
-amb[order(-amb$ambient_score), ][1:4, ]
 cmp_flag <- find_coordinated_programs(fit, n_perm = 999, seed = 1,
                                       min_donors = 20, ambient = "flag")
+amb <- cmp_flag$ambient   # the guard's score table, shipped with the result
+amb[order(-amb$ambient_score), ][1:4, ]
 cmp_flag
 plot_cmp_network(cmp_flag)
 plot_cmp_membership(list("ambient = drop" = cmp, "ambient = flag" = cmp_flag),
@@ -249,7 +249,7 @@ come back as factors with weights in every view.
 The default run above illustrates the flip side of the local-first
 philosophy's explicit guards: the ambient filter, doing its job on a
 signal it cannot verify, silently removed a true shared program. The guard
-is inspectable (`ambient_program_scores()`) and configurable
+is inspectable (the result's `ambient` element) and configurable
 (`ambient = "flag"`), which is why flagging is the recommended setting
 when contamination status is unknown. MOFA2 has no analogous guard — and
 no analogous false positive; its risks sit elsewhere (view-dominant
@@ -259,13 +259,13 @@ factors, no FWER control on "is this shared?").
 
 The MOFAcellulaR tutorial associates factor scores with sample metadata
 (`get_associations`: ANOVA for categorical, linear for continuous). The
-cellprograms counterpart is `cmp_context_association()` on CMP consensus
-scores:
+cellprograms counterpart is `cmp_triage()` on CMP consensus scores, which
+carries the context association per CMP:
 
 ```{r assoc, eval = has_mofa}
 ## cellprograms: CMP scores vs the planted context
-ca <- cmp_context_association(fit, cmp, "ifn_high")
-ca[order(ca$p), ]
+ct <- cmp_triage(fit, cmp, context = "ifn_high")
+ct[order(ct$context_p), ]
 
 ## MOFAcellulaR: factor scores vs the same context
 md_f <- data.frame(sample = rownames(Z_mofa), ifn_high = md$ifn_high[match(rownames(Z_mofa), md$observation_id)])
@@ -478,5 +478,5 @@ blacklist.
 
 The two are complementary: `as_mofacellular_input()` exists precisely so
 the same pseudobulk can be pushed through both, with
-`principal_angles()`/`align_programs()` quantifying program-to-factor
+`align_programs()` quantifying program-to-factor
 geometry when both are fit.

@@ -43,6 +43,240 @@
     </div>
 
     <div class="section level2">
+      <h2 id="data-simulation">Data &amp; simulation<a class="anchor" aria-label="anchor" href="#data-simulation"></a></h2>
+
+      <div class="section-desc"><p>Build and check <code>cell_program_data</code> objects, simulate pseudobulk ground truth, and bridge to MOFAcellular.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="simulate_pseudobulk.html">simulate_pseudobulk()</a></code>
+
+        </dt>
+        <dd>Simulate cell-type pseudobulk matrices with planted programs</dd>
+
+        <dt>
+
+          <code><a href="as_cell_program_data.html">as_cell_program_data()</a></code>
+
+        </dt>
+        <dd>Create a cell program data object</dd>
+
+        <dt>
+
+          <code><a href="validate_cell_program_data.html">validate_cell_program_data()</a></code>
+
+        </dt>
+        <dd>Validate a cell program data object</dd>
+
+        <dt>
+
+          <code><a href="artifact_gene_sets.html">artifact_gene_sets</a></code>
+
+        </dt>
+        <dd>Artifact-gene sets</dd>
+
+        <dt>
+
+          <code><a href="artifact_genes.html">artifact_genes()</a></code>
+
+        </dt>
+        <dd>Expand artifact-gene sets against a gene universe</dd>
+
+        <dt>
+
+          <code><a href="as_mofacellular_input.html">as_mofacellular_input()</a></code>
+
+        </dt>
+        <dd>Export pseudobulk profiles to MOFAcellulaR input format</dd>
+      </dl></div><div class="section level2">
+      <h2 id="fit-canonicalize">Fit &amp; canonicalize<a class="anchor" aria-label="anchor" href="#fit-canonicalize"></a></h2>
+
+      <div class="section-desc"><p>Fit per-cell-type programs (flashier R backend or cebmf_torch Python backend), canonicalize sign/scale, freeze preprocessing, and flag artifact-carrying programs.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="fit_celltype_programs.html">fit_celltype_programs()</a></code>
+
+        </dt>
+        <dd>Fit cell-type-specific programs with flashier</dd>
+
+        <dt>
+
+          <code><a href="canonicalize_programs.html">canonicalize_programs()</a></code>
+
+        </dt>
+        <dd>Canonicalize program scale and sign</dd>
+
+        <dt>
+
+          <code><a href="freeze_preprocessing.html">freeze_preprocessing()</a></code>
+
+        </dt>
+        <dd>Freeze a preprocessing specification</dd>
+
+        <dt>
+
+          <code><a href="flag_artifact_genes.html">flag_artifact_genes()</a></code>
+
+        </dt>
+        <dd>Flag programs or CMPs carrying artifact genes</dd>
+      </dl></div><div class="section level2">
+      <h2 id="extract">Extract<a class="anchor" aria-label="anchor" href="#extract"></a></h2>
+
+      <div class="section-desc"><p>Summaries, scores, loadings and top genes from a canonicalized fit.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="program_summary.html">program_summary()</a></code>
+
+        </dt>
+        <dd>Summary of programs per cell type (n, K, R2 of the reconstruction, ELBO)</dd>
+
+        <dt>
+
+          <code><a href="program_scores.html">program_scores()</a></code>
+
+        </dt>
+        <dd>Program score matrix across all cell types</dd>
+
+        <dt>
+
+          <code><a href="program_loadings.html">program_loadings()</a></code>
+
+        </dt>
+        <dd>Program loading matrices</dd>
+
+        <dt>
+
+          <code><a href="top_genes.html">top_genes()</a></code>
+
+        </dt>
+        <dd>Top genes of a program</dd>
+
+        <dt>
+
+          <code><a href="project_programs_to_cells.html">project_programs_to_cells()</a></code>
+
+        </dt>
+        <dd>Project fitted programs onto individual cells</dd>
+      </dl></div><div class="section level2">
+      <h2 id="compare-align-share">Compare, align &amp; share<a class="anchor" aria-label="anchor" href="#compare-align-share"></a></h2>
+
+      <div class="section-desc"><p>Program stability, cross-fit matching, within-fit alignment, and donor-level sharing structure.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="assess_program_stability.html">assess_program_stability()</a></code>
+
+        </dt>
+        <dd>Assess program stability by donor subsampling</dd>
+
+        <dt>
+
+          <code><a href="match_programs.html">match_programs()</a></code>
+
+        </dt>
+        <dd>Match programs across two fits (bootstrap refits or cohorts)</dd>
+
+        <dt>
+
+          <code><a href="align_programs.html">align_programs()</a></code>
+
+        </dt>
+        <dd>Align all cell types' program subspaces to a reference cell type</dd>
+
+        <dt>
+
+          <code><a href="program_sharing.html">program_sharing()</a></code>
+
+        </dt>
+        <dd>Post-hoc shared-vs-specific assessment of fitted programs (mashr)</dd>
+
+        <dt>
+
+          <code><a href="sharing_spectrum.html">sharing_spectrum()</a></code>
+
+        </dt>
+        <dd>Pairwise sharing spectra across all cell types</dd>
+      </dl></div><div class="section level2">
+      <h2 id="coordination-annotation">Coordination &amp; annotation<a class="anchor" aria-label="anchor" href="#coordination-annotation"></a></h2>
+
+      <div class="section-desc"><p>Cross-cell-type coordinated programs (CMPs): detection, triage, and annotation against TF regulons, ligand-receptor pairs and gene sets.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="find_coordinated_programs.html">find_coordinated_programs()</a></code>
+
+        </dt>
+        <dd>Find coordinated multicellular programs</dd>
+
+        <dt>
+
+          <code><a href="cmp_triage.html">cmp_triage()</a></code>
+
+        </dt>
+        <dd>One-row-per-CMP triage table</dd>
+
+        <dt>
+
+          <code><a href="annotate_cmp_tf.html">annotate_cmp_tf()</a></code>
+
+        </dt>
+        <dd>Transcription-factor footprints of coordinated programs</dd>
+
+        <dt>
+
+          <code><a href="annotate_cmp_lr.html">annotate_cmp_lr()</a></code>
+
+        </dt>
+        <dd>Ligand-receptor compatibility of coordinated programs</dd>
+
+        <dt>
+
+          <code><a href="annotate_cmp_themes.html">annotate_cmp_themes()</a></code>
+
+        </dt>
+        <dd>Themes of coordinated programs</dd>
+
+        <dt>
+
+          <code><a href="assess_cmp_stability.html">assess_cmp_stability()</a></code>
+
+        </dt>
+        <dd>Assess CMP stability under synchronized donor resampling</dd>
+
+        <dt>
+
+          <code><a href="prepare_collectri.html">prepare_collectri()</a></code>
+
+        </dt>
+        <dd>Format an OmniPath CollecTRI table as a signed TF-target network</dd>
+      </dl></div><div class="section level2">
       <h2 id="metacells-seacells-mcrigor-">Metacells (SEACells + mcRigor)<a class="anchor" aria-label="anchor" href="#metacells-seacells-mcrigor-"></a></h2>
 
       <div class="section-desc"><p>Optional upstream aggregation of single cells into metacells before program discovery. Requires the suggested packages Seurat, mcRigor and basilisk (the SEACells Python environment is built on first use).</p></div>
@@ -73,9 +307,9 @@
         </dt>
         <dd>Access metacell results stored by MetacellsByGroupsSEACells</dd>
       </dl></div><div class="section level2">
-      <h2 id="all-functions">All functions<a class="anchor" aria-label="anchor" href="#all-functions"></a></h2>
+      <h2 id="program-plots">Program plots<a class="anchor" aria-label="anchor" href="#program-plots"></a></h2>
 
-
+      <div class="section-desc"><p>Fit-level visualisations.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -84,255 +318,10 @@
 
       <dl><dt>
 
-          <code><a href="GetMetacellSEACells.html">GetMetacellSEACells()</a></code>
-
-        </dt>
-        <dd>Access metacell results stored by MetacellsByGroupsSEACells</dd>
-
-        <dt>
-
-          <code><a href="MetacellsByGroupsSEACells.html">MetacellsByGroupsSEACells()</a></code>
-
-        </dt>
-        <dd>Construct metacells by groups with SEACells and mcRigor QC</dd>
-
-        <dt>
-
-          <code><a href="OptimizeGammaSEACells.html">OptimizeGammaSEACells()</a></code>
-
-        </dt>
-        <dd>Optimize SEACells granularity with mcRigor</dd>
-
-        <dt>
-
-          <code><a href="align_programs.html">align_programs()</a></code>
-
-        </dt>
-        <dd>Align all cell types' program subspaces to a reference cell type</dd>
-
-        <dt>
-
-          <code><a href="ambient_program_scores.html">ambient_program_scores()</a></code>
-
-        </dt>
-        <dd>Ambient-likeness of programs</dd>
-
-        <dt>
-
-          <code><a href="annotate_cmp_lr.html">annotate_cmp_lr()</a></code>
-
-        </dt>
-        <dd>Ligand-receptor compatibility of coordinated programs</dd>
-
-        <dt>
-
-          <code><a href="annotate_cmp_tf.html">annotate_cmp_tf()</a></code>
-
-        </dt>
-        <dd>Transcription-factor footprints of coordinated programs</dd>
-
-        <dt>
-
-          <code><a href="annotate_cmp_themes.html">annotate_cmp_themes()</a></code>
-
-        </dt>
-        <dd>Themes of coordinated programs</dd>
-
-        <dt>
-
-          <code><a href="artifact_gene_sets.html">artifact_gene_sets</a></code>
-
-        </dt>
-        <dd>Artifact-gene sets</dd>
-
-        <dt>
-
-          <code><a href="artifact_genes.html">artifact_genes()</a></code>
-
-        </dt>
-        <dd>Expand artifact-gene sets against a gene universe</dd>
-
-        <dt>
-
-          <code><a href="as_cell_program_data.html">as_cell_program_data()</a></code>
-
-        </dt>
-        <dd>Create a cell program data object</dd>
-
-        <dt>
-
-          <code><a href="as_mofacellular_input.html">as_mofacellular_input()</a></code>
-
-        </dt>
-        <dd>Export pseudobulk profiles to MOFAcellulaR input format</dd>
-
-        <dt>
-
-          <code><a href="assess_cmp_stability.html">assess_cmp_stability()</a></code>
-
-        </dt>
-        <dd>Assess CMP stability under synchronized donor resampling</dd>
-
-        <dt>
-
-          <code><a href="assess_program_stability.html">assess_program_stability()</a></code>
-
-        </dt>
-        <dd>Assess program stability by donor subsampling</dd>
-
-        <dt>
-
-          <code><a href="canonicalize_programs.html">canonicalize_programs()</a></code>
-
-        </dt>
-        <dd>Canonicalize program scale and sign</dd>
-
-        <dt>
-
-          <code><a href="cmp_context_association.html">cmp_context_association()</a></code>
-
-        </dt>
-        <dd>Association of coordinated programs with a donor variable</dd>
-
-        <dt>
-
-          <code><a href="cmp_gene_overlap.html">cmp_gene_overlap()</a></code>
-
-        </dt>
-        <dd>Gene-overlap class of coordinated programs</dd>
-
-        <dt>
-
-          <code><a href="cmp_nuisance_genes.html">cmp_nuisance_genes()</a></code>
-
-        </dt>
-        <dd>Default nuisance-gene patterns for CMP triage</dd>
-
-        <dt>
-
-          <code><a href="cmp_scores.html">cmp_scores()</a></code>
-
-        </dt>
-        <dd>Consensus donor scores of coordinated programs</dd>
-
-        <dt>
-
-          <code><a href="cmp_triage.html">cmp_triage()</a></code>
-
-        </dt>
-        <dd>One-row-per-CMP triage table</dd>
-
-        <dt>
-
-          <code><a href="dot-match_programs_loadings.html">.match_programs_loadings()</a></code>
-
-        </dt>
-        <dd>Candidate cross-cell-type program matches from loading correlation</dd>
-
-        <dt>
-
-          <code><a href="find_coordinated_programs.html">find_coordinated_programs()</a></code>
-
-        </dt>
-        <dd>Find coordinated multicellular programs</dd>
-
-        <dt>
-
-          <code><a href="fit_celltype_programs.html">fit_celltype_programs()</a></code>
-
-        </dt>
-        <dd>Fit cell-type-specific programs with flashier</dd>
-
-        <dt>
-
-          <code><a href="flag_artifact_genes.html">flag_artifact_genes()</a></code>
-
-        </dt>
-        <dd>Flag programs or CMPs carrying artifact genes</dd>
-
-        <dt>
-
-          <code><a href="freeze_preprocessing.html">freeze_preprocessing()</a></code>
-
-        </dt>
-        <dd>Freeze a preprocessing specification</dd>
-
-        <dt>
-
-          <code><a href="match_programs.html">match_programs()</a></code>
-
-        </dt>
-        <dd>Match programs across two fits (bootstrap refits or cohorts)</dd>
-
-        <dt>
-
-          <code><a href="plot_alignment.html">plot_alignment()</a></code>
-
-        </dt>
-        <dd>Plot program alignment (principal angles)</dd>
-
-        <dt>
-
-          <code><a href="plot_artifact_flags.html">plot_artifact_flags()</a></code>
-
-        </dt>
-        <dd>Plot artifact-gene flags</dd>
-
-        <dt>
-
-          <code><a href="plot_cmp_membership.html">plot_cmp_membership()</a></code>
-
-        </dt>
-        <dd>Plot CMP membership across settings</dd>
-
-        <dt>
-
-          <code><a href="plot_cmp_network.html">plot_cmp_network()</a></code>
-
-        </dt>
-        <dd>Plot the coordinated-program network</dd>
-
-        <dt>
-
-          <code><a href="plot_cmp_nodes.html">plot_cmp_nodes()</a></code>
-
-        </dt>
-        <dd>Plot CMP node statistics</dd>
-
-        <dt>
-
-          <code><a href="plot_context_association.html">plot_context_association()</a></code>
-
-        </dt>
-        <dd>Plot CMP context associations</dd>
-
-        <dt>
-
           <code><a href="plot_program_scores.html">plot_program_scores()</a></code>
 
         </dt>
         <dd>Plot program scores across donors</dd>
-
-        <dt>
-
-          <code><a href="plot_sharing.html">plot_sharing()</a></code>
-
-        </dt>
-        <dd>Plot program sharing results</dd>
-
-        <dt>
-
-          <code><a href="plot_sharing_spectrum.html">plot_sharing_spectrum()</a></code>
-
-        </dt>
-        <dd>Plot the sharing spectrum</dd>
-
-        <dt>
-
-          <code><a href="plot_stability.html">plot_stability()</a></code>
-
-        </dt>
-        <dd>Plot program stability</dd>
 
         <dt>
 
@@ -350,136 +339,75 @@
 
         <dt>
 
-          <code><a href="prepare_collectri.html">prepare_collectri()</a></code>
+          <code><a href="plot_artifact_flags.html">plot_artifact_flags()</a></code>
 
         </dt>
-        <dd>Format an OmniPath CollecTRI table as a signed TF-target network</dd>
+        <dd>Plot artifact-gene flags</dd>
 
         <dt>
 
-          <code><a href="principal_angles.html">principal_angles()</a></code>
+          <code><a href="plot_stability.html">plot_stability()</a></code>
 
         </dt>
-        <dd>Principal angles between the program subspaces of two cell types</dd>
+        <dd>Plot program stability</dd>
 
         <dt>
 
-          <code><a href="print.cell_program_data.html">print(<i>&lt;cell_program_data&gt;</i>)</a></code>
+          <code><a href="plot_alignment.html">plot_alignment()</a></code>
 
         </dt>
-        <dd>Print a cell program data object</dd>
+        <dd>Plot program alignment (principal angles)</dd>
+      </dl></div><div class="section level2">
+      <h2 id="coordination-sharing-plots">Coordination &amp; sharing plots<a class="anchor" aria-label="anchor" href="#coordination-sharing-plots"></a></h2>
+
+      <div class="section-desc"><p>CMP and sharing visualisations.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="plot_cmp_network.html">plot_cmp_network()</a></code>
+
+        </dt>
+        <dd>Plot the coordinated-program network</dd>
 
         <dt>
 
-          <code><a href="print.cmp_result.html">print(<i>&lt;cmp_result&gt;</i>)</a></code>
+          <code><a href="plot_cmp_nodes.html">plot_cmp_nodes()</a></code>
 
         </dt>
-        <dd>Print a CMP detection result</dd>
+        <dd>Plot CMP node statistics</dd>
 
         <dt>
 
-          <code><a href="print.cmp_tf.html">print(<i>&lt;cmp_tf&gt;</i>)</a></code>
+          <code><a href="plot_cmp_membership.html">plot_cmp_membership()</a></code>
 
         </dt>
-        <dd>Print a CMP transcription-factor triage result</dd>
+        <dd>Plot CMP membership across settings</dd>
 
         <dt>
 
-          <code><a href="print.principal_angles.html">print(<i>&lt;principal_angles&gt;</i>)</a></code>
+          <code><a href="plot_context_association.html">plot_context_association()</a></code>
 
         </dt>
-        <dd>Print a principal-angles summary</dd>
+        <dd>Plot CMP context associations</dd>
 
         <dt>
 
-          <code><a href="print.program_sharing.html">print(<i>&lt;program_sharing&gt;</i>)</a></code>
+          <code><a href="plot_sharing.html">plot_sharing()</a></code>
 
         </dt>
-        <dd>Print a program-sharing summary</dd>
+        <dd>Plot program sharing results</dd>
 
         <dt>
 
-          <code><a href="program_loadings.html">program_loadings()</a></code>
+          <code><a href="plot_sharing_spectrum.html">plot_sharing_spectrum()</a></code>
 
         </dt>
-        <dd>Program loading matrices</dd>
-
-        <dt>
-
-          <code><a href="program_metadata.html">program_metadata()</a></code>
-
-        </dt>
-        <dd>Program metadata table (one row per program)</dd>
-
-        <dt>
-
-          <code><a href="program_scores.html">program_scores()</a></code>
-
-        </dt>
-        <dd>Program score matrix across all cell types</dd>
-
-        <dt>
-
-          <code><a href="program_sharing.html">program_sharing()</a></code>
-
-        </dt>
-        <dd>Post-hoc shared-vs-specific assessment of fitted programs (mashr)</dd>
-
-        <dt>
-
-          <code><a href="program_summary.html">program_summary()</a></code>
-
-        </dt>
-        <dd>Summary of programs per cell type (n, K, R2 of the reconstruction, ELBO)</dd>
-
-        <dt>
-
-          <code><a href="project_programs_to_cells.html">project_programs_to_cells()</a></code>
-
-        </dt>
-        <dd>Project fitted programs onto individual cells</dd>
-
-        <dt>
-
-          <code><a href="sharing_spectrum.html">sharing_spectrum()</a></code>
-
-        </dt>
-        <dd>Pairwise sharing spectra across all cell types</dd>
-
-        <dt>
-
-          <code><a href="simulate_pseudobulk.html">simulate_pseudobulk()</a></code>
-
-        </dt>
-        <dd>Simulate cell-type pseudobulk matrices with planted programs</dd>
-
-        <dt>
-
-          <code><a href="summary.cell_program_data.html">summary(<i>&lt;cell_program_data&gt;</i>)</a></code>
-
-        </dt>
-        <dd>Summarize a cell program data object</dd>
-
-        <dt>
-
-          <code><a href="top_genes.html">top_genes()</a></code>
-
-        </dt>
-        <dd>Top genes of a program</dd>
-
-        <dt>
-
-          <code><a href="union_panel_loadings.html">union_panel_loadings()</a></code>
-
-        </dt>
-        <dd>Refit program loadings on a common (union) gene panel</dd>
-
-        <dt>
-
-          <code><a href="validate_cell_program_data.html">validate_cell_program_data()</a></code>
-
-        </dt>
-        <dd>Validate a cell program data object</dd>
+        <dd>Plot the sharing spectrum</dd>
       </dl></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

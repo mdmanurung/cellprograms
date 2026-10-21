@@ -17,3 +17,4 @@
 \description{
 Print a program-sharing summary
 }
+\keyword{internal}

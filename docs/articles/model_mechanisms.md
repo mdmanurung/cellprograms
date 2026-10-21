@@ -115,7 +115,7 @@ Programs are then labelled `{cell_type}_{k}` and stored as the fit’s
 \
 `Z`` ``<-`` `[`program_scores`](https://mdmanurung.github.io/cellprograms/reference/program_scores.md)`(``fit``)``    ``# observations x all programs (wide matrix)`\
 `W`` ``<-`` `[`program_loadings`](https://mdmanurung.github.io/cellprograms/reference/program_loadings.md)`(``fit``)``  ``# genes x all programs`\
-[`program_summary`](https://mdmanurung.github.io/cellprograms/reference/program_summary.md)`(``fit``)``        ``# per cell type: K, R2, ELBO`\
+[`program_summary`](https://mdmanurung.github.io/cellprograms/reference/program_summary.md)`(``fit``)``        ``# per cell type: n_programs, R2, elbo`\
 [`top_genes`](https://mdmanurung.github.io/cellprograms/reference/top_genes.md)`(``fit``, ``"CD4_1"``, n ``=`` ``10``)`
 
 ### Loadings on a common gene panel
@@ -123,7 +123,8 @@ Programs are then labelled `{cell_type}_{k}` and stored as the fit’s
 With `features = "variable"`, each cell type fits its own gene panel, so
 the per-cell-type loading matrices cannot be compared gene-by-gene
 across cell types. Rather than refitting on the union panel (which the
-model-selection benchmark showed does not improve recovery),
+model-selection benchmark showed does not improve recovery), the
+internal helper
 [`union_panel_loadings()`](https://mdmanurung.github.io/cellprograms/reference/union_panel_loadings.md)
 refits the loadings post hoc: it regresses each cell type’s union-panel
 expression on its fixed program scores by least squares, replaying the
@@ -132,7 +133,7 @@ the result is a gene x program matrix per cell type on the shared panel,
 for cross-cell-type loading comparisons.
 
 \
-`up`` ``<-`` `[`union_panel_loadings`](https://mdmanurung.github.io/cellprograms/reference/union_panel_loadings.md)`(``fit``)`\
+`up`` ``<-`` ``cellprograms``:::`[`union_panel_loadings`](https://mdmanurung.github.io/cellprograms/reference/union_panel_loadings.md)`(``fit``)``   ``# internal, shown for inspection`\
 `up``$``loadings``$``CD4``          ``# genes x programs on the common panel`\
 `up``$``genes``                 ``# the panel (union of per-cell-type fitted genes)`
 
@@ -141,7 +142,7 @@ for cross-cell-type loading comparisons.
 \
 `res`` ``<-`` `[`find_coordinated_programs`](https://mdmanurung.github.io/cellprograms/reference/find_coordinated_programs.md)`(``fit``, strata ``=`` ``"site"``, ambient ``=`` ``"flag"``,`\
 `                                 n_perm ``=`` ``999``)`\
-[`cmp_scores`](https://mdmanurung.github.io/cellprograms/reference/cmp_scores.md)`(``fit``, ``res``)``   ``# donors x CMPs consensus scores`
+`cellprograms``:::`[`cmp_scores`](https://mdmanurung.github.io/cellprograms/reference/cmp_scores.md)`(``fit``, ``res``)``   ``# internal: donors x CMPs consensus scores`
 
 A CMP is a set of programs from \>= 2 cell types whose donor-level
 scores co-vary — they track one shared latent donor activity. Gene
@@ -155,7 +156,8 @@ overlap plays no role in the call. The procedure:
 2.  **Ambient filter.** Programs whose loadings track another cell
     type’s expression specificity (ambient RNA / doublet leakage) are
     dropped (`ambient = "drop"`) or flagged (`ambient = "flag"`), using
-    [`ambient_program_scores()`](https://mdmanurung.github.io/cellprograms/reference/ambient_program_scores.md).
+    the internal ambient-score table (surfaced as the `ambient` element
+    of the result).
 3.  **Edge statistic.** For every cross-cell-type program pair (over the
     donors the two cell types share), T = \tanh^{-1}(r)\sqrt{n-3} where
     r is the **Pearson correlation of the residualized Gaussian-rank
@@ -175,7 +177,7 @@ overlap plays no role in the call. The procedure:
     family-wise error rate of calling *any* CMP is controlled at
     `alpha`.
 6.  **Clustering.** Significant programs are grouped into CMPs by their
-    edge structure;
+    edge structure; the internal
     [`cmp_scores()`](https://mdmanurung.github.io/cellprograms/reference/cmp_scores.md)
     summarizes each CMP as a donor-level consensus score.
 

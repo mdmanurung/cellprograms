@@ -174,8 +174,8 @@ severity context association adjusting for institute and sex:
 \
 `cmp`` ``<-`` `[`find_coordinated_programs`](https://mdmanurung.github.io/cellprograms/reference/find_coordinated_programs.md)`(``fit_masked``, n_perm ``=`` ``999``, seed ``=`` ``1``, min_donors ``=`` ``20``)`\
 `cmp``$``cmps``          ``# per-CMP member programs and consensus scores`\
-[`cmp_context_association`](https://mdmanurung.github.io/cellprograms/reference/cmp_context_association.md)`(``fit_masked``, ``cmp``, ``"severity"``,`\
-`                        covariates ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"institute"``, ``"sex"``)``)`
+[`cmp_triage`](https://mdmanurung.github.io/cellprograms/reference/cmp_triage.md)`(``fit_masked``, ``cmp``, context ``=`` ``"severity"``,`\
+`           covariates ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"institute"``, ``"sex"``)``)`
 
 The masked refits yield **24 CMPs** over 598 significant edges
 (Stephenson) and **21 CMPs** over 255 edges (COMBAT); the unmasked

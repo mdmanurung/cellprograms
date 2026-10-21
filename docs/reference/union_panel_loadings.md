@@ -53,9 +53,9 @@ fit <- canonicalize_programs(fit_celltype_programs(x, max_factors = 3,
                                                    features = "variable",
                                                    n_variable_genes = 150))
 up <- union_panel_loadings(fit)
+#> Error in union_panel_loadings(fit): could not find function "union_panel_loadings"
 sapply(up$loadings, nrow)   # same gene rows for every cell type
-#>    B  CD4  CD8   NK Mono 
-#>  292  292  292  292  292 
+#> Error: object 'up' not found
 up$genes[1:5]
-#> [1] "G160" "G117" "G41"  "G292" "G172"
+#> Error: object 'up' not found
 ```

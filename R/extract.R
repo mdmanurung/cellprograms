@@ -18,7 +18,7 @@
 #' fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 150)
 #' fit <- canonicalize_programs(fit)
 #' program_metadata(fit)
-#' @export
+#' @keywords internal
 program_metadata <- function(fit) .program_table(fit)
 
 #' Program score matrix across all cell types
@@ -170,7 +170,7 @@ top_genes <- function(fit, program, n = 20L, by = c("abs_loading", "lfsr")) {
 #' up <- union_panel_loadings(fit)
 #' sapply(up$loadings, nrow)   # same gene rows for every cell type
 #' up$genes[1:5]
-#' @export
+#' @keywords internal
 union_panel_loadings <- function(fit, genes = NULL) {
   if (!inherits(fit, "cell_program_fit")) {
     .stopf("`fit` must be a cell_program_fit (run fit_celltype_programs() first).")

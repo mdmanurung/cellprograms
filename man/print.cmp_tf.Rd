@@ -17,3 +17,4 @@
 \description{
 Print a CMP transcription-factor triage result
 }
+\keyword{internal}

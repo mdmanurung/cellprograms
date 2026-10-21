@@ -85,6 +85,7 @@
 #' @param seed Master seed; each cell-type pair gets a deterministic sub-seed.
 #' @return A data.frame with columns ct_a, prog_a, ct_b, prog_b, cor, p, q,
 #'   sorted by q then -|cor|. Rows with q < alpha are candidate matches.
+#' @keywords internal
 .match_programs_loadings <- function(fit, n_perm = 199L, seed = 1L) {
   .sharing_check_fit(fit, psd = FALSE)
   if (n_perm < 1L) .stopf("`n_perm` must be >= 1.")
@@ -581,6 +582,7 @@ program_sharing <- function(fit, matches = NULL, alpha = 0.05, n_top = 50L,
 #' @param x A `program_sharing` object from [program_sharing()].
 #' @param ... Ignored.
 #' @return `x`, invisibly.
+#' @keywords internal
 #' @export
 print.program_sharing <- function(x, ...) {
   cat(sprintf("program_sharing: %d matched group(s), %d program(s) assessed\n",

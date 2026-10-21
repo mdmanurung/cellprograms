@@ -51,3 +51,4 @@ fit <- structure(list(
 res <- find_coordinated_programs(fit, n_perm = 99, ambient = "none")
 cmp_gene_overlap(fit, res, top_n = 20)
 }
+\keyword{internal}

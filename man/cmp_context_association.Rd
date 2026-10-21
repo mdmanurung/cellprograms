@@ -47,3 +47,4 @@ fit <- structure(list(
 res <- find_coordinated_programs(fit, n_perm = 99, ambient = "none")
 cmp_context_association(fit, res, "group")
 }
+\keyword{internal}
