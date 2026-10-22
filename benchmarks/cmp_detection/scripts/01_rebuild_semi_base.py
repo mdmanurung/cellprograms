@@ -47,6 +47,11 @@ MAJOR = {
 EXCLUDED = ["B_malignant"]  # malignant cells are not a normal donor program
 
 MIN_CELLS = 50
+# Cell types with fewer than MIN_DONORS donors cannot support the registered
+# CMP-detection K (max_factors = 30 needs n >= K + 2 = 32 under the C4
+# residual-df guard, R/ebmf.R). The lost original semi_base predates that
+# guard; the rebuild drops such types so every retained type is K30-fittable.
+MIN_DONORS = 32
 
 
 def main(h5ad_path, annot_path, semi_dir):
@@ -60,35 +65,77 @@ def main(h5ad_path, annot_path, semi_dir):
     ann["major"] = [fine2major.get(f, "EXCLUDE") for f in ann["full_clustering"]]
     ann = ann[ann["major"] != "EXCLUDE"]
 
-    adata = ad.read_h5ad(h5ad_path, backed="r")
-    obs = adata.obs.copy()
-    print("obs columns:", list(obs.columns))
-    # donor/site/sex/status columns -- verify names on first run
-    # columns PINNED from the actual E-MTAB-10026 h5ad obs (verified 2026-10-22);
-    # heuristics kept only as fallback
-    donor_col = next((c for c in obs.columns if c.lower() in ("patient_id", "donor_id", "donor")), None) or \
-        next(c for c in obs.columns if "sample" in c.lower())
-    site_col = next(c for c in obs.columns if "site" in c.lower() or c.lower() in ("institute", "hospital"))
-    sex_col = next((c for c in obs.columns if c.lower() == "sex"), None)
-    status_col = next((c for c in obs.columns if c.lower() == "status_on_day_collection_summary"), None) or \
-        next(c for c in obs.columns if "status" in c.lower())
+    # ---- direct h5py read (the as-run approach) --------------------------------
+    # anndata's eager .uns read crashes on this OLD-format h5ad (encoding-version
+    # 0.1.0: no raw, no shape dataset in X, categoricals as int codes +
+    # obs/__categories, and a corrupt gzip block in X/indices). Read via h5py.
+    import h5py
+    f = h5py.File(h5ad_path, "r")
+    obs_g = f["obs"]
+
+    def h5col(group, key):
+        # old-format categorical: int codes + labels in obs/__categories/<col>
+        d = np.asarray(group[key][()])
+        if d.dtype.kind in "iu" and "__categories" in group and key in group["__categories"]:
+            cats = np.array([c.decode() if isinstance(c, bytes) else c
+                             for c in group["__categories"][key][()]])
+            return np.where(d >= 0, cats[np.clip(d, 0, len(cats) - 1)], "NA").astype(str)
+        if d.dtype.kind in "OSU":
+            return np.array([x.decode() if isinstance(x, bytes) else str(x) for x in d.reshape(-1)])
+        return d.reshape(-1)
+
+    # obs index: this file stores barcodes in `covid_index` (verified 2026-10-22);
+    # fall back through the usual keys
+    idx_key = next((k for k in ("covid_index", "_index", "index") if k in obs_g), None)
+    assert idx_key, f"no obs index key; have {list(obs_g.keys())}"
+    barcodes = h5col(obs_g, idx_key)
+    # columns PINNED from the actual E-MTAB-10026 h5ad obs (verified 2026-10-22)
+    donors_all = h5col(obs_g, "patient_id").astype(str)
+    site = h5col(obs_g, "Site").astype(str)
+    sex = h5col(obs_g, "Sex").astype(str)
+    status = h5col(obs_g, "Status_on_day_collection_summary").astype(str)
 
     bc2major = ann["major"].to_dict()
-    keep_mask = np.array([b in bc2major for b in obs_names(adata)])
+    majors = np.array([bc2major.get(b, "EXCLUDE") for b in barcodes])
+    keep_mask = majors != "EXCLUDE"
     print(f"cells in annotation: {keep_mask.sum()} / {len(keep_mask)}")
 
-    # counts: prefer .raw (raw counts) if X is not integer-valued
-    X = adata.X if adata.raw is None else adata.raw.X
-    counts_are_int = is_integerish(X[:200] if sparse.issparse(X) else X[:200])
-    if adata.raw is not None and not counts_are_int:
-        print("X is not counts; using .raw.X")
-    genes = list(adata.raw.var_names if (adata.raw is not None and not counts_are_int) else adata.var_names)
+    # X: float32 CSR, no shape dataset (old format) -> derive from obs/var sizes
+    Xg = f["X"] if isinstance(f["X"], h5py.Group) else None
+    var_g = f["var"]
+    vidx = next((k for k in ("_index", "index") if k in var_g), None)
+    assert vidx, f"no var index key; have {list(var_g.keys())}"
+    genes = [g.decode() if isinstance(g, bytes) else str(g) for g in var_g[vidx][()]]
+    n_cells, n_genes = len(barcodes), len(genes)
+    print(f"X: {n_cells} x {n_genes}")
 
-    majors = np.array([bc2major.get(b, "EXCLUDE") for b in obs_names(adata)])
-    donors_all = np.array(obs[donor_col].astype(str))
-    site = np.array(obs[site_col].astype(str))
-    sex = np.array(obs[sex_col].astype(str)) if sex_col else ["NA"] * len(obs)
-    status = np.array(obs[status_col].astype(str))
+    CHUNK = 10_000_000  # large reads trip the gzip filter; chunk at 10M elements
+    nnz = Xg["data"].shape[0]
+    # int32 indices: n_genes < 2^31 and this halves peak memory (7.7 GB -> 3.9 GB)
+    data = np.zeros(nnz, dtype=np.float32)
+    indices = np.zeros(nnz, dtype=np.int32)
+    for s in range(0, nnz, CHUNK):
+        e = min(s + CHUNK, nnz)
+        data[s:e] = Xg["data"][s:e]
+        try:
+            indices[s:e] = Xg["indices"][s:e]
+        except OSError:
+            # corrupt gzip block (~indices[559,150,000:559,250,000)): zero these
+            # CSR entries (data=0 contributes nothing to donor sums); disclosed
+            # deviation in PREREG_mr2-cnmf-v1.md
+            try:
+                idx_chunk = Xg["indices"][s:e]
+                idx_chunk = np.nan_to_num(np.mod(idx_chunk, max(n_genes, 1))).astype(np.int32)
+            except OSError:
+                idx_chunk = np.zeros(e - s, dtype=np.int32)
+            data[s:e] = 0.0
+            indices[s:e] = idx_chunk
+            print(f"WARNING: zeroed corrupt indices block [{s},{e})")
+    indptr = np.asarray(Xg["indptr"][()], dtype=np.int64)
+    X = sparse.csr_matrix((data, indices, indptr), shape=(n_cells, n_genes))
+    f.close()
+    counts_are_int = is_integerish(X[:200] if sparse.issparse(X) else X[:200])
+    print("X integer-valued (counts):", bool(counts_are_int))
 
     os.makedirs(semi_dir, exist_ok=True)
     report = []
@@ -101,6 +148,9 @@ def main(h5ad_path, annot_path, semi_dir):
         sub_donors = donors_all[sel]
         vc = pd.Series(sub_donors).value_counts()
         ok_donors = vc[vc >= MIN_CELLS].index
+        if len(ok_donors) < MIN_DONORS:
+            report.append(f"{major}: dropped, only {len(ok_donors)} donors with >= {MIN_CELLS} cells (< MIN_DONORS={MIN_DONORS}; cannot support K=30)")
+            continue
         sel = sel[np.isin(sub_donors, ok_donors)]
         if not len(sel):
             report.append(f"{major}: 0 donors after >= {MIN_CELLS} cell filter")
@@ -127,10 +177,10 @@ def main(h5ad_path, annot_path, semi_dir):
         report.append(f"{major}: {len(ud)} donors, {len(sel)} cells, {Y.shape[1]} genes")
         dm = pd.DataFrame({
             "donor_id": ud,
-            "site": [np.unique(site[donors_all[sel] == d])[0] for d in ud],
-            "sex": [np.unique(sex[donors_all[sel] == d])[0] for d in ud],
+            "site": [np.unique(site[sel][donors_all[sel] == d])[0] for d in ud],
+            "sex": [np.unique(sex[sel][donors_all[sel] == d])[0] for d in ud],
             "Status_on_day_collection_summary": [
-                np.unique(status[donors_all[sel] == d])[0] for d in ud],
+                np.unique(status[sel][donors_all[sel] == d])[0] for d in ud],
         })
         dm = dm.rename(columns={"donor_id": "donor_id"})
         if donor_meta is None:
