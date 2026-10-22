@@ -99,3 +99,20 @@ scratch volume, all disclosed:**
 - Execution: sharded, per-dataset cache checkpoints (resumable), dedicated
   machine; the run starts only after this file and the rebuilt substrate are in
   place.
+
+## Addendum (2026-10-22, before the run; no rule changes)
+
+1. **Rebuild script language.** The registered "01_rebuild_semi_base.R" is
+   implemented as `scripts/01_rebuild_semi_base.py` (h5ad access is python-side)
+   + `scripts/02_assemble_semi_base.R` (assembles semi_base.rds). The frozen
+   12-major mapping lives in the python script verbatim; B_malignant excluded;
+   ASDC assigned to DC. Naming deviation only; the registered recipe is
+   unchanged.
+2. **cpm_mean operationalized** as the type-level mean CPM profile (gene
+   vector, size factor 1e6), stored per type alongside Y.
+3. **Stability rule operationalized** (cnmf_fit.py): stability_k = 1 -
+   local_density_k / max(local_density over the K grid) from cNMF's
+   k-selection output; chosen K = largest k with stability_k >=
+   max(stability) - 0.05 (ties -> smaller k), per the registered rule.
+4. **cNMF run settings**: seed 14, t=1, num_iter=100, consensus
+   density_threshold 0.2 / local_density_threshold 0.05 (cNMF defaults).
