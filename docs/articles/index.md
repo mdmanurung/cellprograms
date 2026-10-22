@@ -4,8 +4,10 @@
 
 - [Quick start: from pseudobulk to shared
   programs](https://mdmanurung.github.io/cellprograms/articles/quickstart.md):
-- [Metacells with SEACells and mcRigor gamma
+- [Metacells: SuperCell (default) and SEACells with mcRigor gamma
   optimization](https://mdmanurung.github.io/cellprograms/articles/metacells_seacells.md):
+- [From metacells to programs: the SuperCell + mcRigor
+  workflow](https://mdmanurung.github.io/cellprograms/articles/metacells_to_programs.md):
 
 ### Methods
 

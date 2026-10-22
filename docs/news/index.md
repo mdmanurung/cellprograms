@@ -2,6 +2,21 @@
 
 ## cellprograms 0.2.0.9001 (development)
 
+### Metacells-to-programs vignette (2026-10-22)
+
+- New article `vignettes/articles/metacells_to_programs.Rmd`: the full
+  downstream workflow after SuperCell 2.0 + mcRigor metacell
+  construction — metacell counts -\> donor pseudobulk (sum mode is
+  lossless at the donor level) -\>
+  `fit_celltype_programs(feature_scale = "logcounts")` -\>
+  canonicalization -\> stability -\> CMP detection (planted coordinated
+  pair recovered, private programs not called) -\>
+  [`program_sharing()`](https://mdmanurung.github.io/cellprograms/reference/program_sharing.md)
+  -\>
+  [`project_programs_to_cells()`](https://mdmanurung.github.io/cellprograms/reference/project_programs_to_cells.md)
+  back onto the original single cells (per-cell activities recover the
+  planted donor gradient).
+
 ### EB-CP tensor factorization and block EBMF (2026-10-21)
 
 - New
@@ -39,7 +54,31 @@
   preregistration (`benchmarks/coordination/PREREG.md`,
   prereg-coord-v1).
 
-## cellprograms 0.2.0.9000 (development)
+### SuperCell backend (2026-10-22)
+
+- New default R-native metacell path implementing the preregistered
+  benchmark verdict (REPLACE):
+  [`MetacellsByGroupsSuperCell()`](https://mdmanurung.github.io/cellprograms/reference/MetacellsByGroupsSuperCell.md),
+  [`OptimizeGammaSuperCell()`](https://mdmanurung.github.io/cellprograms/reference/OptimizeGammaSuperCell.md)
+  and
+  [`GetMetacellSuperCell()`](https://mdmanurung.github.io/cellprograms/reference/GetMetacellSuperCell.md)
+  wrap SuperCell 2.0 (`SCimplify_for_Seurat_v5`, pinned
+  `GfellerLab/SuperCell@89b34c0`) with the same grouping semantics,
+  mcRigor QC and return structure as the SEACells trio. No
+  Python/basilisk required, and the end-to-end tests run in the plain R
+  test suite (the SEACells e2e stays `CPMC_INTEGRATION`-gated).
+  `target_metacells` is reached by log-gamma bisection;
+  [`OptimizeGammaSuperCell()`](https://mdmanurung.github.io/cellprograms/reference/OptimizeGammaSuperCell.md)
+  optimizes native cells-per-metacell by the mcRigor score. The
+  user-facing surface grows from 42 to 45 verbs.
+- [`MetacellsByGroupsSEACells()`](https://mdmanurung.github.io/cellprograms/reference/MetacellsByGroupsSEACells.md)
+  and the SEACells backend remain exported and unchanged.
+- mcRigor wrapper fix (both backends): `.mcrigor_detect_group()` now
+  passes MC-prefix string labels named by cell id to `mcRigor_DETECT`.
+  Integer codes are coerced to NA by DETECT’s named-membership filter at
+  mcRigor c70cd6f and aborted with “Cannot find cells provided”; the
+  string convention is what the benchmark validated. \# cellprograms
+  0.2.0.9000 (development)
 
 ### Metacell benchmark (2026-10-22)
 

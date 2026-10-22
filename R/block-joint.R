@@ -219,6 +219,7 @@ fit_joint_block <- function(fit, level = c("scores", "expression"),
 #' @param mass_thresh Block-mass threshold for member cell types.
 #' @return data.frame(cluster, cell_type, program_id, stat, fwer_p) with one
 #'   row per member cell type, plus `activity`: donor x cluster state matrix.
+#' @export
 block_clusters <- function(bfit, mass_thresh = 0.1) {
   empty <- data.frame(cluster = integer(), cell_type = character(),
                       program_id = character(), stat = numeric(),

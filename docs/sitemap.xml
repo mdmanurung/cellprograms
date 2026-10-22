@@ -8,6 +8,7 @@
 <url><loc>https://mdmanurung.github.io/cellprograms/articles/immune_aging_cross_cohort.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/articles/index.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/articles/metacells_seacells.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/articles/metacells_to_programs.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/articles/model_mechanisms.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/articles/mofacellular_comparison.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/articles/quickstart.html</loc></url>
@@ -16,8 +17,11 @@
 <url><loc>https://mdmanurung.github.io/cellprograms/index.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/news/index.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/GetMetacellSEACells.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/GetMetacellSuperCell.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/MetacellsByGroupsSEACells.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/MetacellsByGroupsSuperCell.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/OptimizeGammaSEACells.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/OptimizeGammaSuperCell.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/align_programs.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/ambient_program_scores.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/annotate_cmp_lr.html</loc></url>

@@ -453,12 +453,20 @@ preregistered benchmark under `benchmarks/coordination/`.
   : Coordination calls from a block_joint fit (benchmark output
   contract)
 
-## Metacells (SEACells + mcRigor)
+## Metacells (SuperCell + mcRigor)
 
 Optional upstream aggregation of single cells into metacells before
-program discovery. Requires the suggested packages Seurat, mcRigor and
-basilisk (the SEACells Python environment is built on first use).
+program discovery. The default backend is SuperCell 2.0 (pure R, no
+Python) with mcRigor QC and granularity optimization. The SEACells
+backend remains available and additionally requires basilisk (the
+SEACells Python environment is built on first use).
 
+- [`MetacellsByGroupsSuperCell()`](https://mdmanurung.github.io/cellprograms/reference/MetacellsByGroupsSuperCell.md)
+  : Construct metacells by groups with SuperCell and mcRigor QC
+- [`OptimizeGammaSuperCell()`](https://mdmanurung.github.io/cellprograms/reference/OptimizeGammaSuperCell.md)
+  : Optimize SuperCell granularity with mcRigor
+- [`GetMetacellSuperCell()`](https://mdmanurung.github.io/cellprograms/reference/GetMetacellSuperCell.md)
+  : Access metacell results stored by MetacellsByGroupsSuperCell
 - [`MetacellsByGroupsSEACells()`](https://mdmanurung.github.io/cellprograms/reference/MetacellsByGroupsSEACells.md)
   : Construct metacells by groups with SEACells and mcRigor QC
 - [`OptimizeGammaSEACells()`](https://mdmanurung.github.io/cellprograms/reference/OptimizeGammaSEACells.md)
@@ -555,8 +563,10 @@ directly.
 
 - [Quick start: from pseudobulk to shared
   programs](https://mdmanurung.github.io/cellprograms/articles/quickstart.md):
-- [Metacells with SEACells and mcRigor gamma
+- [Metacells: SuperCell (default) and SEACells with mcRigor gamma
   optimization](https://mdmanurung.github.io/cellprograms/articles/metacells_seacells.md):
+- [From metacells to programs: the SuperCell + mcRigor
+  workflow](https://mdmanurung.github.io/cellprograms/articles/metacells_to_programs.md):
 
 ### Methods
 

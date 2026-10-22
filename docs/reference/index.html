@@ -19,7 +19,8 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/quickstart.html">Quick start: from pseudobulk to shared programs</a></li>
-    <li><a class="dropdown-item" href="../articles/metacells_seacells.html">Metacells with SEACells and mcRigor gamma optimization</a></li>
+    <li><a class="dropdown-item" href="../articles/metacells_seacells.html">Metacells: SuperCell (default) and SEACells with mcRigor gamma optimization</a></li>
+    <li><a class="dropdown-item" href="../articles/metacells_to_programs.html">From metacells to programs: the SuperCell + mcRigor workflow</a></li>
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cebmf_backend.html">The cebmf_torch backend: covariate-EBMF in torch</a></li>
     <li><a class="dropdown-item" href="../articles/coordination_joint.html">Joint and tensor factorization: EB-CP and block EBMF</a></li>
@@ -343,9 +344,9 @@
         </dt>
         <dd>Coordination calls from a block_joint fit (benchmark output contract)</dd>
       </dl></div><div class="section level2">
-      <h2 id="metacells-seacells-mcrigor-">Metacells (SEACells + mcRigor)<a class="anchor" aria-label="anchor" href="#metacells-seacells-mcrigor-"></a></h2>
+      <h2 id="metacells-supercell-mcrigor-">Metacells (SuperCell + mcRigor)<a class="anchor" aria-label="anchor" href="#metacells-supercell-mcrigor-"></a></h2>
 
-      <div class="section-desc"><p>Optional upstream aggregation of single cells into metacells before program discovery. Requires the suggested packages Seurat, mcRigor and basilisk (the SEACells Python environment is built on first use).</p></div>
+      <div class="section-desc"><p>Optional upstream aggregation of single cells into metacells before program discovery. The default backend is SuperCell 2.0 (pure R, no Python) with mcRigor QC and granularity optimization. The SEACells backend remains available and additionally requires basilisk (the SEACells Python environment is built on first use).</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -353,6 +354,27 @@
 
 
       <dl><dt>
+
+          <code><a href="MetacellsByGroupsSuperCell.html">MetacellsByGroupsSuperCell()</a></code>
+
+        </dt>
+        <dd>Construct metacells by groups with SuperCell and mcRigor QC</dd>
+
+        <dt>
+
+          <code><a href="OptimizeGammaSuperCell.html">OptimizeGammaSuperCell()</a></code>
+
+        </dt>
+        <dd>Optimize SuperCell granularity with mcRigor</dd>
+
+        <dt>
+
+          <code><a href="GetMetacellSuperCell.html">GetMetacellSuperCell()</a></code>
+
+        </dt>
+        <dd>Access metacell results stored by MetacellsByGroupsSuperCell</dd>
+
+        <dt>
 
           <code><a href="MetacellsByGroupsSEACells.html">MetacellsByGroupsSEACells()</a></code>
 

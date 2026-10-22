@@ -1,0 +1,65 @@
+# Optimize SuperCell granularity with mcRigor
+
+Runs SuperCell's SCimplify at several granularities (cells per metacell
+— SuperCell's native \`gamma\`) per group and calls
+\`mcRigor::mcRigor_OPTIMIZE\` to select the granularity maximizing the
+mcRigor Score (1 - w\*DubRate - (1-w)\*ZeroRate). Cheap relative to the
+SEACells analogue: one graph partition per group per candidate
+granularity (seconds).
+
+## Usage
+
+``` r
+OptimizeGammaSuperCell(
+  seurat_obj,
+  group.by = "seurat_clusters",
+  gammas = c(25, 50, 100),
+  reduction = "pca",
+  dims = NULL,
+  assay = "RNA",
+  slot = "counts",
+  layer = "counts",
+  min_cells = 100,
+  k.knn = 30,
+  n_top_genes = 2000,
+  n_pc = 30,
+  mcrigor_args = list(),
+  seed = 20261016,
+  verbose = TRUE
+)
+```
+
+## Arguments
+
+- seurat_obj:
+
+  A Seurat object.
+
+- group.by:
+
+  Metadata column(s) defining groups (as in
+  \[MetacellsByGroupsSuperCell()\]).
+
+- gammas:
+
+  Candidate granularities as cells-per-metacell values. Default \`c(25,
+  50, 100)\`.
+
+- reduction, :
+
+  dims, assay, slot, layer, n_top_genes, n_pc, k.knn, min_cells, seed,
+  verbose Passed to \[MetacellsByGroupsSuperCell()\] internals.
+
+- mcrigor_args:
+
+  Optional named list overriding mcRigor_OPTIMIZE arguments (\`Nrep\`,
+  \`weight\`, ...).
+
+## Value
+
+A list with \`optimal_gamma\` (named list, per group), \`scores\` (per
+group x gamma Score table), and \`membership\` (named list of per-group
+membership vectors for the chosen granularity, one entry per cell; NULL
+when no group produced a result). Gammas whose membership collapses to a
+single metacell cannot be scored by mcRigor and are dropped with a
+warning (\`NA\` in \`scores\`).
