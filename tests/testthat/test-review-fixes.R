@@ -232,7 +232,8 @@ test_that("cebmf_torch backend warns on non-converged fits (M-2)", {
   )
   testthat::local_mocked_bindings(.fit_via_cebmf = function(...) fake)
   expect_warning(
-    fit_celltype_programs(cpd, max_factors = 2, backend = "cebmf_torch", seed = 1),
+    fit_celltype_programs(cpd, max_factors = 2, backend = "cebmf_torch", seed = 1,
+                         loading_prior = "laplace", var_type = 2, nullcheck = FALSE),
     "did not converge")
 })
 

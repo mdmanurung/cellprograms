@@ -154,7 +154,8 @@ test_that("cebmf_torch backend fits, canonicalizes, and reports NA elbo", {
   skip_on_os("mac")
   Y <- .synth_counts()$Y
   cpd <- as_cell_program_data(list(CT1 = Y))
-  fit <- fit_celltype_programs(cpd, backend = "cebmf_torch", max_factors = 4, seed = 1)
+  fit <- fit_celltype_programs(cpd, backend = "cebmf_torch", max_factors = 4, seed = 1,
+                               loading_prior = "laplace", var_type = 2, nullcheck = FALSE)
   fl <- fit$fits$CT1$flash
   expect_equal(fl$backend, "cebmf_torch")
   expect_true(fl$n_factors >= 1)
@@ -179,8 +180,10 @@ test_that("cebmf_torch backend is deterministic at a fixed seed", {
   skip_on_os("mac")
   Y <- .synth_counts()$Y
   cpd <- as_cell_program_data(list(CT1 = Y))
-  f1 <- fit_celltype_programs(cpd, backend = "cebmf_torch", max_factors = 4, seed = 42)
-  f2 <- fit_celltype_programs(cpd, backend = "cebmf_torch", max_factors = 4, seed = 42)
+  f1 <- fit_celltype_programs(cpd, backend = "cebmf_torch", max_factors = 4, seed = 42,
+                              loading_prior = "laplace", var_type = 2, nullcheck = FALSE)
+  f2 <- fit_celltype_programs(cpd, backend = "cebmf_torch", max_factors = 4, seed = 42,
+                              loading_prior = "laplace", var_type = 2, nullcheck = FALSE)
   expect_true(all.equal(f1$fits$CT1$flash$L_pm,
                         f2$fits$CT1$flash$L_pm) == TRUE)
   expect_true(all.equal(f1$fits$CT1$flash$F_pm,
@@ -197,7 +200,8 @@ test_that("cebmf_torch backend recovers the planted programs (parity bar 0.8)", 
   skip_if_not_installed("flashier")
   Y <- .synth_counts()$Y
   cpd <- as_cell_program_data(list(CT1 = Y))
-  fc <- fit_celltype_programs(cpd, backend = "cebmf_torch", max_factors = 4, seed = 1)
+  fc <- fit_celltype_programs(cpd, backend = "cebmf_torch", max_factors = 4, seed = 1,
+                              loading_prior = "laplace", var_type = 2, nullcheck = FALSE)
   ff <- fit_celltype_programs(cpd, backend = "flashier", max_factors = 4, seed = 1)
   Lc <- fc$fits$CT1$flash$L_pm
   Lf <- ff$fits$CT1$flash$L_pm
@@ -223,7 +227,8 @@ test_that("var_floor passes through the cebmf_torch backend as a fixed S", {
   Y <- .synth_counts()$Y
   cpd <- as_cell_program_data(list(CT1 = Y))
   fit <- fit_celltype_programs(cpd, backend = "cebmf_torch", max_factors = 4,
-                               seed = 1, var_floor = 0.5)
+                               seed = 1, var_floor = 0.5,
+                               loading_prior = "laplace", var_type = 2, nullcheck = FALSE)
   expect_identical(fit$fits$CT1$S_used, 0.5)
   expect_identical(fit$preprocessing$var_floor, 0.5)
   expect_true(fit$fits$CT1$flash$n_factors >= 1)

@@ -32,18 +32,17 @@ fit_celltype_programs(
 \item{x}{A `cell_program_data` object.}
 
 \item{loading_prior}{Gene-side EBNM prior family: "point_laplace" (default),
-"point_normal", or "unimodal".}
+"point_normal", or "unimodal". The distinct optional torch estimator
+requires explicit "laplace" (Laplace activity and loading priors).}
 
 \item{max_factors}{Maximum candidate factors per cell type (greedy_Kmax).
 Must leave at least one residual degree of freedom per cell type:
 the fit aborts if `max_factors > n - q - 1`, where n is the number of
 donors for the cell type and q the number of covariate columns adjusted
 for (safety guard; never binds at n >= 50 with `max_factors <= 10`).
-Default 10: benchmarked on COMBAT pseudobulk (32-config factorial),
-K=10 dominated all prior/variance/backfit combinations; K >= 30
-overfits and collapses disease-signal recovery. For coordinated-program
-detection (`find_coordinated_programs()`), use `max_factors = 30`: it
-raised CMP membership F1 in the cmp-bench-v1.2 held-out benchmark.}
+Default 10. Historical study-specific rank comparisons do not establish
+a universal optimum; freeze a study's rank/tuning policy independently of
+test outcomes rather than increasing rank to obtain coordination calls.}
 
 \item{center}{Center genes within each cell type (default TRUE).}
 
@@ -96,8 +95,7 @@ levels carried by a single donor trigger a leverage warning.}
 `"fixed"` (soft, SOFA-style: the covariate design columns enter flashier as
 fixed sample-side factors with unshrunk gene effects, and the K free
 programs are fit jointly with them; free programs can still share
-variance with a covariate. Requires `center = TRUE`, ignores
-`flash_control`). Fixed columns are not returned as programs;
+variance with a covariate. Requires `center = TRUE`). Fixed columns are not returned as programs;
 `Y_used` is `Y` minus the fitted covariate part. Note: `"fixed"` fits
 cannot be projected to single cells — `project_programs_to_cells()`
 refuses them because the fixed covariate adjustment cannot be replayed
@@ -114,7 +112,8 @@ batch-adjusted fits (the adjustment cannot yet be replayed on a query).}
 
 \item{seed}{Random seed for reproducibility.}
 
-\item{flash_control}{Optional list overriding flashier::flash arguments.}
+\item{flash_control}{Optional named list containing only `verbose`.
+Scientific estimator controls must use the explicit arguments.}
 
 \item{feature_scale}{Declared measurement units of the pseudobulk
 expression values, recorded in the fit manifest and required for
@@ -135,8 +134,11 @@ frozen genes must be present in the dataset.}
 
 \item{backend}{EBMF implementation: `"flashier"` (default; the
 flashier.utils R backend, with a nullcheck fallback ladder) or
-`"cebmf_torch"` (the covariate-EBMF torch backend, which fails loudly
-instead of falling back). Both backends share preprocessing, program
+`"cebmf_torch"` (a distinct experimental Laplace/Laplace estimator).
+Torch requires explicit `loading_prior="laplace"`, `var_type=2`,
+`backfit=TRUE`, `nullcheck=FALSE`, no fixed covariates and empty
+`flash_control`; incompatible requests fail before Python.
+Both backends share preprocessing, program
 extraction, and the output contract, with two exceptions: torch fits
 carry no posterior SDs (so `program_sharing()` is unavailable) and
 cannot be projected to single cells with `project_programs_to_cells()`
@@ -150,10 +152,10 @@ estimated as usual), `"vignette"` (fixed at the flashier single-cell
 vignette's S = sd(log(Poisson(1/n) + 1)), drawn once per cell type with a
 fixed local seed, so the value is deterministic and independent of
 `seed`), or a positive numeric scalar S (residual SDs fixed at S). Fixed
-S binds on the `cebmf_torch` backend. On the `flashier` backend the
-value is passed through but does not currently bind (CAND-13: fits with
-and without a fixed scalar S are bit-identical at the pinned flashier
-version); a fail-closed remediation is pending.}
+S uses known-noise mode on both backends; flashier is called internally
+with `var_type=NULL`. This is fixed noise, not a lower bound on estimated
+noise. Effective engine, priors, noise and fallback settings are recorded
+in each nondegenerate cell-type fit's `effective_config`.}
 }
 \value{
 The input object augmented with class `cell_program_fit` and

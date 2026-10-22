@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
+from .convergence import loss_plateau
 
 import numpy as np
 import torch
@@ -160,16 +161,9 @@ def _fit_once(Y: torch.Tensor, cfg: FitConfig) -> FitResult:
                 "missing-data effect; reduce K, check input scaling, or report upstream."
             )
         it += step
-        if len(trace) >= 2:
-            scale = max(abs(trace[-1]), abs(trace[0]), 1e-300)
-            gain = (trace[-2] - trace[-1]) / scale  # loss decrease = improvement
-            if gain < cfg.elbo_tol:
-                tail = trace[-(cfg.elbo_patience + 1):]
-                if len(tail) == cfg.elbo_patience + 1:
-                    deltas = (np.diff(tail) * -1) / scale  # improvements
-                    if np.all(deltas < cfg.elbo_tol):
-                        converged = True
-                        break
+        if loss_plateau(trace, cfg.elbo_tol, cfg.elbo_patience):
+            converged = True
+            break
     import resource
 
     peak_gb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e6  # Linux: KB

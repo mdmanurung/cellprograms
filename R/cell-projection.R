@@ -197,7 +197,7 @@ project_programs_to_cells <- function(fit, expression, cell_types,
       }
       X <- .replay_design(donors[cells_ct], sample_metadata,
                           .spec_covariates(fit$preprocessing$covariates),
-                          replay$design_columns, ct)
+                          replay$design_columns, ct, state = replay$design_state)
       beta <- replay$residualize_coefficients
       # R2/F2 (covariate audit): aliased columns of a rank-deficient design
       # carry NA coefficients (lm.fit pivot); the in-sample fitted values used
@@ -261,31 +261,11 @@ project_programs_to_cells <- function(fit, expression, cell_types,
   )
 }
 
-# Rebuild the covariate design for the query donors of one cell type and
-# check it against the design recorded at fit time. Fail closed: any column
-# difference (a covariate level lost or gained among query donors) aborts,
-# because silently projecting through a different adjustment would corrupt
-# the activities.
+# Replay the effective trained terms, levels, contrasts and transforms.
 .replay_design <- function(donors, sample_metadata, covariates,
-                           design_columns, ct) {
-  absent <- setdiff(unique(donors), sample_metadata$observation_id)
-  if (length(absent)) {
-    cli::cli_abort("{length(absent)} query donor(s) missing from {.arg sample_metadata}, e.g. {.val {absent[1]}}.")
+                           design_columns, ct, state = NULL) {
+  if (!is.null(state)) {
+    return(.predict_covariate_design(state, donors, sample_metadata, ct))
   }
-  f <- if (inherits(covariates, "formula")) covariates
-       else stats::reformulate(covariates)
-  vars <- all.vars(f)
-  m <- sample_metadata[match(donors, sample_metadata$observation_id),
-                       vars, drop = FALSE]
-  if (anyNA(m)) {
-    cli::cli_abort("Missing covariate values for query donors of cell type {.val {ct}}; impute or drop them first.")
-  }
-  X <- stats::model.matrix(f, m)
-  if (!identical(colnames(X), design_columns)) {
-    cli::cli_abort(c(
-      "Replayed covariate design for cell type {.val {ct}} does not match the design recorded at fit time.",
-      i = "A covariate level present at fit time is absent among the query donors (or a new level appears): the adjustment cannot be replayed. Align the query cohort or refit."
-    ))
-  }
-  X
+  cli::cli_abort("Missing trained covariate design state; refit legacy residualized models before projection.")
 }

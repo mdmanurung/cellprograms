@@ -13,7 +13,8 @@ freeze_preprocessing(
   covariates = NULL,
   covariate_mode = c("residualize", "fixed"),
   center = TRUE,
-  scale = FALSE
+  scale = FALSE,
+  feature_scale = "unknown"
 )
 }
 \arguments{
@@ -44,6 +45,8 @@ deparsed string so the spec serializes and digests stably).}
 \item{center}{Center genes within each cell type (default TRUE).}
 
 \item{scale}{Unit-variance scale genes (default FALSE; not recommended).}
+
+\item{feature_scale}{Declared measurement units (default "unknown").}
 }
 \value{
 A list of class `cell_program_preproc_spec` with components

@@ -190,3 +190,25 @@
   if (is.null(tr) || !length(tr)) return(FALSE)
   all(is.finite(tr)) && is.finite(sum(fit$L_pm)) && is.finite(sum(fit$F_pm))
 }
+
+# The optional torch wrapper is a distinct Laplace/Laplace estimator, not a
+# computational replacement for ordinary normal/point-Laplace EBMF.
+.validate_backend_config <- function(backend, loading_prior, var_type, backfit,
+                                    nullcheck, covariates, covariate_mode,
+                                    flash_control) {
+  if (!is.list(flash_control) || (length(flash_control) &&
+      (is.null(names(flash_control)) || anyDuplicated(names(flash_control)) ||
+       any(!names(flash_control) %in% "verbose")))) {
+    cli::cli_abort("These flash_control values cannot be mapped safely. Only named flash_control$verbose is supported. Specify estimator controls through their explicit arguments; ignored or overriding controls are refused.")
+  }
+  if (backend != "cebmf_torch") return(invisible(TRUE))
+  if (covariate_mode == "fixed" && !is.null(covariates)) {
+    cli::cli_abort("cebmf_torch has no fixed-loadings path; use residualize or backend = 'flashier'.")
+  }
+  if (!identical(loading_prior, "laplace") ||
+      !isTRUE(all.equal(var_type, 2)) || !isTRUE(backfit) ||
+      !identical(nullcheck, FALSE) || length(flash_control)) {
+    cli::cli_abort("cebmf_torch is a distinct experimental Laplace/Laplace estimator: explicitly set loading_prior = 'laplace', var_type = 2, backfit = TRUE, nullcheck = FALSE, and leave flash_control empty. Ordinary EBMF defaults are not equivalent.")
+  }
+  invisible(TRUE)
+}

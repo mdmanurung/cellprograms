@@ -35,6 +35,7 @@
 #'   "residualize" (default) or "fixed".
 #' @param center Center genes within each cell type (default TRUE).
 #' @param scale Unit-variance scale genes (default FALSE; not recommended).
+#' @param feature_scale Declared measurement units (default "unknown").
 #'
 #' @return A list of class `cell_program_preproc_spec` with components
 #'   `spec_version`, `feature_sets` (named list of gene ID vectors per cell
@@ -56,7 +57,8 @@ freeze_preprocessing <- function(x, features = "all", n_variable_genes = 2000,
                                  exclude_genes = NULL, exclude_artifacts = FALSE,
                                  covariates = NULL,
                                  covariate_mode = c("residualize", "fixed"),
-                                 center = TRUE, scale = FALSE) {
+                                 center = TRUE, scale = FALSE,
+                                 feature_scale = "unknown") {
   stopifnot(inherits(x, "cell_program_data"))
   covariate_mode <- match.arg(covariate_mode)
   stopifnot(is.logical(center), length(center) == 1L, !is.na(center),
@@ -72,6 +74,7 @@ freeze_preprocessing <- function(x, features = "all", n_variable_genes = 2000,
     exclude_genes <- union(exclude_genes, artifact_genes(universe))
   }
   if (!is.null(covariates)) {
+    .validate_covariate_formula(covariates)
     vars <- if (inherits(covariates, "formula")) all.vars(covariates) else covariates
     absent <- setdiff(vars, names(x$sample_metadata))
     if (length(absent)) {
@@ -80,7 +83,7 @@ freeze_preprocessing <- function(x, features = "all", n_variable_genes = 2000,
   }
   feature_sets <- .select_features(x, features, n_variable_genes, exclude_genes)
   spec <- list(
-    spec_version = "1.0.0",
+    spec_version = "1.1.0",
     feature_sets = feature_sets,
     exclude_genes = if (is.null(exclude_genes)) NULL else sort(unique(exclude_genes)),
     exclude_artifacts = isTRUE(exclude_artifacts),
@@ -90,11 +93,50 @@ freeze_preprocessing <- function(x, features = "all", n_variable_genes = 2000,
     covariate_mode = covariate_mode,
     center = center,
     scale = scale,
+    feature_scale = .validate_feature_scale(feature_scale),
     gene_universe = sort(universe)
   )
   class(spec) <- c("cell_program_preproc_spec", "list")
   spec$digest <- digest::digest(spec, algo = "sha256")
   spec
+}
+
+.validate_feature_scale <- function(x) {
+  if (!is.character(x) || length(x) != 1L || is.na(x) || !nzchar(x)) {
+    cli::cli_abort("{.arg feature_scale} must be a nonempty declared unit string.")
+  }
+  x
+}
+
+# Version 1.0 specs remain readable only when their original digest is intact.
+# Their units are unknown; never infer units from numerical appearance.
+.validate_preproc_spec <- function(spec) {
+  if (!inherits(spec, "cell_program_preproc_spec")) {
+    cli::cli_abort("{.arg preprocessing_spec} must come from freeze_preprocessing().")
+  }
+  if (!is.character(spec$spec_version) || length(spec$spec_version) != 1L ||
+      is.na(spec$spec_version) || !spec$spec_version %in% c("1.0.0", "1.1.0") ||
+      !is.character(spec$digest) || length(spec$digest) != 1L || is.na(spec$digest)) {
+    cli::cli_abort("Unsupported preprocessing spec schema or missing digest; refreeze from the discovery data.")
+  }
+  original <- spec$digest
+  spec$digest <- NULL
+  if (!identical(original, digest::digest(spec, algo = "sha256"))) {
+    cli::cli_abort("Frozen preprocessing spec digest mismatch: contents changed. Refreeze deliberately; do not reuse a stale hash.")
+  }
+  required <- c("feature_sets", "covariate_mode", "center", "scale", "gene_universe")
+  if (!all(required %in% names(spec)) || !is.list(spec$feature_sets) ||
+      is.null(names(spec$feature_sets)) || anyDuplicated(names(spec$feature_sets)) ||
+      !length(spec$feature_sets) ||
+      any(!vapply(spec$feature_sets, function(g) is.character(g) && length(g) > 0L &&
+        !anyNA(g) && !anyDuplicated(g) && all(nzchar(g)), logical(1))) ||
+      !spec$covariate_mode %in% c("residualize", "fixed") ||
+      !is.logical(spec$center) || length(spec$center) != 1L || is.na(spec$center) ||
+      !is.logical(spec$scale) || length(spec$scale) != 1L || is.na(spec$scale)) {
+    cli::cli_abort("Malformed frozen preprocessing spec; refreeze from discovery data.")
+  }
+  if (spec$spec_version == "1.1.0") .validate_feature_scale(spec$feature_scale)
+  invisible(TRUE)
 }
 
 # Rehydrate the covariates stored in a frozen spec: a deparsed one-sided

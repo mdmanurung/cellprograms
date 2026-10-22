@@ -8,17 +8,16 @@
 #'
 #' @param x A `cell_program_data` object.
 #' @param loading_prior Gene-side EBNM prior family: "point_laplace" (default),
-#'   "point_normal", or "unimodal".
+#'   "point_normal", or "unimodal". The distinct optional torch estimator
+#'   requires explicit "laplace" (Laplace activity and loading priors).
 #' @param max_factors Maximum candidate factors per cell type (greedy_Kmax).
 #'   Must leave at least one residual degree of freedom per cell type:
 #'   the fit aborts if `max_factors > n - q - 1`, where n is the number of
 #'   donors for the cell type and q the number of covariate columns adjusted
 #'   for (safety guard; never binds at n >= 50 with `max_factors <= 10`).
-#'   Default 10: benchmarked on COMBAT pseudobulk (32-config factorial),
-#'   K=10 dominated all prior/variance/backfit combinations; K >= 30
-#'   overfits and collapses disease-signal recovery. For coordinated-program
-#'   detection (`find_coordinated_programs()`), use `max_factors = 30`: it
-#'   raised CMP membership F1 in the cmp-bench-v1.2 held-out benchmark.
+#'   Default 10. Historical study-specific rank comparisons do not establish
+#'   a universal optimum; freeze a study's rank/tuning policy independently of
+#'   test outcomes rather than increasing rank to obtain coordination calls.
 #' @param center Center genes within each cell type (default TRUE).
 #' @param scale Unit-variance scale genes (default FALSE; not recommended).
 #' @param features Feature selection mode: "all", "variable", or a named list
@@ -60,8 +59,7 @@
 #'   `"fixed"` (soft, SOFA-style: the covariate design columns enter flashier as
 #'   fixed sample-side factors with unshrunk gene effects, and the K free
 #'   programs are fit jointly with them; free programs can still share
-#'   variance with a covariate. Requires `center = TRUE`, ignores
-#'   `flash_control`). Fixed columns are not returned as programs;
+#'   variance with a covariate. Requires `center = TRUE`). Fixed columns are not returned as programs;
 #'   `Y_used` is `Y` minus the fitted covariate part. Note: `"fixed"` fits
 #'   cannot be projected to single cells — `project_programs_to_cells()`
 #'   refuses them because the fixed covariate adjustment cannot be replayed
@@ -75,7 +73,8 @@
 #'   a frozen `preprocessing_spec`; `project_programs_to_cells()` refuses
 #'   batch-adjusted fits (the adjustment cannot yet be replayed on a query).
 #' @param seed Random seed for reproducibility.
-#' @param flash_control Optional list overriding flashier::flash arguments.
+#' @param flash_control Optional named list containing only `verbose`.
+#'   Scientific estimator controls must use the explicit arguments.
 #' @param feature_scale Declared measurement units of the pseudobulk
 #'   expression values, recorded in the fit manifest and required for
 #'   `project_programs_to_cells()` (the projection oracle refuses queries
@@ -93,8 +92,11 @@
 #'   frozen genes must be present in the dataset.
 #' @param backend EBMF implementation: `"flashier"` (default; the
 #'   flashier.utils R backend, with a nullcheck fallback ladder) or
-#'   `"cebmf_torch"` (the covariate-EBMF torch backend, which fails loudly
-#'   instead of falling back). Both backends share preprocessing, program
+#'   `"cebmf_torch"` (a distinct experimental Laplace/Laplace estimator).
+#'   Torch requires explicit `loading_prior="laplace"`, `var_type=2`,
+#'   `backfit=TRUE`, `nullcheck=FALSE`, no fixed covariates and empty
+#'   `flash_control`; incompatible requests fail before Python.
+#'   Both backends share preprocessing, program
 #'   extraction, and the output contract, with two exceptions: torch fits
 #'   carry no posterior SDs (so `program_sharing()` is unavailable) and
 #'   cannot be projected to single cells with `project_programs_to_cells()`
@@ -107,10 +109,10 @@
 #'   vignette's S = sd(log(Poisson(1/n) + 1)), drawn once per cell type with a
 #'   fixed local seed, so the value is deterministic and independent of
 #'   `seed`), or a positive numeric scalar S (residual SDs fixed at S). Fixed
-#'   S binds on the `cebmf_torch` backend. On the `flashier` backend the
-#'   value is passed through but does not currently bind (CAND-13: fits with
-#'   and without a fixed scalar S are bit-identical at the pinned flashier
-#'   version); a fail-closed remediation is pending.
+#'   S uses known-noise mode on both backends; flashier is called internally
+#'   with `var_type=NULL`. This is fixed noise, not a lower bound on estimated
+#'   noise. Effective engine, priors, noise and fallback settings are recorded
+#'   in each nondegenerate cell-type fit's `effective_config`.
 #'
 #' @return The input object augmented with class `cell_program_fit` and
 #'   components `fits` (per-cell-type backend fits with preprocessing replay
@@ -201,9 +203,6 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
   if (covariate_mode == "fixed" && !is.null(covariates) && !center) {
     cli::cli_abort("{.code covariate_mode = \"fixed\"} requires {.code center = TRUE}.")
   }
-  if (backend == "cebmf_torch" && covariate_mode == "fixed" && !is.null(covariates)) {
-    cli::cli_abort("{.code covariate_mode = \"fixed\"} requires {.code backend = \"flashier\"}: the cebmf_torch backend has no fixed-loadings path. Use {.code covariate_mode = \"residualize\"} (the default) with this backend.")
-  }
   if (!requireNamespace("flashier", quietly = TRUE) ||
       !requireNamespace("ebnm", quietly = TRUE)) {
     cli::cli_abort("Packages {.pkg flashier} and {.pkg ebnm} are required.")
@@ -225,6 +224,8 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     point_normal = ebnm::ebnm_point_normal,
     point_laplace = ebnm::ebnm_point_laplace,
     unimodal = ebnm::ebnm_unimodal,
+    laplace = if (backend == "cebmf_torch") NULL else
+      cli::cli_abort("loading_prior = 'laplace' is only supported by the distinct experimental cebmf_torch estimator."),
     cli::cli_abort("Unknown {.arg loading_prior}: {.val {loading_prior}}.")
   )
 
@@ -234,9 +235,7 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
   # panel; the spec digest is recorded in the fit's preprocessing provenance.
   frozen_digest <- NULL
   if (!is.null(preprocessing_spec)) {
-    if (!inherits(preprocessing_spec, "cell_program_preproc_spec")) {
-      cli::cli_abort("{.arg preprocessing_spec} must come from freeze_preprocessing().")
-    }
+    .validate_preproc_spec(preprocessing_spec)
     provided <- list(features = features, n_variable_genes = n_variable_genes,
       exclude_genes = exclude_genes, exclude_artifacts = exclude_artifacts,
       covariates = covariates, covariate_mode = covariate_mode,
@@ -267,6 +266,9 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     covariate_mode <- preprocessing_spec$covariate_mode
     center <- preprocessing_spec$center
     scale <- preprocessing_spec$scale
+    feature_scale <- if (identical(preprocessing_spec$spec_version, "1.1.0")) {
+      preprocessing_spec$feature_scale
+    } else "unknown"
     frozen_digest <- preprocessing_spec$digest
   }
 
@@ -276,6 +278,11 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
   if (covariate_mode == "fixed" && !is.null(covariates) && !center) {
     cli::cli_abort("{.code covariate_mode = \"fixed\"} requires {.code center = TRUE}.")
   }
+  feature_scale <- .validate_feature_scale(feature_scale)
+  # Resolve frozen preprocessing before checking support. Nothing may be
+  # silently ignored or replaced by a backend's hardcoded defaults.
+  .validate_backend_config(backend, loading_prior, var_type, backfit, nullcheck,
+                           covariates, covariate_mode, flash_control)
 
   # Without a frozen spec, resolve the feature panel from the arguments.
   # With one, feature_sets was already taken from the spec above: re-running
@@ -306,7 +313,8 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     # data into the same space (residualization coefficients, then the
     # centering/scale values actually used here).
     replay <- list(center = rep(0, ncol(Y)), scale = rep(1, ncol(Y)),
-                   residualize_coefficients = NULL, design_columns = NULL)
+                   residualize_coefficients = NULL, design_columns = NULL,
+                   design_state = NULL, schema_version = "1.1.0")
     if (!is.null(Xres)) {
       res <- stats::lm.fit(Xres, Y)
       R <- res$residuals
@@ -314,6 +322,7 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
       Y <- R
       replay$residualize_coefficients <- res$coefficients
       replay$design_columns <- colnames(Xres)
+      replay$design_state <- attr(Xres, "prediction_state")
     }
     if (center) {
       Y <- scale(Y, center = TRUE, scale = scale)
@@ -403,7 +412,12 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     } else if (!is.null(S_value)) {
       S_vf <- S_value
     }
-    if (!is.null(S_vf)) args$S <- S_vf
+    if (!is.null(S_vf)) {
+      args$S <- S_vf
+      # flashier var_type=0 still estimates a shared variance. NULL means
+      # known noise; leaving var_type=1 here silently ignored scalar S.
+      args["var_type"] <- list(NULL)
+    }
 
     t0 <- Sys.time()
     withr::local_seed(seed)
@@ -493,6 +507,18 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
       elapsed_secs = elapsed,
       fallback = fallback,
       S_used = args$S,
+      effective_config = list(
+        backend = backend,
+        engine_path = if (backend == "cebmf_torch") "cebmf_ext" else if
+          (!is.null(Xc)) "flashier_fixed" else if (ordinary)
+            "flashier.utils" else "flashier",
+        sample_prior = if (backend == "cebmf_torch") "laplace" else "normal",
+        loading_prior = if (grepl("point_normal", fallback)) "point_normal" else loading_prior,
+        var_type = args$var_type, noise_sd = args$S,
+        noise_mode = if (!is.null(args$S)) "known_fixed" else "estimated",
+        backfit = backfit,
+        nullcheck = if (grepl("no_nullcheck", fallback)) FALSE else nullcheck,
+        max_factors = max_factors),
       preproc_replay = replay
     )
   }
@@ -545,6 +571,11 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
 .cov_design <- function(ids, meta, covariates, ct, intercept = TRUE) {
   f <- if (inherits(covariates, "formula")) covariates
        else stats::reformulate(covariates)
+  .validate_covariate_formula(f)
+  if (anyDuplicated(meta$observation_id) || anyNA(meta$observation_id) ||
+      length(setdiff(ids, meta$observation_id))) {
+    cli::cli_abort("Training sample metadata must cover donors with unique nonmissing observation_id values.")
+  }
   vars <- all.vars(f)
   absent <- setdiff(vars, names(meta))
   if (length(absent)) {
@@ -572,7 +603,16 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     f <- stats::reformulate(tl)   # all-constant case already returned NULL above
     m <- m[, vars[!const], drop = FALSE]
   }
-  X <- stats::model.matrix(f, m)
+  f <- .trained_covariate_formula(f, m)
+  mf <- stats::model.frame(f, m, na.action = stats::na.fail)
+  tt <- stats::terms(mf)
+  X <- stats::model.matrix(tt, mf)
+  state <- list(schema_version = "1.0.0", terms = tt,
+                xlevels = lapply(mf[vapply(mf, function(v) is.factor(v) ||
+                  is.character(v), logical(1))], function(v) levels(factor(v))),
+                contrasts = attr(X, "contrasts"), columns = colnames(X),
+                variables = all.vars(f))
+  if (any(!is.finite(X))) cli::cli_abort("Covariate design must be finite.")
   rk <- qr(X)$rank
   if (nrow(X) - rk < 10L) {
     cli::cli_abort("Too few donors ({nrow(X)}) in {.val {ct}} for {rk} covariate column(s): need >= 10 residual degrees of freedom.")
@@ -587,6 +627,8 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     q <- qr(X)
     X <- X[, sort(q$pivot[seq_len(q$rank)]), drop = FALSE]
     attr(X, "scaled:center") <- attr(X, "scaled:scale") <- NULL
+  } else {
+    attr(X, "prediction_state") <- state
   }
   X
 }
@@ -599,7 +641,7 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
 .flash_fixed <- function(args, Xc) {
   Y <- args$data; q <- ncol(Xc)
   F0 <- t(solve(crossprod(Xc), crossprod(Xc, Y)))
-  fl <- flashier::flash_init(Y, var_type = args$var_type) |>
+  fl <- flashier::flash_init(Y, S = args$S, var_type = args$var_type) |>
     flashier::flash_set_verbose(args$verbose) |>
     flashier::flash_factors_init(
       list(Xc, F0),

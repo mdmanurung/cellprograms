@@ -85,7 +85,7 @@ test_that("covariate residualization replays with donors + metadata and refuses 
     cell_types = cells), "donors")
 })
 
-test_that("replayed covariate design mismatch fails closed", {
+test_that("replayed trained covariate design preserves dropped constant terms", {
   sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
   meta <- data.frame(observation_id = paste0("obs", seq_len(24)),
                      sex = factor(rep(c("F", "M"), each = 12)),
@@ -95,10 +95,10 @@ test_that("replayed covariate design mismatch fails closed", {
   ct <- fit$cell_types[1]
   cells <- setNames(rep(ct, 24), rownames(fit$fits[[ct]]$Y_used))
   donors <- setNames(rownames(fit$fits[[ct]]$Y_used), rownames(fit$fits[[ct]]$Y_used))
-  # fit time: constant `site` dropped for this cell type; replay rebuilds the
-  # full formula and gets an extra (zero) column -> fail closed
-  expect_error(project_programs_to_cells(fit, sim$pseudobulk[[ct]], cell_types = cells,
-    donors = donors, sample_metadata = meta), "does not match the design")
+  # The effective trained formula dropped site; replay now uses that formula.
+  pr <- project_programs_to_cells(fit, sim$pseudobulk[[ct]], cell_types = cells,
+    donors = donors, sample_metadata = meta)
+  expect_true(all(is.finite(pr$activity[, paste0(ct, "_1")])))
 })
 
 test_that("projection refuses undeclared units, incompatible units, and fixed-mode fits", {

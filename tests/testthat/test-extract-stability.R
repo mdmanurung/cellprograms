@@ -22,23 +22,23 @@ test_that("assess_program_stability recovers the strong planted program", {
   expect_gt(max(st$recovery_freq), 0.8)
 })
 
-test_that("stability refits keep covariate_mode and flash_control", {
+test_that("stability refits keep covariate_mode and explicit backfit control", {
   skip_if_not_installed("flashier"); skip_if_not_installed("ebnm")
   fit <- canonicalize_programs(fit_celltype_programs(.toy(), covariates = ~ batch,
                                                      covariate_mode = "fixed", max_factors = 3,
-                                                     flash_control = list(backfit = FALSE), seed = 1))
+                                                     backfit = FALSE, seed = 1))
   seen <- list()
   orig <- fit_celltype_programs
   ## mock inside the package namespace; assigning into globalenv is invisible to package code
   testthat::local_mocked_bindings(fit_celltype_programs = function(...) {
-    a <- list(...); seen[[length(seen) + 1L]] <<- a[c("covariate_mode", "flash_control")]
+    a <- list(...); seen[[length(seen) + 1L]] <<- a[c("covariate_mode", "backfit")]
     orig(...)
   })
   assess_program_stability(fit, n_boot = 2, seed = 1, progress = FALSE)
   expect_length(seen, 2L)
   for (s in seen) {
     expect_identical(s$covariate_mode, "fixed")
-    expect_identical(s$flash_control, list(backfit = FALSE))
+    expect_identical(s$backfit, FALSE)
   }
 })
 
