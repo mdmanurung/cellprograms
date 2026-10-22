@@ -37,10 +37,12 @@ Suggests:
     basilisk,
     Seurat,
     SeuratObject,
+    SuperCell,
     mcRigor
 Remotes:
     willwerscheid/flashier@fd44811ab22d61ee905e1964175571c452fe7683,
     flashier.utils=mdmanurung/flashier-utils,
-    JSB-UCLA/mcRigor
+    JSB-UCLA/mcRigor,
+    GfellerLab/SuperCell@89b34c078dba0b91289a5a23cf75a6db3a46d232
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.1.1

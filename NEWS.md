@@ -2,6 +2,7 @@
 
 ## EB-CP tensor factorization and block EBMF (2026-10-21)
 
+
 * New `fit_eb_cp()`: greedy rank-1 empirical-Bayes CANDECOMP/PARAFAC
   factorization across cell types (genes x donors x cell types) with EBNM
   normal-means updates per mode (point-Laplace on gene and cell-type modes,
@@ -27,6 +28,26 @@
   runtime/amplitude pilots, and the filled preregistration
   (`benchmarks/coordination/PREREG.md`, prereg-coord-v1).
 
+## SuperCell backend (2026-10-22)
+
+* New default R-native metacell path implementing the preregistered
+  benchmark verdict (REPLACE): `MetacellsByGroupsSuperCell()`,
+  `OptimizeGammaSuperCell()` and `GetMetacellSuperCell()` wrap SuperCell
+  2.0 (`SCimplify_for_Seurat_v5`, pinned `GfellerLab/SuperCell@89b34c0`)
+  with the same grouping semantics, mcRigor QC and return structure as the
+  SEACells trio. No Python/basilisk required, and the end-to-end tests run
+  in the plain R test suite (the SEACells e2e stays
+  `CPMC_INTEGRATION`-gated). `target_metacells` is reached by log-gamma
+  bisection; `OptimizeGammaSuperCell()` optimizes native
+  cells-per-metacell by the mcRigor score. The user-facing surface grows
+  from 42 to 45 verbs.
+* `MetacellsByGroupsSEACells()` and the SEACells backend remain exported
+  and unchanged.
+* mcRigor wrapper fix (both backends): `.mcrigor_detect_group()` now passes
+  MC-prefix string labels named by cell id to `mcRigor_DETECT`. Integer
+  codes are coerced to NA by DETECT's named-membership filter at mcRigor
+  c70cd6f and aborted with "Cannot find cells provided"; the string
+  convention is what the benchmark validated.
 # cellprograms 0.2.0.9000 (development)
 
 ## Metacell benchmark (2026-10-22)

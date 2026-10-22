@@ -1,8 +1,8 @@
 ---
-title: "Metacells with SEACells and mcRigor gamma optimization"
+title: "Metacells: SuperCell (default) and SEACells with mcRigor gamma optimization"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Metacells with SEACells and mcRigor gamma optimization}
+  %\VignetteIndexEntry{Metacells: SuperCell (default) and SEACells with mcRigor gamma optimization}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -10,17 +10,22 @@ vignette: >
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>",
                       fig.width = 7, fig.height = 5, dpi = 150)
-has_metacells <- requireNamespace("Seurat", quietly = TRUE) &&
-  requireNamespace("basilisk", quietly = TRUE)
+has_supercell <- requireNamespace("Seurat", quietly = TRUE) &&
+  requireNamespace("SuperCell", quietly = TRUE) &&
+  requireNamespace("mcRigor", quietly = TRUE)
+has_seacells <- has_supercell && requireNamespace("basilisk", quietly = TRUE)
 ```
 
 When the starting point is single-cell data, `cellprograms` can aggregate
 cells into **metacells** — transcriptomically homogeneous small groups —
-before pseudobulk factorization. Metacells are built with
-[SEACells](https://github.com/dpeerlab/SEACells) (run in an isolated,
-pinned basilisk Python environment built on first use) and QC'd with
-mcRigor, stratified so that **metacells never cross the grouping variables**
-(donor x cell type by default).
+before pseudobulk factorization. The default backend is
+[SuperCell 2.0](https://github.com/GfellerLab/SuperCell) (pure R, no
+Python), selected by a preregistered benchmark against SEACells on
+membership fidelity and downstream program recovery; the
+[SEACells](https://github.com/dpeerlab/SEACells) backend (isolated, pinned
+basilisk Python environment built on first use) remains available. Both
+backends are QC'd with mcRigor and stratified so that **metacells never
+cross the grouping variables** (donor x cell type by default).
 
 This vignette runs the full workflow on a simulated dataset with planted
 cell-type identity, then feeds the metacell counts into
@@ -68,61 +73,83 @@ obj <- Seurat::RunPCA(obj, npcs = 10, verbose = FALSE)
 
 ## Build metacells per group
 
-`MetacellsByGroupsSEACells()` fits SEACells separately within each
-`group.by` stratum and stores everything under the Seurat object's `misc`:
+`MetacellsByGroupsSuperCell()` runs SuperCell's `SCimplify` separately
+within each `group.by` stratum and stores everything under the Seurat
+object's `misc` (key `"SuperCell"` by default):
 
-```{r metacells, eval = has_metacells}
-obj <- MetacellsByGroupsSEACells(obj,
-                                 group.by = c("donor", "celltype"),
-                                 cells_per_metacell = 20,
-                                 min_cells = 50,
-                                 n_top_genes = 60,
-                                 n_pc = 10,
-                                 seed = 11, verbose = FALSE)
-res <- GetMetacellSEACells(obj)
+```{r metacells, eval = has_supercell}
+obj <- MetacellsByGroupsSuperCell(obj,
+                                  group.by = c("donor", "celltype"),
+                                  cells_per_metacell = 20,
+                                  min_cells = 50,
+                                  n_top_genes = 60,
+                                  n_pc = 10,
+                                  seed = 11, verbose = FALSE)
+res <- GetMetacellSuperCell(obj)
 names(res)
 ```
 
-The result carries the metacell Seurat object, the soft (cells x archetypes)
-assignment matrix, per-metacell mcRigor QC, fit statistics, the parameters
-used, and any skipped groups:
+`cells_per_metacell` is SuperCell's `gamma` — the target number of native
+cells per metacell. Alternatively pass `target_metacells` (approximate
+metacell count per group), which is reached by log-gamma bisection. The
+result carries the metacell Seurat object, per-metacell mcRigor QC, fit
+statistics, the parameters used, and any skipped groups:
 
-```{r qc, eval = has_metacells}
+```{r qc, eval = has_supercell}
 head(res$qc)                 # mcDiv, dubious flag, ZeroRate per metacell
 res$skipped_groups           # groups dropped (e.g. too few cells) - usually empty
 ```
 
 Groups with too few cells (below `min_cells`) are skipped with a warning
-rather than failing the call, and degenerate SEACells fits (all hard
-assignments collapsing to one archetype) drop that group's soft assignments
-gracefully — check `skipped_groups` when working with small strata.
+rather than failing the call — check `skipped_groups` when working with
+small strata.
+
+### The same workflow with SEACells
+
+`MetacellsByGroupsSEACells()` has the same interface and return structure;
+it fits SEACells archetypes per group in the basilisk Python environment
+(results under `misc[["SEACells"]]`, with the cells x archetypes soft
+assignment matrix in the result):
+
+```{r seacells, eval = has_seacells}
+obj_sea <- MetacellsByGroupsSEACells(obj,
+                                     group.by = c("donor", "celltype"),
+                                     cells_per_metacell = 20,
+                                     min_cells = 50,
+                                     n_top_genes = 60,
+                                     n_pc = 10,
+                                     seed = 11, verbose = FALSE)
+res_sea <- GetMetacellSEACells(obj_sea)
+names(res_sea)
+```
 
 ## Optimize the number of metacells (gamma)
 
-SEACells' `gamma` is the number of archetypes — the granularity.
-`OptimizeGammaSEACells()` refits SEACells across candidate gammas per group
-and picks the winner by the mcRigor optimization score:
+SuperCell's `gamma` is the number of native cells per metacell — the
+granularity. `OptimizeGammaSuperCell()` refits across candidate gammas per
+group and picks the winner by the mcRigor optimization score:
 
-```{r optimize, eval = has_metacells}
-opt <- OptimizeGammaSEACells(obj,
-                             group.by = "donor",
-                             gammas = c(10, 20),
-                             n_top_genes = 60,
-                             n_pc = 10,
-                             min_cells = 50,
-                             mcrigor_args = list(Nrep = 5),
-                             seed = 11, verbose = FALSE)
+```{r optimize, eval = has_supercell}
+opt <- OptimizeGammaSuperCell(obj,
+                              group.by = "donor",
+                              gammas = c(10, 20),
+                              n_top_genes = 60,
+                              n_pc = 10,
+                              min_cells = 50,
+                              mcrigor_args = list(Nrep = 5),
+                              seed = 11, verbose = FALSE)
 opt$optimal_gamma            # winning gamma per donor group
 opt$scores                   # mcRigor score per gamma x group
 ```
 
-Gammas whose membership labels degenerate (fewer than two distinct labels
-after Seurat v5 aggregation) are dropped with a warning and excluded from
-the pick rather than crashing the run.
+Gammas whose membership collapses to a single metacell are dropped with a
+warning and excluded from the pick rather than crashing the run. The
+SEACells equivalent is `OptimizeGammaSEACells()` (same arguments; there
+`gamma` counts archetypes instead of native cells per metacell).
 
 ## Metacell counts feed the program fit directly
 
-```{r programs, eval = has_metacells}
+```{r programs, eval = has_supercell}
 mc <- res$metacell_object
 counts_mc <- SeuratObject::LayerData(mc[["RNA"]], layer = "counts")  # genes x metacells
 by_type <- split(colnames(mc), mc$celltype)
@@ -139,7 +166,7 @@ program_summary(fit)[, c("cell_type", "n_programs", "R2", "elbo")]
 The planted structure survives the aggregation: each cell type's programs
 are dominated by its private marker block.
 
-```{r markers, eval = has_metacells, fig.width = 7, fig.height = 4.5}
+```{r markers, eval = has_supercell, fig.width = 7, fig.height = 4.5}
 marker_expr <- as.matrix(counts_mc[unlist(markers), , drop = FALSE])
 marker_expr <- t(scale(t(marker_expr)))
 df <- data.frame(

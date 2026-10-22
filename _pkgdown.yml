@@ -68,12 +68,17 @@ reference:
   - annotate_cmp_themes
   - assess_cmp_stability
   - prepare_collectri
-- title: Metacells (SEACells + mcRigor)
+- title: Metacells (SuperCell + mcRigor)
   desc: >
     Optional upstream aggregation of single cells into metacells before
-    program discovery. Requires the suggested packages Seurat, mcRigor and
-    basilisk (the SEACells Python environment is built on first use).
+    program discovery. The default backend is SuperCell 2.0 (pure R, no
+    Python) with mcRigor QC and granularity optimization. The SEACells
+    backend remains available and additionally requires basilisk (the
+    SEACells Python environment is built on first use).
   contents:
+  - MetacellsByGroupsSuperCell
+  - OptimizeGammaSuperCell
+  - GetMetacellSuperCell
   - MetacellsByGroupsSEACells
   - OptimizeGammaSEACells
   - GetMetacellSEACells

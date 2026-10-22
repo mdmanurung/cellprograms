@@ -14,23 +14,29 @@
             "{.pkg mcRigor} is required for metacell QC. Install it with {.code remotes::install_github('JSB-UCLA/mcRigor')}."
         )
     }
-    # mcRigor's buildmc only aligns per-metacell metadata for NUMERIC
-    # membership labels (its numeric branch strips Seurat's AggregateExpression
-    # "g" prefix; string labels crash with "No cell overlap between new meta
-    # data and Seurat object"). Map labels to integer codes here and remap the
-    # normalized table back to the original metacell names below.
-    lab <- as.character(membership)
-    codes <- as.integer(factor(lab, levels = sort(unique(lab))))
-    names(codes) <- names(membership)
+    # mcRigor calling convention, pinned against mcRigor HEAD c70cd6f (the
+    # benchmark's verbatim-verified construction; the OLDER integer-codes
+    # convention broke when DETECT's `named_membership != ""` filter began
+    # coercing integer labels to NA -> empty assigned_cellid -> "Cannot find
+    # cells provided"). Labels must be STRINGS that do NOT start with a digit:
+    # digit-leading strings trigger Seurat's AggregateExpression "g"-prefix
+    # mangling and crash buildmc ("No cell overlap between new meta data and
+    # Seurat object"). "MC<n>" strings pass both paths. tgamma is left at
+    # DEFAULT (passing tgamma="1" re-triggers the integer-coercion crash).
+    # NOTE: as.character() drops vector names in R 4.4 — build the labels
+    # directly and reassign names explicitly.
+    lab_in <- as.character(membership)
+    lab <- paste0("MC", as.integer(factor(lab_in, levels = sort(unique(lab_in)))))
+    names(lab) <- names(membership)
     # minimal Seurat object holding the group's single-cell counts
     obj_g <- Seurat::CreateSeuratObject(
         counts = counts_g, assay = "RNA", min.features = 0, min.cells = 0
     )
     membership_df <- data.frame(
-        matrix(codes, ncol = 1, dimnames = list(names(codes),
-                                                     as.character(1))),
-        stringsAsFactors = FALSE, check.names = FALSE
+        X = lab, stringsAsFactors = FALSE, check.names = FALSE,
+        row.names = names(lab)
     )
+    colnames(membership_df) <- "1"
     args <- list(
         Nrep = 50, gene_filter = 0.1, feature_use = 2000,
         test_cutoff = 0.01, cor_method = "pearson",
@@ -45,14 +51,15 @@
     args <- utils::modifyList(args, mcrigor_args)
     base_args <- list(
         obj_singlecell = obj_g,
-        cell_membership = membership_df,
-        tgamma = as.character(1)
+        cell_membership = membership_df
     )
     res <- do.call(mcRigor::mcRigor_DETECT, utils::modifyList(base_args, args))
     out <- .mcrigor_normalize(res, group_id = group_id)
-    # remap integer codes back to the original metacell labels
-    code_to_lab <- sort(unique(lab))
-    code_idx <- suppressWarnings(as.integer(out$metacell))
+    # remap MC codes back to the original metacell labels: TabMC rownames are
+    # the "MC<n>" labels; code n corresponds to the n-th sorted unique input
+    # label (the factor level order used to build the codes)
+    code_to_lab <- sort(unique(lab_in))
+    code_idx <- suppressWarnings(as.integer(sub("^MC", "", out$metacell)))
     if (!any(is.na(code_idx)) && max(code_idx) <= length(code_to_lab)) {
         out$metacell <- code_to_lab[code_idx]
     }
