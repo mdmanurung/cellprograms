@@ -266,12 +266,156 @@ method_subspace_sum <- function(fit, strata, n_perm = 999L, seed = 1L, alpha = 0
 }
 
 ## ---- block_E: joint block EBMF at expression level -------------------------
-method_block_e <- function(fit, max_factors = 20L, seed = 1L, mass_thresh = 0.1) {
+method_block_e <- function(fit, max_factors = 20L, seed = 1L, mass_thresh = 0.1,
+                           strata = NULL, n_perm = 0L, alpha = 0.05) {
   bfit <- fit_joint_block(fit, level = "expression", order = "shared_first",
                           max_factors = max_factors, seed = seed, verbose = 0L)
   bc <- block_clusters(bfit, mass_thresh = mass_thresh)
-  list(method = "block_E", n_perm = 0L, clusters = bc$clusters, activity = bc$activity,
-       fit = bfit)
+  out <- list(method = "block_E", n_perm = n_perm, clusters = bc$clusters,
+              activity = bc$activity, fit = bfit)
+  ## Calibration (post-prereg development iteration, decision-table follow-up):
+  ## the block-mass membership rule has no significance layer -- on null data the
+  ## shared-first pass still returns ~Kmax factors whose loadings spread across
+  ## blocks (main run: P(any spurious) = 1.00, mean 15.9 calls/null). With
+  ## n_perm > 0 and strata supplied, keep only factors whose donor-level signal
+  ## is significant under within-strata donor permutation applied independently
+  ## per cell-type block (destroys cross-block coordination, preserves
+  ## within-block structure); max-T over factors -> FWER.
+  if (n_perm > 0L && !is.null(strata) && bfit$shared_fit$n_factors > 0L &&
+      nrow(bc$clusters)) {
+    ## Split-half calibration (eb_cp-style held-out selection): the full-data
+    ## fit's factors are optimized on the same donors the permutation tests, so
+    ## noise factors inherit winner's-curse alignment and survive a fixed-
+    ## loading null (probe round 3: null FPR 7/18, true call lost). Instead:
+    ## refit the joint pass on half A (stratified), test cross-block alignment
+    ## of the half-A factors on held-out half-B donors (no winner's curse by
+    ## construction), and report the half-A fit's calibrated calls.
+    donors <- sort(unique(unlist(lapply(fit$fits[fit$cell_types],
+                                        function(f) rownames(f$Y_used)))))
+    set.seed(seed)
+    inA <- unlist(lapply(split(donors, strata[donors]), function(g)
+      sample(g, ceiling(length(g) / 2))))
+    inA <- sort(inA)
+    fitA <- fit
+    fitA$fits <- lapply(fit$fits, function(f) {
+      f$Y_used <- f$Y_used[rownames(f$Y_used) %in% inA, , drop = FALSE]; f
+    })
+    bfitA <- fit_joint_block(fitA, level = "expression", order = "shared_first",
+                             max_factors = max_factors, seed = seed, verbose = 0L)
+    bcA <- block_clusters(bfitA, mass_thresh = mass_thresh)
+    if (bfitA$shared_fit$n_factors > 0L && nrow(bcA$clusters)) {
+      pm <- .block_mass_maxT(bfitA, fit, strata, n_perm, seed,
+                             mass_thresh = mass_thresh,
+                             heldout = setdiff(donors, inA))
+      out$factor_p <- pm
+      keep_id <- pm$factor_id[pm$p < alpha]
+      keep <- bcA$clusters$program_id %in% keep_id
+      out$clusters <- bcA$clusters[keep, , drop = FALSE]
+      ## activity: project FULL data onto kept factors, donor-mean over members
+      kept_cl <- unique(bcA$clusters$cluster[keep])
+      if (length(kept_cl)) {
+        fids <- sprintf("SF%02d", seq_len(bfitA$shared_fit$n_factors))
+        acts <- list()
+        for (cid in kept_cl) {
+          pid <- bcA$clusters$program_id[bcA$clusters$cluster == cid][1]
+          k <- match(pid, fids)
+          mem <- unique(bcA$clusters$cell_type[bcA$clusters$cluster == cid])
+          vs <- lapply(mem, function(ct) {
+            sl <- bfitA$shared_fit$F_pm[bfitA$block_id == ct, k]
+            setNames(as.vector(fit$fits[[ct]]$Y_used %*% sl),
+                     rownames(fit$fits[[ct]]$Y_used))
+          })
+          all_d <- sort(unique(unlist(lapply(vs, names))))
+          acts[[paste0("cluster_", cid)]] <- vapply(all_d, function(d)
+            mean(vapply(vs, function(v) if (d %in% names(v)) v[[d]] else NA_real_,
+                        numeric(1)), na.rm = TRUE), numeric(1))
+        }
+        activity <- do.call(cbind, acts)
+        colnames(activity) <- names(acts)
+        out$activity <- activity
+      }
+    } else {
+      out$clusters <- bcA$clusters[0, , drop = FALSE]
+      out$activity <- NULL
+    }
+  }
+  out
+}
+
+## Permutation max-T p-values for block_E shared factors. Statistic for factor
+## k: the mean pairwise |cor| of the factor's donor activities across the block
+## pairs that pass the block-mass rule for k (the pairs a shared call would
+## rest on); factors with < 2 mass-passing blocks cannot produce a call and get
+## p = 1. Under the null of no cross-block coordination, each block's donor rows
+## are permuted within strata independently, which destroys cross-block activity
+## alignment while leaving within-block (private) structure intact. A
+## total-projection statistic ||X f_k||^2 is NOT usable here: it is exactly
+## invariant to within-strata row permutation for single-block factors, so
+## every private factor would be "significant" by construction (observed in the
+## first probe round: most factors pinned at the p = 1/(n_perm+1) floor). f_k is
+## fixed from the observed fit (winner's-curse caveat: f_k was selected to
+## explain variance on this data; the cross-block alignment statistic is not
+## directly optimized by the fit, and the probes measure the realized FPR).
+.block_mass_maxT <- function(bfit, fit, strata, n_perm = 199L, seed = 1L,
+                            mass_thresh = 0.1, heldout = NULL) {
+  F_pm <- bfit$shared_fit$F_pm                    # stacked genes x K
+  K <- ncol(F_pm)
+  fids <- sprintf("SF%02d", seq_len(K))           # matches fit_joint_block summary ids
+  cts <- colnames(bfit$block_mass)
+  blocks <- lapply(fit$fits[cts], function(f) {
+    Y <- f$Y_used
+    if (!is.null(heldout)) Y <- Y[rownames(Y) %in% heldout, , drop = FALSE]
+    Y
+  })
+  keep_ct <- vapply(blocks, function(Y) nrow(Y) >= 20L, TRUE)
+  blocks <- blocks[keep_ct]
+  cts <- cts[keep_ct]
+  mass <- bfit$block_mass[, cts, drop = FALSE]
+  ## loading slice of every factor on each block's genes (assert alignment)
+  slices <- lapply(setNames(cts, cts), function(ct) {
+    S <- F_pm[bfit$block_id == ct, , drop = FALSE]
+    rn <- sub(paste0("^", ct, "__"), "", rownames(S))
+    stopifnot(identical(rn, colnames(blocks[[ct]])))
+    S
+  })
+  sts <- lapply(blocks, function(Y) factor(strata[rownames(Y)]))
+  mass <- bfit$block_mass                         # K x cts
+  pairs <- combn(cts, 2L)
+  ## donor activities per block and factor; rows matched by donor id
+  vof <- function(bl) lapply(setNames(cts, cts), function(ct) bl[[ct]] %*% slices[[ct]])
+  ## T_k: mean |cor| across mass-passing block pairs (0 if < 2 such blocks)
+  Tof <- function(vs) {
+    vapply(seq_len(K), function(k) {
+      mem <- cts[mass[k, ] > mass_thresh]
+      if (length(mem) < 2L) return(0)
+      pr <- pairs[, pairs[1, ] %in% mem & pairs[2, ] %in% mem, drop = FALSE]
+      if (ncol(pr) == 0L) return(0)
+      mean(vapply(seq_len(ncol(pr)), function(j) {
+        a <- vs[[pr[1, j]]]; b <- vs[[pr[2, j]]]
+        common <- intersect(rownames(a), rownames(b))
+        if (length(common) < 10L) return(0)
+        x <- a[common, k]; y <- b[common, k]
+        if (stats::sd(x) < 1e-12 || stats::sd(y) < 1e-12) 0 else suppressWarnings(cor(x, y))
+      }, numeric(1)))
+    }, numeric(1))
+  }
+  T_obs <- Tof(vof(blocks))
+  set.seed(seed)
+  mx <- numeric(n_perm)
+  for (b in seq_len(n_perm)) {
+    bl_p <- lapply(setNames(cts, cts), function(ct) {
+      Y <- blocks[[ct]]
+      Yp <- Y[.perm_within(nrow(Y), sts[[ct]]), , drop = FALSE]
+      rownames(Yp) <- rownames(Y)   # keep donor labels fixed: name-based donor
+                                    # matching must pair PERMUTED values, else the
+                                    # rowname-carried permutation is undone
+      Yp
+    })
+    tp <- Tof(vof(bl_p))
+    mx[b] <- max(tp[tp > 0], 0)                   # max-T over callable factors
+  }
+  p <- vapply(T_obs, function(t) if (t <= 0) 1 else (1 + sum(mx >= t)) / (n_perm + 1), numeric(1))
+  data.frame(factor_id = fids, T_obs = T_obs, p = p, stringsAsFactors = FALSE)
 }
 
 ## ---- eb_cp: EB-CP tensor factorization ------------------------------------

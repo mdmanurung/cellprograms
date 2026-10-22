@@ -16,7 +16,8 @@ COORD_BREADTH <- c(R100 = 10L, R50 = 5L, R20 = 2L)
 gen_coord <- function(mode, amp, seed, act_cor = 1, G = getOption("ms.G", 4000L),
                       n_prog_genes = getOption("ms.npg", 50L), priv_amp = 1, n_donors = 100L,
                       breadth = c("all", "R100", "R50", "R20", "R20small"),
-                      cor_priv = 0.7, n_decoy_pairs = 3L) {
+                      cor_priv = 0.7, n_decoy_pairs = 3L, private_per_ct = c(1L, 2L),
+                      n_priv_genes = n_prog_genes) {
   stopifnot(mode %in% c("act+genes", "act+half", "act_only", "genes_only", "priv_corr", "null"))
   breadth <- match.arg(breadth)
   set.seed(seed)
@@ -100,8 +101,13 @@ gen_coord <- function(mode, amp, seed, act_cor = 1, G = getOption("ms.G", 4000L)
     }
   }
 
+  ## private_per_ct / n_priv_genes (post-prereg high-K scenario): number of
+  ## private programs per cell type and their gene-set size. Defaults
+  ## (c(1L, 2L) drawn per ct; n_priv_genes = n_prog_genes) reproduce the
+  ## frozen main-run simulator exactly.
   priv <- lapply(setNames(cts, cts), function(ct) {
-    lapply(seq_len(sample(1:2, 1)), function(k) list(g = take(n_prog_genes), w = rnorm(n_prog_genes, sd = priv_amp)))
+    lapply(seq_len(sample(private_per_ct, 1)),
+           function(k) list(g = take(n_priv_genes), w = rnorm(n_priv_genes, sd = priv_amp)))
   })
 
   pb <- list(); ncell <- list()
@@ -137,21 +143,12 @@ gen_coord <- function(mode, amp, seed, act_cor = 1, G = getOption("ms.G", 4000L)
 
 ## Adjusted expression matrices without stage-1 fits: residualize on the
 ## measured nuisance covariate and gene-center, mirroring the preregistered
-## pre-stage-1 adjustment position (same OLS operation the backend applies
-## under covariate_mode = "residualize"). Used by eb_cp/block_E inputs and the
-## oracle.
+## pre-stage-1 adjustment position. Used by eb_cp/block_E inputs and the oracle.
 adjusted_matrices <- function(x, covariates = "institute") {
   out <- list()
   for (ct in x$cell_types) {
     Y <- as.matrix(x$pseudobulk[[ct]])
-    if (!is.null(covariates)) {
-      X <- .cov_design(rownames(Y), x$sample_metadata, covariates, ct)
-      if (!is.null(X)) {
-        R <- stats::lm.fit(X, Y)$residuals
-        dimnames(R) <- dimnames(Y)
-        Y <- R
-      }
-    }
+    if (!is.null(covariates)) Y <- .residualize(Y, x$sample_metadata, covariates, ct)
     Y <- scale(Y, center = TRUE, scale = FALSE)
     cs <- colSums(abs(Y))
     Y <- Y[, cs > 1e-10 * max(cs, 1), drop = FALSE]
