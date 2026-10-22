@@ -17,6 +17,7 @@ from the fit's covariates.}
 \description{
 Runs [fit_eb_cp()] on the adjusted expression matrices (`Y_used`) of a
 `cell_program_fit`. If `strata` is missing, it is derived from the
-covariates used at fit time (interaction of all covariate columns), so the
-held-out split respects the adjustment covariates by default.
+categorical covariates used at fit time. Automatic strata from numeric
+covariates are refused: explicitly choose a categorical split strategy
+rather than silently generating singleton age strata.
 }

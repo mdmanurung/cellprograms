@@ -16,7 +16,7 @@
 ## across donors via cell counts, and a per-cell-type variance mis-calibrates
 ## every normal-means SE and the held-out statistic).
 ##
-## Model selection: winner's-curse-proof held-out component test. Donors are
+## Model selection: experimental held-out component screening. Donors are
 ## split 50/50 synchronously across cell types, stratified by `strata`.
 ## Stratification is load-bearing for covariate-adjusted inputs: an
 ## unstratified split leaves residual covariate imbalance between halves, and
@@ -29,8 +29,8 @@
 ## kept iff z_r > heldout_z, stopping at the first failure. Kept components
 ## are refit on the full data, warm-started, and backfit.
 ##
-## Identifiability: CP components are essentially unique (Kruskal), so the
-## cell-type mode W needs no post-hoc matching. Membership rule: ct is a
+## Identifiability: uniqueness requires appropriate rank conditions; it is
+## not guaranteed by fitting this CP model. Membership rule: ct is a
 ## member of component r iff |W[ct, r]| >= member_thresh * max_c |W[c, r]|.
 ## A component with >= min_members members is a coordination call.
 
@@ -39,16 +39,35 @@
 
 ## donor-synchronous 50/50 split, stratified
 .cp_split_donors <- function(donors, strata, seed) {
+  if (length(donors) < 4L) .stopf("At least four donors are required for the EB-CP split.")
+  if (!is.null(strata) &&
+      (is.null(names(strata)) || anyDuplicated(names(strata)))) {
+    .stopf("`strata` must have unique donor names.")
+  }
   set.seed(seed)
   inA <- rep(FALSE, length(donors)); names(inA) <- donors
   st <- if (is.null(strata)) rep("all", length(donors)) else strata[donors]
   if (anyNA(st)) .stopf("`strata` has no value for some donors (e.g. '%s').",
                         donors[is.na(st)][1])
+  if (any(table(st) < 2L)) {
+    .stopf("Each EB-CP stratum needs at least two donors; singleton/continuous strata cannot be split. Supply explicit categorical `strata`.")
+  }
   for (g in unique(st)) {
     d <- donors[st == g]
     inA[sample(d, floor(length(d) / 2))] <- TRUE
   }
   inA
+}
+
+# Orient the gene anchor and donor mode together. Flipping all three modes
+# changes the tensor product; scale cancels between gene and donor modes.
+.cp_canonical_component <- function(u, v, w) {
+  if (any(!is.finite(c(u, v, w)))) .stopf("Non-finite EB-CP component.")
+  sgn <- sign(u[which.max(abs(u))])
+  if (!length(sgn) || sgn == 0) sgn <- 1
+  sc <- sqrt(mean(v^2))
+  if (!is.finite(sc) || sc < 1e-12) sc <- 1
+  list(u = u * sgn * sc, v = v * sgn / sc, w = w)
 }
 
 ## SVD seed for a rank-1 step (flash-style greedy init): strongest per-cell-type
@@ -148,9 +167,11 @@
 #' cell types) to per-cell-type pseudobulk matrices with EBNM normal-means
 #' updates per mode (point-laplace on gene and cell-type modes, normal on the
 #' donor mode) and per-(cell-type, donor) residual variance. Components are
-#' selected by a held-out likelihood test on a donor-synchronous 50/50 split
+#' selected by an experimental held-out screening statistic on a donor-synchronous 50/50 split
 #' (stratified by `strata` when supplied), refit on the full data, and
-#' backfit. See the file header for the model and selection details.
+#' backfit. This is not a calibrated likelihood test or a guarantee of CP
+#' uniqueness. Memberships are descriptive, not error-controlled CMP sets.
+#' See the file header for the model and selection details.
 #'
 #' @param mats Named list of (donors_ct x genes) matrices, one per cell type;
 #'   common gene columns are intersected, rownames are donor ids. Inputs must
@@ -160,12 +181,14 @@
 #'   batching covariate) used to stratify the held-out split. Strongly
 #'   recommended whenever the input was residualized on a covariate.
 #' @param Kmax Maximum number of greedy components.
-#' @param ebnm_gene,ebnm_donor,ebnm_ct EBNM functions for the gene, donor,
-#'   and cell-type modes.
+#' @param ebnm_gene EBNM function for the gene mode.
+#' @param ebnm_donor EBNM function for the donor mode.
+#' @param ebnm_ct EBNM function for the cell-type mode.
 #' @param member_thresh Membership threshold on max-normalized |W| (stored on
 #'   the result; used by [eb_cp_programs()]).
 #' @param heldout_z Held-out z threshold for keeping a component.
-#' @param max_iter,tol Per-component coordinate ascent controls.
+#' @param max_iter Maximum per-component coordinate iterations.
+#' @param tol Per-component convergence tolerance.
 #' @param backfit_iter Backfitting sweeps after the greedy pass.
 #' @param seed Random seed (split and EBNM reproducibility).
 #'
@@ -185,6 +208,34 @@ fit_eb_cp <- function(mats, strata = NULL, Kmax = 15L,
   if (!is.list(mats) || is.null(names(mats)) || any(names(mats) == "")) {
     .stopf("`mats` must be a named list of matrices (one per cell type).")
   }
+  if (anyDuplicated(names(mats)) || !length(mats)) {
+    .stopf("`mats` must have unique, nonempty cell-type names.")
+  }
+  for (ct in names(mats)) {
+    m <- mats[[ct]]
+    if (!is.matrix(m) || !is.numeric(m) || any(!is.finite(m)) ||
+        is.null(rownames(m)) || is.null(colnames(m)) ||
+        anyNA(rownames(m)) || anyNA(colnames(m)) ||
+        anyDuplicated(rownames(m)) || anyDuplicated(colnames(m)) ||
+        any(rownames(m) == "") || any(colnames(m) == "")) {
+      .stopf("Cell type '%s': EB-CP requires finite numeric matrices with unique donor and gene names.", ct)
+    }
+  }
+  controls <- list(Kmax = Kmax, max_iter = max_iter, backfit_iter = backfit_iter)
+  for (nm in names(controls)) {
+    value <- controls[[nm]]
+    minimum <- if (nm == "max_iter") 1 else 0
+    if (length(value) != 1L || !is.numeric(value) || !is.finite(value) ||
+        value < minimum || value != as.integer(value)) {
+      .stopf("`%s` must be a finite integer >= %d.", nm, minimum)
+    }
+  }
+  if (length(tol) != 1L || !is.finite(tol) || tol <= 0 ||
+      length(heldout_z) != 1L || !is.finite(heldout_z) ||
+      length(member_thresh) != 1L || !is.finite(member_thresh) ||
+      member_thresh <= 0 || member_thresh > 1) {
+    .stopf("Invalid EB-CP tolerance, held-out threshold, or membership threshold.")
+  }
   cts <- names(mats)
   genes <- Reduce(intersect, lapply(mats, colnames))
   if (length(genes) < 10L) {
@@ -199,6 +250,10 @@ fit_eb_cp <- function(mats, strata = NULL, Kmax = 15L,
   inA <- .cp_split_donors(donors, strata, seed)
   mats_A <- lapply(mats, function(m) m[rownames(m) %in% donors[inA], , drop = FALSE])
   mats_B <- lapply(mats, function(m) m[rownames(m) %in% donors[!inA], , drop = FALSE])
+  if (any(vapply(mats_A, nrow, integer(1)) < 2L) ||
+      any(vapply(mats_B, nrow, integer(1)) < 2L)) {
+    .stopf("Each cell type needs at least two observed donors in both EB-CP split halves; supply strata with adequate per-type support.")
+  }
   obs_A <- list(donors = donors[inA],
                 idx = lapply(mats_A, function(m) match(rownames(m), donors[inA])))
   tau2_A <- lapply(mats_A, .cp_rowvar)
@@ -265,7 +320,6 @@ fit_eb_cp <- function(mats, strata = NULL, Kmax = 15L,
       if (length(drop)) comps <- comps[-drop]
     }
   }
-  R_tot <- sum(vapply(R, function(m) sum(m^2), numeric(1)))
   Y_tot <- sum(vapply(mats, function(m) sum(m^2), numeric(1)))
 
   R_n <- length(comps)
@@ -274,16 +328,25 @@ fit_eb_cp <- function(mats, strata = NULL, Kmax = 15L,
   W <- matrix(0, length(cts), R_n, dimnames = list(cts, colnames(U)))
   for (r in seq_len(R_n)) {
     f <- comps[[r]]
-    sgn <- sign(f$u[which.max(abs(f$u))]); if (sgn == 0) sgn <- 1
-    sc <- sqrt(mean(f$v^2)); if (sc < 1e-12) sc <- 1
-    U[, r] <- f$u * sgn * sc
-    V[, r] <- f$v * sgn / sc
-    W[, r] <- f$w * sgn
+    normalized <- .cp_canonical_component(f$u, f$v, f$w)
+    U[, r] <- normalized$u
+    V[, r] <- normalized$v
+    W[, r] <- normalized$w
   }
+  # Compute the public diagnostic from the public factors, not from a
+  # pre-normalization internal residual which could conceal assembly errors.
+  R_tot <- sum(vapply(seq_along(mats), function(ci) {
+    predicted <- matrix(0, nrow(mats[[ci]]), length(genes))
+    for (r in seq_len(R_n)) {
+      predicted <- predicted + W[ci, r] * tcrossprod(V[obs$idx[[ci]], r], U[, r])
+    }
+    sum((mats[[ci]] - predicted)^2)
+  }, numeric(1)))
   out <- list(U = U, V = V, W = W, genes = genes, donors = donors, cts = cts,
               tau2 = tau2, member_thresh = member_thresh, heldout_z = heldout_z,
               kept_heldout_z = kept, trace_z = trace_z,
-              frac_unexplained = R_tot / Y_tot, n_components = R_n,
+              frac_unexplained = if (Y_tot > 0) R_tot / Y_tot else NA_real_,
+              n_components = R_n,
               strata_used = strata)
   class(out) <- "eb_cp_fit"
   out
@@ -293,8 +356,9 @@ fit_eb_cp <- function(mats, strata = NULL, Kmax = 15L,
 #'
 #' Runs [fit_eb_cp()] on the adjusted expression matrices (`Y_used`) of a
 #' `cell_program_fit`. If `strata` is missing, it is derived from the
-#' covariates used at fit time (interaction of all covariate columns), so the
-#' held-out split respects the adjustment covariates by default.
+#' categorical covariates used at fit time. Automatic strata from numeric
+#' covariates are refused: explicitly choose a categorical split strategy
+#' rather than silently generating singleton age strata.
 #'
 #' @param fit A `cell_program_fit` object (see [fit_celltype_programs()]).
 #' @param strata Optional named donor strata overriding the default derived
@@ -313,6 +377,9 @@ eb_cp_from_fit <- function(fit, strata, ...) {
       meta <- fit$sample_metadata[match(
         unique(unlist(lapply(mats, rownames))), fit$sample_metadata$observation_id), ,
         drop = FALSE]
+      if (any(vapply(meta[, vars, drop = FALSE], is.numeric, logical(1)))) {
+        .stopf("Automatic EB-CP strata require categorical covariates; numeric covariates need explicit named categorical `strata` (or explicit NULL).")
+      }
       if (anyNA(meta$observation_id) || any(!stats::complete.cases(meta[, vars, drop = FALSE]))) {
         .stopf("Donors missing covariate values; pass `strata` explicitly.")
       }

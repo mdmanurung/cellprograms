@@ -31,15 +31,20 @@ recommended whenever the input was residualized on a covariate.}
 
 \item{Kmax}{Maximum number of greedy components.}
 
-\item{ebnm_gene, ebnm_donor, ebnm_ct}{EBNM functions for the gene, donor,
-and cell-type modes.}
+\item{ebnm_gene}{EBNM function for the gene mode.}
+
+\item{ebnm_donor}{EBNM function for the donor mode.}
+
+\item{ebnm_ct}{EBNM function for the cell-type mode.}
 
 \item{member_thresh}{Membership threshold on max-normalized |W| (stored on
 the result; used by [eb_cp_programs()]).}
 
 \item{heldout_z}{Held-out z threshold for keeping a component.}
 
-\item{max_iter, tol}{Per-component coordinate ascent controls.}
+\item{max_iter}{Maximum per-component coordinate iterations.}
+
+\item{tol}{Per-component convergence tolerance.}
 
 \item{backfit_iter}{Backfitting sweeps after the greedy pass.}
 
@@ -57,7 +62,9 @@ Fits a greedy rank-greedy three-mode tensor factorization (genes x donors x
 cell types) to per-cell-type pseudobulk matrices with EBNM normal-means
 updates per mode (point-laplace on gene and cell-type modes, normal on the
 donor mode) and per-(cell-type, donor) residual variance. Components are
-selected by a held-out likelihood test on a donor-synchronous 50/50 split
+selected by an experimental held-out screening statistic on a donor-synchronous 50/50 split
 (stratified by `strata` when supplied), refit on the full data, and
-backfit. See the file header for the model and selection details.
+backfit. This is not a calibrated likelihood test or a guarantee of CP
+uniqueness. Memberships are descriptive, not error-controlled CMP sets.
+See the file header for the model and selection details.
 }
