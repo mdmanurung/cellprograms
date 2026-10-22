@@ -31,12 +31,30 @@ OptimizeGammaSuperCell(
 \item{gammas}{Candidate granularities as cells-per-metacell values.
 Default `c(25, 50, 100)`.}
 
-\item{reduction, }{dims, assay, slot, layer, n_top_genes, n_pc, k.knn,
-min_cells, seed, verbose
-Passed to [MetacellsByGroupsSuperCell()] internals.}
+\item{reduction}{Passed to [MetacellsByGroupsSuperCell()] internals.}
+
+\item{dims}{Passed to [MetacellsByGroupsSuperCell()] internals.}
+
+\item{assay}{Passed to [MetacellsByGroupsSuperCell()] internals.}
+
+\item{slot}{Passed to [MetacellsByGroupsSuperCell()] internals.}
+
+\item{layer}{Passed to [MetacellsByGroupsSuperCell()] internals.}
+
+\item{min_cells}{Passed to [MetacellsByGroupsSuperCell()] internals.}
+
+\item{k.knn}{Passed to [MetacellsByGroupsSuperCell()] internals.}
+
+\item{n_top_genes}{Passed to [MetacellsByGroupsSuperCell()] internals.}
+
+\item{n_pc}{Passed to [MetacellsByGroupsSuperCell()] internals.}
 
 \item{mcrigor_args}{Optional named list overriding mcRigor_OPTIMIZE
 arguments (`Nrep`, `weight`, ...).}
+
+\item{seed}{Passed to [MetacellsByGroupsSuperCell()] internals.}
+
+\item{verbose}{Passed to [MetacellsByGroupsSuperCell()] internals.}
 }
 \value{
 A list with `optimal_gamma` (named list, per group), `scores` (per
