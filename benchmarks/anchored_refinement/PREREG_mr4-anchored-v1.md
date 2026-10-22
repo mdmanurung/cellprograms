@@ -92,3 +92,14 @@ Dominated by the cell-level refits; estimate from the model_selection main
 (~324 CPU-h) scaled by cell count — budget ~400–600 CPU-h for both arms on
 the Slurm cluster. **Staged scripts, not launched from the sandbox**; the
 in-sandbox deliverable is the pilot-scale smoke.
+
+## Operationalization note (2026-10-22, pre-run; smoke-driven, no rule change)
+
+recon_ratio is computed on the gene panel SHARED between the arm's loadings
+and the de-novo fit's variable panel (the two panels are selected on different
+variance bases: anchor pseudobulk vs cell-level). Panels are never identical,
+and character row-indexing errors on missing names, so the shared-panel
+intersection is the only well-defined version of the registered
+"per-gene residual variance ratio vs de-novo" guardrail. If the shared panel
+is < 10 genes the ratio is NA (excluded from the min). Drift's Hungarian
+matching is over anchor programs (K = min(dim) after column filtering).

@@ -163,10 +163,14 @@ for (nm in names(run_arms)) {
     p <- a$per_ct[[ct]]
     if (is.null(p)) return(NA_real_)
     sel <- sim$meta$cell_type == ct
-    Xp <- X_all[sel, rownames(p$loadings), drop = FALSE]
     ref <- run_arms$denovo_cell$fit
-    recon_ratio(Xp, p$activities, p$loadings,
-                ref$scores[[ct]][rownames(Xp), , drop = FALSE], ref$loadings[[ct]][rownames(p$loadings), , drop = FALSE])
+    ## reconstruction on the gene panel SHARED by the arm's loadings and the
+    ## denovo fit's panel (character row-indexing errors on missing names)
+    gn <- intersect(rownames(p$loadings), rownames(ref$loadings[[ct]]))
+    if (length(gn) < 10L) return(NA_real_)
+    Xp <- X_all[sel, gn, drop = FALSE]
+    recon_ratio(Xp, p$activities, p$loadings[gn, , drop = FALSE],
+                ref$scores[[ct]][rownames(Xp), , drop = FALSE], ref$loadings[[ct]][gn, , drop = FALSE])
   }, numeric(1))
   rows[[length(rows) + 1L]] <- data.frame(rep = rep, arm = nm, f1 = f1, tp = tp, fp = fp,
                                           n_calls = n_calls, drift = dr, stability = st,
