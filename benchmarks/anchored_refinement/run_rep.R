@@ -162,16 +162,27 @@ for (nm in names(run_arms)) {
     if (nm == "denovo_cell") return(1)
     p <- a$per_ct[[ct]]
     if (is.null(p)) return(NA_real_)
-    sel <- sim$meta$cell_type == ct
-    ref <- run_arms$denovo_cell$fit
-    ## reconstruction on the gene panel SHARED by the arm's loadings and the
-    ## denovo fit's panel (character row-indexing errors on missing names)
-    gn <- intersect(rownames(p$loadings), rownames(ref$loadings[[ct]]))
-    if (length(gn) < 10L) return(NA_real_)
-    Xp <- X_all[sel, gn, drop = FALSE]
-    rs <- ref$scores[[ct]][intersect(rownames(Xp), rownames(ref$scores[[ct"]])), , drop = FALSE]
-    recon_ratio(Xp, p$activities, p$loadings[gn, , drop = FALSE],
-                rs, ref$loadings[[ct]][gn, , drop = FALSE])
+    ## recon is a guardrail: any structural mismatch -> NA (documented
+    ## exclusion), never a run failure
+    tryCatch({
+      sel <- sim$meta$cell_type == ct
+      ref <- run_arms$denovo_cell$fit
+      ## reconstruction on the gene panel SHARED by the arm's loadings and the
+      ## denovo fit's panel (character row-indexing errors on missing names)
+      rl <- as.matrix(ref$loadings[[ct]])
+      gn <- intersect(rownames(p$loadings), rownames(rl))
+      if (length(gn) < 10L) return(NA_real_)
+      Xp <- X_all[sel, gn, drop = FALSE]
+      rs <- as.matrix(ref$scores[[ct]])[intersect(rownames(Xp), rownames(ref$scores[[ct]])), , drop = FALSE]
+      recon_ratio(Xp, p$activities, p$loadings[gn, , drop = FALSE],
+                  rs, rl[gn, , drop = FALSE])
+    }, error = function(e) {
+      cat(sprintf("  recon NA (%s/%s): %s\n", nm, ct, conditionMessage(e)))
+      print(class(a$per_ct[[ct]]$loadings)); print(dim(a$per_ct[[ct]]$loadings))
+      print(class(run_arms$denovo_cell$fit$loadings[[ct]]))
+      print(dim(as.matrix(run_arms$denovo_cell$fit$loadings[[ct]])))
+      NA_real_
+    })
   }, numeric(1))
   rows[[length(rows) + 1L]] <- data.frame(rep = rep, arm = nm, f1 = f1, tp = tp, fp = fp,
                                           n_calls = n_calls, drift = dr, stability = st,
