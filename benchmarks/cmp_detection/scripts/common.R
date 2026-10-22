@@ -3,7 +3,7 @@
 if (dir.exists("/workspace/.Rlib")) .libPaths(c("/workspace/.Rlib", .libPaths()))
 HERE <- local({ f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)[1])
   if (length(f)) dirname(normalizePath(f)) else getwd() })
-REPO_ROOT <- normalizePath(file.path(HERE, "..", ".."))
+REPO_ROOT <- normalizePath(file.path(HERE, "..", "..", ".."))  # scripts/ -> cmp_detection -> benchmarks -> repo
 CMP_ROOT <- Sys.getenv("CMP_ROOT", unset = REPO_ROOT)
 suppressPackageStartupMessages({ library(Matrix); library(data.table) })
 for (f in list.files(file.path(REPO_ROOT, "R"), pattern = "\\.R$", full.names = TRUE)) sys.source(f, envir = globalenv())
