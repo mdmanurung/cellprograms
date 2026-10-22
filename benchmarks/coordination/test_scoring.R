@@ -1,52 +1,43 @@
-## scoring.R checks: R_LIBS_USER=/nonexistent Rscript benchmarks/coordination/test_scoring.R
+## scoring.R checks (v2 membership-F1 scorer):
+##   R_LIBS_USER=/workspace/.Rlib Rscript benchmarks/coordination/test_scoring.R
 here <- local({ f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)[1]); dirname(normalizePath(f)) })
 root <- normalizePath(file.path(here, "..", ".."))
-library(stats); library(utils)
-for (f in list.files(file.path(root, "R"), full.names = TRUE)) source(f)
-source(file.path(here, "methods.R"))
 source(file.path(here, "scoring.R"))
-set.seed(3)
-cts <- sprintf("ct%02d", 1:10); ids <- sprintf("d%03d", 1:100)
-strata <- setNames(sample(c("a", "b", "c"), 100, TRUE), ids)
-bz <- setNames(c(a = 0, b = 1.5, c = 3)[strata] + rnorm(100, sd = 0.1), ids)  # nuisance = site-driven
-mem <- list(R100 = cts, R50 = cts[1:5], R20 = cts[c(9, 10)])
-zl <- lapply(mem, function(m) setNames(rnorm(100), ids))
-sc <- list()
-for (ct in cts) {
-  d <- ids
-  Z <- matrix(rnorm(100 * 4), 100, 4, dimnames = list(d, paste0(ct, "_", 1:4)))
-  for (s in seq_along(names(mem))) if (ct %in% mem[[s]]) Z[, s] <- 2 * zl[[s]][d] + rnorm(100, sd = 0.5)
-  if (ct == "ct01") Z[, 4] <- 3 * bz[d]              # pure nuisance node -> SITE/decoy
-  sc[[ct]] <- Z
-}
-fit <- list(cell_types = cts, scores = sc)
-truth <- list(programs = setNames(lapply(names(mem), function(s) {
-  list(members = mem[[s]], z = setNames(lapply(mem[[s]], function(ct) zl[[s]]), mem[[s]]))
-}), names(mem)))
-
-na <- node_assign_coord(fit, truth, strata)
+if (!requireNamespace("clue", quietly = TRUE)) stop("clue is required for the Hungarian assignment")
 chk <- function(ok, msg) if (!isTRUE(ok)) stop("FAILED: ", msg) else cat("ok:", msg, "\n")
-chk(all(na$signal[na$cell_type == "ct03" & na$program_id == "ct03_1"] == "R100"), "planted node assigned to its signal")
-chk(all(na$signal[na$cell_type == "ct03" & na$program_id == "ct03_4"] == "R50" |
-        is.na(na$signal[na$cell_type == "ct03" & na$program_id == "ct03_4"])), "non-signal node unassigned or weak")
-ct01_site <- na[na$cell_type == "ct01" & na$program_id == "ct01_4", ]
-chk(identical(ct01_site$signal, "SITE") && identical(ct01_site$type, "site"), "nuisance node assigned to SITE")
-## non-member nodes must not match a signal they are not part of
-chk(all(is.na(na$signal[na$cell_type == "ct06" & na$program_id %in% c("ct06_2", "ct06_3")])), "non-member nodes unassigned")
 
-## eval_calls: a cluster spanning the R50 members scores F1 = 1 and found = TRUE
-cl <- data.frame(cluster = 1, cell_type = mem$R50,
-                 program_id = paste0(mem$R50, "_2"), stat = 5, fwer_p = 0.01, stringsAsFactors = FALSE)
-ev <- eval_calls_coord(cl, fit, truth, strata)
-chk(abs(ev$f1[["R50"]] - 1) < 1e-12, "perfect R50 cluster: F1 = 1")
-chk(isTRUE(ev$found[["R50"]]), "perfect R50 cluster: found")
-chk(ev$summary$n_decoy == 0, "no decoy calls for a true cluster")
-## the nuisance-only cluster is a decoy
-cld <- data.frame(cluster = 1, cell_type = "ct01", program_id = "ct01_4", stat = 5, fwer_p = 0.01, stringsAsFactors = FALSE)
-evd <- eval_calls_coord(cld, fit, truth, strata)
-chk(evd$summary$n_decoy == 1 && isTRUE(evd$summary$any_decoy), "SITE-majority cluster labelled decoy")
-chk(all(ev$f1 == 0) || !isTRUE(ev$found[["R20"]]), "no R20 cluster formed")
-## empty call set: F1 = 0, nothing found
-eve <- eval_calls_coord(.empty_clusters(), fit, truth, strata)
-chk(all(eve$f1 == 0) && eve$summary$n_cmp == 0L, "empty clusters: F1 = 0")
+## hand-built membership cases: perfect R50, partial R20, spurious extra call
+score_selfcheck()
+
+## decoy + trap: a spurious 2-ct call whose donor activity tracks the nuisance, and whose
+## members are exactly a priv_corr decoy pair, is both a decoy and a trap
+set.seed(7)
+bz <- setNames(rnorm(100), sprintf("d%03d", 1:100))
+tr <- list(programs = list(list(id = "R50", members = c("ct01", "ct03", "ct05", "ct08", "ct10"))),
+           decoy_pairs = list(list(id = "dp1", members = c("ct02", "ct09"))),
+           nuisance = bz)
+cl <- data.frame(cluster = c(1, 1, 1, 1, 1, 2, 2),
+                 cell_type = c("ct01", "ct03", "ct05", "ct08", "ct10", "ct02", "ct09"),
+                 program_id = NA_character_, stat = 1, fwer_p = NA, stringsAsFactors = FALSE)
+act <- cbind(cluster_1 = setNames(rnorm(100), names(bz)),
+             cluster_2 = setNames(bz + rnorm(100, sd = 0.05), names(bz)))
+s <- score_method(list(method = "chk", clusters = cl, activity = act), tr)
+chk(isTRUE(s$program_level$found[s$program_level$program_id == "R50"]), "perfect R50 call found")
+chk(s$dataset_level$n_calls == 2L && s$dataset_level$n_spurious == 1L, "one accepted call, one spurious")
+chk(s$dataset_level$n_decoy == 1L, "spurious call with nuisance-correlated activity is a decoy")
+chk(s$dataset_level$n_trap == 1L, "spurious call containing both priv_corr pair members is a trap")
+
+## same spurious call without nuisance-correlated activity: trap fires, decoy does not
+act0 <- cbind(cluster_1 = setNames(rnorm(100), names(bz)),
+              cluster_2 = setNames(rnorm(100), names(bz)))
+s0 <- score_method(list(method = "chk", clusters = cl, activity = act0), tr)
+chk(s0$dataset_level$n_decoy == 0L && s0$dataset_level$n_trap == 1L, "uncorrelated activity: no decoy, trap still fires")
+
+## empty call set: no calls, the planted program is scored not-found
+cl0 <- data.frame(cluster = integer(), cell_type = character(), program_id = character(),
+                  stat = numeric(), fwer_p = numeric(), stringsAsFactors = FALSE)
+e <- score_method(list(method = "chk", clusters = cl0, activity = NULL), tr)
+chk(e$dataset_level$n_calls == 0L && nrow(e$program_level) == 1L && !e$program_level$found[[1]],
+    "empty call set: program scored not found")
+
 cat("all scoring checks passed\n")

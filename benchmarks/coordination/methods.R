@@ -1,7 +1,10 @@
 ## methods.R -- candidate methods for recurring programs across cell types.
-## Each takes a canonicalized fit (fit$scores, fit$loadings, fit$cell_types) and returns
-##   list(method, clusters = data.frame(cluster, cell_type, program_id, stat, fwer_p), n_perm)
-## program_id is NA for pa_cc (cell-type-level clusters). Needs R/ sourced (.perm_within, .subspace, sharing_spectrum).
+## v2: node_cor permutation fixed (positional, pair-specific; Defect D);
+## .maxT_edges perm_fun is now pair-specific; block_E and eb_cp arms added;
+## oracle (true-loadings projection) added as the detectability floor.
+## Each method returns list(method, clusters = data.frame(cluster, cell_type,
+## program_id, stat, fwer_p), activity = donors x clusters matrix or NULL).
+## program_id is NA for pa_cc (cell-type-level clusters).
 
 ## ---- shared helpers -------------------------------------------------------
 .nodes <- function(fit) {
@@ -12,21 +15,12 @@
   }))
 }
 
-## permute the rows of M within strata (rows are donors of one cell type). Row names keep the
-## ORIGINAL donor order: callers that re-index by donor name (node_cor) must see the permuted
-## values under the original names, else the permutation is undone and the null equals the data.
-.perm_rows <- function(M, strata_ct) {
-  P <- M[.perm_within(nrow(M), strata_ct), , drop = FALSE]
-  rownames(P) <- rownames(M)
-  P
-}
+## permute the rows of M within strata (rows are donors of one cell type)
+.perm_rows <- function(M, strata_ct) M[.perm_within(nrow(M), strata_ct), , drop = FALSE]
 
 ## Greedy single-linkage on called edges, strongest first; a merge that would put two
-## nodes of the same cell type in one cluster is skipped. min_density > 0 drops clusters
-## whose called edges cover fewer than that fraction of the possible cross-cell-type
-## member pairs (a single-linkage chain A-B-C with a weak A-C passes the edge test but
-## fails the density filter).
-.cluster_edges <- function(edges, nodes, min_density = 0) {
+## nodes of the same cell type in one cluster is skipped.
+.cluster_edges <- function(edges, nodes) {
   key <- paste(nodes$cell_type, nodes$program_id, sep = "|")
   cl <- setNames(seq_along(key), key)
   members <- setNames(as.list(key), seq_along(key))
@@ -48,23 +42,19 @@
   for (nm in names(members)) {
     m <- members[[nm]]
     if (length(m) < 2L) next
-    e <- edges[used[[nm]], , drop = FALSE]
-    if (min_density > 0) {
-      ctm <- sub("\\|.*", "", m)
-      tab <- table(ctm)
-      n_pairs <- choose(length(m), 2L) - sum(tab * (tab - 1L) / 2)
-      if (nrow(e) / max(n_pairs, 1L) < min_density) next
-    }
     id <- id + 1L
+    e <- edges[used[[nm]], , drop = FALSE]
     out[[id]] <- data.frame(cluster = id, cell_type = sub("\\|.*", "", m), program_id = sub("^[^|]*\\|", "", m),
                             stat = max(e$stat), fwer_p = min(e$fwer_p), stringsAsFactors = FALSE)
   }
   if (length(out)) do.call(rbind, out) else .empty_clusters()
 }
-.empty_clusters <- function() data.frame(cluster = integer(), cell_type = character(), program_id = character(),
+.empty_clusters <- function() data.frame(cluster = integer(), cell_type = character(),
+                                         program_id = character(),
                                          stat = numeric(), fwer_p = numeric(), stringsAsFactors = FALSE)
 
-## all cross-cell-type node pairs: statistic function applied per cell-type pair, max-T null
+## all cross-cell-type node pairs: statistic function applied per cell-type pair, max-T null.
+## perm_fun(i) returns the pair-specific permutation payload for pair i.
 .maxT_edges <- function(pairs, stat_fun, perm_fun, n_perm, alpha) {
   obs <- lapply(pairs, stat_fun)
   edges <- do.call(rbind, lapply(seq_along(pairs), function(i) {
@@ -76,39 +66,101 @@
   if (is.null(edges) || !nrow(edges)) return(edges)
   mx <- numeric(n_perm)
   for (b in seq_len(n_perm)) {
-    pm <- perm_fun()
     mx[b] <- max(vapply(seq_along(pairs), function(i) {
       if (is.null(obs[[i]])) return(0)
-      max(abs(stat_fun(pairs[[i]], pm)))
+      max(abs(stat_fun(pairs[[i]], perm_fun(i))))
     }, numeric(1L)))
   }
   edges$fwer_p <- vapply(edges$stat, function(s) (1 + sum(mx >= s)) / (n_perm + 1), numeric(1L))
   edges[edges$fwer_p < alpha, , drop = FALSE]
 }
 
-## ---- node_cor: studentized score correlation, max-T over node pairs --------
-method_node_cor <- function(fit, strata, n_perm = 999L, seed = 1L, alpha = 0.05, min_shared = 20L,
-                            min_density = 0) {
+## mean of member node scores per donor (union, available-case), for decoy checks
+.cluster_activity <- function(clusters, Z) {
+  if (!nrow(clusters)) return(NULL)
+  ids <- sort(unique(unlist(lapply(Z, rownames))))
+  out <- matrix(NA_real_, length(ids), length(unique(clusters$cluster)),
+                dimnames = list(ids, paste0("cluster_", sort(unique(clusters$cluster)))))
+  for (cl in sort(unique(clusters$cluster))) {
+    mem <- clusters[clusters$cluster == cl, , drop = FALSE]
+    acc <- matrix(NA_real_, length(ids), nrow(mem))
+    for (k in seq_len(nrow(mem))) {
+      z <- Z[[mem$cell_type[k]]]
+      if (!mem$program_id[k] %in% colnames(z)) next
+      acc[match(rownames(z), ids), k] <- z[, mem$program_id[k]]
+    }
+    out[, paste0("cluster_", cl)] <- rowMeans(acc, na.rm = TRUE)
+  }
+  out
+}
+
+## ---- node_cor core: studentized score correlation, max-T over node pairs --
+## Positional pre-alignment per pair; permutation permutes ROW ORDER of the
+## a-side matrix within strata (Defect D fix: never re-index by donor name
+## after permuting).
+.node_cor_core <- function(Z, strata, n_perm, seed, alpha, min_shared) {
   set.seed(seed)
-  nodes <- .nodes(fit)
-  cts <- unique(nodes$cell_type)
-  Z <- fit$scores[cts]
+  cts <- names(Z)
   pairs <- list()
   for (i in seq_len(length(cts) - 1L)) for (j in (i + 1L):length(cts)) {
     a <- cts[i]; b <- cts[j]
     ids <- intersect(rownames(Z[[a]]), rownames(Z[[b]]))
-    if (length(ids) >= min_shared) pairs[[length(pairs) + 1L]] <- list(a = a, b = b, ids = ids)
+    if (length(ids) < min_shared) next
+    pairs[[length(pairs) + 1L]] <- list(
+      a = a, b = b,
+      Za = Z[[a]][ids, , drop = FALSE],
+      Zb = Z[[b]][ids, , drop = FALSE],
+      st = unname(strata[ids]))
   }
   stat_fun <- function(p, pm = NULL) {
-    Za <- if (is.null(pm)) Z[[p$a]] else pm[[p$a]]; Zb <- if (is.null(pm)) Z[[p$b]] else pm[[p$b]]
-    r <- suppressWarnings(stats::cor(Za[p$ids, , drop = FALSE], Zb[p$ids, , drop = FALSE]))
+    Za <- if (is.null(pm)) p$Za else pm
+    r <- suppressWarnings(stats::cor(Za, p$Zb))
     r[!is.finite(r)] <- 0
-    atanh(pmin(pmax(r, -0.999999), 0.999999)) * sqrt(length(p$ids) - 3)
+    atanh(pmin(pmax(r, -0.999999), 0.999999)) * sqrt(nrow(p$Za) - 3)
   }
-  perm_fun <- function() lapply(Z, function(M) .perm_rows(M, strata[rownames(M)]))
+  perm_fun <- function(i) {
+    p <- pairs[[i]]
+    p$Za[.perm_within(nrow(p$Za), p$st), , drop = FALSE]
+  }
   edges <- .maxT_edges(pairs, stat_fun, perm_fun, n_perm, alpha)
-  list(method = "node_cor", n_perm = n_perm,
-       clusters = if (is.null(edges) || !nrow(edges)) .empty_clusters() else .cluster_edges(edges, nodes, min_density))
+  nodes <- do.call(rbind, lapply(cts, function(ct)
+    data.frame(cell_type = ct, program_id = colnames(Z[[ct]]), stringsAsFactors = FALSE)))
+  cl <- if (is.null(edges) || !nrow(edges)) .empty_clusters() else .cluster_edges(edges, nodes)
+  list(method = "node_cor", n_perm = n_perm, clusters = cl,
+       activity = .cluster_activity(cl, Z), edges = edges)
+}
+
+method_node_cor <- function(fit, strata, n_perm = 999L, seed = 1L, alpha = 0.05, min_shared = 20L) {
+  cts <- fit$cell_types[vapply(fit$scores, ncol, 1L) > 0L]
+  .node_cor_core(fit$scores[cts], strata, n_perm, seed, alpha, min_shared)
+}
+
+## ---- oracle: project adjusted matrices onto TRUE loadings -----------------
+## Detectability floor: bypasses stage-1 estimation; nodes are the true
+## programs' projection scores. Noise comes only from the data, so power
+## increases with amplitude. Runs the same node_cor machinery.
+method_oracle <- function(mats, truth, strata, n_perm = 999L, seed = 1L,
+                          alpha = 0.05, min_shared = 20L) {
+  Z <- list()
+  for (ct in names(mats)) {
+    cols <- list()
+    for (p in truth$programs) if (ct %in% p$members) {
+      g <- p$genes[[ct]]; w <- p$w[[ct]]
+      cols[[p$id]] <- drop(mats[[ct]][, g, drop = FALSE] %*% w / sum(w^2))
+    }
+    for (k in seq_along(truth$privates[[ct]])) {
+      pv <- truth$privates[[ct]][[k]]
+      cols[[paste0(ct, "_P", k)]] <- drop(mats[[ct]][, pv$genes, drop = FALSE] %*% pv$w / sum(pv$w^2))
+    }
+    if (length(cols)) {
+      M <- do.call(cbind, cols)
+      rownames(M) <- rownames(mats[[ct]])
+      Z[[ct]] <- M
+    }
+  }
+  r <- .node_cor_core(Z, strata, n_perm, seed, alpha, min_shared)
+  r$method <- "oracle"
+  r
 }
 
 ## ---- gene_match: loading cosine over shared genes, gene-label permutation, max-T ----
@@ -126,22 +178,19 @@ method_gene_match <- function(fit, n_perm = 999L, seed = 1L, alpha = 0.05, min_g
   unit <- function(M) { n <- sqrt(colSums(M^2)); n[n == 0] <- 1; sweep(M, 2, n, "/") }
   stat_fun <- function(p, pm = NULL) {
     Wa <- unit(W[[p$a]][p$g, , drop = FALSE])
-    Wb <- if (is.null(pm)) unit(W[[p$b]][p$g, , drop = FALSE]) else unit(W[[p$b]][pm[[paste(p$a, p$b)]], , drop = FALSE])
+    Wb <- if (is.null(pm)) unit(W[[p$b]][p$g, , drop = FALSE]) else unit(W[[p$b]][pm, , drop = FALSE])
     crossprod(Wa, Wb) * sqrt(length(p$g))
   }
-  perm_fun <- local({
-    pp <- pairs
-    function() setNames(lapply(pp, function(p) match(sample(p$g), rownames(W[[p$b]]))), vapply(pp, function(p) paste(p$a, p$b), ""))
-  })
+  perm_fun <- function(i) match(sample(pairs[[i]]$g), rownames(W[[pairs[[i]]$b]]))
   edges <- .maxT_edges(pairs, stat_fun, perm_fun, n_perm, alpha)
-  list(method = "gene_match", n_perm = n_perm,
+  list(method = "gene_match", n_perm = n_perm, activity = NULL,
        clusters = if (is.null(edges) || !nrow(edges)) .empty_clusters() else .cluster_edges(edges, nodes))
 }
 
 ## ---- pa_cc: existing pairwise test, connected components over cell types ----
-method_pa_cc <- function(fit, strata, n_perm = 999L, seed = 1L) {
+method_pa_cc <- function(fit, strata, n_perm = 1999L, seed = 1L) {
   ss <- sharing_spectrum(fit, space = "scores", n_perm = n_perm, seed = seed, strata = strata)$summary
-  called <- ss[ss$shared, , drop = FALSE]
+  called <- ss[!is.na(ss$shared) & ss$shared, , drop = FALSE]
   cts <- fit$cell_types[vapply(fit$scores, ncol, 1L) > 0L]
   comp <- setNames(seq_along(cts), cts)
   for (i in seq_len(nrow(called))) {
@@ -153,16 +202,12 @@ method_pa_cc <- function(fit, strata, n_perm = 999L, seed = 1L) {
   cl <- if (!length(g)) .empty_clusters() else do.call(rbind, lapply(seq_along(g), function(i)
     data.frame(cluster = i, cell_type = g[[i]], program_id = NA_character_, stat = NA_real_, fwer_p = NA_real_,
                stringsAsFactors = FALSE)))
-  list(method = "pa_cc", n_perm = n_perm, clusters = cl)
+  list(method = "pa_cc", n_perm = n_perm, clusters = cl, activity = NULL)
 }
 
 ## ---- subspace_sum: sum of cell-type score projections, generalized eigenproblem ----
 ## M = sum_c U_c U_c' (zero rows for donors a cell type lacks); M v = lambda D v with
 ## D = diag(#cell types observing each donor), so lambda ~ fraction of cell types holding the direction.
-## Sequential test with deflation: direction j is tested against a null built from the scores with
-## directions 1..j-1 projected out of every cell type, then rows permuted within strata. Stop at the
-## first p >= alpha (fixed sequence, FWER <= alpha). Using the all-permuted null for every j (the old
-## cummax + break) ignores the signal already found and is not a valid step-down.
 method_subspace_sum <- function(fit, strata, n_perm = 999L, seed = 1L, alpha = 0.05, J = 15L, min_shared = 20L) {
   set.seed(seed)
   nodes <- .nodes(fit)
@@ -175,135 +220,78 @@ method_subspace_sum <- function(fit, strata, n_perm = 999L, seed = 1L, alpha = 0
   Dd <- numeric(nu); for (ct in cts) Dd[obs[[ct]]] <- Dd[obs[[ct]]] + 1
   Dh <- 1 / sqrt(Dd)
   embed <- function(U, ct) { E <- matrix(0, nu, ncol(U)); E[obs[[ct]], ] <- U; E }
-  deflate <- function(Us, V) {                      # remove span(V) (donor space) from each cell type
-    if (!ncol(V)) return(Us)
-    Map(function(U, ct) { Q <- qr.Q(qr(V[obs[[ct]], , drop = FALSE])); U - Q %*% crossprod(Q, U) }, Us, cts)
-  }
-  top <- function(Us) {                             # top direction, its value and per-cell-type contribution
-    M <- Reduce(`+`, lapply(Map(embed, Us, cts), tcrossprod))
+  spec <- function(Us) {
+    E <- Map(embed, Us, cts)
+    M <- Reduce(`+`, lapply(E, function(e) tcrossprod(e)))
     ev <- eigen(Dh * M * rep(Dh, each = nu), symmetric = TRUE)
-    v <- ev$vectors[, 1L] * Dh                      # back to donor space
+    V <- ev$vectors[, seq_len(J), drop = FALSE] * Dh        # back to donor space
     contrib <- vapply(seq_along(cts), function(k) {
-      o <- obs[[k]]; sum(crossprod(Us[[k]], v[o])^2) / max(sum(v[o]^2), 1e-12)
-    }, numeric(1L))
-    list(value = ev$values[1L], v = v, contrib = contrib)
+      o <- obs[[k]]; v <- V[o, , drop = FALSE]
+      colSums((crossprod(E[[k]][o, , drop = FALSE], v))^2) / pmax(colSums(v^2), 1e-12)
+    }, numeric(J))
+    list(values = ev$values[seq_len(J)], V = V, contrib = contrib)   # contrib: J x n_ct
   }
-  out <- list(); id <- 0L
-  V <- matrix(0, nu, 0L)
+  o <- spec(Ub)
+  nl <- matrix(NA_real_, n_perm, J); nc <- array(NA_real_, c(n_perm, J, length(cts)))
+  st <- strata
+  for (b in seq_len(n_perm)) {
+    Up <- Map(function(U, ct) .perm_rows(U, st[rownames(fit$scores[[ct]])]), Ub, cts)
+    s <- spec(Up); nl[b, ] <- s$values; nc[b, , ] <- s$contrib
+  }
+  p <- vapply(seq_len(J), function(j) (1 + sum(nl[, j] >= o$values[j])) / (n_perm + 1), numeric(1L))
+  p <- cummax(p)                                   # step-down: monotone in j
+  out <- list(); id <- 0L; acts <- list()
   for (j in seq_len(J)) {
-    Ud <- deflate(Ub, V)
-    o <- top(Ud)
-    nl <- numeric(n_perm); nc <- matrix(NA_real_, n_perm, length(cts))
-    for (b in seq_len(n_perm)) {
-      s <- top(Map(function(U, ct) .perm_rows(U, strata[rownames(fit$scores[[ct]])]), Ud, cts))
-      nl[b] <- s$value; nc[b, ] <- s$contrib
-    }
-    p <- (1 + sum(nl >= o$value)) / (n_perm + 1)
-    if (p >= alpha) break
-    V <- cbind(V, o$v)
-    thr <- apply(nc, 2L, stats::quantile, 0.95, na.rm = TRUE)
-    mem <- which(o$contrib > thr & vapply(obs, length, 1L) >= min_shared)
+    if (p[j] >= alpha) break
+    thr <- apply(nc[, j, ], 2L, stats::quantile, 0.95, na.rm = TRUE)
+    mem <- which(o$contrib[j, ] > thr & vapply(obs, length, 1L) >= min_shared)
     if (length(mem) < 2L) next
-    v <- setNames(o$v, ids)
+    v <- setNames(o$V[, j], ids)
     prog <- vapply(cts[mem], function(ct) {
       Z <- fit$scores[[ct]]
       r <- suppressWarnings(abs(stats::cor(Z, v[rownames(Z)]))); colnames(Z)[which.max(r)]
     }, "")
     id <- id + 1L
-    out[[id]] <- data.frame(cluster = id, cell_type = cts[mem], program_id = unname(prog), stat = o$value, fwer_p = p,
+    out[[id]] <- data.frame(cluster = id, cell_type = cts[mem], program_id = unname(prog), stat = o$values[j], fwer_p = p[j],
                             stringsAsFactors = FALSE)
+    acts[[id]] <- v
   }
-  list(method = "subspace_sum", n_perm = n_perm, clusters = if (length(out)) do.call(rbind, out) else .empty_clusters())
+  cl <- if (length(out)) do.call(rbind, out) else .empty_clusters()
+  activity <- NULL
+  if (length(acts)) {
+    activity <- do.call(cbind, acts)
+    colnames(activity) <- paste0("cluster_", seq_along(acts))
+  }
+  list(method = "subspace_sum", n_perm = n_perm, clusters = cl, activity = activity)
 }
 
-## ---- node_agg: node-level evidence aggregation across partner cell types ----
-## Port of the cmp_detection finalist `n_agg_noanc` (reports/biomni_transfer/part1_callers_scoring.md
-## 1.2; code: benchmarks/cmp_detection/scripts/cand_nodeagg.R). Edge max-T is power-limited when
-## cell types share few donors: a program coupled to 3-4 cell types can have every single edge just
-## below threshold. Node statistic pools evidence over partner cell types:
-##   A_v = sum_{c' != ct(v)} (max_{u in c'} |T_vu| - tau)_+^2,  tau = 2
-## on rank-first scores (rank-Gauss, then residualize on strata -- the order matters). Node FWER by
-## the permutation max of A_v under the same within-strata row permutations; an edge is kept only
-## between two significant nodes with |T| >= link_thr, then greedy single linkage. Under the global
-## null P(any call) <= alpha (single-step max over nodes).
-.rank_gauss_coord <- function(S) {
-  R <- apply(S, 2, function(v) stats::qnorm((rank(v, ties.method = "average") - 0.5) / length(v)))
-  if (is.null(dim(R))) R <- matrix(R, nrow(S))
-  dimnames(R) <- dimnames(S)
-  R
-}
-.prep_rank_first_coord <- function(fit, strata) {
-  lapply(fit$scores, function(S) {
-    if (is.null(S) || !ncol(S)) return(S)
-    R0 <- .rank_gauss_coord(S)
-    f <- factor(strata[rownames(S)])
-    X <- if (nlevels(f) > 1L) stats::model.matrix(~f) else matrix(1, nrow(S), 1)
-    R <- R0 - X %*% qr.solve(X, R0)
-    dimnames(R) <- dimnames(S)
-    R
-  })
-}
-method_node_agg <- function(fit, strata, n_perm = 999L, seed = 1L, alpha = 0.05,
-                            tau = 2, link_thr = 3, min_shared = 20L, min_density = 0) {
-  set.seed(seed)
-  Z <- .prep_rank_first_coord(fit, strata)
-  Z <- Z[vapply(Z, function(S) !is.null(S) && ncol(S) > 0L, TRUE)]
-  nodes <- do.call(rbind, lapply(names(Z), function(ct) {
-    if (!ncol(Z[[ct]])) return(NULL)
-    data.frame(cell_type = ct, program_id = colnames(Z[[ct]]), stringsAsFactors = FALSE)
-  }))
-  cts <- names(Z)
-  pairs <- list()
-  for (i in seq_len(length(cts) - 1L)) for (j in (i + 1L):length(cts)) {
-    ids <- intersect(rownames(Z[[cts[i]]]), rownames(Z[[cts[j]]]))
-    if (length(ids) >= min_shared) pairs[[length(pairs) + 1L]] <- list(a = cts[i], b = cts[j], ids = ids)
-  }
-  if (!length(pairs)) return(list(method = "node_agg", n_perm = n_perm, clusters = .empty_clusters()))
-  edge_T <- function(p, pm = NULL) {
-    Za <- if (is.null(pm)) Z[[p$a]] else pm[[p$a]]; Zb <- if (is.null(pm)) Z[[p$b]] else pm[[p$b]]
-    r <- suppressWarnings(stats::cor(Za[p$ids, , drop = FALSE], Zb[p$ids, , drop = FALSE]))
-    r[!is.finite(r)] <- 0
-    atanh(pmin(pmax(r, -0.999999), 0.999999)) * sqrt(length(p$ids) - 3)
-  }
-  edges_all <- do.call(rbind, lapply(pairs, function(p) {
-    t <- edge_T(p)
-    data.frame(ct_a = p$a, ct_b = p$b, prog_a = rownames(t)[row(t)], prog_b = colnames(t)[col(t)],
-               stat = as.vector(abs(t)), stringsAsFactors = FALSE)
-  }))
-  ka <- paste(edges_all$ct_a, edges_all$prog_a, sep = "|")
-  kb <- paste(edges_all$ct_b, edges_all$prog_b, sep = "|")
-  # A_v per node: max |T| per (node, partner cell type), shift by tau, square, sum over partners
-  A_v <- function(stat) {
-    key <- paste(c(ka, kb), c(edges_all$ct_b, edges_all$ct_a), sep = "@")
-    m <- tapply(c(stat, stat), key, max)
-    tapply(pmax(0, m - tau)^2, sub("@.*", "", names(m)), sum)
-  }
-  A <- A_v(edges_all$stat)
-  mx <- numeric(n_perm)
-  for (b in seq_len(n_perm)) {
-    Zp <- lapply(Z, function(S) .perm_rows(S, strata[rownames(S)]))
-    stat_p <- unlist(lapply(pairs, function(p) as.vector(abs(edge_T(p, Zp)))), use.names = FALSE)
-    mx[b] <- max(A_v(stat_p))
-  }
-  node_p <- (1 + vapply(A, function(a) sum(mx >= a), numeric(1L))) / (n_perm + 1L)
-  sig <- node_p < alpha
-  keep <- sig[paste(edges_all$ct_a, edges_all$prog_a, sep = "|")] &
-    sig[paste(edges_all$ct_b, edges_all$prog_b, sep = "|")] & edges_all$stat >= link_thr
-  edges <- edges_all[keep, , drop = FALSE]
-  if (!nrow(edges)) return(list(method = "node_agg", n_perm = n_perm, clusters = .empty_clusters()))
-  # cluster fwer_p = max of the two endpoint node p's (part1 1.2 step 6)
-  edges$fwer_p <- pmax(node_p[paste(edges$ct_a, edges$prog_a, sep = "|")],
-                       node_p[paste(edges$ct_b, edges$prog_b, sep = "|")])
-  list(method = "node_agg", n_perm = n_perm, clusters = .cluster_edges(edges, nodes, min_density))
+## ---- block_E: joint block EBMF at expression level -------------------------
+method_block_e <- function(fit, max_factors = 20L, seed = 1L, mass_thresh = 0.1) {
+  bfit <- fit_joint_block(fit, level = "expression", order = "shared_first",
+                          max_factors = max_factors, seed = seed, verbose = 0L)
+  bc <- block_clusters(bfit, mass_thresh = mass_thresh)
+  list(method = "block_E", n_perm = 0L, clusters = bc$clusters, activity = bc$activity,
+       fit = bfit)
 }
 
-METHODS <- c("pa_cc", "node_cor", "node_agg", "subspace_sum", "gene_match")
-run_method <- function(name, fit, strata, n_perm = 999L, seed = 1L, ...) {
+## ---- eb_cp: EB-CP tensor factorization ------------------------------------
+method_eb_cp <- function(fit, strata = NULL, Kmax = 15L, seed = 1L, member_thresh = 0.2) {
+  mats <- lapply(fit$fits[fit$cell_types], function(f) f$Y_used)
+  cp <- eb_cp_fit(mats, Kmax = Kmax, seed = seed, member_thresh = member_thresh,
+                  strata = strata)
+  cc <- eb_cp_clusters(cp, member_thresh)
+  list(method = "eb_cp", n_perm = 0L, clusters = cc$clusters, activity = cc$activity,
+       fit = cp)
+}
+
+METHODS <- c("pa_cc", "node_cor", "subspace_sum", "gene_match", "block_E", "eb_cp")
+run_method <- function(name, fit, strata, n_perm = 999L, seed = 1L) {
   switch(name,
-         pa_cc = method_pa_cc(fit, strata, n_perm, seed),
-         node_cor = method_node_cor(fit, strata, n_perm, seed, ...),
-         node_agg = method_node_agg(fit, strata, n_perm, seed, ...),
+         pa_cc = method_pa_cc(fit, strata, n_perm = 1999L, seed = seed),
+         node_cor = method_node_cor(fit, strata, n_perm, seed),
          subspace_sum = method_subspace_sum(fit, strata, n_perm, seed),
          gene_match = method_gene_match(fit, n_perm, seed),
+         block_E = method_block_e(fit, seed = seed),
+         eb_cp = method_eb_cp(fit, strata = strata, seed = seed),
          stop("unknown method ", name))
 }

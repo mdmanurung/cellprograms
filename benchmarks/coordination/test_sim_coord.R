@@ -1,11 +1,13 @@
-## quick checks of sim_coord.R: R_LIBS_USER=/nonexistent Rscript benchmarks/coordination/test_sim_coord.R
+## quick checks of sim_coord.R (v2: priv_corr, R20small, each-alone)
+## run: R_LIBS_USER=/workspace/.Rlib Rscript benchmarks/coordination/test_sim_coord.R
 here <- local({ f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)[1]); dirname(normalizePath(f)) })
 root <- normalizePath(file.path(here, "..", ".."))
 library(stats); library(utils)
-for (f in list.files(file.path(root, "R"), full.names = TRUE)) source(f)
+for (f in c("data-model.R", "utils.R", "ebmf.R", "principal-angles.R", "block-joint.R", "eb-cp.R")) source(file.path(root, "R", f))
 source(file.path(here, "sim_coord.R"))
 options(ms.G = 3000L)
 chk <- function(ok, msg) if (!isTRUE(ok)) stop("FAILED: ", msg) else cat("ok:", msg, "\n")
+
 for (mode in c("act+genes", "act+half", "act_only", "genes_only", "null")) {
   d <- gen_coord(mode, amp = 0.5, seed = 7)
   tr <- d$truth
@@ -22,48 +24,39 @@ for (mode in c("act+genes", "act+half", "act_only", "genes_only", "null")) {
   other <- unlist(lapply(tr$programs[c("R100", "R20")], function(p) unlist(p$genes)))
   chk(length(intersect(unlist(pr$genes), other)) == 0, paste(mode, "R50 genes disjoint from R100/R20"))
 }
-## artifact decoys: vdj (Ig/TCR-like) and deletion (donor spike)
-d <- gen_coord("act+genes", amp = 0.5, seed = 11, artifacts = c("vdj", "deletion"))
-tr <- d$truth
-chk(setequal(names(tr$programs), c("R100", "R50", "R20", "VDJ", "DEL")), "artifacts planted alongside targets")
-chk(identical(tr$programs$VDJ$type, "artifact_vdj") && identical(tr$programs$DEL$type, "artifact_deletion"), "artifact types recorded")
-vdj_cols <- grep("^IG[KL]V|^TRBV", colnames(d$x$pseudobulk$ct01), value = TRUE)
-chk(length(vdj_cols) == 40, "40 receptor-named genes in the pseudobulk")
-chk(length(cellprograms::artifact_genes(vdj_cols, sets = "vdj")) == 40, "package artifact regex flags all 40")
-chk(length(tr$programs$VDJ$members) %in% 3:5, "vdj program spans 3-5 cell types")
-zv <- tr$programs$VDJ$z; m1 <- names(zv)[1]
-zc <- sapply(names(zv)[-1], function(ct) cor(zv[[m1]], zv[[ct]]))
-chk(all(zc > 0.999), "vdj z shared across members (composition latent)")
-zd <- tr$programs$DEL$z[[1]]
-chk(all(tr$programs$DEL$members == COORD_CTS), "deletion acts in every cell type")
-chk(setequal(names(zd)[zd == 1], names(zd)[zd == 1]) && sum(zd) %in% 1:2, "deletion touches 1-2 donors")
-## targets unaffected: R50 genes still disjoint from the artifact gene sets
-art_g <- unlist(lapply(tr$programs[c("VDJ", "DEL")], function(p) unlist(p$genes)))
-chk(length(intersect(unlist(tr$programs$R50$genes), art_g)) == 0, "artifact genes disjoint from targets")
-## scoring: a VDJ-majority cluster is an artifact call, not a target
-source(file.path(here, "methods.R")); source(file.path(here, "scoring.R"))
-fitv <- list(cell_types = COORD_CTS, scores = lapply(d$x$pseudobulk, function(Y) NULL))
-cl_v <- data.frame(cluster = 1, cell_type = tr$programs$VDJ$members,
-                   program_id = paste0(tr$programs$VDJ$members, "_1"), stat = 5, fwer_p = 0.01,
-                   stringsAsFactors = FALSE)
-## build a fake fit whose first node of each VDJ member is the vdj latent itself
-sc <- list()
-for (ct in COORD_CTS) {
-  Z <- matrix(rnorm(100 * 3), 100, 3, dimnames = list(paste0("d", sprintf("%03d", 1:100)), paste0(ct, "_", 1:3)))
-  if (ct %in% tr$programs$VDJ$members) Z[, 1] <- 2 * tr$programs$VDJ$z[[ct]][rownames(Z)]
-  sc[[ct]] <- Z
-}
-fitv <- list(cell_types = COORD_CTS, scores = sc)
-ev <- eval_calls_coord(cl_v, fitv, tr, d$strata)
-chk(ev$summary$n_artifact == 1 && !isTRUE(ev$summary$any_decoy), "VDJ-majority cluster labelled artifact")
-chk(all(ev$f1 == 0), "artifact cluster contributes no F1")
 
-## count-level variant: integer counts, log2 CPM fit input, truth carried over
-dc <- gen_coord_counts("act+genes", amp = 0.5, seed = 13, artifacts = c("vdj", "deletion"))
-chk(all(unlist(lapply(dc$counts, function(Y) Y >= 0)) ), "counts nonnegative")
-chk(all(dc$counts$ct01 == round(dc$counts$ct01)), "counts are integers")
-chk(abs(sum(dc$counts$ct01[1, ]) - dc$ncell[["ct01"]][["d001"]]) < 5 * sqrt(dc$ncell[["ct01"]][["d001"]]),
-    "donor totals track library sizes (Poisson)")
-chk(!identical(dc$x$pseudobulk$ct01, dc$counts$ct01), "fit input is log2 CPM, not counts")
-chk(setequal(names(dc$truth$programs), c("R100", "R50", "R20", "VDJ", "DEL")), "count variant carries the truth")
+## each-alone families
+d <- gen_coord("act_only", amp = 0.5, seed = 11, breadth = "R50")
+chk(length(d$truth$programs) == 1 && length(d$truth$programs$R50$members) == 5, "each-alone R50 plants exactly one 5-ct program")
+d <- gen_coord("act_only", amp = 0.5, seed = 11, breadth = "R20")
+chk(length(d$truth$programs) == 1 && length(d$truth$programs$R20$members) == 2, "each-alone R20 plants exactly one 2-ct program")
+d <- gen_coord("act_only", amp = 0.5, seed = 11, breadth = "R20small")
+chk(length(d$truth$programs) == 1 && all(d$truth$programs$R20$members %in% d$truth$small), "R20small members are both small cell types")
+d <- gen_coord("act+genes", amp = 0.5, seed = 11, breadth = "R100")
+chk(length(d$truth$programs) == 1 && length(d$truth$programs$R100$members) == 10, "each-alone R100")
+
+## priv_corr: no recurring programs; 3 decoy pairs with cor ~ cor_priv, disjoint genes
+d <- gen_coord("priv_corr", amp = 0.5, seed = 13, cor_priv = 0.7)
+tr <- d$truth
+chk(length(tr$programs) == 0, "priv_corr plants no recurring programs")
+chk(length(tr$decoy_pairs) == 3, "priv_corr plants 3 decoy pairs")
+for (dp in tr$decoy_pairs) {
+  a <- dp$members[1]; b <- dp$members[2]
+  ids <- intersect(names(dp$z[[1]]), names(dp$z[[2]]))
+  chk(abs(cor(dp$z[[1]][ids], dp$z[[2]][ids]) - 0.7) < 0.1, paste(dp$id, "activity cor ~0.7"))
+  chk(length(intersect(dp$genes[[1]], dp$genes[[2]])) == 0, paste(dp$id, "genes disjoint"))
+  chk(!anyDuplicated(dp$members), paste(dp$id, "distinct cell types"))
+}
+## decoy genes disjoint from private genes
+allg <- unlist(lapply(tr$decoy_pairs, function(dp) unlist(dp$genes)))
+chk(!anyDuplicated(allg), "priv_corr gene sets mutually disjoint")
+
+## adjusted_matrices: residualized + centered, no flashier needed
+d <- gen_coord("act_only", amp = 0.5, seed = 17, breadth = "R50")
+mats <- adjusted_matrices(d$x, "institute")
+chk(length(mats) == 10 && all(vapply(mats, is.matrix, TRUE)), "adjusted_matrices returns 10 matrices")
+chk(all(vapply(mats, function(m) max(abs(colMeans(m))) < 1e-8, TRUE)), "adjusted matrices gene-centered")
+## nuisance regression actually removes institute signal
+b <- lm(mats$ct01[, 1] ~ d$x$sample_metadata$institute[match(rownames(mats$ct01), d$x$sample_metadata$observation_id)])
+chk(sum(coef(b)[-1]^2, na.rm = TRUE) < 1e-8, "institute effect residualized out of gene 1")
 cat("all checks passed\n")
