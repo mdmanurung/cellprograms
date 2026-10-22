@@ -7,16 +7,26 @@
 ## The caller (n_agg_noanc) is unchanged.
 
 CNMF_PY <- Sys.getenv("CNMF_PY", "python3")
-CNMF_SCRIPT <- Sys.getenv("CNMF_SCRIPT",
-                          file.path(dirname(sub("^--file=", "",
-                            grep("^--file=", commandArgs(FALSE), value = TRUE)[1])),
-                            "cnmf_fit.py"))
+CNMF_SCRIPT <- Sys.getenv("CNMF_SCRIPT", local({
+  a <- grep("^--file=", commandArgs(FALSE), value = TRUE)
+  f <- if (length(a)) sub("^--file=", "", a)[1] else NA_character_
+  file.path(if (!is.na(f)) dirname(normalizePath(f)) else getwd(), "cnmf_fit.py")
+}))
 
 cnmf_fit_object <- function(x, kgrid = c(5, 10, 20, 30), tmpdir = tempfile()) {
   dir.create(tmpdir, recursive = TRUE, showWarnings = FALSE)
   scores <- list(); loadings <- list(); ks <- list()
   for (ct in x$cell_types) {
-    Y <- as.matrix(x$pseudobulk[[ct]])          # donors x genes, counts
+    ## MR-2 input decision (registered deviation, see PREREG_mr2-cnmf-v1.md Addendum):
+    ## the planted semi matrices are continuous (centered signal, min < 0), but cNMF
+    ## requires non-negative integer counts. cNMF therefore consumes the planted
+    ## donor x gene matrix rounded + clipped to >= 0 (its native count input), NOT
+    ## the centered/residualized matrix K30 fits. This tests each backend on its
+    ## natural input; the alternative (shift the processed matrix) fabricates an
+    ## arbitrary offset and is methodologically worse.
+    Y <- as.matrix(x$pseudobulk[[ct]])          # donors x genes, planted (continuous)
+    Y <- pmax(round(Y), 0)                      # recover count space for cNMF
+    storage.mode(Y) <- "integer"
     stopifnot(all(Y == round(Y)), min(Y) >= 0)
     pref <- file.path(tmpdir, paste0("ct_", gsub("[^A-Za-z0-9_]", "_", ct)))
     io <- .write_counts_mm(Y, pref)
@@ -51,6 +61,8 @@ cnmf_fit_object <- function(x, kgrid = c(5, 10, 20, 30), tmpdir = tempfile()) {
 .write_counts_mm <- function(Y, prefix) {
   io <- paste0(prefix, ".mtx")
   M <- Matrix::Matrix(Y, sparse = TRUE)
-  Matrix::writeMM(M, io)
+  Matrix::writeMM(M, io)          # writeMM appends ".mtx" -> "<prefix>.mtx.mtx"
+  if (!file.exists(io) && file.exists(paste0(io, ".mtx")))
+    file.rename(paste0(io, ".mtx"), io)
   io
 }

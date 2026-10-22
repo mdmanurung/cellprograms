@@ -9,7 +9,7 @@
 ##   context -> target in marginal mode, decoy in within-context mode
 ## Scenarios: null, cmp_distinct, cmp_mixed, genes_only, context, ambient, lr, weak
 
-CMP_RES <- Sys.getenv("CMP_RES", file.path(HERE %||% "..", "res"))
+CMP_RES <- Sys.getenv("CMP_RES", file.path(HERE, "..", "res"))
 CMP_SCEN <- c("null", "cmp_distinct", "cmp_mixed", "genes_only", "context", "ambient", "lr", "weak")
 CMP_BREADTH <- c(R100 = 1, R50 = 0.5, R20 = 0.2)
 

@@ -116,3 +116,17 @@ scratch volume, all disclosed:**
    max(stability) - 0.05 (ties -> smaller k), per the registered rule.
 4. **cNMF run settings**: seed 14, t=1, num_iter=100, consensus
    density_threshold 0.2 / local_density_threshold 0.05 (cNMF defaults).
+
+## Addendum A (2026-10-22) — cNMF input resolution
+
+The prereg §2 specified cNMF on the "SAME processed matrices" as K30, but those
+matrices are continuous (planted signal is centered; min < 0) while cNMF requires
+non-negative integer counts. **Resolved:** the cNMF arm consumes the planted
+donor × gene matrix rounded + clipped to ≥ 0 (its native count input); cNMF does
+its own HVG selection and TPM normalization internally. K30 consumes the
+centered/institute-residualized matrix as registered. Each backend is thus tested
+on its natural input — the methodologically fair comparison. Recorded as a
+registered deviation from the §2 "same matrices" wording, not a silent change.
+Also: cnmf 1.7.1 reports stability as consensus *silhouette* (higher = stabler),
+replacing the older local_density; the §2 K-selection rule (largest K within
+0.05 of max stability, ties → smaller K) is applied to silhouette unchanged.

@@ -1,7 +1,7 @@
 ## fit_cache.R -- simulate + fit per-cell-type programs, cache fit essentials + truth.
 ## Rscript fit_cache.R <arm> <base> <scenarios,comma> <seed_from> <seed_to> <amp> <cores> [outroot]
 ## arms: main (repo M2 defaults, residualize on institute), noadj, K20, featall
-HERE <- local({ f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)[1]); if (length(f)) dirname(normalizePath(f)) else getwd() })
+HERE <- local({ a <- grep("^--file=", commandArgs(FALSE), value = TRUE); f <- if (length(a)) sub("^--file=", "", a)[1] else NA_character_; if (!is.na(f)) dirname(normalizePath(f)) else getwd() })
 source(file.path(HERE, "common.R"))
 source(file.path(HERE, "cand_cnmf.R"))
 suppressPackageStartupMessages(library(parallel))

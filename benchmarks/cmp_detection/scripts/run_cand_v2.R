@@ -1,7 +1,7 @@
 ## run_cand_v2.R -- evaluate candidates (REG or REG_V2) on cached fits; v2 adds a context variable in marginal mode.
 ## Rscript run_cand_v2.R <cand1,...> <arm> <split: dev|test|heldout2|nullx> <cores> [bases=param,semi]
 ## env: CMP_SEEDS="1:15" restricts seeds; CMP_TAG suffix for output dir (default _v2); CMP_FITROOT (default fits)
-HERE <- local({ f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)[1]); if (length(f)) dirname(normalizePath(f)) else getwd() })
+HERE <- local({ a <- grep("^--file=", commandArgs(FALSE), value = TRUE); f <- if (length(a)) sub("^--file=", "", a)[1] else NA_character_; if (!is.na(f)) dirname(normalizePath(f)) else getwd() })
 source(file.path(HERE, "common.R"))
 source(file.path(HERE, "eval_cmp.R"))
 source(file.path(HERE, "config.R"))
