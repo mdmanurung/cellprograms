@@ -7,7 +7,9 @@
 span_alignment(W1, W2, k = NULL)
 }
 \arguments{
-\item{W1, }{W2 Loading matrices (genes x programs) on the same gene panel.
+\item{W1}{Loading matrix (genes x programs) on the common gene panel.}
+
+\item{W2}{Second loading matrix (genes x programs) on that same panel.
 Row names should match; rows are matched by name when both have row
 names, otherwise by position.}
 

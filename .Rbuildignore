@@ -9,6 +9,8 @@
 ^ROADMAP\.md$
 ^HANDOFF\.md$
 ^\.github$
+^\.git$
+^vignettes/articles$
 ^IMPLEMENTATION_SUPPORT\.md$
 __pycache__
 \.py[co]$

@@ -59,8 +59,9 @@
                        n_seacells, n_top_genes, n_pc, pca_csv,
                        n_waypoint_eigs, waypt_proportion, n_neighbors,
                        convergence_epsilon, max_iter, seed, use_sparse, mode) {
-            reticulate::source_python(helper_path, envir = environment())
-            run_seacells_group(
+            python_scope <- new.env(parent = baseenv())
+            reticulate::source_python(helper_path, envir = python_scope)
+            python_scope$run_seacells_group(
                 mtx_path = mtx_path, cells_csv = cells_csv, genes_csv = genes_csv,
                 out_dir = out_dir, n_seacells = n_seacells,
                 n_top_genes = n_top_genes, n_pc = n_pc, pca_csv = pca_csv,

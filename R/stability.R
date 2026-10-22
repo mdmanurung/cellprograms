@@ -61,7 +61,11 @@
 #'       matched factor is distinguishable from a failed refit.
 #'       `refit_settings` records the intended estimator arguments, including
 #'       backend/noise controls, for every success and failure. Frozen specs
-#'       govern preprocessing and units; legacy fits use their stored units.}
+#'       govern preprocessing and units; legacy fits use their stored units.
+#'       `effective_refit` retains actual per-type effective settings, fallback,
+#'       known noise and backend convergence when available; NULL after failure.
+#'       Stability targets the full fitting procedure including documented
+#'       fallback behavior, not a fixed selected estimator.}
 #'   }
 #' @examples
 #' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
@@ -155,6 +159,7 @@ assess_program_stability <- function(fit, n_boot = 100L,
         n_obs = I(list(n_obs)),
         n_factors = I(list(stats::setNames(integer(0), character(0)))),
         refit_settings = I(list(fit_args[-1L])),
+        effective_refit = I(list(NULL)),
         eligible = FALSE, stringsAsFactors = FALSE
       )
       next
@@ -166,6 +171,9 @@ assess_program_stability <- function(fit, n_boot = 100L,
       elapsed_seconds = elapsed,
       n_obs = I(list(n_obs)), n_factors = I(list(k_by_ct)),
       refit_settings = I(list(fit_args[-1L])),
+      effective_refit = I(list(lapply(fit_b$fits, function(f) list(
+        effective_config = f$effective_config, fallback = f$fallback,
+        S_used = f$S_used, converged = f$flash$converged)))),
       eligible = any(k_by_ct > 0L), stringsAsFactors = FALSE
     )
 
@@ -239,6 +247,7 @@ assess_program_stability <- function(fit, n_boot = 100L,
   fit$stability <- list(per_program = stab, n_boot = n_boot,
                         valid_refits = valid_refits, failed_refits = failed_refits,
                         replicate_log = repl,
+                        target = "full_fitting_procedure_including_documented_fallback_ladder",
                         match_method = match_method, sim_threshold = sim_threshold)
   fit
 }

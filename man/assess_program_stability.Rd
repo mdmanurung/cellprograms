@@ -59,7 +59,11 @@ The fit with `fit$stability` populated:
       matched factor is distinguishable from a failed refit.
       `refit_settings` records the intended estimator arguments, including
       backend/noise controls, for every success and failure. Frozen specs
-      govern preprocessing and units; legacy fits use their stored units.}
+      govern preprocessing and units; legacy fits use their stored units.
+      `effective_refit` retains actual per-type effective settings, fallback,
+      known noise and backend convergence when available; NULL after failure.
+      Stability targets the full fitting procedure including documented
+      fallback behavior, not a fixed selected estimator.}
   }
 }
 \description{

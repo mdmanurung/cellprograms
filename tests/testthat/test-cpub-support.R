@@ -134,7 +134,7 @@ test_that("all-constant CMP nodes expose NA p values and support receipts", {
   fit <- list(scores = list(A = M, B = N), loadings = list(A = matrix(1), B = matrix(1)),
               observation_ids = ids)
   res <- find_coordinated_programs(fit, min_donors = 4, min_shared = 4,
-                                    n_perm = 19, ambient = "none")
+                                    n_perm = 20, ambient = "none")
   expect_equal(nrow(res$cmps), 0L)
   expect_true(all(is.na(res$nodes$node_p)))
   expect_true(all(is.na(res$nodes$node_stat)))
@@ -233,6 +233,11 @@ test_that("tiny real flashier stability refits preserve numeric fixed-noise sett
   expect_equal(out$stability$valid_refits, 1L)
   expect_identical(out$stability$replicate_log$refit_settings[[1]]$var_floor, 0.2)
   expect_identical(out$stability$replicate_log$refit_settings[[1]]$backend, "flashier")
+  eff <- out$stability$replicate_log$effective_refit[[1]]
+  expect_true(all(vapply(eff, function(f) f$effective_config$noise_mode ==
+    "known_fixed" && f$S_used == .2, logical(1))))
+  expect_identical(out$stability$target,
+    "full_fitting_procedure_including_documented_fallback_ladder")
 })
 
 .support_seurat <- function() {

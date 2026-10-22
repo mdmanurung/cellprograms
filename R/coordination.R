@@ -333,7 +333,10 @@ find_coordinated_programs <- function(fit, strata = NULL, context = NULL,
   if (is.null(fit$scores) || is.null(fit$loadings)) {
     .stopf("`fit` has no scores/loadings; run canonicalize_programs() first.")
   }
-  if ((n_perm + 1) * alpha < 1) .stopf("n_perm = %d is too small for alpha = %g.", n_perm, alpha)
+  if (length(alpha) != 1L || !is.finite(alpha) || alpha <= 0 || alpha >= 1 ||
+      length(n_perm) != 1L || !is.finite(n_perm) || n_perm < 1 ||
+      n_perm != floor(n_perm)) .stopf("alpha must be in (0,1) and n_perm a positive integer.")
+  if ((n_perm + 1) * alpha <= 1) .stopf("n_perm = %d is too small for strict p < alpha = %g.", n_perm, alpha)
   .cmp_cap_message(fit)
   ids <- fit$observation_ids
   st <- .cmp_resolve_var(fit, strata, "strata")

@@ -492,7 +492,8 @@ match_programs <- function(fit_a, fit_b, cell_type,
 #' means cross-cohort alignment is as strong as the fit's own sampling
 #' noise ceiling; near 0 means the shared subspace is no larger than noise.
 #'
-#' @param W1, W2 Loading matrices (genes x programs) on the same gene panel.
+#' @param W1 Loading matrix (genes x programs) on the common gene panel.
+#' @param W2 Second loading matrix (genes x programs) on that same panel.
 #'   Row names should match; rows are matched by name when both have row
 #'   names, otherwise by position.
 #' @param k Optional number of leading principal cosines to average for

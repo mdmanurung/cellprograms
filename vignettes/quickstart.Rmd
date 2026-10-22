@@ -47,9 +47,9 @@ fit
 `fit_celltype_programs()` fits one empirical-Bayes matrix factorization per
 cell type ('flashier'); `canonicalize_programs()` resolves sign and scale
 ambiguity so programs are comparable downstream. Real-data fits should
-additionally pass `covariates` (e.g. `c("site", "sex")`) and use
-`max_factors = 30` when the goal is CMP detection (see the CMP benchmark note
-in `README`).
+declare appropriate `covariates` (e.g. `c("site", "sex")`) without adjusting away
+the outcome of interest. Default rank cap 10 is ordinary behavior, not a universal
+optimum; freeze any study-specific tuning policy before examining test outcomes.
 
 ## From single cells: metacells (optional)
 
@@ -59,7 +59,8 @@ transcriptomically homogeneous metacells with SuperCell 2.0 (pure R — no
 Python) and mcRigor QC, stratified so metacells never cross donors or cell
 types; the SEACells backend (`MetacellsByGroupsSEACells()`, basilisk
 Python) remains available as an alternative. The metacell counts feed
-`fit_celltype_programs()` directly:
+donor-by-visit-by-cell-type aggregation before primary donor-level inference.
+The following optional construction is not a donor-level inference example:
 
 ```{r metacells, eval=FALSE}
 # Requires: install.packages("Seurat"); remotes::install_github("GfellerLab/SuperCell");
@@ -140,8 +141,10 @@ plot_stability(fit)
 ## Coordinated multicellular programs (CMPs)
 
 `find_coordinated_programs()` tests whether programs from *different* cell
-types co-vary across donors, with family-wise error control by permutation.
-Gene overlap plays no role in the call.
+types co-vary across donors using a node-max permutation procedure.
+Its validity depends on exchangeability and selection/missingness assumptions;
+node adjustment does not calibrate false links or merged CMP memberships.
+Gene overlap plays no role in the score statistic.
 
 ```{r cmp}
 cmp <- find_coordinated_programs(fit, n_perm = 199, seed = 1)
@@ -159,9 +162,11 @@ plot_cmp_nodes(cmp)
 ## Shared vs specific programs
 
 `program_sharing()` goes the other way: it matches programs across cell types
-by loading correlation (permutation-calibrated), then asks with 'mashr'
-whether the matched programs share their gene *effects* — correlated loadings
-alone do not imply shared effects.
+by loading correlation, then summarizes model-conditional 'mashr' patterns.
+These labels are descriptive: gene-permutation p/q values need exchangeability,
+“shared” means active in multiple conditions rather than proven equal effects,
+and unmatched programs are not evidence of biological privacy. Loading posterior
+SDs are not donor-bootstrap sampling standard errors.
 
 ```{r sharing}
 if (requireNamespace("mashr", quietly = TRUE)) {

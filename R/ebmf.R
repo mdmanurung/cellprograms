@@ -429,7 +429,7 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     # A var_floor-derived S is not mappable through fit_ebmf(): route the fit
     # through the legacy backend with a warning.
     ordinary <- is.null(Xc) && use_fu && is.null(S_vf)
-    if (!is.null(S_vf) && use_fu && is.null(Xc)) {
+    if (backend == "flashier" && !is.null(S_vf) && use_fu && is.null(Xc)) {
       cli::cli_warn("{.arg var_floor} requires the legacy flashier backend for this fit (flashier.utils::fit_ebmf() does not expose S); routing through {.fn flashier::flash}.")
     }
     run_flash <- function(args) {
