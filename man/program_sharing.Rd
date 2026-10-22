@@ -93,7 +93,7 @@ An object of class `program_sharing`:
     the identity pattern, p_all_shared ~ 0.001). Check `p_all_shared`.
     Each per-group result also carries the full `mash` fit;
   * `summary`: one row per program. Programs in no matched group are
-    classified "private" with evidence "no_significant_match".
+    classified "unmatched" with evidence "no_significant_match".
 }
 \description{
 Assesses which fitted programs are the SAME biological program across cell
@@ -110,6 +110,13 @@ patterns (e.g. `equal_effects` = shared across all conditions,
 This concerns shared GENE LOADINGS only. Coordinated DONOR ACTIVITY (CMP
 detection, [find_coordinated_programs()]) is a separate axis and a separate
 workstream; a shared program need not have correlated donor scores.
+
+All matching and sharing labels are descriptive, not calibrated discoveries.
+Loading posterior SDs are model-conditional uncertainty, not donor-bootstrap
+sampling standard errors. Gene permutation assumes gene exchangeability;
+co-regulated blocks can invalidate its p/q values. "Shared" means active in
+multiple supplied conditions, not equality of effects. An unmatched program
+is "unmatched", not evidence of biological privacy.
 }
 \examples{
 sim <- simulate_pseudobulk(n_samples = 20, n_genes = 150, program_size = 20, seed = 1)

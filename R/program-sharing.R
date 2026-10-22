@@ -370,6 +370,13 @@
 #' detection, [find_coordinated_programs()]) is a separate axis and a separate
 #' workstream; a shared program need not have correlated donor scores.
 #'
+#' All matching and sharing labels are descriptive, not calibrated discoveries.
+#' Loading posterior SDs are model-conditional uncertainty, not donor-bootstrap
+#' sampling standard errors. Gene permutation assumes gene exchangeability;
+#' co-regulated blocks can invalidate its p/q values. "Shared" means active in
+#' multiple supplied conditions, not equality of effects. An unmatched program
+#' is "unmatched", not evidence of biological privacy.
+#'
 #' @param fit A canonicalized `cell_program_fit` with stored loading posterior
 #'   SDs (fits from older versions must be refit).
 #' @param matches `NULL` (default): run [`.match_programs_loadings`] and group
@@ -427,7 +434,7 @@
 #'     the identity pattern, p_all_shared ~ 0.001). Check `p_all_shared`.
 #'     Each per-group result also carries the full `mash` fit;
 #'   * `summary`: one row per program. Programs in no matched group are
-#'     classified "private" with evidence "no_significant_match".
+#'     classified "unmatched" with evidence "no_significant_match".
 #' @examples
 #' sim <- simulate_pseudobulk(n_samples = 20, n_genes = 150, program_size = 20, seed = 1)
 #' x <- as_cell_program_data(sim$pseudobulk)
@@ -563,7 +570,7 @@ program_sharing <- function(fit, matches = NULL, alpha = 0.05, n_top = 50L,
                  stringsAsFactors = FALSE)
     } else {
       data.frame(program_id = prog, cell_type = ct, group_id = NA_integer_,
-                 n_conditions = 1L, classification = "private",
+                 n_conditions = 1L, classification = "unmatched",
                  frac_top_shared = NA_real_, frac_top_private = NA_real_,
                  p_all_shared = NA_real_, evidence = "no_significant_match",
                  stringsAsFactors = FALSE)
@@ -572,7 +579,12 @@ program_sharing <- function(fit, matches = NULL, alpha = 0.05, n_top = 50L,
   rownames(summ) <- NULL
   out <- list(matches = match_table, groups = groups, results = results,
               summary = summ, alpha = alpha, n_top = n_top,
-              lfsr_thresh = lfsr_thresh)
+              lfsr_thresh = lfsr_thresh,
+              interpretation = list(
+                scope = "descriptive", calibration_established = FALSE,
+                shared_label = "active_in_multiple_conditions_not_equal_effects",
+                unmatched_label = "no_match_not_evidence_of_privacy",
+                uncertainty = "model_conditional_posterior_SD_not_sampling_SE"))
   class(out) <- "program_sharing"
   out
 }
@@ -585,7 +597,7 @@ program_sharing <- function(fit, matches = NULL, alpha = 0.05, n_top = 50L,
 #' @keywords internal
 #' @export
 print.program_sharing <- function(x, ...) {
-  cat(sprintf("program_sharing: %d matched group(s), %d program(s) assessed\n",
+  cat(sprintf("program_sharing (descriptive, uncalibrated): %d matched group(s), %d program(s) assessed\n",
               length(x$results), nrow(x$summary)))
   for (i in seq_along(x$results)) {
     r <- x$results[[i]]

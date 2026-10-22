@@ -1,3 +1,5 @@
+stop("Historical analyzer retired: any_sig and pooled null-node FPR do not establish mixed-null FWER. Use analyze_corrected.R with an explicit requested grid and a new output file. Historical source/output remain as-run evidence in the frozen base.", call. = FALSE)
+
 # CP-3A confirmation-arm analysis: per-scenario operating characteristics with
 # exact binomial CIs, evaluated against the preregistered decision rules
 # (PREREGISTRATION.md). Inputs: results_confirm_*.csv in confirm_dir.

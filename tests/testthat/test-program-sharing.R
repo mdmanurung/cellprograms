@@ -179,8 +179,9 @@ test_that("fit_celltype_programs stores loading posterior SDs (both modes)", {
   expect_equal(ncol(flf$F_psd), ncol(flf$F_pm))
 })
 
-test_that("program_sharing with zero sharing groups returns an all-private summary", {
-  skip_if_not_installed("mashr")
+test_that("program_sharing with zero sharing groups returns an unmatched descriptive summary", {
+  # No mashr fit is invoked when no group is matched.
+  testthat::local_mocked_bindings(.has_mashr = function() TRUE)
   # Cell types A and C share no planted program (A_1/A_2 vs C_1 unrelated), so
   # matching finds zero significant pairs. Regression: names(results) <-
   # paste0("group", seq_along(results)) crashed on the empty results list
@@ -193,7 +194,9 @@ test_that("program_sharing with zero sharing groups returns an all-private summa
   res <- program_sharing(fit, n_perm = 199, seed = 1)
   expect_length(res$groups, 0L)
   expect_length(res$results, 0L)
-  expect_true(all(res$summary$classification == "private"))
+  expect_true(all(res$summary$classification == "unmatched"))
+  expect_identical(res$interpretation$scope, "descriptive")
+  expect_false(res$interpretation$calibration_established)
   expect_true(all(res$summary$evidence == "no_significant_match"))
   expect_equal(nrow(res$summary), 3L)   # A_1, A_2, C_1
 })

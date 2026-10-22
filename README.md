@@ -252,7 +252,7 @@ shared across both cohorts — mask artifact genes before interpreting sharing.
 
 ## Known limitations
 
-Established by the confirm-scale benchmark evidence (full register:
+Historical benchmark limitations and current support restrictions (full register:
 [`reports/audit/LIMITATIONS.md`](https://github.com/mdmanurung/cellprograms/blob/main/reports/audit/LIMITATIONS.md)):
 
 - **Projection is query-set dependent.** `project_programs_to_cells()`
@@ -263,9 +263,10 @@ Established by the confirm-scale benchmark evidence (full register:
   `program_sharing()` classifies on the top `n_top` genes; a program whose
   shared support is smaller than `n_top`/2 cannot reach the "shared" label
   (see `?program_sharing` for choosing `n_top`).
-- **CMP association is calibrated on null and independent-predictor
-  designs**; correlated-predictor FWER sits at the alpha boundary
-  (0.040–0.058 at confirm scale) and is documented rather than patched.
+- **Calibration remains scope-limited.** Historical pooled node FPR and
+  any-significant rates do not establish strong mixed-null family control.
+  Node adjustment does not control false links or merged CMP-set membership.
+  See `benchmarks/cmp_calibration/CORRECTION.md`; corrected campaigns remain open.
 - **Cross-cohort sign/scale comparability holds only within a transfer
   pathway** — fixed-basis projection or de-novo fit after matching, never
   across (see the cross-cohort replication article).
