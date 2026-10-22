@@ -84,6 +84,21 @@ scores co-vary (coordinated multicellular programs, CMPs), with
 family-wise error control by within-strata donor permutation. Gene overlap
 plays no role in the call; programs in a CMP may be thematically unrelated.
 }
+\section{Observed support}{
+
+Each program is rank-transformed and projected only on its observed donors;
+unused blocking levels are removed before a rank-aware QR projection.
+Program callability requires at least `min_donors` observations, positive
+residual degrees of freedom and nonconstant residuals. Edges additionally
+require at least `max(4, min_shared)` pairwise-complete donors and a defined
+correlation. Unavailable edges and nodes without any callable edge have NA
+statistics/p-values, not scientific zeros. `program_support` records counts,
+design rank, residual df and callability; `edge_support` records every
+candidate edge's overlap and callability, including unavailable edges.
+These guards are eligibility checks, not a new calibration guarantee under
+arbitrary missingness or disconnected donor support.
+}
+
 \section{Program cap}{
 
 CMP detection depends on each member program existing upstream. In the

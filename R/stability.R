@@ -5,6 +5,26 @@
 ## stored settings and the same gene sets/covariates, and matches refit
 ## factors to the originals via match_programs().
 
+.stability_refit_args <- function(x, pre, seed) {
+  # Keep the estimator controls in one place, independent of spec presence.
+  common <- list(x, loading_prior = pre$loading_prior,
+                 max_factors = pre$max_factors, var_type = pre$var_type,
+                 backfit = pre$backfit, nullcheck = pre$nullcheck,
+                 flash_control = pre$flash_control,
+                 backend = pre$backend %||% "flashier",
+                 var_floor = pre$var_floor %||% "none", seed = seed)
+  if (!is.null(pre$spec)) {
+    # Frozen specs own features, units and covariate preprocessing. Explicit
+    # overrides here would bypass (or conflict with) the spec integrity checks.
+    return(c(common, list(preprocessing_spec = pre$spec)))
+  }
+  c(common, list(center = pre$centered, scale = pre$scaled,
+                 features = pre$feature_sets, covariates = pre$covariates,
+                 covariate_mode = pre$covariate_mode,
+                 adjust_batches = pre$batch_adjusted,
+                 feature_scale = pre$feature_scale))
+}
+
 #' Assess program stability by donor subsampling
 #'
 #' @param fit A canonicalized `cell_program_fit` (refit uses its stored
@@ -38,7 +58,10 @@
 #'       `elapsed_seconds`, `n_obs` (sampled observations per cell type),
 #'       `n_factors` (refit factor count per cell type), and `eligible`
 #'       (whether matching could be attempted). A successful refit with no
-#'       matched factor is distinguishable from a failed refit.}
+#'       matched factor is distinguishable from a failed refit.
+#'       `refit_settings` records the intended estimator arguments, including
+#'       backend/noise controls, for every success and failure. Frozen specs
+#'       govern preprocessing and units; legacy fits use their stored units.}
 #'   }
 #' @examples
 #' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
@@ -55,6 +78,10 @@ assess_program_stability <- function(fit, n_boot = 100L,
                                      resample_frac = 0.8,
                                      seed = NULL, progress = TRUE) {
   .require_canonicalized(fit, "assess_program_stability()")
+  if (length(n_boot) != 1L || !is.finite(n_boot) || n_boot < 1L ||
+      n_boot != as.integer(n_boot)) .stopf("n_boot must be a positive integer.")
+  if (length(resample_frac) != 1L || !is.finite(resample_frac) ||
+      resample_frac <= 0 || resample_frac > 1) .stopf("resample_frac must be in (0, 1].")
   match_method <- match.arg(match_method)
   if (!is.null(seed)) withr::local_seed(seed)
   pre <- fit$preprocessing
@@ -109,24 +136,7 @@ assess_program_stability <- function(fit, n_boot = 100L,
     # preprocessing from recorded settings (which bypassed the checks).
     # Legacy fits without a stored spec keep the explicit-args path, now with
     # feature_scale passed through (it was silently "unknown" in refits).
-    spec <- fit$preprocessing$spec
-    fit_args <- if (is.null(spec)) {
-      list(x_b, loading_prior = pre$loading_prior, max_factors = pre$max_factors,
-           center = pre$centered, scale = pre$scaled, features = pre$feature_sets,
-           var_type = pre$var_type, backfit = pre$backfit, nullcheck = pre$nullcheck,
-           covariates = pre$covariates, covariate_mode = pre$covariate_mode,
-           adjust_batches = pre$batch_adjusted,
-           flash_control = pre$flash_control, feature_scale = pre$feature_scale,
-           seed = fit_seed + b)
-    } else {
-      list(x_b, preprocessing_spec = spec,
-           loading_prior = pre$loading_prior, max_factors = pre$max_factors,
-           var_type = pre$var_type, backfit = pre$backfit, nullcheck = pre$nullcheck,
-           flash_control = pre$flash_control,
-           backend = if (is.null(pre$backend)) "flashier" else pre$backend,
-           var_floor = if (is.null(pre$var_floor)) "none" else pre$var_floor,
-           seed = fit_seed + b)
-    }
+    fit_args <- .stability_refit_args(x_b, pre, fit_seed + b)
     # CP-1: failures are captured with their condition class/message into the
     # replicate log — never collapsed invisibly into zero scientific recovery.
     refit_err <- NULL
@@ -144,6 +154,7 @@ assess_program_stability <- function(fit, n_boot = 100L,
         elapsed_seconds = elapsed,
         n_obs = I(list(n_obs)),
         n_factors = I(list(stats::setNames(integer(0), character(0)))),
+        refit_settings = I(list(fit_args[-1L])),
         eligible = FALSE, stringsAsFactors = FALSE
       )
       next
@@ -154,6 +165,7 @@ assess_program_stability <- function(fit, n_boot = 100L,
       error_class = NA_character_, error_message = NA_character_,
       elapsed_seconds = elapsed,
       n_obs = I(list(n_obs)), n_factors = I(list(k_by_ct)),
+      refit_settings = I(list(fit_args[-1L])),
       eligible = any(k_by_ct > 0L), stringsAsFactors = FALSE
     )
 

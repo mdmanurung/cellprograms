@@ -56,7 +56,10 @@ The fit with `fit$stability` populated:
       `elapsed_seconds`, `n_obs` (sampled observations per cell type),
       `n_factors` (refit factor count per cell type), and `eligible`
       (whether matching could be attempted). A successful refit with no
-      matched factor is distinguishable from a failed refit.}
+      matched factor is distinguishable from a failed refit.
+      `refit_settings` records the intended estimator arguments, including
+      backend/noise controls, for every success and failure. Frozen specs
+      govern preprocessing and units; legacy fits use their stored units.}
   }
 }
 \description{

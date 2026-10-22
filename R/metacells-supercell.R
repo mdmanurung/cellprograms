@@ -77,24 +77,42 @@
 
 .sc_prepare_reduction <- function(obj_g, reduction, dims, n_top_genes, n_pc,
                                   seed) {
-    # Return list(reduction_name, dims_vector) for the group's object. When
+    # Return the updated object as well as its reduction key/dimensions. When
     # reduction = NULL, compute a standard Seurat PCA on the group (the
     # benchmark's preprocessing: normalize -> HVGs -> scale -> PCA).
     if (!is.null(reduction)) {
         if (!(reduction %in% names(obj_g@reductions))) {
-            stop("reduction '", reduction, "' not found; available: ",
-                 paste(names(obj_g@reductions), collapse = ", "))
+            matches <- names(obj_g@reductions)[tolower(names(obj_g@reductions)) == tolower(reduction)]
+            if (length(matches) != 1L) {
+                stop("reduction '", reduction, "' not found unambiguously; available: ",
+                     paste(names(obj_g@reductions), collapse = ", "))
+            }
+            reduction <- matches
         }
         emb <- obj_g@reductions[[reduction]]@cell.embeddings
         d <- if (!is.null(dims)) dims else seq_len(ncol(emb))
-        return(list(reduction = reduction, dims = d))
+        .sc_validate_dims(d, ncol(emb))
+        return(list(object = obj_g, reduction = reduction, dims = d))
     }
     obj_g <- Seurat::NormalizeData(obj_g, verbose = FALSE)
     obj_g <- Seurat::FindVariableFeatures(obj_g, nfeatures = n_top_genes,
                                           verbose = FALSE)
     obj_g <- Seurat::ScaleData(obj_g, verbose = FALSE)
-    obj_g <- Seurat::RunPCA(obj_g, npcs = n_pc, seed = seed, verbose = FALSE)
-    list(reduction = "PCA", dims = seq_len(min(n_pc, ncol(obj_g@reductions[["PCA"]]@cell.embeddings))))
+    obj_g <- Seurat::RunPCA(obj_g, npcs = n_pc, seed.use = seed,
+                           reduction.name = "pca", verbose = FALSE)
+    n_dims <- ncol(obj_g@reductions[["pca"]]@cell.embeddings)
+    d <- if (!is.null(dims)) dims else seq_len(min(n_pc, n_dims))
+    .sc_validate_dims(d, n_dims)
+    list(object = obj_g, reduction = "pca", dims = d)
+}
+
+.sc_validate_dims <- function(dims, n_dims) {
+    if (!is.numeric(dims) || !length(dims) || anyNA(dims) ||
+        any(!is.finite(dims)) || any(dims != as.integer(dims)) ||
+        any(dims < 1L | dims > n_dims) || anyDuplicated(dims)) {
+        stop("dims must be unique positive integer indices within the reduction (1:", n_dims, ").")
+    }
+    invisible(dims)
 }
 
 #' Construct metacells by groups with SuperCell and mcRigor QC
@@ -273,6 +291,7 @@ MetacellsByGroupsSuperCell <- function(
         obj_g <- subset(seurat_obj, cells = cells_g)
         red <- .sc_prepare_reduction(obj_g, reduction, dims, n_top_genes, n_pc,
                                      seed)
+        obj_g <- red$object
 
         # gamma selection: direct or bisected to the target
         gamma_used <- cells_per_metacell
@@ -492,6 +511,7 @@ OptimizeGammaSuperCell <- function(
         obj_g <- subset(seurat_obj, cells = cells_g)
         red <- .sc_prepare_reduction(obj_g, reduction, dims, n_top_genes, n_pc,
                                      seed)
+        obj_g <- red$object
 
         mem_cols <- list()
         for (k in seq_along(gammas)) {

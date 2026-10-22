@@ -63,7 +63,7 @@
     w2 <- W[, k]^2
     mass <- vapply(cts, function(ct) sum(w2[block_id == ct]), numeric(1L))
     mass <- mass / max(sum(mass), 1e-12)
-    H <- -sum(ifelse(mass > 0, mass * log(mass), 0)) / log(C)
+    H <- if (C > 1L) -sum(ifelse(mass > 0, mass * log(mass), 0)) / log(C) else 0
     cls <- if (max(mass) > private_threshold) {
       paste0("private:", cts[which.max(mass)])
     } else if (C > 2 && H > global_entropy) {
@@ -80,7 +80,9 @@
 #'
 #' @param fit A `cell_program_fit` (uses its processed matrices / scores).
 #' @param level `"expression"` or `"scores"`.
-#' @param order `"shared_first"` (default) or `"private_first"` (ablation).
+#' @param order `"shared_first"` (default) or `"private_first"` (expression
+#'   level only). Scores/private-first is refused before fitting: subtracting
+#'   the stage-1 fit from its own scores has no defined residual semantics.
 #' @param max_factors Candidate factors for the joint pass.
 #' @param max_private Candidate factors per cell type in the private pass.
 #' @param private_threshold Block-mass threshold for private classification.
@@ -96,9 +98,13 @@ fit_joint_block <- function(fit, level = c("scores", "expression"),
                             seed = NULL, verbose = 0L) {
   level <- match.arg(level)
   order <- match.arg(order)
+  if (level == "scores" && order == "private_first") {
+    .stopf("level = 'scores' with order = 'private_first' is unsupported; use 'shared_first' or level = 'expression'.")
+  }
   if (!is.null(seed)) set.seed(seed)
   st <- .build_stacked(fit, level)
   X <- st$X; block_id <- st$block_id
+  if (!nrow(X) || !ncol(X)) .stopf("No observed features/programs available for the block joint fit.")
   ebnm_list <- list(ebnm::ebnm_normal, ebnm::ebnm_point_normal)
 
   shared_fit <- NULL; private_fits <- NULL
@@ -179,31 +185,34 @@ fit_joint_block <- function(fit, level = c("scores", "expression"),
     private_fits = private_fits,
     block_id = block_id,
     block_scales = st$block_scales,
+    block_mass = matrix(0, nrow(summ), length(unique(block_id)),
+                        dimnames = list(summ$factor_id, unique(block_id))),
     summary = summ
   )
+  if (shared_fit$n_factors > 0L) {
+    out$block_mass[,] <- do.call(rbind, lapply(cls, `[[`, "block_mass"))
+  }
   if (level == "scores" && shared_fit$n_factors > 0L) {
     pw <- shared_fit$F_pm
     rownames(pw) <- colnames(X)
     colnames(pw) <- summ$factor_id
     out$program_weights <- pw
     out$states <- shared_fit$L_pm
+    rownames(out$states) <- rownames(X)
     colnames(out$states) <- summ$factor_id
   }
   if (level == "expression" && shared_fit$n_factors > 0L) {
     gl <- list()
     for (ct in unique(block_id)) {
       W <- shared_fit$F_pm[block_id == ct, , drop = FALSE]
-      rownames(W) <- sub(paste0("^", ct, "__"), "", rownames(W))
+      rownames(W) <- colnames(fit$fits[[ct]]$Y_used)
       colnames(W) <- summ$factor_id
       gl[[ct]] <- W
     }
     out$gene_loadings <- gl
     out$states <- shared_fit$L_pm
+    rownames(out$states) <- rownames(X)
     colnames(out$states) <- summ$factor_id
-    ## per-factor block-mass matrix (factors x cell types) for membership calls
-    out$block_mass <- do.call(rbind, lapply(cls, `[[`, "block_mass"))
-    rownames(out$block_mass) <- summ$factor_id
-    colnames(out$block_mass) <- unique(block_id)
   }
   class(out) <- c("block_joint", "list")
   out
@@ -231,6 +240,10 @@ block_clusters <- function(bfit, mass_thresh = 0.1) {
   summ <- bfit$summary
   is_shared <- summ$class == "global" | startsWith(summ$class, "partial:")
   mass <- bfit$block_mass
+  if (is.null(mass) || !is.matrix(mass) ||
+      nrow(mass) != nrow(summ) || is.null(colnames(mass))) {
+    .stopf("block_joint lacks a valid block_mass matrix; refit with fit_joint_block().")
+  }
   rows <- list(); acts <- list(); id <- 0L
   for (k in which(is_shared)) {
     mem <- colnames(mass)[mass[k, ] > mass_thresh]

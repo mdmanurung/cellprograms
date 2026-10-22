@@ -76,26 +76,51 @@
 }
 
 .cmp_prep <- function(scores, blocks, min_donors) {
-  # Count OBSERVED donors, not rows: score matrices carry NA rows for donors
-  # never observed in that cell type, so nrow() overstates the usable n.
-  scores <- scores[vapply(scores, function(S) {
-    !is.null(S) && ncol(S) > 0L && sum(rowSums(!is.na(S)) > 0L) >= min_donors
-  }, TRUE)]
-  lapply(scores, function(S) {
+  support <- list()
+  out <- lapply(names(scores), function(ct) {
+    S <- scores[[ct]]
+    if (is.null(S) || !ncol(S)) return(NULL)
+    if (any(!is.finite(S) & !is.na(S))) .stopf("CMP scores must be finite or NA.")
+    if (anyNA(blocks[rownames(S)])) .stopf("CMP blocks are missing for observed score rows.")
     R0 <- .cmp_rank_gauss(S)
-    f <- factor(blocks[rownames(S)])
-    X <- if (nlevels(f) > 1L) stats::model.matrix(~f) else matrix(1, nrow(S), 1L)
-    # residualize each program on its observed donors; NA rows stay NA (audit B-6)
     R <- matrix(NA_real_, nrow(R0), ncol(R0), dimnames = dimnames(R0))
+    info <- vector("list", ncol(R0))
     for (j in seq_len(ncol(R0))) {
       obs <- !is.na(R0[, j])
-      if (!any(obs)) next
-      b <- qr.solve(X[obs, , drop = FALSE], R0[obs, j])
-      R[obs, j] <- R0[obs, j] - X[obs, , drop = FALSE] %*% b
+      n <- sum(obs)
+      rank <- 0L
+      if (n) {
+        # Build the design on this program's OBSERVED support, not on all
+        # donor rows. Entirely unobserved strata contribute no columns.
+        f <- droplevels(factor(blocks[rownames(S)[obs]]))
+        X <- if (nlevels(f) > 1L) stats::model.matrix(~f) else matrix(1, n, 1L)
+        q <- qr(X)
+        rank <- q$rank
+        R[obs, j] <- qr.resid(q, R0[obs, j])
+      }
+      df <- n - rank
+      variable <- n > 0L &&
+        sqrt(sum(R[obs, j]^2)) > sqrt(.Machine$double.eps) *
+          max(1, sqrt(sum(R0[obs, j]^2)))
+      reason <- if (!n) "all_missing" else if (n < min_donors) "insufficient_donors" else
+        if (df <= 0L) "no_residual_df" else if (!variable) "constant_residual" else "ok"
+      info[[j]] <- data.frame(cell_type = ct, program_id = colnames(S)[j],
+                              n_observed = n, design_rank = rank, residual_df = df,
+                              callable = reason == "ok", reason = reason,
+                              stringsAsFactors = FALSE)
     }
-    dimnames(R) <- dimnames(S)
+    info <- do.call(rbind, info)
+    support[[ct]] <<- info
+    attr(R, "program_support") <- info
+    # Preserve the existing cell-type-level minimum, but also report the
+    # stricter per-program support above; never impute unobserved donors.
+    if (sum(rowSums(!is.na(S)) > 0L) < min_donors) return(NULL)
     R
   })
+  names(out) <- names(scores)
+  out <- out[!vapply(out, is.null, logical(1))]
+  attr(out, "program_support") <- do.call(rbind, support)
+  out
 }
 
 .cmp_pairs <- function(Z, min_shared) {
@@ -104,7 +129,8 @@
   if (length(cts) < 2L) return(out)
   for (i in seq_len(length(cts) - 1L)) for (j in (i + 1L):length(cts)) {
     ids <- intersect(rownames(Z[[cts[i]]]), rownames(Z[[cts[j]]]))
-    if (length(ids) >= min_shared) out[[length(out) + 1L]] <- list(a = cts[i], b = cts[j], ids = ids)
+    if (length(ids) >= min_shared) out[[length(out) + 1L]] <- list(a = cts[i], b = cts[j], ids = ids,
+                                                               min_shared = min_shared)
   }
   out
 }
@@ -117,12 +143,19 @@
     # pairwise-complete count rather than the nominal donor count (audit B-6)
     r <- suppressWarnings(stats::cor(Za, Zb, use = "pairwise.complete.obs"))
     n <- crossprod(!is.na(Za), !is.na(Zb))
-    r[!is.finite(r)] <- 0
+    callable <- is.finite(r) & n >= max(4L, p$min_shared %||% 4L)
+    sa <- attr(Z[[p$a]], "program_support")
+    sb <- attr(Z[[p$b]], "program_support")
+    if (!is.null(sa)) callable <- callable & sa$callable[match(colnames(Za), sa$program_id)]
+    if (!is.null(sb)) callable <- t(t(callable) & sb$callable[match(colnames(Zb), sb$program_id)])
     t <- atanh(pmin(pmax(r, -0.999999), 0.999999)) * sqrt(pmax(n - 3, 0))
-    t[n < 4] <- 0
+    t[!callable] <- NA_real_
     data.frame(ct_a = p$a, ct_b = p$b,
                prog_a = rownames(r)[row(r)], prog_b = colnames(r)[col(r)],
                stat = as.vector(abs(t)), sign = as.vector(sign(t)), n = as.vector(n),
+               callable = as.vector(callable),
+               reason = as.vector(ifelse(callable, "ok", ifelse(n < max(4L, p$min_shared %||% 4L),
+                                           "insufficient_shared", "undefined_or_uncallable_residual"))),
                stringsAsFactors = FALSE)
   }))
 }
@@ -131,6 +164,7 @@
   lapply(Z, function(S) {
     P <- S[.perm_within(nrow(S), blocks[rownames(S)]), , drop = FALSE]
     rownames(P) <- rownames(S)
+    attr(P, "program_support") <- attr(S, "program_support")
     P
   })
 }
@@ -143,6 +177,9 @@
 }
 
 .cmp_node_stat <- function(stat, idx, tau) {
+  # An unavailable edge contributes nothing to the computational maximum.
+  # It is not a scientific zero: edge/node receipts retain NA + callability.
+  stat[!is.finite(stat)] <- -Inf
   m <- vapply(split(c(stat, stat), idx$grp), max, 1)
   v <- pmax(0, m - tau)^2
   out <- rowsum(v, idx$node, reorder = TRUE)[, 1]
@@ -214,6 +251,19 @@
 #'   to be compared (default 20).
 #' @param min_donors Minimum donors for a cell type to be used (default 20).
 #' @param seed Random seed.
+#'
+#' @section Observed support:
+#' Each program is rank-transformed and projected only on its observed donors;
+#' unused blocking levels are removed before a rank-aware QR projection.
+#' Program callability requires at least `min_donors` observations, positive
+#' residual degrees of freedom and nonconstant residuals. Edges additionally
+#' require at least `max(4, min_shared)` pairwise-complete donors and a defined
+#' correlation. Unavailable edges and nodes without any callable edge have NA
+#' statistics/p-values, not scientific zeros. `program_support` records counts,
+#' design rank, residual df and callability; `edge_support` records every
+#' candidate edge's overlap and callability, including unavailable edges.
+#' These guards are eligibility checks, not a new calibration guarantee under
+#' arbitrary missingness or disconnected donor support.
 #'
 #' @section Program cap:
 #' CMP detection depends on each member program existing upstream. In the
@@ -297,11 +347,16 @@ find_coordinated_programs <- function(fit, strata = NULL, context = NULL,
 
   amb <- if (ambient != "none") ambient_program_scores(fit, profiles) else NULL
   Z <- .cmp_prep(fit$scores, blocks, min_donors)
+  program_support <- attr(Z, "program_support")
   if (ambient == "drop" && !is.null(amb)) {
     bad <- amb[amb$ambient_score > ambient_threshold, , drop = FALSE]
     for (i in seq_len(nrow(bad))) {
       ct <- bad$cell_type[i]
-      if (!is.null(Z[[ct]])) Z[[ct]] <- Z[[ct]][, colnames(Z[[ct]]) != bad$program_id[i], drop = FALSE]
+      if (!is.null(Z[[ct]])) {
+        info <- attr(Z[[ct]], "program_support")
+        Z[[ct]] <- Z[[ct]][, colnames(Z[[ct]]) != bad$program_id[i], drop = FALSE]
+        attr(Z[[ct]], "program_support") <- info
+      }
     }
     Z <- Z[vapply(Z, ncol, 1L) > 0L]
   }
@@ -325,29 +380,36 @@ find_coordinated_programs <- function(fit, strata = NULL, context = NULL,
                            "correlations use pairwise-complete donors and edge `n` reports the pairwise-complete count."),
                     nrow(naf), max(naf$n_missing), length(ids), naf$cell_type[1], naf$program_id[1]), call. = FALSE)
   }
-  res <- structure(list(cmps = .cmp_empty(), edges = NULL, nodes = NULL, ambient = amb, settings = settings),
+  res <- structure(list(cmps = .cmp_empty(), edges = NULL, nodes = NULL, ambient = amb, settings = settings,
+                        program_support = program_support, edge_support = NULL),
                    class = "cmp_result")
   pairs <- .cmp_pairs(Z, min_shared)
   if (!length(pairs)) return(res)
 
   withr::local_seed(seed)
   edges <- .cmp_edges(Z, pairs)
+  res$edge_support <- edges
   idx <- .cmp_node_index(edges)
   A <- .cmp_node_stat(edges$stat, idx, tau)
   mx <- vapply(seq_len(n_perm), function(b) {
     max(.cmp_node_stat(.cmp_edges(.cmp_perm(Z, blocks), pairs)$stat, idx, tau))
   }, 1)
   pA <- vapply(A, function(a) (1 + sum(mx >= a)) / (n_perm + 1), 1)
+  callable_nodes <- unique(c(idx$ka[edges$callable], idx$kb[edges$callable]))
+  callable <- names(A) %in% callable_nodes
+  A[!callable] <- NA_real_
+  pA[!callable] <- NA_real_
 
   nodes <- data.frame(cell_type = sub("\\|.*", "", names(A)), program_id = sub("^[^|]*\\|", "", names(A)),
-                      node_stat = unname(A), node_p = unname(pA), stringsAsFactors = FALSE)
+                      node_stat = unname(A), node_p = unname(pA), callable = callable,
+                      stringsAsFactors = FALSE)
   if (!is.null(amb)) {
     nodes$ambient_score <- amb$ambient_score[match(paste(nodes$cell_type, nodes$program_id),
                                                    paste(amb$cell_type, amb$program_id))]
   }
   res$nodes <- nodes
-  sig <- names(pA)[pA < alpha]
-  keep <- idx$ka %in% sig & idx$kb %in% sig & edges$stat >= link_threshold
+  sig <- names(pA)[!is.na(pA) & pA < alpha]
+  keep <- edges$callable & idx$ka %in% sig & idx$kb %in% sig & edges$stat >= link_threshold
   if (!any(keep)) return(res)
   g <- .cmp_group(edges[keep, , drop = FALSE])
   if (is.null(g)) return(res)

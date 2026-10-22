@@ -21,7 +21,9 @@ fit_joint_block(
 
 \item{level}{`"expression"` or `"scores"`.}
 
-\item{order}{`"shared_first"` (default) or `"private_first"` (ablation).}
+\item{order}{`"shared_first"` (default) or `"private_first"` (expression
+level only). Scores/private-first is refused before fitting: subtracting
+the stage-1 fit from its own scores has no defined residual semantics.}
 
 \item{max_factors}{Candidate factors for the joint pass.}
 
