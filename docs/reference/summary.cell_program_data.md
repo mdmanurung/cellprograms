@@ -1,36 +1,52 @@
+<div class="page-header">
+
 # Summarize a cell program data object
+
+<div class="d-none name">
+
+`summary.cell_program_data.Rd`
+
+</div>
+
+</div>
+
+<div class="ref-description section level2">
 
 Summarize a cell program data object
 
-## Usage
+</div>
+
+<div class="section level2">
+
+## Usage<a href="#ref-usage" class="anchor" aria-label="anchor"></a>
 
 ``` r
 # S3 method for class 'cell_program_data'
 summary(object, ...)
 ```
 
-## Arguments
+</div>
 
-- object:
+<div class="section level2">
 
-  A \`cell_program_data\` object.
+## Arguments<a href="#arguments" class="anchor" aria-label="anchor"></a>
 
-- ...:
+object<a href="#arg-object" class="anchor" aria-label="anchor"></a><br>
+A \`cell_program_data\` object.
 
-  Ignored.
+...<a href="#arg--" class="anchor" aria-label="anchor"></a><br>
+Ignored.
 
-## Examples
+</div>
+
+<div class="section level2">
+
+## Examples<a href="#ref-examples" class="anchor" aria-label="anchor"></a>
 
 ``` r
 sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
 x <- as_cell_program_data(sim$pseudobulk)
 summary(x)
-#> cell_program_data
-#> Cell types: 5 "B", "CD4", "CD8", "NK", and "Mono"
-#> B: 24 observations x 300 genes
-#> CD4: 24 observations x 300 genes
-#> CD8: 24 observations x 300 genes
-#> NK: 24 observations x 300 genes
-#> Mono: 24 observations x 300 genes
-#> Shared genes across all cell types: 300
 ```
+
+</div>

@@ -24,11 +24,11 @@
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cebmf_backend.html">The cebmf_torch backend: covariate-EBMF in torch</a></li>
     <li><a class="dropdown-item" href="../articles/coordination_joint.html">Joint and tensor factorization: EB-CP and block EBMF</a></li>
-    <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
-    <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Historical case study: cross-cell-type COVID-19 PBMC programs</a></li>
+    <li><a class="dropdown-item" href="../articles/divas_case_study.html">Historical case study: DIVAS COVID-19 multi-omics</a></li>
     <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
     <li><a class="dropdown-item" href="../articles/immune_aging_cross_cohort.html">Case study: immune-aging programs across 8 global PBMC cohorts</a></li>
-    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis</a></li>
+    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Historical comparison: local-first and joint multicellular factors</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -128,39 +128,27 @@ preprocessing settings, gene sets and covariates).</p></dd>
       `elapsed_seconds`, `n_obs` (sampled observations per cell type),
       `n_factors` (refit factor count per cell type), and `eligible`
       (whether matching could be attempted). A successful refit with no
-      matched factor is distinguishable from a failed refit.</p></dd>
+      matched factor is distinguishable from a failed refit.
+      `refit_settings` records the intended estimator arguments, including
+      backend/noise controls, for every success and failure. Frozen specs
+      govern preprocessing and units; legacy fits use their stored units.
+      `effective_refit` retains actual per-type effective settings, fallback,
+      known noise and backend convergence when available; NULL after failure.
+      Stability targets the full fitting procedure including documented
+      fallback behavior, not a fixed selected estimator.</p></dd>
 
 
 </dl></div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="simulate_pseudobulk.html">simulate_pseudobulk</a></span><span class="op">(</span>n_samples <span class="op">=</span> <span class="fl">24</span>, n_genes <span class="op">=</span> <span class="fl">300</span>, program_size <span class="op">=</span> <span class="fl">30</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="as_cell_program_data.html">as_cell_program_data</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">pseudobulk</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="fit_celltype_programs.html">fit_celltype_programs</a></span><span class="op">(</span><span class="va">x</span>, max_factors <span class="op">=</span> <span class="fl">3</span>, features <span class="op">=</span> <span class="st">"variable"</span>, n_variable_genes <span class="op">=</span> <span class="fl">150</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="canonicalize_programs.html">canonicalize_programs</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="co"># few subsamples for a quick example; use more (e.g. 100) in practice</span></span></span>
-<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">assess_program_stability</span><span class="op">(</span><span class="va">fit</span>, n_boot <span class="op">=</span> <span class="fl">2</span>, seed <span class="op">=</span> <span class="fl">1</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">fit</span><span class="op">$</span><span class="va">stability</span><span class="op">$</span><span class="va">per_program</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   program_id cell_type n_hit n_eligible recovery_freq conditional_recovery_freq</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1        B_1         B     2          2             1                         1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2        B_2         B     2          2             1                         1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3      CD4_1       CD4     2          2             1                         1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4      CD8_1       CD8     2          2             1                         1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5       NK_1        NK     2          2             1                         1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6       NK_2        NK     2          2             1                         1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7     Mono_1      Mono     2          2             1                         1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8     Mono_2      Mono     2          2             1                         1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   median_score_cor median_loading_cos sign_consistency top_gene_jaccard</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1        0.9998990          0.9945869                1        0.8614719</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2        0.9997762          0.9910575                1        0.9047619</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3        0.9998526          0.9907171                1        0.8614719</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4        0.9992491          0.9792686                1        0.9090909</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5        0.9998482          0.9894768                1        0.8614719</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6        0.9996598          0.9930686                1        0.8614719</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7        0.9999030          0.9952342                1        0.9090909</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8        0.9997262          0.9925613                1        0.8181818</span>
-</code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="simulate_pseudobulk.html">simulate_pseudobulk</a></span><span class="op">(</span>n_samples <span class="op">=</span> <span class="fl">24</span>, n_genes <span class="op">=</span> <span class="fl">300</span>, program_size <span class="op">=</span> <span class="fl">30</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="as_cell_program_data.html">as_cell_program_data</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">pseudobulk</span><span class="op">)</span></span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="fit_celltype_programs.html">fit_celltype_programs</a></span><span class="op">(</span><span class="va">x</span>, max_factors <span class="op">=</span> <span class="fl">3</span>, features <span class="op">=</span> <span class="st">"variable"</span>, n_variable_genes <span class="op">=</span> <span class="fl">150</span><span class="op">)</span></span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="canonicalize_programs.html">canonicalize_programs</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<span><span class="co"># few subsamples for a quick example; use more (e.g. 100) in practice</span></span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">assess_program_stability</span><span class="op">(</span><span class="va">fit</span>, n_boot <span class="op">=</span> <span class="fl">2</span>, seed <span class="op">=</span> <span class="fl">1</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">fit</span><span class="op">$</span><span class="va">stability</span><span class="op">$</span><span class="va">per_program</span></span></code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

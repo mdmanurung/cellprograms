@@ -1,5 +1,18 @@
 # cellprograms 0.2.0.9001 (development)
 
+## Repository completion
+
+* Promoted the real ordinary/native-fit, serialization and actual stability
+  acceptance fixtures into the maintained installed test suite.
+* Replaced placeholder maintainer metadata with the existing public owner
+  contact. The development README now separates supported core behavior,
+  experimental integrations, historical evidence and open scientific gates.
+* Reconciled concurrent upstream cNMF/semi-base fixes and preserved its negative
+  coordination decision; these are not new validation claims by this change.
+* Ordinary CI installs hard dependencies explicitly, limits threads, and permits
+  only documented optional-Suggests notes. Cross-platform coverage requires
+  actual CI outcomes; development checks do not constitute CRAN acceptance.
+
 ## Bounded ordinary-core acceptance
 
 * Projection now rejects unknown or missing reference measurement units before

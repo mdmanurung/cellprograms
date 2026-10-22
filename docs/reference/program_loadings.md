@@ -1,24 +1,46 @@
+<div class="page-header">
+
 # Program loading matrices
+
+<div class="d-none name">
+
+`program_loadings.Rd`
+
+</div>
+
+</div>
+
+<div class="ref-description section level2">
 
 Program loading matrices
 
-## Usage
+</div>
+
+<div class="section level2">
+
+## Usage<a href="#ref-usage" class="anchor" aria-label="anchor"></a>
 
 ``` r
 program_loadings(fit, format = c("list", "long"))
 ```
 
-## Arguments
+</div>
 
-- fit:
+<div class="section level2">
 
-  A canonicalized \`cell_program_fit\`.
+## Arguments<a href="#arguments" class="anchor" aria-label="anchor"></a>
 
-- format:
+fit<a href="#arg-fit" class="anchor" aria-label="anchor"></a><br>
+A canonicalized \`cell_program_fit\`.
 
-  \`"list"\` (gene x program per cell type) or \`"long"\`.
+format<a href="#arg-format" class="anchor" aria-label="anchor"></a><br>
+\`"list"\` (gene x program per cell type) or \`"long"\`.
 
-## Examples
+</div>
+
+<div class="section level2">
+
+## Examples<a href="#ref-examples" class="anchor" aria-label="anchor"></a>
 
 ``` r
 sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
@@ -27,7 +49,6 @@ fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variab
 fit <- canonicalize_programs(fit)
 W <- program_loadings(fit)
 sapply(W, dim)
-#>        B CD4 CD8  NK Mono
-#> [1,] 150 150 150 150  150
-#> [2,]   2   1   1   2    2
 ```
+
+</div>

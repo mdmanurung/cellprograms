@@ -163,8 +163,8 @@ role in the call. The procedure:
 
 1. **Rank-first scores.** Each program's donor scores are rank-transformed to
    normal scores, then residualized on the blocking strata. Point-Laplace
-   priors produce single-donor spike factors that break Pearson-based max-T
-   calibration; ranks remove that failure mode.
+   priors can produce single-donor spike factors. Ranking changes that
+   sensitivity; it does not by itself establish calibration.
 2. **Ambient filter.** Programs whose loadings track another cell type's
    expression specificity (ambient RNA / doublet leakage) are dropped
    (`ambient = "drop"`) or flagged (`ambient = "flag"`), using the internal
@@ -184,11 +184,17 @@ role in the call. The procedure:
 5. **Permutation null.** Donor rows are permuted within strata, independently
    per cell type — this removes cross-cell-type coupling while keeping
    within-cell-type structure. Program p-values are adjusted by the
-   permutation maximum of $A$ (single-step max-T), so the family-wise error
-   rate of calling *any* CMP is controlled at `alpha`.
+   permutation maximum of $A$ (single-step max-T). These are fixed-input
+   node-family calculations, conditional on the supplied factors and a valid
+   exchangeability design. Programs are not refitted under permutation.
+   General learned-factor, edge-family and merged-CMP-set error control remain
+   unestablished; no error-control claim follows merely from forming a CMP.
 6. **Clustering.** Significant programs are grouped into CMPs by their edge
    structure; the internal `cmp_scores()` summarizes each CMP as a
    donor-level consensus score.
+
+Ordinary row shuffling is not patient-cluster permutation for repeated visits.
+Uncallable nodes and missing-support reasons must remain visible.
 
 `mode = "within"` tests the same structure *within* levels of a context
 variable (e.g. severity) — coordination that survives is not an artifact of
@@ -204,7 +210,8 @@ shr$summary   # one row per program: shared / partial / private
 Sharing is a different axis from coordination: two cell types can use the
 same biological program (shared gene loadings) with uncorrelated donor
 scores, and vice versa. `program_sharing()` assesses shared *loadings* post
-hoc with mashr (Urbut et al. 2019), never assuming them:
+hoc with mashr (Urbut et al. 2019). Its matching and ternary labels are
+descriptive, not calibrated sharing discoveries:
 
 - **Mapping**: units = genes on the shared panel; conditions = cell types;
   effects = canonicalized program loadings; standard errors = the flashier
@@ -227,6 +234,11 @@ hoc with mashr (Urbut et al. 2019), never assuming them:
   `frac_top_shared` / `frac_top_private` and the evidence source. Note the
   criterion is significance-based, not sign-based: a gene significant in two
   conditions with opposite posterior signs still counts as shared.
+
+Consequently, active-in-both is not equal-effect or common-structure evidence,
+and an unmatched `private` label does not prove biological absence. Inspect
+`p_all_shared`, effect patterns and support directly. Formal sharing inference
+requires a separately approved target and calibration.
 
 ## 6. Artifact masking
 

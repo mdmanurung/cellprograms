@@ -1,31 +1,54 @@
+<div class="page-header">
+
 # Plot CMP context associations
 
-Dot-and-whisker plot of the context-variable effect on each CMP's donor
-scores (linear model from \`cmp_context_association\`), with 95 the
-model standard errors.
+<div class="d-none name">
 
-## Usage
+`plot_context_association.Rd`
+
+</div>
+
+</div>
+
+<div class="ref-description section level2">
+
+Dot-and-whisker plot of the context-variable effect on each CMP's donor scores (linear model from \`cmp_context_association\`), with 95 the model standard errors.
+
+</div>
+
+<div class="section level2">
+
+## Usage<a href="#ref-usage" class="anchor" aria-label="anchor"></a>
 
 ``` r
 plot_context_association(assoc, p_alpha = 0.05)
 ```
 
-## Arguments
+</div>
 
-- assoc:
+<div class="section level2">
 
-  Output of \`cmp_context_association\` (data.frame with \`cmp\`,
-  \`term\`, \`estimate\`, \`t\`, \`p\`, \`n\`).
+## Arguments<a href="#arguments" class="anchor" aria-label="anchor"></a>
 
-- p_alpha:
+assoc<a href="#arg-assoc" class="anchor" aria-label="anchor"></a><br>
+Output of \`cmp_context_association\` (data.frame with \`cmp\`, \`term\`, \`estimate\`, \`t\`, \`p\`, \`n\`).
 
-  Significance level for solid vs open points (default 0.05).
+p_alpha<a href="#arg-p-alpha" class="anchor" aria-label="anchor"></a><br>
+Significance level for solid vs open points (default 0.05).
 
-## Value
+</div>
+
+<div class="section level2">
+
+## Value<a href="#value" class="anchor" aria-label="anchor"></a>
 
 A ggplot object.
 
-## Examples
+</div>
+
+<div class="section level2">
+
+## Examples<a href="#ref-examples" class="anchor" aria-label="anchor"></a>
 
 ``` r
 sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
@@ -37,3 +60,5 @@ z <- sim$truth$B[[1]]$z > median(sim$truth$B[[1]]$z)
 ctx <- setNames(factor(z, c(FALSE, TRUE), c("low", "high")), paste0("obs", seq_along(z)))
 plot_context_association(cmp_context_association(fit, cmp, ctx))
 ```
+
+</div>

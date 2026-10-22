@@ -1,26 +1,47 @@
+<div class="page-header">
+
 # Access metacell results stored by MetacellsByGroupsSuperCell
+
+<div class="d-none name">
+
+`GetMetacellSuperCell.Rd`
+
+</div>
+
+</div>
+
+<div class="ref-description section level2">
 
 Access metacell results stored by MetacellsByGroupsSuperCell
 
-## Usage
+</div>
+
+<div class="section level2">
+
+## Usage<a href="#ref-usage" class="anchor" aria-label="anchor"></a>
 
 ``` r
 GetMetacellSuperCell(seurat_obj, wgcna_name = "SuperCell")
 ```
 
-## Arguments
+</div>
 
-- seurat_obj:
+<div class="section level2">
 
-  A Seurat object processed by \[MetacellsByGroupsSuperCell()\].
+## Arguments<a href="#arguments" class="anchor" aria-label="anchor"></a>
 
-- wgcna_name:
+seurat_obj<a href="#arg-seurat-obj" class="anchor" aria-label="anchor"></a><br>
+A Seurat object processed by \[MetacellsByGroupsSuperCell()\].
 
-  Name under which results were stored. Default \`"SuperCell"\`.
+wgcna_name<a href="#arg-wgcna-name" class="anchor" aria-label="anchor"></a><br>
+Name under which results were stored. Default \`"SuperCell"\`.
 
-## Value
+</div>
 
-The stored list: \`metacell_object\`, \`soft_assignments\` (NULL for
-this backend), \`qc\`, \`fit_stats\`, \`zerorate_overall\`,
-\`dubrate_overall\`, \`score_overall\`, \`params\`, \`skipped_groups\`,
-\`call\`.
+<div class="section level2">
+
+## Value<a href="#value" class="anchor" aria-label="anchor"></a>
+
+The stored list: \`metacell_object\`, \`soft_assignments\` (NULL for this backend), \`qc\`, \`fit_stats\`, \`zerorate_overall\`, \`dubrate_overall\`, \`score_overall\`, \`params\`, \`skipped_groups\`, \`call\`.
+
+</div>

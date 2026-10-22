@@ -5,13 +5,13 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis • cellprograms</title>
+<title>Historical comparison: local-first and joint multicellular factors • cellprograms</title>
 <!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Historical comparison: local-first and joint multicellular factors">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -35,15 +35,16 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/quickstart.html">Quick start: from pseudobulk to shared programs</a></li>
-    <li><a class="dropdown-item" href="../articles/metacells_seacells.html">Metacells with SEACells and mcRigor gamma optimization</a></li>
+    <li><a class="dropdown-item" href="../articles/metacells_seacells.html">Metacells: SuperCell (default) and SEACells with mcRigor gamma optimization</a></li>
+    <li><a class="dropdown-item" href="../articles/metacells_to_programs.html">From metacells to programs: the SuperCell + mcRigor workflow</a></li>
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cebmf_backend.html">The cebmf_torch backend: covariate-EBMF in torch</a></li>
     <li><a class="dropdown-item" href="../articles/coordination_joint.html">Joint and tensor factorization: EB-CP and block EBMF</a></li>
-    <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
-    <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Historical case study: cross-cell-type COVID-19 PBMC programs</a></li>
+    <li><a class="dropdown-item" href="../articles/divas_case_study.html">Historical case study: DIVAS COVID-19 multi-omics</a></li>
     <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
     <li><a class="dropdown-item" href="../articles/immune_aging_cross_cohort.html">Case study: immune-aging programs across 8 global PBMC cohorts</a></li>
-    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis</a></li>
+    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Historical comparison: local-first and joint multicellular factors</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -65,7 +66,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis</h1>
+      <h1>Historical comparison: local-first and joint multicellular factors</h1>
             
       
 
@@ -74,6 +75,12 @@
 
     
     
+<p><strong>Historical recipe, not a newly executed comparator
+benchmark.</strong> Code is display-only during documentation builds.
+The retained numerical narrative and cached objects have not been
+regenerated under the current source/units/fairness contract; they
+cannot certify calibration or comparative advantage. Current study
+execution and support status belong to cellprograms-reproducibility.</p>
 <p><a href="https://saezlab.github.io/MOFAcellulaR/" class="external-link">MOFAcellulaR</a>
 fits a <strong>joint</strong> multicellular factor analysis: the
 pseudobulk profiles of all cell types are stacked as MOFA2 views (one
@@ -84,9 +91,10 @@ a linear combination of gene weights from every cell type.</p>
 route: one empirical-Bayes matrix factorization per cell type, with
 cross-cell-type coordination (CMPs) and sharing (mashr) as separate,
 explicitly tested post-hoc questions.</p>
-<p>This vignette runs both on the <strong>same simulated data with known
-ground truth</strong>, aligns their outputs, and states where each is
-expected to win. It complements the <a href="https://saezlab.github.io/MOFAcellulaR/articles/get-started.html" class="external-link">MOFAcellulaR
+<p>This vignette preserves the old recipe for comparing both on the
+<strong>same simulated data with known ground truth</strong>. Its
+historical descriptions are not new results or a prespecified
+fair-comparison certificate. It complements the <a href="https://saezlab.github.io/MOFAcellulaR/articles/get-started.html" class="external-link">MOFAcellulaR
 get-started tutorial</a> and the <a href="https://liana.readthedocs.io/en/stable/tutorials/notebooks/mofacellular.html" class="external-link">liana
 notebook</a> on metadata associations — the same questions, asked of
 both models.</p>
@@ -95,8 +103,7 @@ both models.</p>
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"MOFA2"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">||</span></span>
 <span>    <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"MOFAcellulaR"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"MOFA2/MOFAcellulaR not installed; skipping the comparison sections."</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span><span class="co">#&gt; MOFA2/MOFAcellulaR not installed; skipping the comparison sections.</span></span></code></pre></div>
+<span><span class="op">}</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="the-data-planted-multicellular-programs">The data: planted multicellular programs<a class="anchor" aria-label="anchor" href="#the-data-planted-multicellular-programs"></a>
 </h2>
@@ -139,22 +146,13 @@ carries no signal.</li>
 <span>                             max_factors <span class="op">=</span> <span class="fl">6</span>, features <span class="op">=</span> <span class="st">"variable"</span>,</span>
 <span>                             n_variable_genes <span class="op">=</span> <span class="fl">400</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/canonicalize_programs.html">canonicalize_programs</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/program_summary.html">program_summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   cell_type n_obs n_genes n_programs        R2      elbo</span></span>
-<span><span class="co">#&gt; 1         B    60     400          2 0.2439779 -36065.09</span></span>
-<span><span class="co">#&gt; 2       CD4    60     400          1 0.1707640 -35709.99</span></span>
-<span><span class="co">#&gt; 3       CD8    60     400          1 0.2010540 -35859.83</span></span>
-<span><span class="co">#&gt; 4        NK    60     400          2 0.2948849 -36081.50</span></span>
-<span><span class="co">#&gt; 5      Mono    60     400          2 0.2997384 -35859.12</span></span></code></pre></div>
-<p>Coordination (score space, permutation FWER) and sharing (loading
-space, mashr):</p>
+<span><span class="fu"><a href="../reference/program_summary.html">program_summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
+<p>Coordination (score space, conditional fixed-input node adjustment)
+and sharing (loading space, mashr):</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/find_coordinated_programs.html">find_coordinated_programs</a></span><span class="op">(</span><span class="va">fit</span>, n_perm <span class="op">=</span> <span class="fl">999</span>, seed <span class="op">=</span> <span class="fl">1</span>, min_donors <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span>
 <span><span class="va">cmp</span></span>
-<span><span class="co">#&gt; &lt;cmp_result&gt; 1 coordinated multicellular program(s) at FWER 0.05 (mode: marginal, ambient: drop)</span></span>
-<span><span class="co">#&gt;   CMP 1: B_1, CD4_1 (-), NK_2 (-), Mono_1 (-)</span></span>
 <span><span class="fu"><a href="../reference/plot_cmp_network.html">plot_cmp_network</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">)</span></span></code></pre></div>
-<p><img src="mofacellular_comparison_files/figure-html/cmp-1.png" class="r-plt" alt="" width="1050"></p>
 <p>Only one CMP is called — why not the planted CD8–NK pair? Both local
 fits <em>did</em> recover it (CD8_1 and NK_1 correlate r &gt; 0.99 with
 the planted donor scores), but the default ambient guard
@@ -170,21 +168,10 @@ to be the strongest edge in the entire analysis:</p>
 <span>                                      min_donors <span class="op">=</span> <span class="fl">20</span>, ambient <span class="op">=</span> <span class="st">"flag"</span><span class="op">)</span></span>
 <span><span class="va">amb</span> <span class="op">&lt;-</span> <span class="va">cmp_flag</span><span class="op">$</span><span class="va">ambient</span>   <span class="co"># the guard's score table, shipped with the result</span></span>
 <span><span class="va">amb</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="op">-</span><span class="va">amb</span><span class="op">$</span><span class="va">ambient_score</span><span class="op">)</span>, <span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>, <span class="op">]</span></span>
-<span><span class="co">#&gt;   cell_type program_id ambient_score source</span></span>
-<span><span class="co">#&gt; 4       CD8      CD8_1     0.4464663      B</span></span>
-<span><span class="co">#&gt; 5        NK       NK_1     0.3852758      B</span></span>
-<span><span class="co">#&gt; 8      Mono     Mono_2     0.2471914      B</span></span>
-<span><span class="co">#&gt; 7      Mono     Mono_1     0.2398713    CD8</span></span>
 <span><span class="va">cmp_flag</span></span>
-<span><span class="co">#&gt; &lt;cmp_result&gt; 2 coordinated multicellular program(s) at FWER 0.05 (mode: marginal, ambient: flag)</span></span>
-<span><span class="co">#&gt;   CMP 1: CD8_1, NK_1</span></span>
-<span><span class="co">#&gt;   CMP 2: B_1, CD4_1 (-), NK_2 (-), Mono_1 (-)</span></span>
-<span><span class="fu"><a href="../reference/plot_cmp_network.html">plot_cmp_network</a></span><span class="op">(</span><span class="va">cmp_flag</span><span class="op">)</span></span></code></pre></div>
-<p><img src="mofacellular_comparison_files/figure-html/ambient-guard-1.png" class="r-plt" alt="" width="1050"></p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_cmp_membership.html">plot_cmp_membership</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"ambient = drop"</span> <span class="op">=</span> <span class="va">cmp</span>, <span class="st">"ambient = flag"</span> <span class="op">=</span> <span class="va">cmp_flag</span><span class="op">)</span>,</span>
+<span><span class="fu"><a href="../reference/plot_cmp_network.html">plot_cmp_network</a></span><span class="op">(</span><span class="va">cmp_flag</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_cmp_membership.html">plot_cmp_membership</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"ambient = drop"</span> <span class="op">=</span> <span class="va">cmp</span>, <span class="st">"ambient = flag"</span> <span class="op">=</span> <span class="va">cmp_flag</span><span class="op">)</span>,</span>
 <span>                    label_programs <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="mofacellular_comparison_files/figure-html/ambient-guard-2.png" class="r-plt" alt="" width="1050"></p>
 <p>The practical lesson: when the contamination status of a dataset is
 unknown, <code>ambient = "flag"</code> is the safer choice — the guard
 stays visible (<code>ambient_flag</code> in the membership table)
@@ -192,10 +179,9 @@ instead of silently removing programs. This episode is itself part of
 the comparison: explicit guards can misfire, but they are inspectable
 and configurable in a way a joint model’s implicit assumptions are
 not.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">shr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/program_sharing.html">program_sharing</a></span><span class="op">(</span><span class="va">fit</span>, n_perm <span class="op">=</span> <span class="fl">999</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_sharing.html">plot_sharing</a></span><span class="op">(</span><span class="va">shr</span><span class="op">)</span></span></code></pre></div>
-<p><img src="mofacellular_comparison_files/figure-html/sharing-1.png" class="r-plt" alt="" width="1050"></p>
 </div>
 <div class="section level2">
 <h2 id="mofacellular-one-joint-latent-space">MOFAcellulaR: one joint latent space<a class="anchor" aria-label="anchor" href="#mofacellular-one-joint-latent-space"></a>
@@ -208,7 +194,7 @@ models see identical inputs. MOFAcellulaR’s QC chain
 <em>raw-count</em> pseudobulk; the simulated profiles are already
 continuous, so we hand the views to MOFA2 directly (with real data, run
 their full preprocessing first):</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mofa_in</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_mofacellular_input.html">as_mofacellular_input</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>          <span class="co"># counts + coldata (the interop adapter)</span></span>
 <span><span class="va">views</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">pseudobulk</span>, <span class="va">t</span><span class="op">)</span>           <span class="co"># genes x donors, one view per cell type</span></span>
 <span><span class="va">mo</span> <span class="op">&lt;-</span> <span class="fu">MOFA2</span><span class="fu">::</span><span class="fu">create_mofa</span><span class="op">(</span><span class="va">views</span><span class="op">)</span></span>
@@ -229,7 +215,7 @@ their full preprocessing first):</p>
 (<code>fit$scores</code>), MOFA shared across views. The natural
 alignment is a donor-score correlation between every cellprograms
 program and every MOFA factor:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">progs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">cbind</span>, <span class="va">fit</span><span class="op">$</span><span class="va">scores</span><span class="op">)</span></span>
 <span><span class="va">r_mat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">progs</span>, <span class="va">Z_mofa</span><span class="op">)</span></span>
 <span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>program <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">r_mat</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">r_mat</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -254,7 +240,7 @@ separated out.</p>
 best |correlation| between the planted donor scores and any recovered
 program (factor) of that cell type, plus gene-set recovery (Jaccard of
 the top-40 |loadings| against the planted genes):</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## planted programs as (cell type, label, donor scores, planted gene names)</span></span>
 <span><span class="va">planted</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">truth</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">ct</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">truth</span><span class="op">[[</span><span class="va">ct</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">k</span><span class="op">)</span> <span class="op">{</span></span>
@@ -309,15 +295,17 @@ driven by one view) is left to downstream inspection (variance
 decomposition per view, <code>plot_MOFA_hmap</code>).</li>
 <li>
 <code><a href="../reference/find_coordinated_programs.html">find_coordinated_programs()</a></code> tests each candidate
-against a within-strata permutation null with max-T family-wise error
-control, and reports which programs are members.</li>
+against a within-strata fixed-input permutation null with max-T-adjusted
+node p-values and reports candidate memberships. Validity requires the
+declared exchangeability/null assumptions; learned-factor, edge and
+CMP-set error control is not established.</li>
 </ul>
 <p>On this data, with the ambient guard set to flag rather than drop,
 cellprograms recovers both planted multicellular programs exactly —
-membership, sign, and a calibrated per-program p-value (all node p =
-0.001) — and correctly leaves both private decoys uncalled (node p = 1).
-MOFA2 recovers the planted donor activity in its factors but offers no
-calibrated answer to “is this factor genuinely multicellular?”: every
+membership, sign, and historical adjusted per-program p-values (all node
+p = 0.001) — and correctly leaves both private decoys uncalled (node p =
+1). MOFA2 recovers the planted donor activity in its factors but offers
+no calibrated answer to “is this factor genuinely multicellular?”: every
 factor is multicellular by construction, so the private decoys also come
 back as factors with weights in every view.</p>
 <p>The default run above illustrates the flip side of the local-first
@@ -338,7 +326,7 @@ metadata (<code>get_associations</code>: ANOVA for categorical, linear
 for continuous). The cellprograms counterpart is
 <code><a href="../reference/cmp_triage.html">cmp_triage()</a></code> on CMP consensus scores, which carries the
 context association per CMP:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## cellprograms: CMP scores vs the planted context</span></span>
 <span><span class="va">ct</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cmp_triage.html">cmp_triage</a></span><span class="op">(</span><span class="va">fit</span>, <span class="va">cmp</span>, context <span class="op">=</span> <span class="st">"ifn_high"</span><span class="op">)</span></span>
 <span><span class="va">ct</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">ct</span><span class="op">$</span><span class="va">context_p</span><span class="op">)</span>, <span class="op">]</span></span>
@@ -353,9 +341,9 @@ context association per CMP:</p>
 <p>Both should flag the factors/programs aligned with the planted
 <code>global_IFN</code> donor scores (the sign of the estimate is
 arbitrary — program and factor directions are identified only up to
-sign). The cellprograms result is restricted to permutation-validated
-CMPs; the MOFA result covers all factors including view-specific
-ones.</p>
+sign). The cellprograms result is restricted to the historical selected
+CMPs, not independently validated memberships; the MOFA result covers
+all factors including view-specific ones.</p>
 </div>
 <div class="section level2">
 <h2 id="real-data-stephenson-covid-19-pbmcs">Real data: Stephenson COVID-19 PBMCs<a class="anchor" aria-label="anchor" href="#real-data-stephenson-covid-19-pbmcs"></a>
@@ -377,7 +365,7 @@ parity constraints: its per-view gene panels are restricted to the
 vetoed from every view via <code>filt_gex_bybckgrnd()</code>. We train
 15 factors (<code>spikeslab_weights = FALSE</code>, seed 1, as in their
 tutorial):</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## heavy: ~15 min; cached results used below</span></span>
 <span><span class="va">counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">cbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">cts</span>, <span class="kw">function</span><span class="op">(</span><span class="va">ct</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">pseudobulk</span><span class="op">[[</span><span class="va">ct</span><span class="op">]</span><span class="op">]</span><span class="op">[</span>, <span class="va">shared</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">ct_list</span> <span class="op">&lt;-</span> <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu">create_init_exp</span><span class="op">(</span>counts <span class="op">=</span> <span class="va">counts</span>, coldata <span class="op">=</span> <span class="va">coldata</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
@@ -396,7 +384,7 @@ tutorial):</p>
 <span>  <span class="fu">MOFAcellulaR</span><span class="fu">::</span><span class="fu">pb_dat2MOFA</span><span class="op">(</span>pb_dat_list <span class="op">=</span> <span class="va">.</span>, sample_column <span class="op">=</span> <span class="st">"observation_id"</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>  <span class="fu">MOFA2</span><span class="fu">::</span><span class="fu">create_mofa</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">## ... then prepare_mofa(num_factors = 15, spikeslab_weights = FALSE, seed = 1) and run_mofa()</span></span></code></pre></div>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cache_path</span> <span class="op">&lt;-</span> <span class="st">"mofacellular_stephenson_cache.rds"</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">cache_path</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">cache_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"vignettes"</span>, <span class="st">"articles"</span>, <span class="st">"mofacellular_stephenson_cache.rds"</span><span class="op">)</span></span>
@@ -418,16 +406,13 @@ does, and read the alignment accordingly.</p>
 <div class="section level3">
 <h3 id="donor-score-alignment">Donor-score alignment<a class="anchor" aria-label="anchor" href="#donor-score-alignment"></a>
 </h3>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">r</span> <span class="op">&lt;-</span> <span class="va">cache</span><span class="op">$</span><span class="va">r_mat</span></span>
 <span><span class="va">best_f</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/maxCol.html" class="external-link">max.col</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">ord</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">best_f</span>, <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">r</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span><span class="op">)</span>, <span class="va">best_f</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>program <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span><span class="op">[</span><span class="va">ord</span><span class="op">]</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span><span class="op">[</span><span class="va">ord</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                 factor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span>, each <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                 r <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">r</span><span class="op">[</span><span class="va">ord</span>, <span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in data.frame(program = factor(rownames(r)[ord], levels =</span></span>
-<span><span class="co">#&gt; rev(rownames(r)[ord])), : row names were found from a short variable and have</span></span>
-<span><span class="co">#&gt; been discarded</span></span>
 <span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">df</span>, <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">factor</span>, <span class="va">program</span>, fill <span class="op">=</span> <span class="va">r</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"white"</span>, linewidth <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_gradient.html" class="external-link">scale_fill_gradient2</a></span><span class="op">(</span>low <span class="op">=</span> <span class="st">"#2166AC"</span>, mid <span class="op">=</span> <span class="st">"#F7F7F7"</span>, high <span class="op">=</span> <span class="st">"#B2182B"</span>,</span>
@@ -435,7 +420,6 @@ does, and read the alignment accordingly.</p>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"MOFA factor"</span>, y <span class="op">=</span> <span class="st">"cellprograms program (grouped by best match)"</span>,</span>
 <span>                title <span class="op">=</span> <span class="st">"Stephenson: donor-score concordance"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">9</span><span class="op">)</span></span></code></pre></div>
-<p><img src="mofacellular_comparison_files/figure-html/real-align-1.png" class="r-plt" alt="" width="1050"></p>
 <p>The picture: most MOFA factors are essentially one local program each
 — MF13 ↔︎ CD4_mem_1 (r = 0.90), MF6 ↔︎ Plasma_1 (r = −0.93), MF5 ↔︎
 NK_dim_2 and MF11 ↔︎ unconv_T_3 (r = 0.89) — while MF1 has no local
@@ -449,7 +433,7 @@ cannot afford a factor for.</p>
 <div class="section level3">
 <h3 id="severity-associations-same-test-both-sides">Severity associations, same test both sides<a class="anchor" aria-label="anchor" href="#severity-associations-same-test-both-sides"></a>
 </h3>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ca</span> <span class="op">&lt;-</span> <span class="va">cache</span><span class="op">$</span><span class="va">cmp_assoc</span>   <span class="co"># unadjusted, to match get_associations (no covariates)</span></span>
 <span><span class="va">ga</span> <span class="op">&lt;-</span> <span class="va">cache</span><span class="op">$</span><span class="va">mofa_assoc</span></span>
 <span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>model <span class="op">=</span> <span class="st">"cellprograms CMP"</span>, label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"CMP"</span>, <span class="va">ca</span><span class="op">$</span><span class="va">cmp</span><span class="op">)</span>,</span>
@@ -463,7 +447,6 @@ cannot afford a factor for.</p>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="op">-</span><span class="va">log</span><span class="op">[</span><span class="fl">10</span><span class="op">]</span><span class="op">(</span><span class="va">p</span><span class="op">)</span><span class="op">)</span>, y <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>                title <span class="op">=</span> <span class="st">"Severity association, unadjusted"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">9</span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="mofacellular_comparison_files/figure-html/real-severity-1.png" class="r-plt" alt="" width="1050"></p>
 <p>Both models flag severity axes: the strongest CMP (CMP2, estimate
 0.30) at p = 9e-14, with CMP21 at 8e-9; MOFA’s Factor6 at p = 1.7e-7 and
 Factor5 at 1.6e-5. The comparison vignette uses unadjusted tests on both
@@ -484,7 +467,7 @@ refit uses
 everything else identical — point-Laplace, K = 30, 2,000 HVGs, institute
 + sex residualized, seed 1), and MOFAcellulaR gets the same 313-gene
 list vetoed across views plus the refit’s HVG panels.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">excl_path</span> <span class="op">&lt;-</span> <span class="st">"mofacellular_stephenson_cache_excl.rds"</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">excl_path</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">excl_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"vignettes"</span>, <span class="st">"articles"</span>, <span class="st">"mofacellular_stephenson_cache_excl.rds"</span><span class="op">)</span></span>
@@ -494,7 +477,7 @@ list vetoed across views plus the refit’s HVG panels.</p>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"mofacellular_stephenson_cache_excl.rds not found; "</span>,</span>
 <span>          <span class="st">"skipping the sensitivity results (see benchmarks/mofacellular_comparison/ to build it)."</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">c1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="va">excl_path</span><span class="op">)</span></span>
 <span><span class="va">c0</span> <span class="op">&lt;-</span> <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/exists.html" class="external-link">exists</a></span><span class="op">(</span><span class="st">"cache"</span>, inherit <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="va">cache</span> <span class="kw">else</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="va">cache_path</span><span class="op">)</span></span>
 <span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>setting <span class="op">=</span> <span class="st">"default (274 genes)"</span>,</span>
@@ -510,7 +493,6 @@ list vetoed across views plus the refit’s HVG panels.</p>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"strongest local counterpart per factor (max |r|)"</span>, y <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>                title <span class="op">=</span> <span class="st">"Factor-program alignment under both exclusion settings"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">9</span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"top"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="mofacellular_comparison_files/figure-html/excl-align-1.png" class="r-plt" alt="" width="1050"></p>
 <p>Factor labels are not comparable across refits (each model has its
 own axes), so the plot shows the 15 per-factor maxima as distributions
 per setting.</p>
@@ -556,13 +538,13 @@ normalization/coverage property of the data, not of the blacklist.</p>
 </tr>
 <tr class="even">
 <td>Cross-cell-type coordination</td>
-<td>CMP test: permutation null, max-T FWER, per-program p</td>
-<td>by construction; inspect per-view variance</td>
+<td>fixed-input node p-values; edge/set error control unestablished</td>
+<td>inspect native per-view structure</td>
 </tr>
 <tr class="odd">
 <td>Shared gene effects</td>
-<td>mashr layer (lfsr, shared/partial/private)</td>
-<td>factor weights are implicitly shared</td>
+<td>descriptive mashr sharing labels, not equal-effect tests</td>
+<td>native joint factor loadings; not an equivalent sharing test</td>
 </tr>
 <tr class="even">
 <td>Artifact handling</td>
@@ -576,8 +558,8 @@ normalization/coverage property of the data, not of the blacklist.</p>
 </tr>
 <tr class="even">
 <td>Uncertainty</td>
-<td>loading/score posterior SDs, lfsr</td>
-<td>none (point estimates)</td>
+<td>native posterior summaries with estimator-specific limitations</td>
+<td>native/model-specific; not automatically comparable</td>
 </tr>
 <tr class="odd">
 <td>Fit philosophy</td>

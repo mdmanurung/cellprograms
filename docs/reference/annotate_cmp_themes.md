@@ -1,50 +1,66 @@
+<div class="page-header">
+
 # Themes of coordinated programs
 
-Univariate linear model (decoupler-style ULM) of each member program's
-absolute loadings on gene-set membership, for every set with at least
-\`min_size\` genes in the program's gene universe; BH across sets within
-a program. Absolute loadings are used because program signs are
-arbitrary up to canonicalization and a set can be enriched at either
-pole.
+<div class="d-none name">
 
-## Usage
+`annotate_cmp_themes.Rd`
+
+</div>
+
+</div>
+
+<div class="ref-description section level2">
+
+Univariate linear model (decoupler-style ULM) of each member program's absolute loadings on gene-set membership, for every set with at least \`min_size\` genes in the program's gene universe; BH across sets within a program. Absolute loadings are used because program signs are arbitrary up to canonicalization and a set can be enriched at either pole.
+
+</div>
+
+<div class="section level2">
+
+## Usage<a href="#ref-usage" class="anchor" aria-label="anchor"></a>
 
 ``` r
 annotate_cmp_themes(fit, cmp, sets, min_size = 10L, top = 3L, q = 0.05)
 ```
 
-## Arguments
+</div>
 
-- fit:
+<div class="section level2">
 
-  A canonicalized \`cell_program_fit\`.
+## Arguments<a href="#arguments" class="anchor" aria-label="anchor"></a>
 
-- cmp:
+fit<a href="#arg-fit" class="anchor" aria-label="anchor"></a><br>
+A canonicalized \`cell_program_fit\`.
 
-  A \`cmp_result\` or its \`cmps\` table.
+cmp<a href="#arg-cmp" class="anchor" aria-label="anchor"></a><br>
+A \`cmp_result\` or its \`cmps\` table.
 
-- sets:
+sets<a href="#arg-sets" class="anchor" aria-label="anchor"></a><br>
+Named list of gene vectors (e.g. MSigDB Hallmark).
 
-  Named list of gene vectors (e.g. MSigDB Hallmark).
+min_size<a href="#arg-min-size" class="anchor" aria-label="anchor"></a><br>
+Minimum set size within the universe (default 10).
 
-- min_size:
+top<a href="#arg-top" class="anchor" aria-label="anchor"></a><br>
+Top sets per program (default 3).
 
-  Minimum set size within the universe (default 10).
+q<a href="#arg-q" class="anchor" aria-label="anchor"></a><br>
+BH threshold (default 0.05).
 
-- top:
+</div>
 
-  Top sets per program (default 3).
+<div class="section level2">
 
-- q:
+## Value<a href="#value" class="anchor" aria-label="anchor"></a>
 
-  BH threshold (default 0.05).
+Data frame: \`cmp\`, \`cell_type\`, \`program_id\`, \`set\`, \`t\`, \`padj\`.
 
-## Value
+</div>
 
-Data frame: \`cmp\`, \`cell_type\`, \`program_id\`, \`set\`, \`t\`,
-\`padj\`.
+<div class="section level2">
 
-## Examples
+## Examples<a href="#ref-examples" class="anchor" aria-label="anchor"></a>
 
 ``` r
 # Toy canonicalized fit: program 1 of cell types A and B shares donor
@@ -71,7 +87,6 @@ fit <- structure(list(
 res <- find_coordinated_programs(fit, n_perm = 99, ambient = "none")
 sets <- list(planted = paste0("G", 1:15), other = paste0("G", 50:65))
 annotate_cmp_themes(fit, res, sets, min_size = 5)
-#>   cmp cell_type program_id     set        t         padj
-#> 1   1         A        A_1 planted 48.26007 8.248490e-70
-#> 2   1         B        B_1 planted 41.39054 1.406285e-63
 ```
+
+</div>

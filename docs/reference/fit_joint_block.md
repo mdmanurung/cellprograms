@@ -1,8 +1,24 @@
+<div class="page-header">
+
 # Block-structured joint EBMF (Level 3 candidate A)
+
+<div class="d-none name">
+
+`fit_joint_block.Rd`
+
+</div>
+
+</div>
+
+<div class="ref-description section level2">
 
 Block-structured joint EBMF (Level 3 candidate A)
 
-## Usage
+</div>
+
+<div class="section level2">
+
+## Usage<a href="#ref-usage" class="anchor" aria-label="anchor"></a>
 
 ``` r
 fit_joint_block(
@@ -18,44 +34,45 @@ fit_joint_block(
 )
 ```
 
-## Arguments
+</div>
 
-- fit:
+<div class="section level2">
 
-  A \`cell_program_fit\` (uses its processed matrices / scores).
+## Arguments<a href="#arguments" class="anchor" aria-label="anchor"></a>
 
-- level:
+fit<a href="#arg-fit" class="anchor" aria-label="anchor"></a><br>
+A \`cell_program_fit\` (uses its processed matrices / scores).
 
-  \`"expression"\` or \`"scores"\`.
+level<a href="#arg-level" class="anchor" aria-label="anchor"></a><br>
+\`"expression"\` or \`"scores"\`.
 
-- order:
+order<a href="#arg-order" class="anchor" aria-label="anchor"></a><br>
+\`"shared_first"\` (default) or \`"private_first"\` (expression level only). Scores/private-first is refused before fitting: subtracting the stage-1 fit from its own scores has no defined residual semantics.
 
-  \`"shared_first"\` (default) or \`"private_first"\` (ablation).
+max_factors<a href="#arg-max-factors" class="anchor" aria-label="anchor"></a><br>
+Candidate factors for the joint pass.
 
-- max_factors:
+max_private<a href="#arg-max-private" class="anchor" aria-label="anchor"></a><br>
+Candidate factors per cell type in the private pass.
 
-  Candidate factors for the joint pass.
+private_threshold<a href="#arg-private-threshold" class="anchor" aria-label="anchor"></a><br>
+Block-mass threshold for private classification.
 
-- max_private:
+global_entropy<a href="#arg-global-entropy" class="anchor" aria-label="anchor"></a><br>
+Normalized-entropy threshold for global classification.
 
-  Candidate factors per cell type in the private pass.
+seed<a href="#arg-seed" class="anchor" aria-label="anchor"></a><br>
+Random seed.
 
-- private_threshold:
+verbose<a href="#arg-verbose" class="anchor" aria-label="anchor"></a><br>
+Verbosity.
 
-  Block-mass threshold for private classification.
+</div>
 
-- global_entropy:
+<div class="section level2">
 
-  Normalized-entropy threshold for global classification.
-
-- seed:
-
-  Random seed.
-
-- verbose:
-
-  Verbosity.
-
-## Value
+## Value<a href="#value" class="anchor" aria-label="anchor"></a>
 
 An integration-style list with method \`"block"\`.
+
+</div>

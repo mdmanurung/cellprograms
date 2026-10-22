@@ -1,8 +1,8 @@
 ---
-title: "Case study: cross-cell-type programs in COVID-19 PBMC cohorts"
+title: "Historical case study: cross-cell-type COVID-19 PBMC programs"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Case study: cross-cell-type programs in COVID-19 PBMC cohorts}
+  %\VignetteIndexEntry{Historical case study: cross-cell-type COVID-19 PBMC programs}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -15,13 +15,18 @@ knitr::opts_chunk$set(
 )
 ```
 
-This article walks through a full `cellprograms` analysis of two real
+**Historical precomputed evidence, not a new source-verified reproduction.**
+Exact matrices, transformations, cohort eligibility and use/redistribution rights
+must be resolved before the maintained study is executed. Fixed-input node
+p-values and descriptive sharing labels do not certify edge/CMP-set inference.
+
+This article preserves a past `cellprograms` analysis of two real
 COVID-19 PBMC single-cell cohorts (Stephenson et al. 2021; COMBAT
 consortium), demonstrating program discovery, cross-cell-type
 coordination, program sharing, and the artifact-masking workflow. All
 numbers and figures below are precomputed; the code chunks show exactly
-how each result was produced and can be re-run against the public data
-(see [Reproducing](#reproducing)).
+the historical intended recipe. This is not a claim that a clean checkout
+currently regenerates those results (see [Reproducing](#reproducing)).
 
 ## Data and fitting
 
@@ -174,10 +179,11 @@ any threshold**. The identity fallback is structural (loading posterior
 SDs are small relative to effect sizes) but harmless — sharing calls do
 not depend on it.
 
-**Matching calibration.** Re-running the cross-cell-type matching at
+**Historical matching sensitivity, not calibration.** Re-running the cross-cell-type matching at
 n_perm = 1999 (vs 199): edge Jaccard 0.78 (Stephenson) / 0.82 (COMBAT),
 sharing-group ARI **0.85 / 0.89**, group counts 39 → 41 and 41 → 42.
-Matching is stable at realistic permutation budgets.
+This describes sensitivity of the historical matching output, not valid
+sharing inference or independent calibration.
 
 ## Coordinated multi-cell-type programs
 
@@ -221,10 +227,12 @@ Several CMPs are significantly severity-associated (strongest around
 carries both disease-relevant and disease-irrelevant multicellular
 programs. CMP membership overlaps the sharing groups but is not
 identical: sharing (mashr) is a loading-space statement, coordination is
-a score-space statement, and the two views agree on the biology
+a score-space statement. Apparent historical agreement in biological labels
+is descriptive; it does not validate either test or prove common mechanisms.
+The historical discussion emphasized
 (interferon, cell cycle) while disagreeing on program-level details —
-which is precisely the information the two-test workflow is designed to
-surface.
+which motivate separately prespecified follow-up rather than a two-test
+scientific certificate.
 
 ## Reproducing
 
@@ -235,5 +243,6 @@ repository:
 - `benchmarks/divas_comparison/` — head-to-head comparison against DIVAS
   on the Su et al. COVID-19 multi-omics case study
 - Real-data fits are large and not bundled with the package; the scripts
-  rebuild them from public data (ArrayExpress E-MTAB-8731 for Stephenson;
+require verified source/units/rights before reconstruction (ArrayExpress
+E-MTAB-10026 for Stephenson;
   COMBAT via the consortium release).

@@ -7,10 +7,14 @@ on:
 name: R-CMD-check
 
 permissions: read-all
+concurrency:
+  group: ordinary-check-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
+    timeout-minutes: 60
     name: ${{ matrix.config.os }} (${{ matrix.config.r }}, ${{ matrix.config.lane }})
     strategy:
       fail-fast: false
@@ -26,15 +30,20 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      _R_CHECK_FORCE_SUGGESTS_: "false"
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: r-lib/actions/setup-r@v2
+      - uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
         with:
           r-version: ${{ matrix.config.r }}
           use-public-rspm: true
 
-      # Installs Imports/Suggests and rcmdcheck; packages are cached across runs.
+      # Mandatory ordinary lane: hard dependencies and test/vignette tools.
+      # Heavy optional integrations run only in their separately marked lane.
       # Remotes pins flashier (willwerscheid/flashier@fd44811) and, for the
       # pinned lane, flashier-utils (exact SHA in DESCRIPTION).
       # any::remotes is needed by the upstream-main lane install step below.
@@ -45,9 +54,10 @@ jobs:
       - name: Install GSL for mashr
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y libgsl-dev
-      - uses: r-lib/actions/setup-r-dependencies@v2
+      - uses: r-lib/actions/setup-r-dependencies@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
         with:
-          extra-packages: any::rcmdcheck, any::remotes
+          dependencies: '"hard"'
+          extra-packages: any::rcmdcheck, any::remotes, any::testthat, any::knitr, any::rmarkdown
           needs: check
 
       # upstream-main lane: replace the pinned flashier-utils with its main branch
@@ -56,12 +66,19 @@ jobs:
         shell: Rscript {0}
         run: remotes::install_github("mdmanurung/flashier-utils@main", upgrade = "never")
 
-      - uses: r-lib/actions/check-r-package@v2
+      - uses: r-lib/actions/check-r-package@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
         with:
           upload-snapshots: "no"
           build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
-          args: 'c("--no-manual","--as-cran")'
+          args: 'c("--no-manual")'
           error-on: '"warning"'
+
+      - name: Enforce development core note policy
+        shell: Rscript {0}
+        run: source(".github/check-core-notes.R")
+
+      - name: Test core note policy oracles
+        run: Rscript tests/scripts/test-core-note-policy.R
 
       - name: Run testthat
         shell: Rscript {0}

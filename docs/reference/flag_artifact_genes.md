@@ -1,14 +1,24 @@
+<div class="page-header">
+
 # Flag programs or CMPs carrying artifact genes
 
-For each CMP (or each program when \`cmp\` is \`NULL\`), takes the
-top-\`top_n\` genes by absolute loading of each member program (pooled
-and de-duplicated across members for a CMP) and reports, for each
-artifact set, the fraction of those genes matching the set and a flag
-that is TRUE when at least one gene matches. This mirrors the screening
-heuristic used in the project's CMP report; a flag means "inspect before
-interpreting", not "discard".
+<div class="d-none name">
 
-## Usage
+`flag_artifact_genes.Rd`
+
+</div>
+
+</div>
+
+<div class="ref-description section level2">
+
+For each CMP (or each program when \`cmp\` is \`NULL\`), takes the top-\`top_n\` genes by absolute loading of each member program (pooled and de-duplicated across members for a CMP) and reports, for each artifact set, the fraction of those genes matching the set and a flag that is TRUE when at least one gene matches. This mirrors the screening heuristic used in the project's CMP report; a flag means "inspect before interpreting", not "discard".
+
+</div>
+
+<div class="section level2">
+
+## Usage<a href="#ref-usage" class="anchor" aria-label="anchor"></a>
 
 ``` r
 flag_artifact_genes(
@@ -19,34 +29,37 @@ flag_artifact_genes(
 )
 ```
 
-## Arguments
+</div>
 
-- fit:
+<div class="section level2">
 
-  A canonicalized \`cell_program_fit\`.
+## Arguments<a href="#arguments" class="anchor" aria-label="anchor"></a>
 
-- cmp:
+fit<a href="#arg-fit" class="anchor" aria-label="anchor"></a><br>
+A canonicalized \`cell_program_fit\`.
 
-  A \`cmp_result\` or its \`cmps\` table; \`NULL\` (default) flags every
-  program of every cell type instead.
+cmp<a href="#arg-cmp" class="anchor" aria-label="anchor"></a><br>
+A \`cmp_result\` or its \`cmps\` table; \`NULL\` (default) flags every program of every cell type instead.
 
-- sets:
+sets<a href="#arg-sets" class="anchor" aria-label="anchor"></a><br>
+Subset of \`names(artifact_gene_sets)\` to screen against (default \`c("vdj", "genotype_marker")\`).
 
-  Subset of \`names(artifact_gene_sets)\` to screen against (default
-  \`c("vdj", "genotype_marker")\`).
+top_n<a href="#arg-top-n" class="anchor" aria-label="anchor"></a><br>
+Number of top-\|loading\| genes per program (default 12).
 
-- top_n:
+</div>
 
-  Number of top-\|loading\| genes per program (default 12).
+<div class="section level2">
 
-## Value
+## Value<a href="#value" class="anchor" aria-label="anchor"></a>
 
-Data frame. With \`cmp\`: one row per CMP (\`cmp\`, \`n_members\`). With
-\`cmp = NULL\`: one row per program (\`cell_type\`, \`program_id\`).
-Both have, per set \`\<s\>\`, columns \`\<s\>\_frac\` (fraction of the
-top genes matching) and \`\<s\>\_flag\` (TRUE when \>= 1 gene matches).
+Data frame. With \`cmp\`: one row per CMP (\`cmp\`, \`n_members\`). With \`cmp = NULL\`: one row per program (\`cell_type\`, \`program_id\`). Both have, per set \`\<s\>\`, columns \`\<s\>\_frac\` (fraction of the top genes matching) and \`\<s\>\_flag\` (TRUE when \>= 1 gene matches).
 
-## Examples
+</div>
+
+<div class="section level2">
+
+## Examples<a href="#ref-examples" class="anchor" aria-label="anchor"></a>
 
 ``` r
 # Toy fit whose program A_1 is carried by V(D)J / genotype-marker genes
@@ -58,10 +71,6 @@ W[c("IGHV1-2", "IGKC", "GSTM1"), 1] <- c(5, 4, 3)
 fit <- structure(list(loadings = list(A = W), cell_types = "A"),
                  class = c("cell_program_fit", "cell_program_data", "list"))
 flag_artifact_genes(fit)
-#>   cell_type program_id   vdj_frac vdj_flag genotype_marker_frac
-#> 1         A        A_1 0.16666667     TRUE           0.08333333
-#> 2         A        A_2 0.08333333     TRUE           0.00000000
-#>   genotype_marker_flag
-#> 1                 TRUE
-#> 2                FALSE
 ```
+
+</div>

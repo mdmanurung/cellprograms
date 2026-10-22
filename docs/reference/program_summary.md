@@ -1,20 +1,43 @@
+<div class="page-header">
+
 # Summary of programs per cell type (n, K, R2 of the reconstruction, ELBO)
+
+<div class="d-none name">
+
+`program_summary.Rd`
+
+</div>
+
+</div>
+
+<div class="ref-description section level2">
 
 Summary of programs per cell type (n, K, R2 of the reconstruction, ELBO)
 
-## Usage
+</div>
+
+<div class="section level2">
+
+## Usage<a href="#ref-usage" class="anchor" aria-label="anchor"></a>
 
 ``` r
 program_summary(fit)
 ```
 
-## Arguments
+</div>
 
-- fit:
+<div class="section level2">
 
-  A canonicalized \`cell_program_fit\`.
+## Arguments<a href="#arguments" class="anchor" aria-label="anchor"></a>
 
-## Examples
+fit<a href="#arg-fit" class="anchor" aria-label="anchor"></a><br>
+A canonicalized \`cell_program_fit\`.
+
+</div>
+
+<div class="section level2">
+
+## Examples<a href="#ref-examples" class="anchor" aria-label="anchor"></a>
 
 ``` r
 sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
@@ -22,10 +45,6 @@ x <- as_cell_program_data(sim$pseudobulk)
 fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 150)
 fit <- canonicalize_programs(fit)
 program_summary(fit)
-#>   cell_type n_obs n_genes n_programs        R2      elbo
-#> 1         B    24     150          2 0.4107044 -5719.888
-#> 2       CD4    24     150          1 0.3463505 -5544.727
-#> 3       CD8    24     150          1 0.2399331 -5506.694
-#> 4        NK    24     150          2 0.3943826 -5716.026
-#> 5      Mono    24     150          2 0.4113416 -5653.769
 ```
+
+</div>

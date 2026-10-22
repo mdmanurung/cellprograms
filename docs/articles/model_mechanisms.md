@@ -1,259 +1,201 @@
+<div class="page-header">
+
 # How the model works: mechanisms of cellprograms
 
-This article explains what the package actually fits, layer by layer:
-the data model, the per-cell-type empirical-Bayes matrix factorization,
-the canonicalization that makes programs comparable, and the two
-post-hoc cross-cell-type analyses (coordination and sharing). Code
-chunks show the user-facing calls; the text describes the underlying
-machinery.
+<div class="d-none name">
 
-## Design principle
+`model_mechanisms.Rmd`
 
-**Factorize locally first; integrate later only when scientifically
-useful.** Each cell type gets its own factorization. Nothing in the fit
-assumes that programs are shared, coordinated, or comparable across cell
-types — those are separate, post-hoc questions with their own tests.
-This is the opposite of joint factorization (MOFA+) or
-reference-projection tools, which build cross-cell-type structure into
-the model itself.
+</div>
 
-## 1. Data model
+</div>
 
-The input is pseudobulk: for each cell type, an observations x genes
-matrix of aggregated expression (typically donor-level pseudobulk from
-single-cell data).
+This article explains what the package actually fits, layer by layer: the data model, the per-cell-type empirical-Bayes matrix factorization, the canonicalization that makes programs comparable, and the two post-hoc cross-cell-type analyses (coordination and sharing). Code chunks show the user-facing calls; the text describes the underlying machinery.
 
-\
-`x`` ``<-`` `[`as_cell_program_data`](https://mdmanurung.github.io/cellprograms/reference/as_cell_program_data.md)`(``pseudobulk``, sample_metadata ``=`` ``metadata``)`\
-[`validate_cell_program_data`](https://mdmanurung.github.io/cellprograms/reference/validate_cell_program_data.md)`(``x``)`
+<div class="section level2">
 
-[`as_cell_program_data()`](https://mdmanurung.github.io/cellprograms/reference/as_cell_program_data.md)
-stores one matrix per cell type, the sample metadata, and the gene
-panels;
-[`validate_cell_program_data()`](https://mdmanurung.github.io/cellprograms/reference/validate_cell_program_data.md)
-checks dimension consistency, numeric content, and observation/gene
-overlap across cell types. Cell types may have different gene panels;
-analyses that compare across cell types (sharing) use the shared panel.
+## Design principle<a href="#design-principle" class="anchor" aria-label="anchor"></a>
 
-## 2. Per-cell-type empirical-Bayes matrix factorization
+**Factorize locally first; integrate later only when scientifically useful.** Each cell type gets its own factorization. Nothing in the fit assumes that programs are shared, coordinated, or comparable across cell types — those are separate, post-hoc questions with their own tests. This is the opposite of joint factorization (MOFA+) or reference-projection tools, which build cross-cell-type structure into the model itself.
+
+</div>
+
+<div class="section level2">
+
+## 1. Data model<a href="#data-model" class="anchor" aria-label="anchor"></a>
+
+The input is pseudobulk: for each cell type, an observations x genes matrix of aggregated expression (typically donor-level pseudobulk from single-cell data).
+
+<div id="cb1" class="sourceCode">
 
 \
-`fit`` ``<-`` `[`fit_celltype_programs`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)`(``x``, loading_prior ``=`` ``"point_laplace"``,`\
-`                             max_factors ``=`` ``10``, var_type ``=`` ``1``)`\
-`fit`` ``<-`` `[`canonicalize_programs`](https://mdmanurung.github.io/cellprograms/reference/canonicalize_programs.md)`(``fit``)`
+<span class="va">`x`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`as_cell_program_data`](../reference/as_cell_program_data.html)</span><span class="op">`(`</span><span class="va">`pseudobulk`</span>`, sample_metadata `<span class="op">`=`</span>` `<span class="va">`metadata`</span><span class="op">`)`</span>\
+<span class="fu">[`validate_cell_program_data`](../reference/validate_cell_program_data.html)</span><span class="op">`(`</span><span class="va">`x`</span><span class="op">`)`</span>
+
+</div>
+
+[`as_cell_program_data()`](../reference/as_cell_program_data.html) stores one matrix per cell type, the sample metadata, and the gene panels; [`validate_cell_program_data()`](../reference/validate_cell_program_data.html) checks dimension consistency, numeric content, and observation/gene overlap across cell types. Cell types may have different gene panels; analyses that compare across cell types (sharing) use the shared panel.
+
+</div>
+
+<div class="section level2">
+
+## 2. Per-cell-type empirical-Bayes matrix factorization<a href="#per-cell-type-empirical-bayes-matrix-factorization" class="anchor" aria-label="anchor"></a>
+
+<div id="cb2" class="sourceCode">
+
+\
+<span class="va">`fit`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`fit_celltype_programs`](../reference/fit_celltype_programs.html)</span><span class="op">`(`</span><span class="va">`x`</span>`, loading_prior `<span class="op">`=`</span>` `<span class="st">`"point_laplace"`</span>`,`\
+`                             max_factors `<span class="op">`=`</span>` `<span class="fl">`10`</span>`, var_type `<span class="op">`=`</span>` `<span class="fl">`1`</span><span class="op">`)`</span>\
+<span class="va">`fit`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`canonicalize_programs`](../reference/canonicalize_programs.html)</span><span class="op">`(`</span><span class="va">`fit`</span><span class="op">`)`</span>
+
+</div>
 
 For each cell type independently, the package fits the two-factor model
 
-Y \approx L F^T + E,
+<span class="math display">Y \approx L F^T + E,</span>
 
-where Y is the (preprocessed) observations x genes matrix, L are
-sample-side factors (program *scores*), F are gene-side factors (program
-*loadings*), and E is residual noise. The fit is `flashier`’s
-empirical-Bayes matrix factorization:
+where <span class="math inline">Y</span> is the (preprocessed) observations x genes matrix, <span class="math inline">L</span> are sample-side factors (program *scores*), <span class="math inline">F</span> are gene-side factors (program *loadings*), and <span class="math inline">E</span> is residual noise. The fit is `flashier`’s empirical-Bayes matrix factorization:
 
-- **Greedy addition + backfitting.** Factors are added one at a time
-  (greedy_Kmax = `max_factors`), each new factor capturing the largest
-  remaining structured variation; after greedy addition, all factors are
-  jointly re-estimated (backfitting) until the evidence lower bound
-  (ELBO) stops improving. `nullcheck()`-style pruning removes factors
-  that do not improve the ELBO.
-- **Sparsity via empirical Bayes.** Each factor’s loadings get a
-  point-Laplace prior (a spike at zero plus a Laplace slab), fitted by
-  [`ebnm::ebnm_point_laplace`](https://rdrr.io/pkg/ebnm/man/ebnm_point_laplace.html).
-  The spike shrinks small loadings strongly toward zero while the slab
-  admits large effects, giving programs a sparse *character* — but the
-  stored posterior means are small nonzero values, not exact zeros.
-  Extract gene sets with an explicit loading threshold or the lfsr
-  (`top_genes(..., by = "lfsr")`), not by filtering on exact zeros.
-  `point_normal` (Gaussian slab) and `unimodal` are available
-  alternatives.
-- **Noise model.** `var_type` controls the residual variance structure:
-  `0` = one variance for everything, `1` = one per observation (the
-  default, right for pseudobulk where donors differ in depth/quality),
-  `2` = one per gene, `c(1, 2)` = Kronecker rank-one. The default was
-  selected by a full-factorial tuning benchmark (see the README).
-- **Preprocessing.** `center = TRUE` centers each gene (default);
-  `scale = TRUE` would also scale to unit variance (off by default — raw
-  program amplitudes are kept). `features = "variable"` restricts the
-  fit to the top `n_variable_genes` most variable genes per cell type.
+- **Greedy addition + backfitting.** Factors are added one at a time (greedy_Kmax = `max_factors`), each new factor capturing the largest remaining structured variation; after greedy addition, all factors are jointly re-estimated (backfitting) until the evidence lower bound (ELBO) stops improving. `nullcheck()`-style pruning removes factors that do not improve the ELBO.
+- **Sparsity via empirical Bayes.** Each factor’s loadings get a point-Laplace prior (a spike at zero plus a Laplace slab), fitted by <a href="https://rdrr.io/pkg/ebnm/man/ebnm_point_laplace.html" class="external-link"><code>ebnm::ebnm_point_laplace</code></a>. The spike shrinks small loadings strongly toward zero while the slab admits large effects, giving programs a sparse *character* — but the stored posterior means are small nonzero values, not exact zeros. Extract gene sets with an explicit loading threshold or the lfsr (`top_genes(..., by = "lfsr")`), not by filtering on exact zeros. `point_normal` (Gaussian slab) and `unimodal` are available alternatives.
+- **Noise model.** `var_type` controls the residual variance structure: `0` = one variance for everything, `1` = one per observation (the default, right for pseudobulk where donors differ in depth/quality), `2` = one per gene, `c(1, 2)` = Kronecker rank-one. The default was selected by a full-factorial tuning benchmark (see the README).
+- **Preprocessing.** `center = TRUE` centers each gene (default); `scale = TRUE` would also scale to unit variance (off by default — raw program amplitudes are kept). `features = "variable"` restricts the fit to the top `n_variable_genes` most variable genes per cell type.
 - **Covariate adjustment**, two modes:
-  - `covariate_mode = "residualize"` (hard): the pseudobulk matrix is
-    residualized on the covariate design (e.g. sequencing institute,
-    sex) by ordinary least squares *before* factorization. Programs are
-    fit on covariate-free residual expression.
-  - `covariate_mode = "fixed"` (soft, SOFA-style): covariate columns
-    enter the factorization as *fixed* sample-side factors with unshrunk
-    gene effects, initialized at OLS; free programs are added greedily
-    alongside and everything except the fixed columns is backfit. The
-    covariate part is returned separately (`fixed_L`, `fixed_F`) and
-    never appears in program extraction.
-- **Degenerate inputs.** Genes that are identically zero after
-  preprocessing are dropped; a cell type with no informative genes
-  records a K = 0 fit instead of failing the analysis.
+  - `covariate_mode = "residualize"` (hard): the pseudobulk matrix is residualized on the covariate design (e.g. sequencing institute, sex) by ordinary least squares *before* factorization. Programs are fit on covariate-free residual expression.
+  - `covariate_mode = "fixed"` (soft, SOFA-style): covariate columns enter the factorization as *fixed* sample-side factors with unshrunk gene effects, initialized at OLS; free programs are added greedily alongside and everything except the fixed columns is backfit. The covariate part is returned separately (`fixed_L`, `fixed_F`) and never appears in program extraction.
+- **Degenerate inputs.** Genes that are identically zero after preprocessing are dropped; a cell type with no informative genes records a K = 0 fit instead of failing the analysis.
 
-The fitted object stores, per cell type, the posterior means and
-posterior SDs of both factor matrices (`L_pm`/`L_psd`, `F_pm`/`F_psd`),
-the ELBO trajectory, and the gene panel used. Posterior SDs are what
-later power the mashr sharing analysis.
+The fitted object stores, per cell type, the posterior means and posterior SDs of both factor matrices (`L_pm`/`L_psd`, `F_pm`/`F_psd`), the ELBO trajectory, and the gene panel used. Posterior SDs are what later power the mashr sharing analysis.
 
-## 3. Canonicalization: making programs comparable
+</div>
 
-EBMF factors are identified only up to sign and scale. After fitting,
-[`canonicalize_programs()`](https://mdmanurung.github.io/cellprograms/reference/canonicalize_programs.md)
-puts every program on a common scale:
+<div class="section level2">
 
-- **Scale**: each score column is divided by its RMS across
-  observations, and the loadings multiplied by the same constant — the
-  program’s amplitude moves into the loadings, so scores are comparable
-  across programs and cell types.
-- **Sign**: the gene with the largest absolute loading (ties broken
-  deterministically by gene name) defines the positive direction.
+## 3. Canonicalization: making programs comparable<a href="#canonicalization-making-programs-comparable" class="anchor" aria-label="anchor"></a>
 
-Programs are then labelled `{cell_type}_{k}` and stored as the fit’s
-`scores` (observations x programs) and `loadings` (genes x programs).
+EBMF factors are identified only up to sign and scale. After fitting, [`canonicalize_programs()`](../reference/canonicalize_programs.html) puts every program on a common scale:
+
+- **Scale**: each score column is divided by its RMS across observations, and the loadings multiplied by the same constant — the program’s amplitude moves into the loadings, so scores are comparable across programs and cell types.
+- **Sign**: the gene with the largest absolute loading (ties broken deterministically by gene name) defines the positive direction.
+
+Programs are then labelled `{cell_type}_{k}` and stored as the fit’s `scores` (observations x programs) and `loadings` (genes x programs).
+
+<div id="cb3" class="sourceCode">
 
 \
-`Z`` ``<-`` `[`program_scores`](https://mdmanurung.github.io/cellprograms/reference/program_scores.md)`(``fit``)``    ``# observations x all programs (wide matrix)`\
-`W`` ``<-`` `[`program_loadings`](https://mdmanurung.github.io/cellprograms/reference/program_loadings.md)`(``fit``)``  ``# genes x all programs`\
-[`program_summary`](https://mdmanurung.github.io/cellprograms/reference/program_summary.md)`(``fit``)``        ``# per cell type: n_programs, R2, elbo`\
-[`top_genes`](https://mdmanurung.github.io/cellprograms/reference/top_genes.md)`(``fit``, ``"CD4_1"``, n ``=`` ``10``)`
+<span class="va">`Z`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`program_scores`](../reference/program_scores.html)</span><span class="op">`(`</span><span class="va">`fit`</span><span class="op">`)`</span>`    `<span class="co">`# observations x all programs (wide matrix)`</span>\
+<span class="va">`W`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`program_loadings`](../reference/program_loadings.html)</span><span class="op">`(`</span><span class="va">`fit`</span><span class="op">`)`</span>`  `<span class="co">`# genes x all programs`</span>\
+<span class="fu">[`program_summary`](../reference/program_summary.html)</span><span class="op">`(`</span><span class="va">`fit`</span><span class="op">`)`</span>`        `<span class="co">`# per cell type: n_programs, R2, elbo`</span>\
+<span class="fu">[`top_genes`](../reference/top_genes.html)</span><span class="op">`(`</span><span class="va">`fit`</span>`, `<span class="st">`"CD4_1"`</span>`, n `<span class="op">`=`</span>` `<span class="fl">`10`</span><span class="op">`)`</span>
 
-### Loadings on a common gene panel
+</div>
 
-With `features = "variable"`, each cell type fits its own gene panel, so
-the per-cell-type loading matrices cannot be compared gene-by-gene
-across cell types. Rather than refitting on the union panel (which the
-model-selection benchmark showed does not improve recovery), the
-internal helper
-[`union_panel_loadings()`](https://mdmanurung.github.io/cellprograms/reference/union_panel_loadings.md)
-refits the loadings post hoc: it regresses each cell type’s union-panel
-expression on its fixed program scores by least squares, replaying the
-fit’s covariate handling and centering. Fits and scores are untouched;
-the result is a gene x program matrix per cell type on the shared panel,
-for cross-cell-type loading comparisons.
+<div class="section level3">
+
+### Loadings on a common gene panel<a href="#loadings-on-a-common-gene-panel" class="anchor" aria-label="anchor"></a>
+
+With `features = "variable"`, each cell type fits its own gene panel, so the per-cell-type loading matrices cannot be compared gene-by-gene across cell types. Rather than refitting on the union panel (which the model-selection benchmark showed does not improve recovery), the internal helper [`union_panel_loadings()`](../reference/union_panel_loadings.html) refits the loadings post hoc: it regresses each cell type’s union-panel expression on its fixed program scores by least squares, replaying the fit’s covariate handling and centering. Fits and scores are untouched; the result is a gene x program matrix per cell type on the shared panel, for cross-cell-type loading comparisons.
+
+<div id="cb4" class="sourceCode">
 
 \
-`up`` ``<-`` ``cellprograms``:::`[`union_panel_loadings`](https://mdmanurung.github.io/cellprograms/reference/union_panel_loadings.md)`(``fit``)``   ``# internal, shown for inspection`\
-`up``$``loadings``$``CD4``          ``# genes x programs on the common panel`\
-`up``$``genes``                 ``# the panel (union of per-cell-type fitted genes)`
+<span class="va">`up`</span>` `<span class="op">`<-`</span>` `<span class="fu">`cellprograms`</span><span class="fu">`:::`</span><span class="fu">[`union_panel_loadings`](../reference/union_panel_loadings.html)</span><span class="op">`(`</span><span class="va">`fit`</span><span class="op">`)`</span>`   `<span class="co">`# internal, shown for inspection`</span>\
+<span class="va">`up`</span><span class="op">`$`</span><span class="va">`loadings`</span><span class="op">`$`</span><span class="va">`CD4`</span>`          `<span class="co">`# genes x programs on the common panel`</span>\
+<span class="va">`up`</span><span class="op">`$`</span><span class="va">`genes`</span>`                 `<span class="co">`# the panel (union of per-cell-type fitted genes)`</span>
 
-## 4. Coordinated multicellular programs (CMPs)
+</div>
 
-\
-`res`` ``<-`` `[`find_coordinated_programs`](https://mdmanurung.github.io/cellprograms/reference/find_coordinated_programs.md)`(``fit``, strata ``=`` ``"site"``, ambient ``=`` ``"flag"``,`\
-`                                 n_perm ``=`` ``999``)`\
-`cellprograms``:::`[`cmp_scores`](https://mdmanurung.github.io/cellprograms/reference/cmp_scores.md)`(``fit``, ``res``)``   ``# internal: donors x CMPs consensus scores`
+</div>
 
-A CMP is a set of programs from \>= 2 cell types whose donor-level
-scores co-vary — they track one shared latent donor activity. Gene
-overlap plays no role in the call. The procedure:
+</div>
 
-1.  **Rank-first scores.** Each program’s donor scores are
-    rank-transformed to normal scores, then residualized on the blocking
-    strata. Point-Laplace priors produce single-donor spike factors that
-    break Pearson-based max-T calibration; ranks remove that failure
-    mode.
-2.  **Ambient filter.** Programs whose loadings track another cell
-    type’s expression specificity (ambient RNA / doublet leakage) are
-    dropped (`ambient = "drop"`) or flagged (`ambient = "flag"`), using
-    the internal ambient-score table (surfaced as the `ambient` element
-    of the result).
-3.  **Edge statistic.** For every cross-cell-type program pair (over the
-    donors the two cell types share), T = \tanh^{-1}(r)\sqrt{n-3} where
-    r is the **Pearson correlation of the residualized Gaussian-rank
-    scores** from step 1. With no strata this is close to a Spearman
-    correlation of donor scores (Pearson on ranks), but residualization
-    after the rank transform makes the distinction material when strata
-    are present. Edges with \|T\| \ge `link_threshold` (default 3) link
-    the programs.
-4.  **Node statistic.** A program’s evidence is pooled across partner
-    cell types: A_v = \sum_c \max(0, \max_u \|T\_{vu}\| - \tau)^2 — a
-    program correlated with many partners is stronger evidence than one
-    correlated with a single partner.
-5.  **Permutation null.** Donor rows are permuted within strata,
-    independently per cell type — this removes cross-cell-type coupling
-    while keeping within-cell-type structure. Program p-values are
-    adjusted by the permutation maximum of A (single-step max-T), so the
-    family-wise error rate of calling *any* CMP is controlled at
-    `alpha`.
-6.  **Clustering.** Significant programs are grouped into CMPs by their
-    edge structure; the internal
-    [`cmp_scores()`](https://mdmanurung.github.io/cellprograms/reference/cmp_scores.md)
-    summarizes each CMP as a donor-level consensus score.
+<div class="section level2">
 
-`mode = "within"` tests the same structure *within* levels of a context
-variable (e.g. severity) — coordination that survives is not an artifact
-of case/control composition.
+## 4. Coordinated multicellular programs (CMPs)<a href="#coordinated-multicellular-programs-cmps" class="anchor" aria-label="anchor"></a>
 
-## 5. Program sharing (mashr)
+<div id="cb5" class="sourceCode">
 
 \
-`shr`` ``<-`` `[`program_sharing`](https://mdmanurung.github.io/cellprograms/reference/program_sharing.md)`(``fit``, n_perm ``=`` ``199``, z_thresh ``=`` ``1.5``)`\
-`shr``$``summary``   ``# one row per program: shared / partial / private`
+<span class="va">`res`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`find_coordinated_programs`](../reference/find_coordinated_programs.html)</span><span class="op">`(`</span><span class="va">`fit`</span>`, strata `<span class="op">`=`</span>` `<span class="st">`"site"`</span>`, ambient `<span class="op">`=`</span>` `<span class="st">`"flag"`</span>`,`\
+`                                 n_perm `<span class="op">`=`</span>` `<span class="fl">`999`</span><span class="op">`)`</span>\
+<span class="fu">`cellprograms`</span><span class="fu">`:::`</span><span class="fu">[`cmp_scores`](../reference/cmp_scores.html)</span><span class="op">`(`</span><span class="va">`fit`</span>`, `<span class="va">`res`</span><span class="op">`)`</span>`   `<span class="co">`# internal: donors x CMPs consensus scores`</span>
 
-Sharing is a different axis from coordination: two cell types can use
-the same biological program (shared gene loadings) with uncorrelated
-donor scores, and vice versa.
-[`program_sharing()`](https://mdmanurung.github.io/cellprograms/reference/program_sharing.md)
-assesses shared *loadings* post hoc with mashr (Urbut et al. 2019),
-never assuming them:
+</div>
 
-- **Mapping**: units = genes on the shared panel; conditions = cell
-  types; effects = canonicalized program loadings; standard errors = the
-  flashier loading posterior SDs (scale-canonicalized like the
-  loadings).
-- **Residual variance** V is estimated from “null” genes (\|z\| \<
-  `z_thresh` in all conditions); if too few null genes exist, V =
-  identity with a warning.
-- **Covariances**: canonical covariance matrices, plus data-driven ones
-  from PCA of strong effects (`npc`); if the data-driven set is
-  numerically non-positive-semi-definite (small condition counts), the
-  fit falls back to canonical-only with a warning.
-- **Classification**: for each matched group, the `n_top` genes with the
-  largest posterior-mean effects are counted. A gene counts as shared
-  when its lfsr \< `lfsr_thresh` in at least two conditions (signs are
-  not compared), and as private when significant in exactly one. The
-  group is classified `shared` when \>= half its top genes are shared,
-  `private` when \>= half are private, else `partial`. Programs with no
-  significant cross-cell-type match are labeled `private` without a
-  mashr fit (`evidence = "no_significant_match"`). The summary reports
-  `frac_top_shared` / `frac_top_private` and the evidence source. Note
-  the criterion is significance-based, not sign-based: a gene
-  significant in two conditions with opposite posterior signs still
-  counts as shared.
+A CMP is a set of programs from \>= 2 cell types whose donor-level scores co-vary — they track one shared latent donor activity. Gene overlap plays no role in the call. The procedure:
 
-## 6. Artifact masking
+1.  **Rank-first scores.** Each program’s donor scores are rank-transformed to normal scores, then residualized on the blocking strata. Point-Laplace priors can produce single-donor spike factors. Ranking changes that sensitivity; it does not by itself establish calibration.
+2.  **Ambient filter.** Programs whose loadings track another cell type’s expression specificity (ambient RNA / doublet leakage) are dropped (`ambient = "drop"`) or flagged (`ambient = "flag"`), using the internal ambient-score table (surfaced as the `ambient` element of the result).
+3.  **Edge statistic.** For every cross-cell-type program pair (over the donors the two cell types share), <span class="math inline">T = \tanh^{-1}(r)\sqrt{n-3}</span> where <span class="math inline">r</span> is the **Pearson correlation of the residualized Gaussian-rank scores** from step 1. With no strata this is close to a Spearman correlation of donor scores (Pearson on ranks), but residualization after the rank transform makes the distinction material when strata are present. Edges with <span class="math inline">\|T\| \ge</span> `link_threshold` (default 3) link the programs.
+4.  **Node statistic.** A program’s evidence is pooled across partner cell types: <span class="math inline">A_v = \sum_c \max(0, \max_u \|T\_{vu}\| - \tau)^2</span> — a program correlated with many partners is stronger evidence than one correlated with a single partner.
+5.  **Permutation null.** Donor rows are permuted within strata, independently per cell type — this removes cross-cell-type coupling while keeping within-cell-type structure. Program p-values are adjusted by the permutation maximum of <span class="math inline">A</span> (single-step max-T). These are fixed-input node-family calculations, conditional on the supplied factors and a valid exchangeability design. Programs are not refitted under permutation. General learned-factor, edge-family and merged-CMP-set error control remain unestablished; no error-control claim follows merely from forming a CMP.
+6.  **Clustering.** Significant programs are grouped into CMPs by their edge structure; the internal [`cmp_scores()`](../reference/cmp_scores.html) summarizes each CMP as a donor-level consensus score.
+
+Ordinary row shuffling is not patient-cluster permutation for repeated visits. Uncallable nodes and missing-support reasons must remain visible.
+
+`mode = "within"` tests the same structure *within* levels of a context variable (e.g. severity) — coordination that survives is not an artifact of case/control composition.
+
+</div>
+
+<div class="section level2">
+
+## 5. Program sharing (mashr)<a href="#program-sharing-mashr" class="anchor" aria-label="anchor"></a>
+
+<div id="cb6" class="sourceCode">
 
 \
-`flags`` ``<-`` `[`flag_artifact_genes`](https://mdmanurung.github.io/cellprograms/reference/flag_artifact_genes.md)`(``fit``)``          ``# post-hoc: which programs look artifactual`\
-`# gene universe: union of the per-cell-type loading row names`\
-`universe`` ``<-`` `[`unique`](https://rdrr.io/r/base/unique.html)`(`[`unlist`](https://rdrr.io/r/base/unlist.html)`(`[`lapply`](https://rdrr.io/r/base/lapply.html)`(`[`program_loadings`](https://mdmanurung.github.io/cellprograms/reference/program_loadings.md)`(``fit``)``, ``rownames``)``)``)`\
-`excl`` ``<-`` `[`artifact_genes`](https://mdmanurung.github.io/cellprograms/reference/artifact_genes.md)`(``universe``)``           ``# gene set: V(D)J + genotype markers`\
-`fit2`` ``<-`` `[`fit_celltype_programs`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)`(``x``, exclude_genes ``=`` ``excl``)``  ``# fit-time masking`
+<span class="va">`shr`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`program_sharing`](../reference/program_sharing.html)</span><span class="op">`(`</span><span class="va">`fit`</span>`, n_perm `<span class="op">`=`</span>` `<span class="fl">`199`</span>`, z_thresh `<span class="op">`=`</span>` `<span class="fl">`1.5`</span><span class="op">`)`</span>\
+<span class="va">`shr`</span><span class="op">`$`</span><span class="va">`summary`</span>`   `<span class="co">`# one row per program: shared / partial / private`</span>
 
-Programs whose top genes are immunoglobulin/TCR V(D)J segments or known
-donor-genotype markers (e.g. GSTM1, HLA haplotype genes) can arise from
-ambient/clonal leakage or donor genotype rather than regulation. They
-co-vary across cell types for genetic reasons and masquerade as “shared”
-programs.
-[`flag_artifact_genes()`](https://mdmanurung.github.io/cellprograms/reference/flag_artifact_genes.md)
-marks them post hoc;
-[`artifact_genes()`](https://mdmanurung.github.io/cellprograms/reference/artifact_genes.md)
-returns the gene set for fit-time `exclude_genes`, which removes them
-before variable-gene selection. On real COVID cohorts, masking changed
-shared-vs-private calls substantially (see the real-data case study).
+</div>
 
-## Putting it together
+Sharing is a different axis from coordination: two cell types can use the same biological program (shared gene loadings) with uncorrelated donor scores, and vice versa. [`program_sharing()`](../reference/program_sharing.html) assesses shared *loadings* post hoc with mashr (Urbut et al. 2019). Its matching and ternary labels are descriptive, not calibrated sharing discoveries:
+
+- **Mapping**: units = genes on the shared panel; conditions = cell types; effects = canonicalized program loadings; standard errors = the flashier loading posterior SDs (scale-canonicalized like the loadings).
+- **Residual variance** <span class="math inline">V</span> is estimated from “null” genes (\|z\| \< `z_thresh` in all conditions); if too few null genes exist, <span class="math inline">V</span> = identity with a warning.
+- **Covariances**: canonical covariance matrices, plus data-driven ones from PCA of strong effects (`npc`); if the data-driven set is numerically non-positive-semi-definite (small condition counts), the fit falls back to canonical-only with a warning.
+- **Classification**: for each matched group, the `n_top` genes with the largest posterior-mean effects are counted. A gene counts as shared when its lfsr \< `lfsr_thresh` in at least two conditions (signs are not compared), and as private when significant in exactly one. The group is classified `shared` when \>= half its top genes are shared, `private` when \>= half are private, else `partial`. Programs with no significant cross-cell-type match are labeled `private` without a mashr fit (`evidence = "no_significant_match"`). The summary reports `frac_top_shared` / `frac_top_private` and the evidence source. Note the criterion is significance-based, not sign-based: a gene significant in two conditions with opposite posterior signs still counts as shared.
+
+Consequently, active-in-both is not equal-effect or common-structure evidence, and an unmatched `private` label does not prove biological absence. Inspect `p_all_shared`, effect patterns and support directly. Formal sharing inference requires a separately approved target and calibration.
+
+</div>
+
+<div class="section level2">
+
+## 6. Artifact masking<a href="#artifact-masking" class="anchor" aria-label="anchor"></a>
+
+<div id="cb7" class="sourceCode">
 
 \
-`x``   ``<-`` `[`as_cell_program_data`](https://mdmanurung.github.io/cellprograms/reference/as_cell_program_data.md)`(``pseudobulk``, sample_metadata ``=`` ``metadata``)`\
-`fit`` ``<-`` `[`canonicalize_programs`](https://mdmanurung.github.io/cellprograms/reference/canonicalize_programs.md)`(`\
-`  `[`fit_celltype_programs`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)`(``x``, max_factors ``=`` ``30``, covariates ``=`` ``"site"``)`\
-`)`\
-`cmp`` ``<-`` `[`find_coordinated_programs`](https://mdmanurung.github.io/cellprograms/reference/find_coordinated_programs.md)`(``fit``, strata ``=`` ``"site"``, ambient ``=`` ``"flag"``)`\
-`shr`` ``<-`` `[`program_sharing`](https://mdmanurung.github.io/cellprograms/reference/program_sharing.md)`(``fit``)`
+<span class="va">`flags`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`flag_artifact_genes`](../reference/flag_artifact_genes.html)</span><span class="op">`(`</span><span class="va">`fit`</span><span class="op">`)`</span>`          `<span class="co">`# post-hoc: which programs look artifactual`</span>\
+<span class="co">`# gene universe: union of the per-cell-type loading row names`</span>\
+<span class="va">`universe`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link"><code class="sourceCode r R">unique</code></a></span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link"><code class="sourceCode r R">unlist</code></a></span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link"><code class="sourceCode r R">lapply</code></a></span><span class="op">`(`</span><span class="fu">[`program_loadings`](../reference/program_loadings.html)</span><span class="op">`(`</span><span class="va">`fit`</span><span class="op">`)`</span>`, `<span class="va">`rownames`</span><span class="op">`)`</span><span class="op">`)`</span><span class="op">`)`</span>\
+<span class="va">`excl`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`artifact_genes`](../reference/artifact_genes.html)</span><span class="op">`(`</span><span class="va">`universe`</span><span class="op">`)`</span>`           `<span class="co">`# gene set: V(D)J + genotype markers`</span>\
+<span class="va">`fit2`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`fit_celltype_programs`](../reference/fit_celltype_programs.html)</span><span class="op">`(`</span><span class="va">`x`</span>`, exclude_genes `<span class="op">`=`</span>` `<span class="va">`excl`</span><span class="op">`)`</span>`  `<span class="co">`# fit-time masking`</span>
 
-The three layers answer three different questions: what programs exist
-within each cell type (the fit), which programs move together across
-cell types (CMPs), and which programs use the same genes across cell
-types (sharing).
+</div>
+
+Programs whose top genes are immunoglobulin/TCR V(D)J segments or known donor-genotype markers (e.g. GSTM1, HLA haplotype genes) can arise from ambient/clonal leakage or donor genotype rather than regulation. They co-vary across cell types for genetic reasons and masquerade as “shared” programs. [`flag_artifact_genes()`](../reference/flag_artifact_genes.html) marks them post hoc; [`artifact_genes()`](../reference/artifact_genes.html) returns the gene set for fit-time `exclude_genes`, which removes them before variable-gene selection. On real COVID cohorts, masking changed shared-vs-private calls substantially (see the real-data case study).
+
+</div>
+
+<div class="section level2">
+
+## Putting it together<a href="#putting-it-together" class="anchor" aria-label="anchor"></a>
+
+<div id="cb8" class="sourceCode">
+
+\
+<span class="va">`x`</span>`   `<span class="op">`<-`</span>` `<span class="fu">[`as_cell_program_data`](../reference/as_cell_program_data.html)</span><span class="op">`(`</span><span class="va">`pseudobulk`</span>`, sample_metadata `<span class="op">`=`</span>` `<span class="va">`metadata`</span><span class="op">`)`</span>\
+<span class="va">`fit`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`canonicalize_programs`](../reference/canonicalize_programs.html)</span><span class="op">`(`</span>\
+`  `<span class="fu">[`fit_celltype_programs`](../reference/fit_celltype_programs.html)</span><span class="op">`(`</span><span class="va">`x`</span>`, max_factors `<span class="op">`=`</span>` `<span class="fl">`30`</span>`, covariates `<span class="op">`=`</span>` `<span class="st">`"site"`</span><span class="op">`)`</span>\
+<span class="op">`)`</span>\
+<span class="va">`cmp`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`find_coordinated_programs`](../reference/find_coordinated_programs.html)</span><span class="op">`(`</span><span class="va">`fit`</span>`, strata `<span class="op">`=`</span>` `<span class="st">`"site"`</span>`, ambient `<span class="op">`=`</span>` `<span class="st">`"flag"`</span><span class="op">`)`</span>\
+<span class="va">`shr`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`program_sharing`](../reference/program_sharing.html)</span><span class="op">`(`</span><span class="va">`fit`</span><span class="op">`)`</span>
+
+</div>
+
+The three layers answer three different questions: what programs exist within each cell type (the fit), which programs move together across cell types (CMPs), and which programs use the same genes across cell types (sharing).
+
+</div>

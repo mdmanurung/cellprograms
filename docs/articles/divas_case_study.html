@@ -5,13 +5,13 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms • cellprograms</title>
+<title>Historical case study: DIVAS COVID-19 multi-omics • cellprograms</title>
 <!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Historical case study: DIVAS COVID-19 multi-omics">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -35,15 +35,16 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/quickstart.html">Quick start: from pseudobulk to shared programs</a></li>
-    <li><a class="dropdown-item" href="../articles/metacells_seacells.html">Metacells with SEACells and mcRigor gamma optimization</a></li>
+    <li><a class="dropdown-item" href="../articles/metacells_seacells.html">Metacells: SuperCell (default) and SEACells with mcRigor gamma optimization</a></li>
+    <li><a class="dropdown-item" href="../articles/metacells_to_programs.html">From metacells to programs: the SuperCell + mcRigor workflow</a></li>
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cebmf_backend.html">The cebmf_torch backend: covariate-EBMF in torch</a></li>
     <li><a class="dropdown-item" href="../articles/coordination_joint.html">Joint and tensor factorization: EB-CP and block EBMF</a></li>
-    <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
-    <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Historical case study: cross-cell-type COVID-19 PBMC programs</a></li>
+    <li><a class="dropdown-item" href="../articles/divas_case_study.html">Historical case study: DIVAS COVID-19 multi-omics</a></li>
     <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
     <li><a class="dropdown-item" href="../articles/immune_aging_cross_cohort.html">Case study: immune-aging programs across 8 global PBMC cohorts</a></li>
-    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis</a></li>
+    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Historical comparison: local-first and joint multicellular factors</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -65,7 +66,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</h1>
+      <h1>Historical case study: DIVAS COVID-19 multi-omics</h1>
             
       
 
@@ -74,7 +75,16 @@
 
     
     
-<p>This article reanalyses the DIVAS COVID-19 case study (<a href="https://github.com/ByronSyun/DIVAS_COVID19_CaseStudy" class="external-link uri">https://github.com/ByronSyun/DIVAS_COVID19_CaseStudy</a>)
+<p><strong>Historical, not current acceptance evidence.</strong> The
+cached analyses below have not been regenerated under the corrected
+software and source contracts. Prediction and the patient-pairing
+inferential claims are withdrawn. The source is processed mean
+expression with unresolved upstream transformation and selection
+limitations, not verified raw UMI. Reproduction requires approved
+source/units/rights and independent T1 refits for every retained
+method.</p>
+<p>This article historically reanalysed the DIVAS COVID-19 case study
+(<a href="https://github.com/ByronSyun/DIVAS_COVID19_CaseStudy" class="external-link uri">https://github.com/ByronSyun/DIVAS_COVID19_CaseStudy</a>)
 with <code>cellprograms</code> and compares the two pipelines’ outputs
 program by program. DIVAS jointly decomposes 6 data blocks (4 scRNA-seq
 cell types + proteomics + metabolomics) into components tagged by which
@@ -179,8 +189,14 @@ DIVAS component patterns vs cellprograms score concordance.
 </div>
 </div>
 <div class="section level2">
-<h2 id="clinical-association">Clinical association<a class="anchor" aria-label="anchor" href="#clinical-association"></a>
+<h2 id="historical-clinical-association-prediction-withdrawn">Historical clinical association — prediction withdrawn<a class="anchor" aria-label="anchor" href="#historical-clinical-association-prediction-withdrawn"></a>
 </h2>
+<p>The prediction table below is retained solely as an invalid
+historical result: unsupervised representations and upstream selection
+were not learned entirely inside patient-held-out folds. These values do
+not establish predictive performance or superiority. The current
+benchmark disables that prediction path; no replacement clinical
+prediction claim is made.</p>
 <p>At BH &lt; 0.05, 44/180 cellprograms scores associate with
 <code>wos</code> versus 8/91 DIVAS components. Cross-validated ridge
 prediction of <code>wos</code>:</p>
@@ -212,13 +228,13 @@ prediction of <code>wos</code>:</p>
 </tr>
 </tbody>
 </table>
-<p>Both methods are dominated by the severity axis (<code>wos</code> is
-nearly determined by the 3-level severity band); between methods,
-cellprograms scores capture ~50% more <code>wos</code> variance.
-Effect-size agreement across the 91 matched pairs is weak overall
-(Spearman rho = 0.17), but pairs where either method is significant sit
-mostly above the diagonal - the cellprograms counterpart carries as much
-or more <code>wos</code> signal:</p>
+<p>The historical severity association is not a leakage-free prediction
+result; the earlier claim that one representation captures more
+predictive variance is withdrawn. Historical effect-size agreement
+across the 91 matched pairs is weak overall (Spearman rho = 0.17), but
+pairs where either method is significant sit mostly above the diagonal -
+the cellprograms counterpart carries as much or more <code>wos</code>
+signal:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/include_graphics.html" class="external-link">include_graphics</a></span><span class="op">(</span><span class="st">"figures/fig_effect_agreement.png"</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
@@ -228,25 +244,32 @@ Clinical effect-size agreement for matched pairs.
 </div>
 </div>
 <div class="section level2">
-<h2 id="pairing-robustness">Pairing robustness<a class="anchor" aria-label="anchor" href="#pairing-robustness"></a>
+<h2 id="historical-pairing-check-inferential-conclusion-withdrawn">Historical pairing check — inferential conclusion withdrawn<a class="anchor" aria-label="anchor" href="#historical-pairing-check-inferential-conclusion-withdrawn"></a>
 </h2>
-<p>Because 29 patients contribute two timepoints, we checked the
-headline coordination calls with (i) a T1-only refit (57 samples, no
-repeated measures): 50/148 full-cohort edges reproduce and both runs
-find 6 CMPs; and (ii) a patient-blocked permutation null (all samples of
-a patient permuted together, 999 permutations): 121/148 edges (82%)
-remain significant at p &lt; 0.05. The coordination structure is largely
-robust to the repeated-measures concern.</p>
+<p>The old workflow reported the following check because 29 patients
+contribute two timepoints. These are historical numbers, not accepted
+robustness evidence: it checked the headline coordination calls with (i)
+a T1-only refit (57 samples, no repeated measures): 50/148 full-cohort
+edges reproduce and both runs find 6 CMPs; and (ii) a patient-blocked
+permutation null (all samples of a patient permuted together, 999
+permutations): 121/148 edges (82%) remain significant at p &lt; 0.05.
+<strong>The earlier robustness conclusion is withdrawn.</strong> This
+was not a valid general patient-cluster permutation design, and a target
+T1-only refit is not an independent all-method comparison. Even
+corrected T1 refits cannot undo upstream outcome-balanced/all-visit
+filtering.</p>
 </div>
 <div class="section level2">
 <h2 id="reproducing">Reproducing<a class="anchor" aria-label="anchor" href="#reproducing"></a>
 </h2>
-<p>Scripts, in order: <code>01_download_data.sh</code>,
+<p>The historical script order was <code>01_download_data.sh</code>,
 <code>02_fit_cellprograms.R</code>, <code>03_cmp_sharing.R</code>,
 <code>04_extract_divas.R</code>, <code>05_compare.R</code>,
 <code>06_figures_extra.R</code>, <code>07_sensitivity_pairing.R</code>
-(all under <code>benchmarks/divas_comparison/scripts/</code> in the
-package repository).</p>
+(all under <code>benchmarks/divas_comparison/scripts/</code>). The
+maintained workflow and its explicit pending/blocking source decisions
+live in cellprograms-reproducibility. The old script list is not a claim
+of current end-to-end reproduction.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

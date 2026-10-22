@@ -24,11 +24,11 @@
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cebmf_backend.html">The cebmf_torch backend: covariate-EBMF in torch</a></li>
     <li><a class="dropdown-item" href="../articles/coordination_joint.html">Joint and tensor factorization: EB-CP and block EBMF</a></li>
-    <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
-    <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Historical case study: cross-cell-type COVID-19 PBMC programs</a></li>
+    <li><a class="dropdown-item" href="../articles/divas_case_study.html">Historical case study: DIVAS COVID-19 multi-omics</a></li>
     <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
     <li><a class="dropdown-item" href="../articles/immune_aging_cross_cohort.html">Case study: immune-aging programs across 8 global PBMC cohorts</a></li>
-    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis</a></li>
+    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Historical comparison: local-first and joint multicellular factors</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -47,6 +47,31 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0.9001" id="cellprograms-0209001-development">cellprograms 0.2.0.9001 (development)<a class="anchor" aria-label="anchor" href="#cellprograms-0209001-development"></a></h2>
+<div class="section level3">
+<h3 id="repository-completion-0-2-0-9001">Repository completion<a class="anchor" aria-label="anchor" href="#repository-completion-0-2-0-9001"></a></h3>
+<ul><li>Promoted the real ordinary/native-fit, serialization and actual stability acceptance fixtures into the maintained installed test suite.</li>
+<li>Replaced placeholder maintainer metadata with the existing public owner contact. The development README now separates supported core behavior, experimental integrations, historical evidence and open scientific gates.</li>
+<li>Reconciled concurrent upstream cNMF/semi-base fixes and preserved its negative coordination decision; these are not new validation claims by this change.</li>
+<li>Ordinary CI installs hard dependencies explicitly, limits threads, and permits only documented optional-Suggests notes. Cross-platform coverage requires actual CI outcomes; development checks do not constitute CRAN acceptance.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bounded-ordinary-core-acceptance-0-2-0-9001">Bounded ordinary-core acceptance<a class="anchor" aria-label="anchor" href="#bounded-ordinary-core-acceptance-0-2-0-9001"></a></h3>
+<ul><li>Projection now rejects unknown or missing reference measurement units before native inference and requires refitting with truthful units declared. Projection-time <code>feature_scale</code> declares query units only; it cannot relabel reference provenance (delegated implementation decision TR03-D001).</li>
+<li>The installed suite includes the byte-identical historical node-count accounting oracle. Its fixture no longer becomes an empty installed test. This is accounting validation, not a calibration campaign.</li>
+<li>Known warning fixtures assert their complete expected messages and recorded fallback settings rather than leaving extra warnings unexplained.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="cpub-correctness-and-support-corrections-local-candidate-0-2-0-9001">CPUB correctness and support corrections (local candidate, 2026-10-22)<a class="anchor" aria-label="anchor" href="#cpub-correctness-and-support-corrections-local-candidate-0-2-0-9001"></a></h3>
+<ul><li>EB-CP now orients two modes, preserving each component’s tensor product. Reconstruction diagnostics are computed from the returned factors. Held-out selection is experimental screening, not a winner’s-curse or set-error guarantee; this supersedes stronger wording in the historical entry below. Unusable continuous/singleton strata and insufficient per-type split halves are refused before solving.</li>
+<li>Covariate residualization records trained terms, prediction variables, factor levels, contrasts and numeric scaling constants. Linear, factor, polynomial and spline query designs use training state. Unsupported custom transforms and legacy residualized models without state require explicit preprocessing/refitting, rather than query-dependent recomputation.</li>
+<li>Frozen preprocessing schema 1.1 records feature units and validates its content digest on consumption. Intact schema 1.0 remains readable with unknown units.</li>
+<li>Known residual noise now uses <code>S</code> together with <code>var_type = NULL</code> internally; passing <code>S</code> alone did not disable noise estimation in the pinned engine. Effective engine, priors, variance mode and fallback controls are recorded.</li>
+<li>Experimental <code>cebmf_torch</code> is explicitly a distinct Laplace/Laplace estimator: use <code>loading_prior="laplace"</code>, <code>var_type=2</code>, <code>backfit=TRUE</code>, <code>nullcheck=FALSE</code>. Incompatible controls fail before Python. Loss increases cannot establish plateau convergence. Only <code>flash_control$verbose</code> remains accepted; estimator controls must use their explicit arguments.</li>
+<li>Score-level block fits retain block masses; score/private-first is refused. Observed-support CMP residualization uses rank-aware QR and exposes program and edge callability. These guards do not establish new calibration.</li>
+<li>Stability refits forward backend/noise controls in frozen and unfrozen paths and retain intended settings for failed as well as successful replicates.</li>
+<li>Optional metacell reduction preparation returns the updated Seurat object with a consistent PCA key. Full SuperCell/mcRigor integration remains optional.</li>
+<li>Added the installed-package test entrypoint. CI now configures minimum R, current Linux/macOS/Windows and an upstream-dependency lane; configuration is not evidence that these platforms have executed successfully.</li>
+</ul></div>
 <div class="section level3">
 <h3 id="batch-adjustment-subspace-metrics-and-covariate-audit-tests-0-2-0-9001">Batch adjustment, subspace metrics, and covariate-audit tests (2026-10-22)<a class="anchor" aria-label="anchor" href="#batch-adjustment-subspace-metrics-and-covariate-audit-tests-0-2-0-9001"></a></h3>
 <ul><li>New <code>adjust_batches=</code> argument in <code><a href="../reference/fit_celltype_programs.html">fit_celltype_programs()</a></code>: <code>sva::ComBat</code> removes batch location/scale from each cell type’s panel before covariate residualization. Intended for small-batch designs where OLS residualization is underpowered (~5 donors/batch). Not the default; unsupported with a frozen <code>preprocessing_spec</code>; <code><a href="../reference/project_programs_to_cells.html">project_programs_to_cells()</a></code> refuses batch-adjusted fits (the adjustment cannot yet be replayed on a query).</li>

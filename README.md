@@ -2,31 +2,17 @@
 
 [![R-CMD-check](https://github.com/mdmanurung/cellprograms/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/mdmanurung/cellprograms/actions/workflows/R-CMD-check.yaml)
 
-Discover cell-type-specific transcriptional programs from pseudobulk single-cell RNA-seq, and integrate them into higher-order multicellular states.
+Discover donor-level, cell-type-specific transcriptional programs from
+pseudobulk expression using empirical-Bayes matrix factorization. Fit locally
+within each cell type; investigate cross-type coordination afterwards rather
+than assuming it.
 
-The cellprograms package fits empirical-Bayes matrix factorizations
-(`flashier`) independently within each cell type, then — only when
-scientifically useful — investigates how the recovered programs coordinate
-across cell types, share their gene loadings, and associate with context.
-
-Major functionality of the cellprograms package:
-
-- `as_cell_program_data()` Build the validated pseudobulk data object (named list of observations x genes matrices, one per cell type)
-- `fit_celltype_programs()` Fit per-cell-type programs with the EBMF backend (hard residualization or soft fixed covariate adjustment; `flashier` or `cebmf_torch` backend)
-- `freeze_preprocessing()` / `project_programs_to_cells()` Freeze a fit's preprocessing spec (MR-0) and project new samples onto its programs through a unit-checked oracle
-- `assess_program_stability()` Subsampling stability of recovered programs, with explicit accounting of failed refits
-- `canonicalize_programs()` Align program sign, scale and labels across cell types
-- `program_scores()` Sample x program activity matrix across all cell types
-- `program_loadings()` Gene x program loading matrix
-- `top_genes()` Top-loaded genes of a single program, with optional lfsr
-- `program_summary()` Per-cell-type summary: number of programs, R2, ELBO
-- `find_coordinated_programs()` Detect candidate coordinated multicellular programs (CMPs) using fixed-input permutation-max-adjusted node p-values; general learned-factor and CMP-set error control remain unestablished
-- `cmp_scores()` Donor x CMP consensus scores
-- `annotate_cmp_tf()` TF footprint of every member program from CollecTRI regulons (competitive + self-contained tests)
-- `cmp_triage()` One-row-per-CMP triage: recurrent genes, nuisance counts, context association, replication, shared TFs
-- `program_sharing()` Classify matched programs as shared, partial, or private (mashr on loading posteriors)
-- `artifact_genes()` / `flag_artifact_genes()` Mask V(D)J and donor-genotype artifact genes
-- `simulate_pseudobulk()` Simulation with planted programs and ground truth
+**Development software, not a scientific release certificate.** The supported
+primary route is ordinary local EBMF with explicit preprocessing, named axes,
+effective estimator settings and failure accounting. Experimental integrations
+and historical benchmark summaries are not established by ordinary-core tests.
+See [support and migration](IMPLEMENTATION_SUPPORT.md) and the installed
+`validation/CORE_SUPPORT.md` record.
 
 ## Installation
 
@@ -34,252 +20,141 @@ Major functionality of the cellprograms package:
 remotes::install_github("mdmanurung/cellprograms")
 ```
 
-Requires R >= 4.3. The `flashier` and `ebnm` backends are installed
-automatically (`flashier` via GitHub). The alternative `cebmf_torch` backend
-(optionally selected with `fit_celltype_programs(backend = "cebmf_torch")`)
-runs in a pinned Python environment (torch 2.7.1 + `cebmf_torch`); set
-`options(cellprograms.cebmf_python_env = ...)` to point at an existing
-environment, otherwise a basilisk environment is provisioned.
+Requires R >= 4.3. GitHub dependency revisions are pinned in `DESCRIPTION`.
+For reproducibility, install a **full reviewed commit SHA**, not moving `main`,
+and use the exact-source build/install receipt tooling in
+[cellprograms-reproducibility](https://github.com/mdmanurung/cellprograms-reproducibility).
+A package version string alone does not identify installed source.
 
-## Quick start
+## Ordinary local fit
 
 ```r
 library(cellprograms)
 
-# pseudobulk: named list of observations x genes matrices, one per cell type
+# One observations x genes matrix per cell type, with unique named axes.
+# metadata contains observation_id and any explicitly selected covariates.
 x <- as_cell_program_data(pseudobulk, sample_metadata = metadata)
 validate_cell_program_data(x)
 
-fit <- fit_celltype_programs(x)  # max_factors = 10 default; override to revisit
+fit <- fit_celltype_programs(
+  x, max_factors = 10, feature_scale = "logcounts", seed = 1
+)
 fit <- canonicalize_programs(fit)
 
-Z <- program_scores(fit)   # sample x cellular-program activity matrix
-W <- program_loadings(fit) # gene x program loadings
+Z <- program_scores(fit)
+W <- program_loadings(fit)
+program_summary(fit)
+fit$fits[[1]]$effective_config
 ```
 
-## Frozen preprocessing and out-of-sample projection
+Declare units truthfully; the software cannot infer that a matrix represents
+counts, log counts, normalized expression or some other scale. Choice of rank,
+preprocessing and covariates is analysis-specific, not a universal recommendation
+established by the default arguments.
 
-Fits record their full preprocessing specification, and
-`project_programs_to_cells()` refuses queries whose declared measurement
-units differ from the source fit's — a projection oracle, not a silent
-re-derivation:
+The normal activity / point-Laplace loading estimator inherits its native
+flashier/ebnm behavior. Fallback attempts are warned and recorded; inspect
+`effective_config` and `fallback`. Numeric `var_floor` is a **fixed known
+residual standard deviation**, not a lower bound on an estimated variance.
+Known-noise fits use a binding native path; they must not silently ignore it.
+
+## Frozen preprocessing and projection
 
 ```r
-spec <- freeze_preprocessing(x, features = "variable", n_variable_genes = 2000)
-fit  <- fit_celltype_programs(x, preprocessing_spec = spec,
-                              feature_scale = "logcounts")
-Z_new <- project_programs_to_cells(fit, new_pseudobulk,
-                                   feature_scale = "logcounts")
+spec <- freeze_preprocessing(
+  x, features = "variable", n_variable_genes = 2000,
+  feature_scale = "logcounts"
+)
+fit <- canonicalize_programs(fit_celltype_programs(
+  x, preprocessing_spec = spec, max_factors = 10, seed = 1
+))
+projected <- project_programs_to_cells(
+  fit, expression = query_matrix, cell_types = query_cell_types,
+  feature_scale = "logcounts"
+)
 ```
 
-A refit supplied with a frozen spec cannot silently drift from the frozen
-panel: any explicit conflict with the spec is an error. Stability
-(`assess_program_stability()`) reports how many subsample refits failed
-(`valid_refits`/`failed_refits` plus a per-replicate `replicate_log`) so that
-the conditional recovery frequency is computed over successful refits, never
-silently diluted.
+`query_matrix` has query observations in rows and genes in columns;
+`query_cell_types` is named by query observation IDs. Supply donor/sample
+metadata explicitly when the trained design requires it.
 
-## Motivation
+Frozen specifications verify their digest, feature identity, transformations
+and units. Trained covariate transformations are replayed, not learned again
+from the query composition. Query-time `feature_scale` describes **query** units;
+it cannot relabel a reference with unknown units. Unknown-unit references,
+legacy residualized fits without trained replay, or missing native manifests
+require a truthful refit. Current round-trip tests do not certify every
+historical package-version pair.
 
-**Discover, don't map.** Unlike reference-projection tools, `cellprograms`
-identifies programs de novo within each cell type. The design principle is
-*factorize locally first; integrate later only when scientifically useful* —
-a B-cell program is discoverable because it explains B-cell expression,
-regardless of whether anything analogous happens in other cell types.
-Cross-cell-type coordination is investigated subsequently, never assumed.
-
-## Resources
-
-- Getting started: [quickstart](https://mdmanurung.github.io/cellprograms/articles/quickstart.html)
-- Methods: [program mechanisms and the data model](https://mdmanurung.github.io/cellprograms/articles/model_mechanisms.html)
-- Case studies: [real-data case study](https://mdmanurung.github.io/cellprograms/articles/real_data_case_study.html) (Stephenson + COMBAT COVID cohorts) and [DIVAS multi-omics reanalysis](https://mdmanurung.github.io/cellprograms/articles/divas_case_study.html)
-- Application: [immune-aging cross-cohort analysis](https://mdmanurung.github.io/cellprograms/articles/immune_aging_cross_cohort.html) (8 PBMC cohorts, 2,609 donors; conservation panel + composition axis; scripts and tables under `analyses/immune_aging/`)
-- Pre-registered held-out benchmarks: `benchmarks/cmp_detection/` (CMP detection, 800 datasets per arm) and `benchmarks/divas_comparison/` (DIVAS comparison)
-- Default-configuration tuning benchmark: see [Tuning benchmark](#tuning-benchmark-why-max_factors--10)
-
-## Status
-
-v0.2.0 — core data model, flashier backend with hard (residualize) and soft
-(fixed) covariate adjustment, canonicalization, a calibrated cross-cell-type
-sharing test (principal angles in scores space, optional blocked-permutation
-`strata`), subsampling stability, MOFAcellulaR export, and simulation
-utilities. Coordinated multicellular program (CMP) detection is shipped and
-confirmed by two pre-registered held-out benchmarks
-(`benchmarks/cmp_detection/`). Post-hoc shared-vs-specific program assessment
-(`program_sharing()`, mashr-based) and artifact-gene masking
-(`artifact_genes()`, `flag_artifact_genes()`, fit-time `exclude_genes`) are
-included. Integration backends such as ICA and EV-BIDIFAC were evaluated and
-rejected (see `reports/ROADMAP.md`).
-
-Recent additions: an alternative `cebmf_torch` torch backend (same
-preprocessing and output contract; fixed residual SDs bind there, while the
-flashier path currently passes them through unenforced — see the
-`var_floor` docs), frozen preprocessing specifications with a unit-checked
-projection oracle (`freeze_preprocessing()`,
-`project_programs_to_cells()`), and a hardening pass across the analysis
-contract: stability refits account for failed subsamples explicitly, CMP
-member orientation propagates along the linking edges that formed the CMP,
-and `program_sharing()` validates `matches=` references and warns on forced
-pairs ("shared" means active-in-both, not proven shared structure — check
-`p_all_shared`).
-
-Default configuration (`point_laplace` gene prior, per-donor residual
-variance, `max_factors = 10`) was selected by a benchmark-first optimization
-loop against simulation ground-truth recovery and refined by a pseudobulk
-tuning benchmark (below); see `reports/plan_review.md` and
-`reports/final_report.md`.
-
-## Tuning benchmark: why `max_factors = 10`?
-
-The default configuration is grounded in a full-factorial tuning benchmark on
-COMBAT COVID pseudobulk (770,833 cells, 134 donors, 16 cell types), run with
-the same evaluators as the package (`python/run_tuning_search.py` in this
-repository):
-
-- **Search space**: 32 configs = loading prior (`point_laplace`, `point_normal`)
-  x `max_factors` (10, 15, 30, 50) x `var_type` (0, 1) x backfit (TRUE, FALSE),
-  on TMM + scran-HVG pseudobulk (edgeR TMM size factors, top-2000 HVGs per
-  cell type).
-- **Selection metric**: mean rank of disease-status kNN (corrected macro-F1)
-  and WHO-ordinal severity kNN Spearman, with a reconstruction guardrail
-  (held-out R^2 >= 0.423, the MOFA2-comparator value).
-- **Result**: `max_factors = 10` dominated every prior x variance x backfit
-  combination. K >= 30 overfits: with 16 cell types the concatenated
-  representation reaches 400-600 factors and disease-signal recovery collapses
-  to ~0. The winning config (`point_laplace`, K=10, `var_type = 1`, backfit)
-  improved disease kNN 0.255 -> 0.359 over the old K=30 default while passing
-  the guardrail (held-out R^2 0.48-0.59 across preprocessing arms).
-- **Preprocessing parity**: the K-vs-biology relationship was stable across
-  three arms (log-norm all genes, log-norm + HVG, TMM + HVG), so the default
-  is not an artifact of one normalization.
-- **`var_type`**: 1 (one residual-variance parameter per donor) is the right
-  default for pseudobulk. `var_type = 2` (per-gene) crashes on log-normalized
-  pseudobulk (NaN in the variance update) and is strictly worse where it runs.
-  `c(1, 2)` (Kronecker rank-one) is supported but unbenchmarked at pseudobulk
-  scale and substantially slower.
-- **External validity**: on an independent cohort (Stephenson, 126 donors,
-  43 cell types) the tuned config generalized (disease kNN 0.648 vs 0.468 for
-  the old default) and reduced retention of technical structure (pool-ID kNN
-  ~0.46 -> 0.21-0.24 on log-norm arms).
-
-Benchmark artifacts (search tables, attribution, cross-dataset validation,
-MOFA-FLEX comparison) and the summary report are available on request; the
-runners live in `python/`.
-
-## Coordinated multicellular programs
-
-`find_coordinated_programs()` finds groups of programs from different cell
-types whose donor-level scores co-vary (coordinated multicellular programs,
-CMPs), using fixed-input permutation-max-adjusted node p-values.
-**Inferential limit:** the selected programs and score matrices are not refitted
-under permutation. Calibration and exchangeability must be established for the
-declared analysis; this calculation does not certify general learned-factor,
-edge-family or merged-CMP-set error control. Row shuffling is not a
-patient-cluster permutation design for repeated visits.
-Gene overlap plays no role in the call; `annotate_cmp_lr()`,
-`annotate_cmp_themes()`, `cmp_gene_overlap()` and `cmp_context_association()`
-annotate called CMPs, each with its own null.
+## Stability and honest denominators
 
 ```r
-x <- as_cell_program_data(pseudobulk, sample_metadata = metadata)
-fit <- canonicalize_programs(fit_celltype_programs(x, max_factors = 30, covariates = "site"))
-res <- find_coordinated_programs(fit, strata = "site", ambient = "flag", n_perm = 999)
-cmp_scores(fit, res)                      # donors x CMPs consensus scores
+fit <- assess_program_stability(fit, n_boot = 20, seed = 1, progress = FALSE)
+fit$stability$replicate_log
+fit$stability$per_program
 ```
 
-**Historical cap comparison, not a general recommendation.** A CMP can only
-be called if each member program exists upstream. In the pre-registered
-cmp-bench-v1.2 held-out benchmark (seeds 1051-1100; 8 scenarios x 2
-simulation bases; 800 datasets per arm), fitting with `max_factors = 30`
-raised pooled membership F1 from 0.571 to 0.705 (paired difference +0.127,
-95% CI 0.113-0.142) in the retained aggregate report, predominantly on the semi-synthetic base built from
-Stephenson pseudobulk (0.671 -> 0.934), with every false-call guardrail
-<= 0.06 (null FWER 0.04 / 0.00).
-Per-replicate outputs were not located in the bounded implementation search:
-these numbers and intervals remain **historical summary-only evidence**, not
-a fresh reproduction or a general error-control guarantee. Choose the cap
-using a prespecified training-only rule. The global default stays at 10 because the
-tuning benchmark below optimizes a different target (disease signal in the
-concatenated representation), where K >= 30 overfits.
-`find_coordinated_programs()` prints a one-time message when a fit with
-`max_factors < 30` has a cell type at its cap. On real cohorts (Stephenson,
-COMBAT), cap 30 roughly doubled the number of CMPs; many added CMPs carried
-immunoglobulin/TCR V genes or genes with known donor-genotype variation (e.g.
-GSTM1, HLA-DQ/DR haplotype genes). These may co-vary across cell types for
-genetic rather than biological-coordination reasons; this is unconfirmed
-without genotype data. Use `ambient = "flag"` and inspect
-each CMP's top genes, `cmp_context_association()` and replication before
-interpreting it. Benchmark scripts,
-pre-registrations and result tables are in `benchmarks/cmp_detection/`.
+Inspect requested, successful and failed refits separately. The legacy
+`recovery_freq` is `n_hit / n_boot`; `conditional_recovery_freq` uses successful
+refits, including successful zero-rank fits. For a rate conditional on a
+matchable cell type, use `n_hit / n_eligible` when positive. All-failure rates
+are undefined (`NA`), not zero. Stability evaluates the full fitting procedure,
+including its documented fallback ladder, not a guarantee of the same selected
+prior on every resample.
 
-### Interpreting CMPs: TF footprints and triage
+## Coordination and sharing: interpretation limits
 
-```r
-net <- prepare_collectri(omnipath_collectri_table)   # OmniPath interactions?datasets=collectri
-tf  <- annotate_cmp_tf(fit, cmp, net)                # TF footprint of every member program
-tri <- cmp_triage(fit, cmp, context = "severity", covariates = c("institute", "sex"),
-                  replicate_by = "institute", tf = tf)
+`find_coordinated_programs()` computes fixed-input permutation-max-adjusted
+**node** p-values. Programs are not refitted under permutation. Validity depends
+on the declared null, exchangeability, missingness and selection design; this
+does not establish general learned-factor, edge-family or merged-CMP-set error
+control. Ordinary row shuffling is not patient-cluster permutation for repeated
+visits. Preserve uncallable nodes and reasons rather than interpreting them as
+negative evidence.
+
+`program_sharing()` and block memberships are **descriptive**. Activity in both
+conditions does not prove equal effects, common structure, private biology or
+calibrated inferential sharing. Prediction and invalid patient-pairing claims in
+historical case studies remain withdrawn.
+
+## Optional and historical surfaces
+
+- `cebmf_torch` is a distinct experimental estimator, not numerical equivalence
+  to ordinary flashier. Its supported controls and native environment must be
+  validated independently; unsupported combinations fail early.
+- SuperCell, SEACells/mcRigor, optional covariate integrations and metacell
+  projection have separate dependency and aggregation-scale limitations.
+  Ordinary checks do not certify them.
+- Historical COVID, DIVAS, immune-aging and comparator material is retained for
+  provenance. Maintained reconstruction and study status belong in the
+  reproducibility repository. Neither a historical report nor an executed tiny
+  fixture is new biological, calibration or independent-reproduction evidence.
+- The [previous README](reports/historical/README_before_completion.md) is
+  preserved as an explicitly superseded historical record, not current claims.
+
+## Validation and documentation
+
+```sh
+Rscript -e 'testthat::test_local(".", stop_on_failure = TRUE)'
+R CMD build .
+# Use the actual tarball produced above, not an assumed release filename.
+R CMD check --no-manual cellprograms_<version>.tar.gz
 ```
 
-`annotate_cmp_tf()` fits a univariate linear model of each member's
-CMP-oriented loadings on each signed CollecTRI regulon. A TF is called in a
-member only if it passes both a competitive test (BH-adjusted ULM, targets vs
-other genes) and a self-contained sign-flip test (targets coherently signed),
-which stops regulons of unloaded genes from looking "depleted" in skewed
-programs. TFs called with one sign in >= 2 members and >= half of the members
-are `shared` (a candidate common upstream driver); `specific` TFs show how one
-cell type reads out the signal. Footprints describe which regulons a program
-resembles; they are not evidence that the TF causes the coordination, and they
-can be circular (HLA-class-II CMPs light up CIITA/RFX5 because the HLA genes
-*are* their targets).
+The installed test entrypoint executes ordinary native-fit and actual-refit
+regressions as well as algebra, design replay, units, support and failure tests.
+Expected warnings are asserted; unexpected or missing messages fail their tests.
+Optional tests must identify their applicability instead of becoming empty
+mandatory checks. CI defines Linux current/minimum-R, macOS and Windows lanes;
+only actual run results establish coverage.
 
-`cmp_triage()` returns one row per CMP with its recurrent top genes, counts of
-nuisance genes (`cmp_nuisance_genes()`: V(D)J, candidate genotype markers, sex
-chromosome, immediate-early genes, platelet/erythrocyte markers), the ambient
-fraction, context association, within-level sign replication and shared TFs,
-plus a heuristic `label` for prioritization.
+- [Quickstart](vignettes/quickstart.Rmd)
+- [NEWS](NEWS.md)
+- [Support and migration](IMPLEMENTATION_SUPPORT.md)
+- [Reproducibility repository](https://github.com/mdmanurung/cellprograms-reproducibility)
 
-## Program sharing and artifact masking
+## License and citation
 
-`program_sharing()` assesses whether programs matched across cell types share
-their gene loadings (mashr on the stored loading posteriors), classifying each
-matched group as shared, partial, or private — correlated loadings alone do
-not imply shared effects. `flag_artifact_genes()` marks programs whose top
-genes are V(D)J segments or known donor-genotype markers;
-`fit_celltype_programs(..., exclude_genes = artifact_genes(genes))` removes
-them before variable-gene selection.
-
-```r
-res <- program_sharing(fit, n_perm = 199, z_thresh = 1.5)
-flags <- flag_artifact_genes(fit)
-```
-
-On the Stephenson and COMBAT COVID cohorts (K = 30), the broadest cross-cell-type
-"shared" program was the immunoglobulin/V(D)J artifact program (ambient/clonal
-leakage), while interferon and cell-cycle programs replicated as genuinely
-shared across both cohorts — mask artifact genes before interpreting sharing.
-
-## Known limitations
-
-Historical benchmark limitations and current support restrictions (full register:
-[`reports/audit/LIMITATIONS.md`](https://github.com/mdmanurung/cellprograms/blob/main/reports/audit/LIMITATIONS.md)):
-
-- **Projection is query-set dependent.** `project_programs_to_cells()`
-  re-estimates activity priors over the query cells, so the same cell can
-  receive different activities in different query sets; chunked projection
-  is not offered (oversize queries are refused, not silently approximated).
-- **Sharing detection is conservative for narrow shared programs.**
-  `program_sharing()` classifies on the top `n_top` genes; a program whose
-  shared support is smaller than `n_top`/2 cannot reach the "shared" label
-  (see `?program_sharing` for choosing `n_top`).
-- **Calibration remains scope-limited.** Historical pooled node FPR and
-  any-significant rates do not establish strong mixed-null family control.
-  Node adjustment does not control false links or merged CMP-set membership.
-  See `benchmarks/cmp_calibration/CORRECTION.md`; corrected campaigns remain open.
-- **Cross-cohort sign/scale comparability holds only within a transfer
-  pathway** — fixed-basis projection or de-novo fit after matching, never
-  across (see the cross-cohort replication article).
-
-## License
-
-MIT
+MIT for the package's licensed code; preserve third-party notices. Dataset,
+comparator and archived-result rights are separate. Use `citation("cellprograms")`
+for package attribution and cite inherited methods separately.

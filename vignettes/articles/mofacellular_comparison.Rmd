@@ -1,18 +1,25 @@
 ---
-title: "Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis"
+title: "Historical comparison: local-first and joint multicellular factors"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis}
+  %\VignetteIndexEntry{Historical comparison: local-first and joint multicellular factors}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>",
-                      fig.width = 7, fig.height = 5, dpi = 150)
-has_mofa <- requireNamespace("MOFA2", quietly = TRUE) &&
-  requireNamespace("MOFAcellulaR", quietly = TRUE)
+                      fig.width = 7, fig.height = 5, dpi = 150, eval = FALSE)
+# Building documentation must not silently fit models or launch permutations.
+# Run the maintained, source-verified study workflow explicitly instead.
+has_mofa <- has_cache <- has_cache_excl <- FALSE
 ```
+
+**Historical recipe, not a newly executed comparator benchmark.** Code is
+display-only during documentation builds. The retained numerical narrative and
+cached objects have not been regenerated under the current source/units/fairness
+contract; they cannot certify calibration or comparative advantage. Current
+study execution and support status belong to cellprograms-reproducibility.
 
 [MOFAcellulaR](https://saezlab.github.io/MOFAcellulaR/) fits a **joint**
 multicellular factor analysis: the pseudobulk profiles of all cell types
@@ -26,8 +33,9 @@ matrix factorization per cell type, with cross-cell-type coordination
 (CMPs) and sharing (mashr) as separate, explicitly tested post-hoc
 questions.
 
-This vignette runs both on the **same simulated data with known ground
-truth**, aligns their outputs, and states where each is expected to win.
+This vignette preserves the old recipe for comparing both on the **same
+simulated data with known ground truth**. Its historical descriptions are not
+new results or a prespecified fair-comparison certificate.
 It complements the [MOFAcellulaR get-started
 tutorial](https://saezlab.github.io/MOFAcellulaR/articles/get-started.html)
 and the [liana
@@ -80,7 +88,7 @@ fit <- canonicalize_programs(fit)
 program_summary(fit)
 ```
 
-Coordination (score space, permutation FWER) and sharing (loading space,
+Coordination (score space, conditional fixed-input node adjustment) and sharing (loading space,
 mashr):
 
 ```{r cmp}
@@ -234,12 +242,14 @@ below.
   one view) is left to downstream inspection (variance decomposition per
   view, `plot_MOFA_hmap`).
 - `find_coordinated_programs()` tests each candidate against a
-  within-strata permutation null with max-T family-wise error control,
-  and reports which programs are members.
+  within-strata fixed-input permutation null with max-T-adjusted node
+  p-values and reports candidate memberships. Validity requires the declared
+  exchangeability/null assumptions; learned-factor, edge and CMP-set error
+  control is not established.
 
 On this data, with the ambient guard set to flag rather than drop,
 cellprograms recovers both planted multicellular programs exactly —
-membership, sign, and a calibrated per-program p-value (all node
+membership, sign, and historical adjusted per-program p-values (all node
 p = 0.001) — and correctly leaves both private decoys uncalled (node
 p = 1). MOFA2 recovers the planted donor activity in its factors but
 offers no calibrated answer to "is this factor genuinely multicellular?":
@@ -279,7 +289,8 @@ ga[order(ga$p.value), ]
 Both should flag the factors/programs aligned with the planted
 `global_IFN` donor scores (the sign of the estimate is arbitrary — program
 and factor directions are identified only up to sign). The cellprograms
-result is restricted to permutation-validated CMPs; the MOFA result covers
+result is restricted to the historical selected CMPs, not independently
+validated memberships; the MOFA result covers
 all factors including view-specific ones.
 
 ## Real data: Stephenson COVID-19 PBMCs
@@ -469,11 +480,11 @@ blacklist.
 | Question | cellprograms | MOFAcellulaR |
 |---|---|---|
 | Programs within one cell type | per-cell-type EBMF, sparse point-Laplace loadings | factor weights per view (shared latent space) |
-| Cross-cell-type coordination | CMP test: permutation null, max-T FWER, per-program p | by construction; inspect per-view variance |
-| Shared gene effects | mashr layer (lfsr, shared/partial/private) | factor weights are implicitly shared |
+| Cross-cell-type coordination | fixed-input node p-values; edge/set error control unestablished | inspect native per-view structure |
+| Shared gene effects | descriptive mashr sharing labels, not equal-effect tests | native joint factor loadings; not an equivalent sharing test |
 | Artifact handling | V(D)J/genotype masking + flagging | manual gene veto (`filt_gex_bybckgrnd`) |
 | Variance decomposition | per-program PVE per cell type | per-factor, per-view R2 (built in) |
-| Uncertainty | loading/score posterior SDs, lfsr | none (point estimates) |
+| Uncertainty | native posterior summaries with estimator-specific limitations | native/model-specific; not automatically comparable |
 | Fit philosophy | local-first; integrate only what replicates | joint from the start |
 
 The two are complementary: `as_mofacellular_input()` exists precisely so

@@ -1,38 +1,59 @@
+<div class="page-header">
+
 # Expand artifact-gene sets against a gene universe
 
-Returns the union of the requested \`artifact_gene_sets\` expanded
-against \`genes\` (the V(D)J regex is matched; enumerated sets are
-intersected). Use it to build the \`exclude_genes\` argument of
-\`fit_celltype_programs()\`.
+<div class="d-none name">
 
-## Usage
+`artifact_genes.Rd`
+
+</div>
+
+</div>
+
+<div class="ref-description section level2">
+
+Returns the union of the requested \`artifact_gene_sets\` expanded against \`genes\` (the V(D)J regex is matched; enumerated sets are intersected). Use it to build the \`exclude_genes\` argument of \`fit_celltype_programs()\`.
+
+</div>
+
+<div class="section level2">
+
+## Usage<a href="#ref-usage" class="anchor" aria-label="anchor"></a>
 
 ``` r
 artifact_genes(genes, sets = names(artifact_gene_sets))
 ```
 
-## Arguments
+</div>
 
-- genes:
+<div class="section level2">
 
-  Character vector of gene IDs (the universe, e.g. the column names of a
-  pseudobulk matrix).
+## Arguments<a href="#arguments" class="anchor" aria-label="anchor"></a>
 
-- sets:
+genes<a href="#arg-genes" class="anchor" aria-label="anchor"></a><br>
+Character vector of gene IDs (the universe, e.g. the column names of a pseudobulk matrix).
 
-  Subset of \`names(artifact_gene_sets)\` (default all).
+sets<a href="#arg-sets" class="anchor" aria-label="anchor"></a><br>
+Subset of \`names(artifact_gene_sets)\` (default all).
 
-## Value
+</div>
 
-Character vector of gene IDs in \`genes\` belonging to any requested
-set, in universe order.
+<div class="section level2">
 
-## Examples
+## Value<a href="#value" class="anchor" aria-label="anchor"></a>
+
+Character vector of gene IDs in \`genes\` belonging to any requested set, in universe order.
+
+</div>
+
+<div class="section level2">
+
+## Examples<a href="#ref-examples" class="anchor" aria-label="anchor"></a>
 
 ``` r
 universe <- c("IGHV1-2", "IGKC", "GSTM1", "XIST", "MALAT1")
 artifact_genes(universe)
-#> [1] "IGHV1-2" "IGKC"    "GSTM1"   "XIST"   
 artifact_genes(universe, sets = "vdj")
-#> [1] "IGHV1-2" "IGKC"   
 ```
+
+</div>

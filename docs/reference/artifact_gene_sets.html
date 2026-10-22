@@ -26,11 +26,11 @@ biology, used for flagging called programs and for fit-time exclusion:"></head><
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cebmf_backend.html">The cebmf_torch backend: covariate-EBMF in torch</a></li>
     <li><a class="dropdown-item" href="../articles/coordination_joint.html">Joint and tensor factorization: EB-CP and block EBMF</a></li>
-    <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
-    <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Historical case study: cross-cell-type COVID-19 PBMC programs</a></li>
+    <li><a class="dropdown-item" href="../articles/divas_case_study.html">Historical case study: DIVAS COVID-19 multi-omics</a></li>
     <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
     <li><a class="dropdown-item" href="../articles/immune_aging_cross_cohort.html">Case study: immune-aging programs across 8 global PBMC cohorts</a></li>
-    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis</a></li>
+    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Historical comparison: local-first and joint multicellular factors</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -94,18 +94,10 @@ is closed, so it can be subtracted from a feature panel directly.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">artifact_gene_sets</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "vdj"              "genotype_marker"  "sex"              "canonical_marker"</span>
-<span class="r-in"><span><span class="va">artifact_gene_sets</span><span class="op">$</span><span class="va">vdj</span>   <span class="co"># V(D)J genes are stored as a regular expression</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "^(IG[HKL][VDJC]|IGH[GAMDE]|IGLL[0-9]|JCHAIN|TR[ABGD][VDJC])"</span>
-<span class="r-in"><span><span class="va">artifact_gene_sets</span><span class="op">$</span><span class="va">sex</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] "XIST"   "RPS4Y1" "DDX3Y"  "UTY"    "KDM5D"  "EIF1AY" "NLGN4Y" "TMSB4Y"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [9] "USP9Y"  "ZFY"   </span>
-<span class="r-in"><span><span class="va">artifact_gene_sets</span><span class="op">$</span><span class="va">canonical_marker</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] "CD3D"   "CD3E"   "CD3G"   "CD4"    "CD8A"   "CD8B"   "CD19"   "MS4A1" </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [9] "CD79A"  "CD79B"  "MZB1"   "NCAM1"  "FCGR3A" "CD14"   "LST1"   "CD1C"  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [17] "FCER1A" "CLEC9A" "PPBP"   "PF4"    "HBB"    "HBA1"   "HBA2"  </span>
-</code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">artifact_gene_sets</span><span class="op">)</span></span>
+<span><span class="va">artifact_gene_sets</span><span class="op">$</span><span class="va">vdj</span>   <span class="co"># V(D)J genes are stored as a regular expression</span></span>
+<span><span class="va">artifact_gene_sets</span><span class="op">$</span><span class="va">sex</span></span>
+<span><span class="va">artifact_gene_sets</span><span class="op">$</span><span class="va">canonical_marker</span></span></code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

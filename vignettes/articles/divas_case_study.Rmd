@@ -1,8 +1,8 @@
 ---
-title: "Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms"
+title: "Historical case study: DIVAS COVID-19 multi-omics"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms}
+  %\VignetteIndexEntry{Historical case study: DIVAS COVID-19 multi-omics}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -15,7 +15,14 @@ knitr::opts_chunk$set(
 )
 ```
 
-This article reanalyses the DIVAS COVID-19 case study
+**Historical, not current acceptance evidence.** The cached analyses below have
+not been regenerated under the corrected software and source contracts.
+Prediction and the patient-pairing inferential claims are withdrawn. The source
+is processed mean expression with unresolved upstream transformation and
+selection limitations, not verified raw UMI. Reproduction requires approved
+source/units/rights and independent T1 refits for every retained method.
+
+This article historically reanalysed the DIVAS COVID-19 case study
 (https://github.com/ByronSyun/DIVAS_COVID19_CaseStudy) with `cellprograms`
 and compares the two pipelines' outputs program by program. DIVAS
 jointly decomposes 6 data blocks (4 scRNA-seq cell types + proteomics +
@@ -115,7 +122,13 @@ row-split by DIVAS taxonomy class):
 knitr::include_graphics("figures/fig_concordance_heatmap.png")
 ```
 
-## Clinical association
+## Historical clinical association — prediction withdrawn
+
+The prediction table below is retained solely as an invalid historical result:
+unsupervised representations and upstream selection were not learned entirely
+inside patient-held-out folds. These values do not establish predictive
+performance or superiority. The current benchmark disables that prediction
+path; no replacement clinical prediction claim is made.
 
 At BH < 0.05, 44/180 cellprograms scores associate with `wos` versus 8/91
 DIVAS components. Cross-validated ridge prediction of `wos`:
@@ -126,9 +139,9 @@ DIVAS components. Cross-validated ridge prediction of `wos`:
 | cellprograms scores | 180 | 0.64 | 1.28 |
 | severity-only baseline | 2 | 0.90 | 0.62 |
 
-Both methods are dominated by the severity axis (`wos` is nearly
-determined by the 3-level severity band); between methods, cellprograms
-scores capture ~50% more `wos` variance. Effect-size agreement across the
+The historical severity association is not a leakage-free prediction result;
+the earlier claim that one representation captures more predictive variance is
+withdrawn. Historical effect-size agreement across the
 91 matched pairs is weak overall (Spearman rho = 0.17), but pairs where
 either method is significant sit mostly above the diagonal - the
 cellprograms counterpart carries as much or more `wos` signal:
@@ -137,19 +150,25 @@ cellprograms counterpart carries as much or more `wos` signal:
 knitr::include_graphics("figures/fig_effect_agreement.png")
 ```
 
-## Pairing robustness
+## Historical pairing check — inferential conclusion withdrawn
 
-Because 29 patients contribute two timepoints, we checked the headline
+The old workflow reported the following check because 29 patients contribute
+two timepoints. These are historical numbers, not accepted robustness evidence:
+it checked the headline
 coordination calls with (i) a T1-only refit (57 samples, no repeated
 measures): 50/148 full-cohort edges reproduce and both runs find 6 CMPs;
 and (ii) a patient-blocked permutation null (all samples of a patient
 permuted together, 999 permutations): 121/148 edges (82%) remain
-significant at p < 0.05. The coordination structure is largely robust to
-the repeated-measures concern.
+significant at p < 0.05. **The earlier robustness conclusion is withdrawn.**
+This was not a valid general patient-cluster permutation design, and a target
+T1-only refit is not an independent all-method comparison. Even corrected T1
+refits cannot undo upstream outcome-balanced/all-visit filtering.
 
 ## Reproducing
 
-Scripts, in order: `01_download_data.sh`, `02_fit_cellprograms.R`,
+The historical script order was `01_download_data.sh`, `02_fit_cellprograms.R`,
 `03_cmp_sharing.R`, `04_extract_divas.R`, `05_compare.R`,
 `06_figures_extra.R`, `07_sensitivity_pairing.R` (all under
-`benchmarks/divas_comparison/scripts/` in the package repository).
+`benchmarks/divas_comparison/scripts/`). The maintained workflow and its explicit
+pending/blocking source decisions live in cellprograms-reproducibility. The old
+script list is not a claim of current end-to-end reproduction.

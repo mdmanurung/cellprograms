@@ -1,341 +1,155 @@
-# cellprograms
+<div class="section level1">
 
-[![R-CMD-check](https://github.com/mdmanurung/cellprograms/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/mdmanurung/cellprograms/actions/workflows/R-CMD-check.yaml)
+<div class="page-header">
 
-Discover cell-type-specific transcriptional programs from pseudobulk
-single-cell RNA-seq, and integrate them into higher-order multicellular
-states.
+# cellprograms<a href="#cellprograms" class="anchor" aria-label="anchor"></a>
 
-The cellprograms package fits empirical-Bayes matrix factorizations
-(`flashier`) independently within each cell type, then — only when
-scientifically useful — investigates how the recovered programs
-coordinate across cell types, share their gene loadings, and associate
-with context.
+</div>
 
-Major functionality of the cellprograms package:
+<a href="https://github.com/mdmanurung/cellprograms/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/mdmanurung/cellprograms/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check" /></a>
 
-- [`as_cell_program_data()`](https://mdmanurung.github.io/cellprograms/reference/as_cell_program_data.md)
-  Build the validated pseudobulk data object (named list of observations
-  x genes matrices, one per cell type)
-- [`fit_celltype_programs()`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)
-  Fit per-cell-type programs with the EBMF backend (hard residualization
-  or soft fixed covariate adjustment; `flashier` or `cebmf_torch`
-  backend)
-- [`freeze_preprocessing()`](https://mdmanurung.github.io/cellprograms/reference/freeze_preprocessing.md)
-  /
-  [`project_programs_to_cells()`](https://mdmanurung.github.io/cellprograms/reference/project_programs_to_cells.md)
-  Freeze a fit’s preprocessing spec (MR-0) and project new samples onto
-  its programs through a unit-checked oracle
-- [`assess_program_stability()`](https://mdmanurung.github.io/cellprograms/reference/assess_program_stability.md)
-  Subsampling stability of recovered programs, with explicit accounting
-  of failed refits
-- [`canonicalize_programs()`](https://mdmanurung.github.io/cellprograms/reference/canonicalize_programs.md)
-  Align program sign, scale and labels across cell types
-- [`program_scores()`](https://mdmanurung.github.io/cellprograms/reference/program_scores.md)
-  Sample x program activity matrix across all cell types
-- [`program_loadings()`](https://mdmanurung.github.io/cellprograms/reference/program_loadings.md)
-  Gene x program loading matrix
-- [`top_genes()`](https://mdmanurung.github.io/cellprograms/reference/top_genes.md)
-  Top-loaded genes of a single program, with optional lfsr
-- [`program_summary()`](https://mdmanurung.github.io/cellprograms/reference/program_summary.md)
-  Per-cell-type summary: number of programs, R2, ELBO
-- [`find_coordinated_programs()`](https://mdmanurung.github.io/cellprograms/reference/find_coordinated_programs.md)
-  Detect coordinated multicellular programs (CMPs) with family-wise
-  error control by within-strata donor permutation
-- [`cmp_scores()`](https://mdmanurung.github.io/cellprograms/reference/cmp_scores.md)
-  Donor x CMP consensus scores
-- [`annotate_cmp_tf()`](https://mdmanurung.github.io/cellprograms/reference/annotate_cmp_tf.md)
-  TF footprint of every member program from CollecTRI regulons
-  (competitive + self-contained tests)
-- [`cmp_triage()`](https://mdmanurung.github.io/cellprograms/reference/cmp_triage.md)
-  One-row-per-CMP triage: recurrent genes, nuisance counts, context
-  association, replication, shared TFs
-- [`program_sharing()`](https://mdmanurung.github.io/cellprograms/reference/program_sharing.md)
-  Classify matched programs as shared, partial, or private (mashr on
-  loading posteriors)
-- [`artifact_genes()`](https://mdmanurung.github.io/cellprograms/reference/artifact_genes.md)
-  /
-  [`flag_artifact_genes()`](https://mdmanurung.github.io/cellprograms/reference/flag_artifact_genes.md)
-  Mask V(D)J and donor-genotype artifact genes
-- [`simulate_pseudobulk()`](https://mdmanurung.github.io/cellprograms/reference/simulate_pseudobulk.md)
-  Simulation with planted programs and ground truth
+Discover donor-level, cell-type-specific transcriptional programs from pseudobulk expression using empirical-Bayes matrix factorization. Fit locally within each cell type; investigate cross-type coordination afterwards rather than assuming it.
 
-## Installation
+**Development software, not a scientific release certificate.** The supported primary route is ordinary local EBMF with explicit preprocessing, named axes, effective estimator settings and failure accounting. Experimental integrations and historical benchmark summaries are not established by ordinary-core tests. See [support and migration](IMPLEMENTATION_SUPPORT.html) and the installed `validation/CORE_SUPPORT.md` record.
+
+<div class="section level2">
+
+## Installation<a href="#installation" class="anchor" aria-label="anchor"></a>
+
+<div id="cb1" class="sourceCode">
 
 \
-`remotes``::`[`install_github`](https://remotes.r-lib.org/reference/install_github.html)`(``"mdmanurung/cellprograms"``)`
+<span class="fu">`remotes`</span><span class="fu">`::`</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link"><code class="sourceCode r R">install_github</code></a></span><span class="op">`(`</span><span class="st">`"mdmanurung/cellprograms"`</span><span class="op">`)`</span>
 
-Requires R \>= 4.3. The `flashier` and `ebnm` backends are installed
-automatically (`flashier` via GitHub). The alternative `cebmf_torch`
-backend (optionally selected with
-`fit_celltype_programs(backend = "cebmf_torch")`) runs in a pinned
-Python environment (torch 2.7.1 + `cebmf_torch`); set
-`options(cellprograms.cebmf_python_env = ...)` to point at an existing
-environment, otherwise a basilisk environment is provisioned.
+</div>
 
-## Quick start
+Requires R \>= 4.3. GitHub dependency revisions are pinned in `DESCRIPTION`. For reproducibility, install a **full reviewed commit SHA**, not moving `main`, and use the exact-source build/install receipt tooling in <a href="https://github.com/mdmanurung/cellprograms-reproducibility" class="external-link">cellprograms-reproducibility</a>. A package version string alone does not identify installed source.
 
-\
-[`library`](https://rdrr.io/r/base/library.html)`(``cellprograms``)`\
-\
-`# pseudobulk: named list of observations x genes matrices, one per cell type`\
-`x`` ``<-`` `[`as_cell_program_data`](https://mdmanurung.github.io/cellprograms/reference/as_cell_program_data.md)`(``pseudobulk``, sample_metadata ``=`` ``metadata``)`\
-[`validate_cell_program_data`](https://mdmanurung.github.io/cellprograms/reference/validate_cell_program_data.md)`(``x``)`\
-\
-`fit`` ``<-`` `[`fit_celltype_programs`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)`(``x``)``  ``# max_factors = 10 default; override to revisit`\
-`fit`` ``<-`` `[`canonicalize_programs`](https://mdmanurung.github.io/cellprograms/reference/canonicalize_programs.md)`(``fit``)`\
-\
-`Z`` ``<-`` `[`program_scores`](https://mdmanurung.github.io/cellprograms/reference/program_scores.md)`(``fit``)``   ``# sample x cellular-program activity matrix`\
-`W`` ``<-`` `[`program_loadings`](https://mdmanurung.github.io/cellprograms/reference/program_loadings.md)`(``fit``)`` ``# gene x program loadings`
+</div>
 
-## Frozen preprocessing and out-of-sample projection
+<div class="section level2">
 
-Fits record their full preprocessing specification, and
-[`project_programs_to_cells()`](https://mdmanurung.github.io/cellprograms/reference/project_programs_to_cells.md)
-refuses queries whose declared measurement units differ from the source
-fit’s — a projection oracle, not a silent re-derivation:
+## Ordinary local fit<a href="#ordinary-local-fit" class="anchor" aria-label="anchor"></a>
+
+<div id="cb2" class="sourceCode">
 
 \
-`spec`` ``<-`` `[`freeze_preprocessing`](https://mdmanurung.github.io/cellprograms/reference/freeze_preprocessing.md)`(``x``, features ``=`` ``"variable"``, n_variable_genes ``=`` ``2000``)`\
-`fit``  ``<-`` `[`fit_celltype_programs`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)`(``x``, preprocessing_spec ``=`` ``spec``,`\
-`                              feature_scale ``=`` ``"logcounts"``)`\
-`Z_new`` ``<-`` `[`project_programs_to_cells`](https://mdmanurung.github.io/cellprograms/reference/project_programs_to_cells.md)`(``fit``, ``new_pseudobulk``,`\
-`                                   feature_scale ``=`` ``"logcounts"``)`
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link"><code class="sourceCode r R">library</code></a></span><span class="op">`(`</span><span class="va">`cellprograms`</span><span class="op">`)`</span>\
+\
+<span class="co">`# One observations x genes matrix per cell type, with unique named axes.`</span>\
+<span class="co">`# metadata contains observation_id and any explicitly selected covariates.`</span>\
+<span class="va">`x`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`as_cell_program_data`](reference/as_cell_program_data.html)</span><span class="op">`(`</span><span class="va">`pseudobulk`</span>`, sample_metadata `<span class="op">`=`</span>` `<span class="va">`metadata`</span><span class="op">`)`</span>\
+<span class="fu">[`validate_cell_program_data`](reference/validate_cell_program_data.html)</span><span class="op">`(`</span><span class="va">`x`</span><span class="op">`)`</span>\
+\
+<span class="va">`fit`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`fit_celltype_programs`](reference/fit_celltype_programs.html)</span><span class="op">`(`</span>\
+`  `<span class="va">`x`</span>`, max_factors `<span class="op">`=`</span>` `<span class="fl">`10`</span>`, feature_scale `<span class="op">`=`</span>` `<span class="st">`"logcounts"`</span>`, seed `<span class="op">`=`</span>` `<span class="fl">`1`</span>\
+<span class="op">`)`</span>\
+<span class="va">`fit`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`canonicalize_programs`](reference/canonicalize_programs.html)</span><span class="op">`(`</span><span class="va">`fit`</span><span class="op">`)`</span>\
+\
+<span class="va">`Z`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`program_scores`](reference/program_scores.html)</span><span class="op">`(`</span><span class="va">`fit`</span><span class="op">`)`</span>\
+<span class="va">`W`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`program_loadings`](reference/program_loadings.html)</span><span class="op">`(`</span><span class="va">`fit`</span><span class="op">`)`</span>\
+<span class="fu">[`program_summary`](reference/program_summary.html)</span><span class="op">`(`</span><span class="va">`fit`</span><span class="op">`)`</span>\
+<span class="va">`fit`</span><span class="op">`$`</span><span class="va">`fits`</span><span class="op">`[[`</span><span class="fl">`1`</span><span class="op">`]`</span><span class="op">`]`</span><span class="op">`$`</span><span class="va">`effective_config`</span>
 
-A refit supplied with a frozen spec cannot silently drift from the
-frozen panel: any explicit conflict with the spec is an error. Stability
-([`assess_program_stability()`](https://mdmanurung.github.io/cellprograms/reference/assess_program_stability.md))
-reports how many subsample refits failed (`valid_refits`/`failed_refits`
-plus a per-replicate `replicate_log`) so that the conditional recovery
-frequency is computed over successful refits, never silently diluted.
+</div>
 
-## Motivation
+Declare units truthfully; the software cannot infer that a matrix represents counts, log counts, normalized expression or some other scale. Choice of rank, preprocessing and covariates is analysis-specific, not a universal recommendation established by the default arguments.
 
-**Discover, don’t map.** Unlike reference-projection tools,
-`cellprograms` identifies programs de novo within each cell type. The
-design principle is *factorize locally first; integrate later only when
-scientifically useful* — a B-cell program is discoverable because it
-explains B-cell expression, regardless of whether anything analogous
-happens in other cell types. Cross-cell-type coordination is
-investigated subsequently, never assumed.
+The normal activity / point-Laplace loading estimator inherits its native flashier/ebnm behavior. Fallback attempts are warned and recorded; inspect `effective_config` and `fallback`. Numeric `var_floor` is a **fixed known residual standard deviation**, not a lower bound on an estimated variance. Known-noise fits use a binding native path; they must not silently ignore it.
 
-## Resources
+</div>
 
-- Getting started:
-  [quickstart](https://mdmanurung.github.io/cellprograms/articles/quickstart.html)
-- Methods: [program mechanisms and the data
-  model](https://mdmanurung.github.io/cellprograms/articles/model_mechanisms.html)
-- Case studies: [real-data case
-  study](https://mdmanurung.github.io/cellprograms/articles/real_data_case_study.html)
-  (Stephenson + COMBAT COVID cohorts) and [DIVAS multi-omics
-  reanalysis](https://mdmanurung.github.io/cellprograms/articles/divas_case_study.html)
-- Application: [immune-aging cross-cohort
-  analysis](https://mdmanurung.github.io/cellprograms/articles/immune_aging_cross_cohort.html)
-  (8 PBMC cohorts, 2,609 donors; conservation panel + composition axis;
-  scripts and tables under `analyses/immune_aging/`)
-- Pre-registered held-out benchmarks: `benchmarks/cmp_detection/` (CMP
-  detection, 800 datasets per arm) and `benchmarks/divas_comparison/`
-  (DIVAS comparison)
-- Default-configuration tuning benchmark: see [Tuning
-  benchmark](#tuning-benchmark-why-max_factors--10)
+<div class="section level2">
 
-## Status
+## Frozen preprocessing and projection<a href="#frozen-preprocessing-and-projection" class="anchor" aria-label="anchor"></a>
 
-v0.2.0 — core data model, flashier backend with hard (residualize) and
-soft (fixed) covariate adjustment, canonicalization, a calibrated
-cross-cell-type sharing test (principal angles in scores space, optional
-blocked-permutation `strata`), subsampling stability, MOFAcellulaR
-export, and simulation utilities. Coordinated multicellular program
-(CMP) detection is shipped and confirmed by two pre-registered held-out
-benchmarks (`benchmarks/cmp_detection/`). Post-hoc shared-vs-specific
-program assessment
-([`program_sharing()`](https://mdmanurung.github.io/cellprograms/reference/program_sharing.md),
-mashr-based) and artifact-gene masking
-([`artifact_genes()`](https://mdmanurung.github.io/cellprograms/reference/artifact_genes.md),
-[`flag_artifact_genes()`](https://mdmanurung.github.io/cellprograms/reference/flag_artifact_genes.md),
-fit-time `exclude_genes`) are included. Integration backends such as ICA
-and EV-BIDIFAC were evaluated and rejected (see `reports/ROADMAP.md`).
-
-Recent additions: an alternative `cebmf_torch` torch backend (same
-preprocessing and output contract; fixed residual SDs bind there, while
-the flashier path currently passes them through unenforced — see the
-`var_floor` docs), frozen preprocessing specifications with a
-unit-checked projection oracle
-([`freeze_preprocessing()`](https://mdmanurung.github.io/cellprograms/reference/freeze_preprocessing.md),
-[`project_programs_to_cells()`](https://mdmanurung.github.io/cellprograms/reference/project_programs_to_cells.md)),
-and a hardening pass across the analysis contract: stability refits
-account for failed subsamples explicitly, CMP member orientation
-propagates along the linking edges that formed the CMP, and
-[`program_sharing()`](https://mdmanurung.github.io/cellprograms/reference/program_sharing.md)
-validates `matches=` references and warns on forced pairs (“shared”
-means active-in-both, not proven shared structure — check
-`p_all_shared`).
-
-Default configuration (`point_laplace` gene prior, per-donor residual
-variance, `max_factors = 10`) was selected by a benchmark-first
-optimization loop against simulation ground-truth recovery and refined
-by a pseudobulk tuning benchmark (below); see `reports/plan_review.md`
-and `reports/final_report.md`.
-
-## Tuning benchmark: why `max_factors = 10`?
-
-The default configuration is grounded in a full-factorial tuning
-benchmark on COMBAT COVID pseudobulk (770,833 cells, 134 donors, 16 cell
-types), run with the same evaluators as the package
-(`python/run_tuning_search.py` in this repository):
-
-- **Search space**: 32 configs = loading prior (`point_laplace`,
-  `point_normal`) x `max_factors` (10, 15, 30, 50) x `var_type` (0, 1) x
-  backfit (TRUE, FALSE), on TMM + scran-HVG pseudobulk (edgeR TMM size
-  factors, top-2000 HVGs per cell type).
-- **Selection metric**: mean rank of disease-status kNN (corrected
-  macro-F1) and WHO-ordinal severity kNN Spearman, with a reconstruction
-  guardrail (held-out R^2 \>= 0.423, the MOFA2-comparator value).
-- **Result**: `max_factors = 10` dominated every prior x variance x
-  backfit combination. K \>= 30 overfits: with 16 cell types the
-  concatenated representation reaches 400-600 factors and disease-signal
-  recovery collapses to ~0. The winning config (`point_laplace`, K=10,
-  `var_type = 1`, backfit) improved disease kNN 0.255 -\> 0.359 over the
-  old K=30 default while passing the guardrail (held-out R^2 0.48-0.59
-  across preprocessing arms).
-- **Preprocessing parity**: the K-vs-biology relationship was stable
-  across three arms (log-norm all genes, log-norm + HVG, TMM + HVG), so
-  the default is not an artifact of one normalization.
-- **`var_type`**: 1 (one residual-variance parameter per donor) is the
-  right default for pseudobulk. `var_type = 2` (per-gene) crashes on
-  log-normalized pseudobulk (NaN in the variance update) and is strictly
-  worse where it runs. `c(1, 2)` (Kronecker rank-one) is supported but
-  unbenchmarked at pseudobulk scale and substantially slower.
-- **External validity**: on an independent cohort (Stephenson, 126
-  donors, 43 cell types) the tuned config generalized (disease kNN 0.648
-  vs 0.468 for the old default) and reduced retention of technical
-  structure (pool-ID kNN ~0.46 -\> 0.21-0.24 on log-norm arms).
-
-Benchmark artifacts (search tables, attribution, cross-dataset
-validation, MOFA-FLEX comparison) and the summary report are available
-on request; the runners live in `python/`.
-
-## Coordinated multicellular programs
-
-[`find_coordinated_programs()`](https://mdmanurung.github.io/cellprograms/reference/find_coordinated_programs.md)
-finds groups of programs from different cell types whose donor-level
-scores co-vary (coordinated multicellular programs, CMPs), with
-family-wise error control by within-strata donor permutation. Gene
-overlap plays no role in the call;
-[`annotate_cmp_lr()`](https://mdmanurung.github.io/cellprograms/reference/annotate_cmp_lr.md),
-[`annotate_cmp_themes()`](https://mdmanurung.github.io/cellprograms/reference/annotate_cmp_themes.md),
-[`cmp_gene_overlap()`](https://mdmanurung.github.io/cellprograms/reference/cmp_gene_overlap.md)
-and
-[`cmp_context_association()`](https://mdmanurung.github.io/cellprograms/reference/cmp_context_association.md)
-annotate called CMPs, each with its own null.
+<div id="cb3" class="sourceCode">
 
 \
-`x`` ``<-`` `[`as_cell_program_data`](https://mdmanurung.github.io/cellprograms/reference/as_cell_program_data.md)`(``pseudobulk``, sample_metadata ``=`` ``metadata``)`\
-`fit`` ``<-`` `[`canonicalize_programs`](https://mdmanurung.github.io/cellprograms/reference/canonicalize_programs.md)`(`[`fit_celltype_programs`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)`(``x``, max_factors ``=`` ``30``, covariates ``=`` ``"site"``)``)`\
-`res`` ``<-`` `[`find_coordinated_programs`](https://mdmanurung.github.io/cellprograms/reference/find_coordinated_programs.md)`(``fit``, strata ``=`` ``"site"``, ambient ``=`` ``"flag"``, n_perm ``=`` ``999``)`\
-[`cmp_scores`](https://mdmanurung.github.io/cellprograms/reference/cmp_scores.md)`(``fit``, ``res``)``                      ``# donors x CMPs consensus scores`
+<span class="va">`spec`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`freeze_preprocessing`](reference/freeze_preprocessing.html)</span><span class="op">`(`</span>\
+`  `<span class="va">`x`</span>`, features `<span class="op">`=`</span>` `<span class="st">`"variable"`</span>`, n_variable_genes `<span class="op">`=`</span>` `<span class="fl">`2000`</span>`,`\
+`  feature_scale `<span class="op">`=`</span>` `<span class="st">`"logcounts"`</span>\
+<span class="op">`)`</span>\
+<span class="va">`fit`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`canonicalize_programs`](reference/canonicalize_programs.html)</span><span class="op">`(`</span><span class="fu">[`fit_celltype_programs`](reference/fit_celltype_programs.html)</span><span class="op">`(`</span>\
+`  `<span class="va">`x`</span>`, preprocessing_spec `<span class="op">`=`</span>` `<span class="va">`spec`</span>`, max_factors `<span class="op">`=`</span>` `<span class="fl">`10`</span>`, seed `<span class="op">`=`</span>` `<span class="fl">`1`</span>\
+<span class="op">`)`</span><span class="op">`)`</span>\
+<span class="va">`projected`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`project_programs_to_cells`](reference/project_programs_to_cells.html)</span><span class="op">`(`</span>\
+`  `<span class="va">`fit`</span>`, expression `<span class="op">`=`</span>` `<span class="va">`query_matrix`</span>`, cell_types `<span class="op">`=`</span>` `<span class="va">`query_cell_types`</span>`,`\
+`  feature_scale `<span class="op">`=`</span>` `<span class="st">`"logcounts"`</span>\
+<span class="op">`)`</span>
 
-**Use `max_factors = 30` for fits intended for CMP detection.** A CMP
-can only be called if each member program exists upstream. In the
-pre-registered cmp-bench-v1.2 held-out benchmark (seeds 1051-1100; 8
-scenarios x 2 simulation bases; 800 datasets per arm), fitting with
-`max_factors = 30` raised pooled membership F1 from 0.571 to 0.705
-(paired difference +0.127, 95% CI 0.113-0.142), entirely on the
-semi-synthetic base built from Stephenson pseudobulk (0.671 -\> 0.934),
-with every false-call guardrail \<= 0.06 (null FWER 0.04 / 0.00). The
-global default stays at 10 because the tuning benchmark below optimizes
-a different target (disease signal in the concatenated representation),
-where K \>= 30 overfits.
-[`find_coordinated_programs()`](https://mdmanurung.github.io/cellprograms/reference/find_coordinated_programs.md)
-prints a one-time message when a fit with `max_factors < 30` has a cell
-type at its cap. On real cohorts (Stephenson, COMBAT), cap 30 roughly
-doubled the number of CMPs; many added CMPs carried immunoglobulin/TCR V
-genes or genes with known donor-genotype variation (e.g. GSTM1,
-HLA-DQ/DR haplotype genes). These may co-vary across cell types for
-genetic rather than biological-coordination reasons; this is unconfirmed
-without genotype data. Use `ambient = "flag"` and inspect each CMP’s top
-genes,
-[`cmp_context_association()`](https://mdmanurung.github.io/cellprograms/reference/cmp_context_association.md)
-and replication before interpreting it. Benchmark scripts,
-pre-registrations and result tables are in `benchmarks/cmp_detection/`.
+</div>
 
-### Interpreting CMPs: TF footprints and triage
+`query_matrix` has query observations in rows and genes in columns; `query_cell_types` is named by query observation IDs. Supply donor/sample metadata explicitly when the trained design requires it.
+
+Frozen specifications verify their digest, feature identity, transformations and units. Trained covariate transformations are replayed, not learned again from the query composition. Query-time `feature_scale` describes **query** units; it cannot relabel a reference with unknown units. Unknown-unit references, legacy residualized fits without trained replay, or missing native manifests require a truthful refit. Current round-trip tests do not certify every historical package-version pair.
+
+</div>
+
+<div class="section level2">
+
+## Stability and honest denominators<a href="#stability-and-honest-denominators" class="anchor" aria-label="anchor"></a>
+
+<div id="cb4" class="sourceCode">
 
 \
-`net`` ``<-`` `[`prepare_collectri`](https://mdmanurung.github.io/cellprograms/reference/prepare_collectri.md)`(``omnipath_collectri_table``)``   ``# OmniPath interactions?datasets=collectri`\
-`tf``  ``<-`` `[`annotate_cmp_tf`](https://mdmanurung.github.io/cellprograms/reference/annotate_cmp_tf.md)`(``fit``, ``cmp``, ``net``)``                ``# TF footprint of every member program`\
-`tri`` ``<-`` `[`cmp_triage`](https://mdmanurung.github.io/cellprograms/reference/cmp_triage.md)`(``fit``, ``cmp``, context ``=`` ``"severity"``, covariates ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"institute"``, ``"sex"``)``,`\
-`                  replicate_by ``=`` ``"institute"``, tf ``=`` ``tf``)`
+<span class="va">`fit`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`assess_program_stability`](reference/assess_program_stability.html)</span><span class="op">`(`</span><span class="va">`fit`</span>`, n_boot `<span class="op">`=`</span>` `<span class="fl">`20`</span>`, seed `<span class="op">`=`</span>` `<span class="fl">`1`</span>`, progress `<span class="op">`=`</span>` `<span class="cn">`FALSE`</span><span class="op">`)`</span>\
+<span class="va">`fit`</span><span class="op">`$`</span><span class="va">`stability`</span><span class="op">`$`</span><span class="va">`replicate_log`</span>\
+<span class="va">`fit`</span><span class="op">`$`</span><span class="va">`stability`</span><span class="op">`$`</span><span class="va">`per_program`</span>
 
-[`annotate_cmp_tf()`](https://mdmanurung.github.io/cellprograms/reference/annotate_cmp_tf.md)
-fits a univariate linear model of each member’s CMP-oriented loadings on
-each signed CollecTRI regulon. A TF is called in a member only if it
-passes both a competitive test (BH-adjusted ULM, targets vs other genes)
-and a self-contained sign-flip test (targets coherently signed), which
-stops regulons of unloaded genes from looking “depleted” in skewed
-programs. TFs called with one sign in \>= 2 members and \>= half of the
-members are `shared` (a candidate common upstream driver); `specific`
-TFs show how one cell type reads out the signal. Footprints describe
-which regulons a program resembles; they are not evidence that the TF
-causes the coordination, and they can be circular (HLA-class-II CMPs
-light up CIITA/RFX5 because the HLA genes *are* their targets).
+</div>
 
-[`cmp_triage()`](https://mdmanurung.github.io/cellprograms/reference/cmp_triage.md)
-returns one row per CMP with its recurrent top genes, counts of nuisance
-genes
-([`cmp_nuisance_genes()`](https://mdmanurung.github.io/cellprograms/reference/cmp_nuisance_genes.md):
-V(D)J, candidate genotype markers, sex chromosome, immediate-early
-genes, platelet/erythrocyte markers), the ambient fraction, context
-association, within-level sign replication and shared TFs, plus a
-heuristic `label` for prioritization.
+Inspect requested, successful and failed refits separately. The legacy `recovery_freq` is `n_hit / n_boot`; `conditional_recovery_freq` uses successful refits, including successful zero-rank fits. For a rate conditional on a matchable cell type, use `n_hit / n_eligible` when positive. All-failure rates are undefined (`NA`), not zero. Stability evaluates the full fitting procedure, including its documented fallback ladder, not a guarantee of the same selected prior on every resample.
 
-## Program sharing and artifact masking
+</div>
 
-[`program_sharing()`](https://mdmanurung.github.io/cellprograms/reference/program_sharing.md)
-assesses whether programs matched across cell types share their gene
-loadings (mashr on the stored loading posteriors), classifying each
-matched group as shared, partial, or private — correlated loadings alone
-do not imply shared effects.
-[`flag_artifact_genes()`](https://mdmanurung.github.io/cellprograms/reference/flag_artifact_genes.md)
-marks programs whose top genes are V(D)J segments or known
-donor-genotype markers;
-`fit_celltype_programs(..., exclude_genes = artifact_genes(genes))`
-removes them before variable-gene selection.
+<div class="section level2">
 
-\
-`res`` ``<-`` `[`program_sharing`](https://mdmanurung.github.io/cellprograms/reference/program_sharing.md)`(``fit``, n_perm ``=`` ``199``, z_thresh ``=`` ``1.5``)`\
-`flags`` ``<-`` `[`flag_artifact_genes`](https://mdmanurung.github.io/cellprograms/reference/flag_artifact_genes.md)`(``fit``)`
+## Coordination and sharing: interpretation limits<a href="#coordination-and-sharing-interpretation-limits" class="anchor" aria-label="anchor"></a>
 
-On the Stephenson and COMBAT COVID cohorts (K = 30), the broadest
-cross-cell-type “shared” program was the immunoglobulin/V(D)J artifact
-program (ambient/clonal leakage), while interferon and cell-cycle
-programs replicated as genuinely shared across both cohorts — mask
-artifact genes before interpreting sharing.
+[`find_coordinated_programs()`](reference/find_coordinated_programs.html) computes fixed-input permutation-max-adjusted **node** p-values. Programs are not refitted under permutation. Validity depends on the declared null, exchangeability, missingness and selection design; this does not establish general learned-factor, edge-family or merged-CMP-set error control. Ordinary row shuffling is not patient-cluster permutation for repeated visits. Preserve uncallable nodes and reasons rather than interpreting them as negative evidence.
 
-## Known limitations
+[`program_sharing()`](reference/program_sharing.html) and block memberships are **descriptive**. Activity in both conditions does not prove equal effects, common structure, private biology or calibrated inferential sharing. Prediction and invalid patient-pairing claims in historical case studies remain withdrawn.
 
-Established by the confirm-scale benchmark evidence (full register:
-[`reports/audit/LIMITATIONS.md`](https://github.com/mdmanurung/cellprograms/blob/main/reports/audit/LIMITATIONS.md)):
+</div>
 
-- **Projection is query-set dependent.**
-  [`project_programs_to_cells()`](https://mdmanurung.github.io/cellprograms/reference/project_programs_to_cells.md)
-  re-estimates activity priors over the query cells, so the same cell
-  can receive different activities in different query sets; chunked
-  projection is not offered (oversize queries are refused, not silently
-  approximated).
-- **Sharing detection is conservative for narrow shared programs.**
-  [`program_sharing()`](https://mdmanurung.github.io/cellprograms/reference/program_sharing.md)
-  classifies on the top `n_top` genes; a program whose shared support is
-  smaller than `n_top`/2 cannot reach the “shared” label (see
-  [`?program_sharing`](https://mdmanurung.github.io/cellprograms/reference/program_sharing.md)
-  for choosing `n_top`).
-- **CMP association is calibrated on null and independent-predictor
-  designs**; correlated-predictor FWER sits at the alpha boundary
-  (0.040–0.058 at confirm scale) and is documented rather than patched.
-- **Cross-cohort sign/scale comparability holds only within a transfer
-  pathway** — fixed-basis projection or de-novo fit after matching,
-  never across (see the cross-cohort replication article).
+<div class="section level2">
 
-## License
+## Optional and historical surfaces<a href="#optional-and-historical-surfaces" class="anchor" aria-label="anchor"></a>
 
-MIT
+- `cebmf_torch` is a distinct experimental estimator, not numerical equivalence to ordinary flashier. Its supported controls and native environment must be validated independently; unsupported combinations fail early.
+- SuperCell, SEACells/mcRigor, optional covariate integrations and metacell projection have separate dependency and aggregation-scale limitations. Ordinary checks do not certify them.
+- Historical COVID, DIVAS, immune-aging and comparator material is retained for provenance. Maintained reconstruction and study status belong in the reproducibility repository. Neither a historical report nor an executed tiny fixture is new biological, calibration or independent-reproduction evidence.
+- The [previous README](reports/historical/README_before_completion.html) is preserved as an explicitly superseded historical record, not current claims.
+
+</div>
+
+<div class="section level2">
+
+## Validation and documentation<a href="#validation-and-documentation" class="anchor" aria-label="anchor"></a>
+
+``` sh
+Rscript -e 'testthat::test_local(".", stop_on_failure = TRUE)'
+R CMD build .
+# Use the actual tarball produced above, not an assumed release filename.
+R CMD check --no-manual cellprograms_<version>.tar.gz
+```
+
+The installed test entrypoint executes ordinary native-fit and actual-refit regressions as well as algebra, design replay, units, support and failure tests. Expected warnings are asserted; unexpected or missing messages fail their tests. Optional tests must identify their applicability instead of becoming empty mandatory checks. CI defines Linux current/minimum-R, macOS and Windows lanes; only actual run results establish coverage.
+
+- [Quickstart](vignettes/quickstart.Rmd)
+- [NEWS](NEWS.html)
+- [Support and migration](IMPLEMENTATION_SUPPORT.html)
+- <a href="https://github.com/mdmanurung/cellprograms-reproducibility" class="external-link">Reproducibility repository</a>
+
+</div>
+
+<div class="section level2">
+
+## License and citation<a href="#license-and-citation" class="anchor" aria-label="anchor"></a>
+
+MIT for the package’s licensed code; preserve third-party notices. Dataset, comparator and archived-result rights are separate. Use `citation("cellprograms")` for package attribution and cite inherited methods separately.
+
+</div>
+
+</div>

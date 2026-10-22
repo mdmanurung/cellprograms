@@ -1,8 +1,24 @@
+<div class="page-header">
+
 # Simulate cell-type pseudobulk matrices with planted programs
+
+<div class="d-none name">
+
+`simulate_pseudobulk.Rd`
+
+</div>
+
+</div>
+
+<div class="ref-description section level2">
 
 Simulate cell-type pseudobulk matrices with planted programs
 
-## Usage
+</div>
+
+<div class="section level2">
+
+## Usage<a href="#ref-usage" class="anchor" aria-label="anchor"></a>
 
 ``` r
 simulate_pseudobulk(
@@ -17,54 +33,54 @@ simulate_pseudobulk(
 )
 ```
 
-## Arguments
+</div>
 
-- scenario:
+<div class="section level2">
 
-  One of "private" (Scenario 1), "mixed" (Scenario 4, principal),
-  "same_genes_independent" (Scenario 7 negative control), or "global"
-  (Scenario 2).
+## Arguments<a href="#arguments" class="anchor" aria-label="anchor"></a>
 
-- n_samples:
+scenario<a href="#arg-scenario" class="anchor" aria-label="anchor"></a><br>
+One of "private" (Scenario 1), "mixed" (Scenario 4, principal), "same_genes_independent" (Scenario 7 negative control), or "global" (Scenario 2).
 
-  Number of biological observations.
+n_samples<a href="#arg-n-samples" class="anchor" aria-label="anchor"></a><br>
+Number of biological observations.
 
-- n_genes:
+n_genes<a href="#arg-n-genes" class="anchor" aria-label="anchor"></a><br>
+Total gene pool size.
 
-  Total gene pool size.
+program_size<a href="#arg-program-size" class="anchor" aria-label="anchor"></a><br>
+Number of active genes per program.
 
-- program_size:
+signal_sd<a href="#arg-signal-sd" class="anchor" aria-label="anchor"></a><br>
+Program activity standard deviation.
 
-  Number of active genes per program.
+noise_sd<a href="#arg-noise-sd" class="anchor" aria-label="anchor"></a><br>
+Residual noise standard deviation.
 
-- signal_sd:
+cell_types<a href="#arg-cell-types" class="anchor" aria-label="anchor"></a><br>
+Character vector of cell-type names.
 
-  Program activity standard deviation.
+seed<a href="#arg-seed" class="anchor" aria-label="anchor"></a><br>
+Random seed.
 
-- noise_sd:
+</div>
 
-  Residual noise standard deviation.
+<div class="section level2">
 
-- cell_types:
+## Value<a href="#value" class="anchor" aria-label="anchor"></a>
 
-  Character vector of cell-type names.
+A list with \`pseudobulk\` (named list of observations x genes matrices), \`truth\` (per-cell-type list of true score vectors, loading indices, and program labels), and \`scenario\`.
 
-- seed:
+</div>
 
-  Random seed.
+<div class="section level2">
 
-## Value
-
-A list with \`pseudobulk\` (named list of observations x genes
-matrices), \`truth\` (per-cell-type list of true score vectors, loading
-indices, and program labels), and \`scenario\`.
-
-## Examples
+## Examples<a href="#ref-examples" class="anchor" aria-label="anchor"></a>
 
 ``` r
 sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
 names(sim$pseudobulk)
-#> [1] "B"    "CD4"  "CD8"  "NK"   "Mono"
 dim(sim$pseudobulk$B)
-#> [1]  24 300
 ```
+
+</div>

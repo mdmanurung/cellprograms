@@ -1,26 +1,51 @@
+<div class="page-header">
+
 # Plot CMP node statistics
 
-Bar plot of each program's node statistic A_v (pooled coordination
-evidence across partner cell types), colored by CMP membership, with
-permutation p-values marked.
+<div class="d-none name">
 
-## Usage
+`plot_cmp_nodes.Rd`
+
+</div>
+
+</div>
+
+<div class="ref-description section level2">
+
+Bar plot of each program's node statistic A_v (pooled coordination evidence across partner cell types), colored by CMP membership, with permutation p-values marked.
+
+</div>
+
+<div class="section level2">
+
+## Usage<a href="#ref-usage" class="anchor" aria-label="anchor"></a>
 
 ``` r
 plot_cmp_nodes(cmp)
 ```
 
-## Arguments
+</div>
 
-- cmp:
+<div class="section level2">
 
-  Output of \`find_coordinated_programs\`.
+## Arguments<a href="#arguments" class="anchor" aria-label="anchor"></a>
 
-## Value
+cmp<a href="#arg-cmp" class="anchor" aria-label="anchor"></a><br>
+Output of \`find_coordinated_programs\`.
+
+</div>
+
+<div class="section level2">
+
+## Value<a href="#value" class="anchor" aria-label="anchor"></a>
 
 A ggplot object.
 
-## Examples
+</div>
+
+<div class="section level2">
+
+## Examples<a href="#ref-examples" class="anchor" aria-label="anchor"></a>
 
 ``` r
 sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
@@ -29,3 +54,5 @@ fit <- canonicalize_programs(fit_celltype_programs(x, max_factors = 3, seed = 1)
 cmp <- find_coordinated_programs(fit, n_perm = 200, seed = 1)
 plot_cmp_nodes(cmp)
 ```
+
+</div>

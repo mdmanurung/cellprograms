@@ -1,11 +1,24 @@
+<div class="page-header">
+
 # Optimize SEACells granularity with mcRigor
 
-Runs SEACells at several granularities (cells per metacell) per group
-and calls \`mcRigor::mcRigor_OPTIMIZE\` to select the granularity
-maximizing the mcRigor Score (1 - w\*DubRate - (1-w)\*ZeroRate).
-Expensive: one SEACells fit per group per candidate granularity.
+<div class="d-none name">
 
-## Usage
+`OptimizeGammaSEACells.Rd`
+
+</div>
+
+</div>
+
+<div class="ref-description section level2">
+
+Runs SEACells at several granularities (cells per metacell) per group and calls \`mcRigor::mcRigor_OPTIMIZE\` to select the granularity maximizing the mcRigor Score (1 - w\*DubRate - (1-w)\*ZeroRate). Expensive: one SEACells fit per group per candidate granularity.
+
+</div>
+
+<div class="section level2">
+
+## Usage<a href="#ref-usage" class="anchor" aria-label="anchor"></a>
 
 ``` r
 OptimizeGammaSEACells(
@@ -32,96 +45,78 @@ OptimizeGammaSEACells(
 )
 ```
 
-## Arguments
+</div>
 
-- seurat_obj:
+<div class="section level2">
 
-  A Seurat object.
+## Arguments<a href="#arguments" class="anchor" aria-label="anchor"></a>
 
-- group.by:
+seurat_obj<a href="#arg-seurat-obj" class="anchor" aria-label="anchor"></a><br>
+A Seurat object.
 
-  Metadata column(s) defining groups (as in
-  \[MetacellsByGroupsSEACells()\]).
+group.by<a href="#arg-group-by" class="anchor" aria-label="anchor"></a><br>
+Metadata column(s) defining groups (as in \[MetacellsByGroupsSEACells()\]).
 
-- gammas:
+gammas<a href="#arg-gammas" class="anchor" aria-label="anchor"></a><br>
+Candidate granularities as cells-per-metacell values. Default \`c(25, 50, 100)\` (mcRigor semi-synthetic optimum was 50 for SEACells).
 
-  Candidate granularities as cells-per-metacell values. Default \`c(25,
-  50, 100)\` (mcRigor semi-synthetic optimum was 50 for SEACells).
+reduction<a href="#arg-reduction" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSEACells()\] internals.
 
-- reduction:
+dims<a href="#arg-dims" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSEACells()\] internals.
 
-  Passed to \[MetacellsByGroupsSEACells()\] internals.
+assay<a href="#arg-assay" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSEACells()\] internals.
 
-- dims:
+slot<a href="#arg-slot" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSEACells()\] internals.
 
-  Passed to \[MetacellsByGroupsSEACells()\] internals.
+layer<a href="#arg-layer" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSEACells()\] internals.
 
-- assay:
+n_top_genes<a href="#arg-n-top-genes" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSEACells()\] internals.
 
-  Passed to \[MetacellsByGroupsSEACells()\] internals.
+n_pc<a href="#arg-n-pc" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSEACells()\] internals.
 
-- slot:
+n_waypoint_eigs<a href="#arg-n-waypoint-eigs" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSEACells()\] internals.
 
-  Passed to \[MetacellsByGroupsSEACells()\] internals.
+waypt_proportion<a href="#arg-waypt-proportion" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSEACells()\] internals.
 
-- layer:
+n_neighbors<a href="#arg-n-neighbors" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSEACells()\] internals.
 
-  Passed to \[MetacellsByGroupsSEACells()\] internals.
+convergence_epsilon<a href="#arg-convergence-epsilon" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSEACells()\] internals.
 
-- n_top_genes:
+max_iter<a href="#arg-max-iter" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSEACells()\] internals.
 
-  Passed to \[MetacellsByGroupsSEACells()\] internals.
+use_sparse<a href="#arg-use-sparse" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSEACells()\] internals.
 
-- n_pc:
+min_cells<a href="#arg-min-cells" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSEACells()\] internals.
 
-  Passed to \[MetacellsByGroupsSEACells()\] internals.
+mcrigor_args<a href="#arg-mcrigor-args" class="anchor" aria-label="anchor"></a><br>
+Optional named list overriding mcRigor_OPTIMIZE arguments (\`D_bw\`, \`optim_method\`, \`weight\`, \`Nrep\`, ...).
 
-- n_waypoint_eigs:
+seed<a href="#arg-seed" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSEACells()\] internals.
 
-  Passed to \[MetacellsByGroupsSEACells()\] internals.
+verbose<a href="#arg-verbose" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSEACells()\] internals.
 
-- waypt_proportion:
+</div>
 
-  Passed to \[MetacellsByGroupsSEACells()\] internals.
+<div class="section level2">
 
-- n_neighbors:
+## Value<a href="#value" class="anchor" aria-label="anchor"></a>
 
-  Passed to \[MetacellsByGroupsSEACells()\] internals.
+A list with \`optimal_gamma\` (named list, per group), \`scores\` (per group x gamma Score table), and \`membership\` (named list of per-group membership vectors for the chosen granularity, one entry per cell; NULL when no group produced a result). Gammas whose membership collapses to a single metacell cannot be scored by mcRigor and are dropped with a warning (\`NA\` in \`scores\`).
 
-- convergence_epsilon:
-
-  Passed to \[MetacellsByGroupsSEACells()\] internals.
-
-- max_iter:
-
-  Passed to \[MetacellsByGroupsSEACells()\] internals.
-
-- use_sparse:
-
-  Passed to \[MetacellsByGroupsSEACells()\] internals.
-
-- min_cells:
-
-  Passed to \[MetacellsByGroupsSEACells()\] internals.
-
-- mcrigor_args:
-
-  Optional named list overriding mcRigor_OPTIMIZE arguments (\`D_bw\`,
-  \`optim_method\`, \`weight\`, \`Nrep\`, ...).
-
-- seed:
-
-  Passed to \[MetacellsByGroupsSEACells()\] internals.
-
-- verbose:
-
-  Passed to \[MetacellsByGroupsSEACells()\] internals.
-
-## Value
-
-A list with \`optimal_gamma\` (named list, per group), \`scores\` (per
-group x gamma Score table), and \`membership\` (named list of per-group
-membership vectors for the chosen granularity, one entry per cell; NULL
-when no group produced a result). Gammas whose membership collapses to a
-single metacell cannot be scored by mcRigor and are dropped with a
-warning (\`NA\` in \`scores\`).
+</div>

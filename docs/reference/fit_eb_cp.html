@@ -3,15 +3,19 @@
 cell types) to per-cell-type pseudobulk matrices with EBNM normal-means
 updates per mode (point-laplace on gene and cell-type modes, normal on the
 donor mode) and per-(cell-type, donor) residual variance. Components are
-selected by a held-out likelihood test on a donor-synchronous 50/50 split
+selected by an experimental held-out screening statistic on a donor-synchronous 50/50 split
 (stratified by `strata` when supplied), refit on the full data, and
-backfit. See the file header for the model and selection details."><meta property="og:description" content="Fits a greedy rank-greedy three-mode tensor factorization (genes x donors x
+backfit. This is not a calibrated likelihood test or a guarantee of CP
+uniqueness. Memberships are descriptive, not error-controlled CMP sets.
+See the file header for the model and selection details."><meta property="og:description" content="Fits a greedy rank-greedy three-mode tensor factorization (genes x donors x
 cell types) to per-cell-type pseudobulk matrices with EBNM normal-means
 updates per mode (point-laplace on gene and cell-type modes, normal on the
 donor mode) and per-(cell-type, donor) residual variance. Components are
-selected by a held-out likelihood test on a donor-synchronous 50/50 split
+selected by an experimental held-out screening statistic on a donor-synchronous 50/50 split
 (stratified by `strata` when supplied), refit on the full data, and
-backfit. See the file header for the model and selection details."></head><body>
+backfit. This is not a calibrated likelihood test or a guarantee of CP
+uniqueness. Memberships are descriptive, not error-controlled CMP sets.
+See the file header for the model and selection details."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -36,11 +40,11 @@ backfit. See the file header for the model and selection details."></head><body>
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cebmf_backend.html">The cebmf_torch backend: covariate-EBMF in torch</a></li>
     <li><a class="dropdown-item" href="../articles/coordination_joint.html">Joint and tensor factorization: EB-CP and block EBMF</a></li>
-    <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
-    <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Historical case study: cross-cell-type COVID-19 PBMC programs</a></li>
+    <li><a class="dropdown-item" href="../articles/divas_case_study.html">Historical case study: DIVAS COVID-19 multi-omics</a></li>
     <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
     <li><a class="dropdown-item" href="../articles/immune_aging_cross_cohort.html">Case study: immune-aging programs across 8 global PBMC cohorts</a></li>
-    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis</a></li>
+    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Historical comparison: local-first and joint multicellular factors</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -63,9 +67,11 @@ backfit. See the file header for the model and selection details."></head><body>
 cell types) to per-cell-type pseudobulk matrices with EBNM normal-means
 updates per mode (point-laplace on gene and cell-type modes, normal on the
 donor mode) and per-(cell-type, donor) residual variance. Components are
-selected by a held-out likelihood test on a donor-synchronous 50/50 split
+selected by an experimental held-out screening statistic on a donor-synchronous 50/50 split
 (stratified by `strata` when supplied), refit on the full data, and
-backfit. See the file header for the model and selection details.</p>
+backfit. This is not a calibrated likelihood test or a guarantee of CP
+uniqueness. Memberships are descriptive, not error-controlled CMP sets.
+See the file header for the model and selection details.</p>
     </div>
 
     <div class="section level2">
@@ -107,9 +113,16 @@ recommended whenever the input was residualized on a covariate.</p></dd>
 <dd><p>Maximum number of greedy components.</p></dd>
 
 
-<dt id="arg-ebnm-gene-ebnm-donor-ebnm-ct">ebnm_gene, ebnm_donor, ebnm_ct<a class="anchor" aria-label="anchor" href="#arg-ebnm-gene-ebnm-donor-ebnm-ct"></a></dt>
-<dd><p>EBNM functions for the gene, donor,
-and cell-type modes.</p></dd>
+<dt id="arg-ebnm-gene">ebnm_gene<a class="anchor" aria-label="anchor" href="#arg-ebnm-gene"></a></dt>
+<dd><p>EBNM function for the gene mode.</p></dd>
+
+
+<dt id="arg-ebnm-donor">ebnm_donor<a class="anchor" aria-label="anchor" href="#arg-ebnm-donor"></a></dt>
+<dd><p>EBNM function for the donor mode.</p></dd>
+
+
+<dt id="arg-ebnm-ct">ebnm_ct<a class="anchor" aria-label="anchor" href="#arg-ebnm-ct"></a></dt>
+<dd><p>EBNM function for the cell-type mode.</p></dd>
 
 
 <dt id="arg-member-thresh">member_thresh<a class="anchor" aria-label="anchor" href="#arg-member-thresh"></a></dt>
@@ -121,8 +134,12 @@ the result; used by [eb_cp_programs()]).</p></dd>
 <dd><p>Held-out z threshold for keeping a component.</p></dd>
 
 
-<dt id="arg-max-iter-tol">max_iter, tol<a class="anchor" aria-label="anchor" href="#arg-max-iter-tol"></a></dt>
-<dd><p>Per-component coordinate ascent controls.</p></dd>
+<dt id="arg-max-iter">max_iter<a class="anchor" aria-label="anchor" href="#arg-max-iter"></a></dt>
+<dd><p>Maximum per-component coordinate iterations.</p></dd>
+
+
+<dt id="arg-tol">tol<a class="anchor" aria-label="anchor" href="#arg-tol"></a></dt>
+<dd><p>Per-component convergence tolerance.</p></dd>
 
 
 <dt id="arg-backfit-iter">backfit_iter<a class="anchor" aria-label="anchor" href="#arg-backfit-iter"></a></dt>

@@ -1,12 +1,24 @@
+<div class="page-header">
+
 # Find coordinated multicellular programs
 
-Detects groups of programs from different cell types whose donor-level
-scores co-vary (coordinated multicellular programs, CMPs), with
-family-wise error control by within-strata donor permutation. Gene
-overlap plays no role in the call; programs in a CMP may be thematically
-unrelated.
+<div class="d-none name">
 
-## Usage
+`find_coordinated_programs.Rd`
+
+</div>
+
+</div>
+
+<div class="ref-description section level2">
+
+Detects groups of programs from different cell types whose donor-level scores co-vary (coordinated multicellular programs, CMPs), with permutation-max-adjusted node p-values from within-strata donor permutation. General learned-factor, edge-family and CMP-set error control are not established by this calculation. Gene overlap plays no role in the call; programs in a CMP may be thematically unrelated.
+
+</div>
+
+<div class="section level2">
+
+## Usage<a href="#ref-usage" class="anchor" aria-label="anchor"></a>
 
 ``` r
 find_coordinated_programs(
@@ -27,129 +39,114 @@ find_coordinated_programs(
 )
 ```
 
-## Arguments
+</div>
 
-- fit:
+<div class="section level2">
 
-  A canonicalized \`cell_program_fit\` (see
-  \`canonicalize_programs()\`).
+## Arguments<a href="#arguments" class="anchor" aria-label="anchor"></a>
 
-- strata:
+fit<a href="#arg-fit" class="anchor" aria-label="anchor"></a><br>
+A canonicalized \`cell_program_fit\` (see \`canonicalize_programs()\`).
 
-  Optional blocking variable (e.g. site or batch): a \`sample_metadata\`
-  column name or a vector named by observation ID. Scores are
-  residualized on it and donors are permuted only within it.
+strata<a href="#arg-strata" class="anchor" aria-label="anchor"></a><br>
+Optional blocking variable (e.g. site or batch): a \`sample_metadata\` column name or a vector named by observation ID. Scores are residualized on it and donors are permuted only within it.
 
-- context:
+context<a href="#arg-context" class="anchor" aria-label="anchor"></a><br>
+Optional donor-level variable (e.g. disease status) used by \`mode = "within"\`; numeric variables with more than 5 distinct values are binned into quintiles.
 
-  Optional donor-level variable (e.g. disease status) used by \`mode =
-  "within"\`; numeric variables with more than 5 distinct values are
-  binned into quintiles.
+mode<a href="#arg-mode" class="anchor" aria-label="anchor"></a><br>
+\`"marginal"\` (default): any shared donor variation counts, including variation driven by \`context\`. \`"within"\`: only coordination that persists within levels of \`context\` (residualized on, and permuted within, strata x context).
 
-- mode:
+ambient<a href="#arg-ambient" class="anchor" aria-label="anchor"></a><br>
+Treatment of ambient-like programs (see \`ambient_program_scores()\`): \`"drop"\` (default; excluded before testing), \`"flag"\` (tested, flagged in the output) or \`"none"\`.
 
-  \`"marginal"\` (default): any shared donor variation counts, including
-  variation driven by \`context\`. \`"within"\`: only coordination that
-  persists within levels of \`context\` (residualized on, and permuted
-  within, strata x context).
+ambient_threshold<a href="#arg-ambient-threshold" class="anchor" aria-label="anchor"></a><br>
+Ambient score above which a program is ambient-like (default 0.3).
 
-- ambient:
+profiles<a href="#arg-profiles" class="anchor" aria-label="anchor"></a><br>
+Optional per-cell-type mean log-expression profiles for the ambient score; defaults to column means of \`fit\$pseudobulk\`.
 
-  Treatment of ambient-like programs (see \`ambient_program_scores()\`):
-  \`"drop"\` (default; excluded before testing), \`"flag"\` (tested,
-  flagged in the output) or \`"none"\`.
+alpha<a href="#arg-alpha" class="anchor" aria-label="anchor"></a><br>
+Nominal node rejection threshold (default 0.05); rejection uses strict \`node_p \< alpha\`. This is not a certified CMP-set error rate.
 
-- ambient_threshold:
+n_perm<a href="#arg-n-perm" class="anchor" aria-label="anchor"></a><br>
+Number of permutations (default 199).
 
-  Ambient score above which a program is ambient-like (default 0.3).
+tau<a href="#arg-tau" class="anchor" aria-label="anchor"></a><br>
+Node-statistic offset; only edges with \|T\| \> \`tau\` contribute (default 2).
 
-- profiles:
+link_threshold<a href="#arg-link-threshold" class="anchor" aria-label="anchor"></a><br>
+Minimum \|T\| for an edge to join two significant programs into one CMP (default 3).
 
-  Optional per-cell-type mean log-expression profiles for the ambient
-  score; defaults to column means of \`fit\$pseudobulk\`.
+min_shared<a href="#arg-min-shared" class="anchor" aria-label="anchor"></a><br>
+Minimum donors shared by two cell types for their programs to be compared (default 20).
 
-- alpha:
+min_donors<a href="#arg-min-donors" class="anchor" aria-label="anchor"></a><br>
+Minimum donors for a cell type to be used (default 20).
 
-  Family-wise error level (default 0.05).
+seed<a href="#arg-seed" class="anchor" aria-label="anchor"></a><br>
+Random seed.
 
-- n_perm:
+</div>
 
-  Number of permutations (default 199).
+<div class="section level2">
 
-- tau:
-
-  Node-statistic offset; only edges with \|T\| \> \`tau\` contribute
-  (default 2).
-
-- link_threshold:
-
-  Minimum \|T\| for an edge to join two significant programs into one
-  CMP (default 3).
-
-- min_shared:
-
-  Minimum donors shared by two cell types for their programs to be
-  compared (default 20).
-
-- min_donors:
-
-  Minimum donors for a cell type to be used (default 20).
-
-- seed:
-
-  Random seed.
-
-## Value
+## Value<a href="#value" class="anchor" aria-label="anchor"></a>
 
 An object of class \`cmp_result\`, a list with
 
-- cmps:
+cmps<br>
+one row per (CMP, program): \`cmp\`, \`cell_type\`, \`program_id\`, \`node_p\` (permutation-max-adjusted), \`sign\` (orientation relative to the CMP's first program, propagated along linking edges as the product of edge signs along the path; CAND-05) and \`ambient_flag\`.
 
-  one row per (CMP, program): \`cmp\`, \`cell_type\`, \`program_id\`,
-  \`node_p\` (FWER-adjusted), \`sign\` (orientation relative to the
-  CMP's first program, propagated along linking edges as the product of
-  edge signs along the path; CAND-05) and \`ambient_flag\`.
+edges<br>
+edges among members of the same CMP (\`stat\` = \|T\|).
 
-- edges:
+nodes<br>
+all tested programs with node statistic, adjusted p-value and ambient score.
 
-  edges among members of the same CMP (\`stat\` = \|T\|).
+ambient<br>
+ambient scores of all programs (or NULL).
 
-- nodes:
+settings<br>
+the arguments used.
 
-  all tested programs with node statistic, adjusted p-value and ambient
-  score.
+</div>
 
-- ambient:
+<div class="section level2">
 
-  ambient scores of all programs (or NULL).
+## Observed support<a href="#observed-support" class="anchor" aria-label="anchor"></a>
 
-- settings:
+Each program is rank-transformed and projected only on its observed donors; unused blocking levels are removed before a rank-aware QR projection. Program callability requires at least \`min_donors\` observations, positive residual degrees of freedom and nonconstant residuals. Edges additionally require at least \`max(4, min_shared)\` pairwise-complete donors and a defined correlation. Unavailable edges and nodes without any callable edge have NA statistics/p-values, not scientific zeros. \`program_support\` records counts, design rank, residual df and callability; \`edge_support\` records every candidate edge's overlap and callability, including unavailable edges. These guards are eligibility checks, not a new calibration guarantee under arbitrary missingness or disconnected donor support.
 
-  the arguments used.
+</div>
 
-## Program cap
+<div class="section level2">
 
-CMP detection depends on each member program existing upstream. In the
-cmp-bench-v1.2 held-out benchmark, fits with \`max_factors = 30\` raised
-pooled membership F1 from 0.571 to 0.705 over the default \`max_factors
-= 10\` (paired difference 0.127, 95 guardrails \<= 0.06. The
-\`fit_celltype_programs()\` default of 10 was tuned for a different goal
-(donor-level disease signal in the concatenated representation), so it
-is not changed; use \`max_factors = 30\` when the fit is intended for
-\`find_coordinated_programs()\`. A one-time message is shown when a fit
-with \`max_factors \< 30\` has a cell type at its cap.
+## Inferential scope<a href="#inferential-scope" class="anchor" aria-label="anchor"></a>
 
-## Missing donor scores
+The input score matrices, selected programs and ambient filter are held fixed during permutation; the full discovery pipeline is not refitted. The proposed fixed-score node null is independence from the joint score collection of all other cell types, conditional on the declared blocks. Its validity requires an appropriate exchangeability argument; residualizing on blocks is not a blanket guarantee. Row permutation does not implement patient-cluster permutation for repeated visits. A future known-score calibration cannot be relabeled as strong end-to-end learned-factor FWER. Fixed-threshold links and greedy grouping add no edge- or CMP-set error guarantee; two genuine groups can be falsely bridged without rejecting a true-null node. Calibration campaigns and scientific signoff remain pending.
 
-Programs with missing donor scores (NA) are handled by pairwise-complete
-donors: rank transformation and strata residualization keep NA donors as
-NA, cross-cell-type correlations use the donors observed in both
-programs, and edge \`n\` reports the pairwise-complete donor count for
-that program pair. A warning lists the affected programs. Missingness
-reduces power (fewer effective donors); it does not manufacture
-high-scoring donors.
+</div>
 
-## Examples
+<div class="section level2">
+
+## Program cap<a href="#program-cap" class="anchor" aria-label="anchor"></a>
+
+CMP detection depends on each member program existing upstream. In the historical cmp-bench-v1.2 aggregate reports, cap 30 performed better than cap 10 on the reported membership endpoint. Per-replicate raw outputs have not been recovered in the bounded implementation audit, so these reports are historical summary-only evidence, not an independently reproduced general cap recommendation or error-control certificate. Select the cap by a prespecified training-only rule for the intended analysis. The fitting default remains 10. A one-time message is shown when a fit with \`max_factors \< 30\` has a cell type at its cap.
+
+</div>
+
+<div class="section level2">
+
+## Missing donor scores<a href="#missing-donor-scores" class="anchor" aria-label="anchor"></a>
+
+Programs with missing donor scores (NA) are handled by pairwise-complete donors: rank transformation and strata residualization keep NA donors as NA, cross-cell-type correlations use the donors observed in both programs, and edge \`n\` reports the pairwise-complete donor count for that program pair. A warning lists the affected programs. Missingness reduces power (fewer effective donors); it does not manufacture high-scoring donors.
+
+</div>
+
+<div class="section level2">
+
+## Examples<a href="#ref-examples" class="anchor" aria-label="anchor"></a>
 
 ``` r
 # Toy canonicalized fit: program 1 of cell types A and B shares donor
@@ -175,7 +172,6 @@ fit <- structure(list(
   class = c("cell_program_fit", "cell_program_data", "list"))
 res <- find_coordinated_programs(fit, n_perm = 99, ambient = "none")
 res$cmps
-#>   cmp cell_type program_id node_p sign ambient_flag
-#> 1   1         A        A_1   0.01    1           NA
-#> 2   1         B        B_1   0.01    1           NA
 ```
+
+</div>

@@ -1,14 +1,24 @@
+<div class="page-header">
+
 # Freeze a preprocessing specification
 
-Resolves the feature panel and adjustment decisions once and returns a
-content-addressed specification (sha256 digest) that
-\`fit_celltype_programs(preprocessing_spec = ...)\` replays exactly on
-any dataset carrying the same genes. Intended workflow: freeze the spec
-on the discovery cohort, store it alongside the fit (it is plain
-RDS-serializable data), and pass it to every refit so the frozen panel
-can never silently drift.
+<div class="d-none name">
 
-## Usage
+`freeze_preprocessing.Rd`
+
+</div>
+
+</div>
+
+<div class="ref-description section level2">
+
+Resolves the feature panel and adjustment decisions once and returns a content-addressed specification (sha256 digest) that \`fit_celltype_programs(preprocessing_spec = ...)\` replays exactly on any dataset carrying the same genes. Intended workflow: freeze the spec on the discovery cohort, store it alongside the fit (it is plain RDS-serializable data), and pass it to every refit so the frozen panel can never silently drift.
+
+</div>
+
+<div class="section level2">
+
+## Usage<a href="#ref-usage" class="anchor" aria-label="anchor"></a>
 
 ``` r
 freeze_preprocessing(
@@ -20,69 +30,60 @@ freeze_preprocessing(
   covariates = NULL,
   covariate_mode = c("residualize", "fixed"),
   center = TRUE,
-  scale = FALSE
+  scale = FALSE,
+  feature_scale = "unknown"
 )
 ```
 
-## Arguments
+</div>
 
-- x:
+<div class="section level2">
 
-  A \`cell_program_data\` object (the discovery cohort).
+## Arguments<a href="#arguments" class="anchor" aria-label="anchor"></a>
 
-- features:
+x<a href="#arg-x" class="anchor" aria-label="anchor"></a><br>
+A \`cell_program_data\` object (the discovery cohort).
 
-  Feature selection mode, passed to the same selection used by
-  \`fit_celltype_programs()\`: "all", "variable", or a named list of
-  gene ID vectors per cell type. The resolved per-cell-type gene vectors
-  are stored in the spec.
+features<a href="#arg-features" class="anchor" aria-label="anchor"></a><br>
+Feature selection mode, passed to the same selection used by \`fit_celltype_programs()\`: "all", "variable", or a named list of gene ID vectors per cell type. The resolved per-cell-type gene vectors are stored in the spec.
 
-- n_variable_genes:
+n_variable_genes<a href="#arg-n-variable-genes" class="anchor" aria-label="anchor"></a><br>
+Number of most-variable genes when \`features = "variable"\`.
 
-  Number of most-variable genes when \`features = "variable"\`.
+exclude_genes<a href="#arg-exclude-genes" class="anchor" aria-label="anchor"></a><br>
+Optional character vector of gene IDs removed from every cell type's feature universe before feature selection.
 
-- exclude_genes:
+exclude_artifacts<a href="#arg-exclude-artifacts" class="anchor" aria-label="anchor"></a><br>
+Convenience preset: when TRUE, union \`artifact_genes()\` over the pseudobulk gene universe into \`exclude_genes\`. The spec stores the resolved union.
 
-  Optional character vector of gene IDs removed from every cell type's
-  feature universe before feature selection.
+covariates<a href="#arg-covariates" class="anchor" aria-label="anchor"></a><br>
+Optional sample-level covariates: a character vector of \`sample_metadata\` column names or a one-sided formula (stored as its deparsed string so the spec serializes and digests stably).
 
-- exclude_artifacts:
+covariate_mode<a href="#arg-covariate-mode" class="anchor" aria-label="anchor"></a><br>
+How \`covariates\` are handled in refits: "residualize" (default) or "fixed".
 
-  Convenience preset: when TRUE, union \`artifact_genes()\` over the
-  pseudobulk gene universe into \`exclude_genes\`. The spec stores the
-  resolved union.
+center<a href="#arg-center" class="anchor" aria-label="anchor"></a><br>
+Center genes within each cell type (default TRUE).
 
-- covariates:
+scale<a href="#arg-scale" class="anchor" aria-label="anchor"></a><br>
+Unit-variance scale genes (default FALSE; not recommended).
 
-  Optional sample-level covariates: a character vector of
-  \`sample_metadata\` column names or a one-sided formula (stored as its
-  deparsed string so the spec serializes and digests stably).
+feature_scale<a href="#arg-feature-scale" class="anchor" aria-label="anchor"></a><br>
+Declared measurement units (default "unknown").
 
-- covariate_mode:
+</div>
 
-  How \`covariates\` are handled in refits: "residualize" (default) or
-  "fixed".
+<div class="section level2">
 
-- center:
+## Value<a href="#value" class="anchor" aria-label="anchor"></a>
 
-  Center genes within each cell type (default TRUE).
+A list of class \`cell_program_preproc_spec\` with components \`spec_version\`, \`feature_sets\` (named list of gene ID vectors per cell type), \`exclude_genes\` (resolved, sorted, unique), \`exclude_artifacts\`, \`covariates\` (character vector or deparsed formula string), \`covariate_mode\`, \`center\`, \`scale\`, \`gene_universe\` (sorted unique gene names of the discovery cohort), and \`digest\` (sha256 over the spec contents). The digest is what refits record in their preprocessing provenance.
 
-- scale:
+</div>
 
-  Unit-variance scale genes (default FALSE; not recommended).
+<div class="section level2">
 
-## Value
-
-A list of class \`cell_program_preproc_spec\` with components
-\`spec_version\`, \`feature_sets\` (named list of gene ID vectors per
-cell type), \`exclude_genes\` (resolved, sorted, unique),
-\`exclude_artifacts\`, \`covariates\` (character vector or deparsed
-formula string), \`covariate_mode\`, \`center\`, \`scale\`,
-\`gene_universe\` (sorted unique gene names of the discovery cohort),
-and \`digest\` (sha256 over the spec contents). The digest is what
-refits record in their preprocessing provenance.
-
-## Examples
+## Examples<a href="#ref-examples" class="anchor" aria-label="anchor"></a>
 
 ``` r
 sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
@@ -90,5 +91,6 @@ x <- as_cell_program_data(sim$pseudobulk)
 spec <- freeze_preprocessing(x, features = "variable", n_variable_genes = 150)
 fit <- fit_celltype_programs(x, max_factors = 3, preprocessing_spec = spec)
 fit$preprocessing$frozen_spec == spec$digest   # TRUE
-#> [1] TRUE
 ```
+
+</div>

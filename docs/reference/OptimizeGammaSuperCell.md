@@ -1,13 +1,24 @@
+<div class="page-header">
+
 # Optimize SuperCell granularity with mcRigor
 
-Runs SuperCell's SCimplify at several granularities (cells per
-metacell - SuperCell's native \`gamma\`) per group and calls
-\`mcRigor::mcRigor_OPTIMIZE\` to select the granularity maximizing the
-mcRigor Score (1 - w\*DubRate - (1-w)\*ZeroRate). Cheap relative to the
-SEACells analogue: one graph partition per group per candidate
-granularity (seconds).
+<div class="d-none name">
 
-## Usage
+`OptimizeGammaSuperCell.Rd`
+
+</div>
+
+</div>
+
+<div class="ref-description section level2">
+
+Runs SuperCell's SCimplify at several granularities (cells per metacell - SuperCell's native \`gamma\`) per group and calls \`mcRigor::mcRigor_OPTIMIZE\` to select the granularity maximizing the mcRigor Score (1 - w\*DubRate - (1-w)\*ZeroRate). Cheap relative to the SEACells analogue: one graph partition per group per candidate granularity (seconds).
+
+</div>
+
+<div class="section level2">
+
+## Usage<a href="#ref-usage" class="anchor" aria-label="anchor"></a>
 
 ``` r
 OptimizeGammaSuperCell(
@@ -29,37 +40,63 @@ OptimizeGammaSuperCell(
 )
 ```
 
-## Arguments
+</div>
 
-- seurat_obj:
+<div class="section level2">
 
-  A Seurat object.
+## Arguments<a href="#arguments" class="anchor" aria-label="anchor"></a>
 
-- group.by:
+seurat_obj<a href="#arg-seurat-obj" class="anchor" aria-label="anchor"></a><br>
+A Seurat object.
 
-  Metadata column(s) defining groups (as in
-  \[MetacellsByGroupsSuperCell()\]).
+group.by<a href="#arg-group-by" class="anchor" aria-label="anchor"></a><br>
+Metadata column(s) defining groups (as in \[MetacellsByGroupsSuperCell()\]).
 
-- gammas:
+gammas<a href="#arg-gammas" class="anchor" aria-label="anchor"></a><br>
+Candidate granularities as cells-per-metacell values. Default \`c(25, 50, 100)\`.
 
-  Candidate granularities as cells-per-metacell values. Default \`c(25,
-  50, 100)\`.
+reduction<a href="#arg-reduction" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSuperCell()\] internals.
 
-- reduction, :
+dims<a href="#arg-dims" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSuperCell()\] internals.
 
-  dims, assay, slot, layer, n_top_genes, n_pc, k.knn, min_cells, seed,
-  verbose Passed to \[MetacellsByGroupsSuperCell()\] internals.
+assay<a href="#arg-assay" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSuperCell()\] internals.
 
-- mcrigor_args:
+slot<a href="#arg-slot" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSuperCell()\] internals.
 
-  Optional named list overriding mcRigor_OPTIMIZE arguments (\`Nrep\`,
-  \`weight\`, ...).
+layer<a href="#arg-layer" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSuperCell()\] internals.
 
-## Value
+min_cells<a href="#arg-min-cells" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSuperCell()\] internals.
 
-A list with \`optimal_gamma\` (named list, per group), \`scores\` (per
-group x gamma Score table), and \`membership\` (named list of per-group
-membership vectors for the chosen granularity, one entry per cell; NULL
-when no group produced a result). Gammas whose membership collapses to a
-single metacell cannot be scored by mcRigor and are dropped with a
-warning (\`NA\` in \`scores\`).
+k.knn<a href="#arg-k-knn" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSuperCell()\] internals.
+
+n_top_genes<a href="#arg-n-top-genes" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSuperCell()\] internals.
+
+n_pc<a href="#arg-n-pc" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSuperCell()\] internals.
+
+mcrigor_args<a href="#arg-mcrigor-args" class="anchor" aria-label="anchor"></a><br>
+Optional named list overriding mcRigor_OPTIMIZE arguments (\`Nrep\`, \`weight\`, ...).
+
+seed<a href="#arg-seed" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSuperCell()\] internals.
+
+verbose<a href="#arg-verbose" class="anchor" aria-label="anchor"></a><br>
+Passed to \[MetacellsByGroupsSuperCell()\] internals.
+
+</div>
+
+<div class="section level2">
+
+## Value<a href="#value" class="anchor" aria-label="anchor"></a>
+
+A list with \`optimal_gamma\` (named list, per group), \`scores\` (per group x gamma Score table), and \`membership\` (named list of per-group membership vectors for the chosen granularity, one entry per cell; NULL when no group produced a result). Gammas whose membership collapses to a single metacell cannot be scored by mcRigor and are dropped with a warning (\`NA\` in \`scores\`).
+
+</div>

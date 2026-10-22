@@ -1,225 +1,256 @@
+<div class="page-header">
+
 # From metacells to programs: the SuperCell + mcRigor workflow
 
-This article runs the **full `cellprograms` pipeline downstream of
-metacell construction**. The starting point is a single-cell Seurat
-object; metacells are built with the default SuperCell 2.0 + mcRigor
-backend (pure R — no Python; see “Metacells: SuperCell (default) and
-SEACells” for construction details and the benchmark behind the
-default), and the metacell counts then feed program discovery, stability
-assessment, coordinated multicellular program (CMP) detection, sharing
-assessment, and cell-level projection.
+<div class="d-none name">
 
-The fixture plants known truth so every downstream call can be checked:
-two cell types across 24 donors, each type with a **private program**
-(constant across donors) and a **coordinated program** whose donor
-activities are correlated across the two cell types.
+`metacells_to_programs.Rmd`
 
-## Simulate a single-cell dataset with planted programs
+</div>
 
-24 donors x two cell types x 60 cells, 800 genes. Genes 1:40 are a
-T-cell-private marker block; genes 81:120 a B-cell-private block; genes
-41:80 form the **coordinated block**, expressed in both cell types with
-a donor activity gradient (lambda rising from 0.5 to 8.5 across donors)
-that is *shared* across types — the planted CMP. Everything else is
-background Poisson noise.
+</div>
+
+This article runs the **full `cellprograms` pipeline downstream of metacell construction**. The starting point is a single-cell Seurat object; metacells are built with the default SuperCell 2.0 + mcRigor backend (pure R — no Python; see “Metacells: SuperCell (default) and SEACells” for construction details and the benchmark behind the default), and the metacell counts then feed program discovery, stability assessment, coordinated multicellular program (CMP) detection, sharing assessment, and cell-level projection.
+
+The fixture plants known truth so every downstream call can be checked: two cell types across 24 donors, each type with a **private program** (constant across donors) and a **coordinated program** whose donor activities are correlated across the two cell types.
+
+<div class="section level2">
+
+## Simulate a single-cell dataset with planted programs<a href="#simulate-a-single-cell-dataset-with-planted-programs" class="anchor" aria-label="anchor"></a>
+
+24 donors x two cell types x 60 cells, 800 genes. Genes 1:40 are a T-cell-private marker block; genes 81:120 a B-cell-private block; genes 41:80 form the **coordinated block**, expressed in both cell types with a donor activity gradient (lambda rising from 0.5 to 8.5 across donors) that is *shared* across types — the planted CMP. Everything else is background Poisson noise.
+
+<div id="cb1" class="sourceCode">
 
 \
-[`library`](https://rdrr.io/r/base/library.html)`(``cellprograms``)`\
-[`set.seed`](https://rdrr.io/r/base/Random.html)`(``7``)`\
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link"><code class="sourceCode r R">library</code></a></span><span class="op">`(`</span><span class="va">`cellprograms`</span><span class="op">`)`</span>\
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link"><code class="sourceCode r R">set.seed</code></a></span><span class="op">`(`</span><span class="fl">`7`</span><span class="op">`)`</span>\
 \
-`n_donor`` ``<-`` ``24``; ``n_cell`` ``<-`` ``60``; ``n_gene`` ``<-`` ``800`\
-`types`` ``<-`` `[`c`](https://rdrr.io/r/base/c.html)`(``"Tcells"``, ``"Bcells"``)`\
-`donors`` ``<-`` `[`paste0`](https://rdrr.io/r/base/paste.html)`(``"d"``, `[`seq_len`](https://rdrr.io/r/base/seq.html)`(``n_donor``)``)`\
-`a_grad`` ``<-`` `[`seq_len`](https://rdrr.io/r/base/seq.html)`(``n_donor``)``                ``# planted donor activity gradient`\
+<span class="va">`n_donor`</span>` `<span class="op">`<-`</span>` `<span class="fl">`24`</span>`; `<span class="va">`n_cell`</span>` `<span class="op">`<-`</span>` `<span class="fl">`60`</span>`; `<span class="va">`n_gene`</span>` `<span class="op">`<-`</span>` `<span class="fl">`800`</span>\
+<span class="va">`types`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link"><code class="sourceCode r R">c</code></a></span><span class="op">`(`</span><span class="st">`"Tcells"`</span>`, `<span class="st">`"Bcells"`</span><span class="op">`)`</span>\
+<span class="va">`donors`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link"><code class="sourceCode r R">paste0</code></a></span><span class="op">`(`</span><span class="st">`"d"`</span>`, `<span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link"><code class="sourceCode r R">seq_len</code></a></span><span class="op">`(`</span><span class="va">`n_donor`</span><span class="op">`)`</span><span class="op">`)`</span>\
+<span class="va">`a_grad`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link"><code class="sourceCode r R">seq_len</code></a></span><span class="op">`(`</span><span class="va">`n_donor`</span><span class="op">`)`</span>`                `<span class="co">`# planted donor activity gradient`</span>\
 \
-`groups`` ``<-`` `[`unlist`](https://rdrr.io/r/base/unlist.html)`(`[`lapply`](https://rdrr.io/r/base/lapply.html)`(``donors``, ``function``(``d``)`` `[`paste0`](https://rdrr.io/r/base/paste.html)`(``d``, ``"_"``, `[`rep`](https://rdrr.io/r/base/rep.html)`(``types``, each ``=`` ``n_cell``)``)``)``,`\
-`                 use.names ``=`` ``FALSE``)`\
-`lam`` ``<-`` `[`matrix`](https://rdrr.io/r/base/matrix.html)`(``0.5``, nrow ``=`` ``n_gene``, ncol ``=`` `[`length`](https://rdrr.io/r/base/length.html)`(``groups``)``)`\
-`for`` ``(``d`` ``in`` `[`seq_len`](https://rdrr.io/r/base/seq.html)`(``n_donor``)``)`` ``{`\
-`  ``for`` ``(``t`` ``in`` `[`seq_along`](https://rdrr.io/r/base/seq.html)`(``types``)``)`` ``{`\
-`    ``cols`` ``<-`` `[`which`](https://rdrr.io/r/base/which.html)`(``groups`` ``==`` `[`paste0`](https://rdrr.io/r/base/paste.html)`(``donors``[``d``]``, ``"_"``, ``types``[``t``]``)``)`\
-`    ``private`` ``<-`` ``if`` ``(``types``[``t``]`` ``==`` ``"Tcells"``)`` ``1``:``40`` ``else`` ``81``:``120`\
-`    ``lam``[``private``, ``cols``]`` ``<-`` ``8``                          ``# private block, constant`\
-`    ``lam``[``41``:``80``, ``cols``]`` ``<-`` ``0.5`` ``+`` ``8`` ``*`` ``(``d`` ``-`` ``1``)`` ``/`` ``(``n_donor`` ``-`` ``1``)``  ``# coordinated gradient`\
-`  ``}`\
-`}`\
-`counts`` ``<-`` ``Matrix``::`[`Matrix`](https://rdrr.io/pkg/Matrix/man/Matrix.html)`(`[`rpois`](https://rdrr.io/r/stats/Poisson.html)`(``n_gene`` ``*`` `[`length`](https://rdrr.io/r/base/length.html)`(``groups``)``, `[`as.vector`](https://rdrr.io/r/base/vector.html)`(``lam``)``)``,`\
-`                         nrow ``=`` ``n_gene``, ncol ``=`` `[`length`](https://rdrr.io/r/base/length.html)`(``groups``)``, sparse ``=`` ``TRUE``)`\
-[`rownames`](https://rdrr.io/r/base/colnames.html)`(``counts``)`` ``<-`` `[`paste0`](https://rdrr.io/r/base/paste.html)`(``"gene"``, `[`seq_len`](https://rdrr.io/r/base/seq.html)`(``n_gene``)``)`\
-[`colnames`](https://rdrr.io/r/base/colnames.html)`(``counts``)`` ``<-`` `[`paste0`](https://rdrr.io/r/base/paste.html)`(``"cell"``, `[`seq_len`](https://rdrr.io/r/base/seq.html)`(`[`length`](https://rdrr.io/r/base/length.html)`(``groups``)``)``)`\
+<span class="va">`groups`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link"><code class="sourceCode r R">unlist</code></a></span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link"><code class="sourceCode r R">lapply</code></a></span><span class="op">`(`</span><span class="va">`donors`</span>`, `<span class="kw">`function`</span><span class="op">`(`</span><span class="va">`d`</span><span class="op">`)`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link"><code class="sourceCode r R">paste0</code></a></span><span class="op">`(`</span><span class="va">`d`</span>`, `<span class="st">`"_"`</span>`, `<span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link"><code class="sourceCode r R">rep</code></a></span><span class="op">`(`</span><span class="va">`types`</span>`, each `<span class="op">`=`</span>` `<span class="va">`n_cell`</span><span class="op">`)`</span><span class="op">`)`</span><span class="op">`)`</span>`,`\
+`                 use.names `<span class="op">`=`</span>` `<span class="cn">`FALSE`</span><span class="op">`)`</span>\
+<span class="va">`lam`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link"><code class="sourceCode r R">matrix</code></a></span><span class="op">`(`</span><span class="fl">`0.5`</span>`, nrow `<span class="op">`=`</span>` `<span class="va">`n_gene`</span>`, ncol `<span class="op">`=`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link"><code class="sourceCode r R">length</code></a></span><span class="op">`(`</span><span class="va">`groups`</span><span class="op">`)`</span><span class="op">`)`</span>\
+<span class="kw">`for`</span>` `<span class="op">`(`</span><span class="va">`d`</span>` `<span class="kw">`in`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link"><code class="sourceCode r R">seq_len</code></a></span><span class="op">`(`</span><span class="va">`n_donor`</span><span class="op">`)`</span><span class="op">`)`</span>` `<span class="op">`{`</span>\
+`  `<span class="kw">`for`</span>` `<span class="op">`(`</span><span class="va">`t`</span>` `<span class="kw">`in`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link"><code class="sourceCode r R">seq_along</code></a></span><span class="op">`(`</span><span class="va">`types`</span><span class="op">`)`</span><span class="op">`)`</span>` `<span class="op">`{`</span>\
+`    `<span class="va">`cols`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link"><code class="sourceCode r R">which</code></a></span><span class="op">`(`</span><span class="va">`groups`</span>` `<span class="op">`==`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link"><code class="sourceCode r R">paste0</code></a></span><span class="op">`(`</span><span class="va">`donors`</span><span class="op">`[`</span><span class="va">`d`</span><span class="op">`]`</span>`, `<span class="st">`"_"`</span>`, `<span class="va">`types`</span><span class="op">`[`</span><span class="va">`t`</span><span class="op">`]`</span><span class="op">`)`</span><span class="op">`)`</span>\
+`    `<span class="va">`private`</span>` `<span class="op">`<-`</span>` `<span class="kw">`if`</span>` `<span class="op">`(`</span><span class="va">`types`</span><span class="op">`[`</span><span class="va">`t`</span><span class="op">`]`</span>` `<span class="op">`==`</span>` `<span class="st">`"Tcells"`</span><span class="op">`)`</span>` `<span class="fl">`1`</span><span class="op">`:`</span><span class="fl">`40`</span>` `<span class="kw">`else`</span>` `<span class="fl">`81`</span><span class="op">`:`</span><span class="fl">`120`</span>\
+`    `<span class="va">`lam`</span><span class="op">`[`</span><span class="va">`private`</span>`, `<span class="va">`cols`</span><span class="op">`]`</span>` `<span class="op">`<-`</span>` `<span class="fl">`8`</span>`                          `<span class="co">`# private block, constant`</span>\
+`    `<span class="va">`lam`</span><span class="op">`[`</span><span class="fl">`41`</span><span class="op">`:`</span><span class="fl">`80`</span>`, `<span class="va">`cols`</span><span class="op">`]`</span>` `<span class="op">`<-`</span>` `<span class="fl">`0.5`</span>` `<span class="op">`+`</span>` `<span class="fl">`8`</span>` `<span class="op">`*`</span>` `<span class="op">`(`</span><span class="va">`d`</span>` `<span class="op">`-`</span>` `<span class="fl">`1`</span><span class="op">`)`</span>` `<span class="op">`/`</span>` `<span class="op">`(`</span><span class="va">`n_donor`</span>` `<span class="op">`-`</span>` `<span class="fl">`1`</span><span class="op">`)`</span>`  `<span class="co">`# coordinated gradient`</span>\
+`  `<span class="op">`}`</span>\
+<span class="op">`}`</span>\
+<span class="va">`counts`</span>` `<span class="op">`<-`</span>` `<span class="fu">`Matrix`</span><span class="fu">`::`</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/Matrix.html" class="external-link"><code class="sourceCode r R">Matrix</code></a></span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link"><code class="sourceCode r R">rpois</code></a></span><span class="op">`(`</span><span class="va">`n_gene`</span>` `<span class="op">`*`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link"><code class="sourceCode r R">length</code></a></span><span class="op">`(`</span><span class="va">`groups`</span><span class="op">`)`</span>`, `<span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link"><code class="sourceCode r R">as.vector</code></a></span><span class="op">`(`</span><span class="va">`lam`</span><span class="op">`)`</span><span class="op">`)`</span>`,`\
+`                         nrow `<span class="op">`=`</span>` `<span class="va">`n_gene`</span>`, ncol `<span class="op">`=`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link"><code class="sourceCode r R">length</code></a></span><span class="op">`(`</span><span class="va">`groups`</span><span class="op">`)`</span>`, sparse `<span class="op">`=`</span>` `<span class="cn">`TRUE`</span><span class="op">`)`</span>\
+<span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link"><code class="sourceCode r R">rownames</code></a></span><span class="op">`(`</span><span class="va">`counts`</span><span class="op">`)`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link"><code class="sourceCode r R">paste0</code></a></span><span class="op">`(`</span><span class="st">`"gene"`</span>`, `<span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link"><code class="sourceCode r R">seq_len</code></a></span><span class="op">`(`</span><span class="va">`n_gene`</span><span class="op">`)`</span><span class="op">`)`</span>\
+<span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link"><code class="sourceCode r R">colnames</code></a></span><span class="op">`(`</span><span class="va">`counts`</span><span class="op">`)`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link"><code class="sourceCode r R">paste0</code></a></span><span class="op">`(`</span><span class="st">`"cell"`</span>`, `<span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link"><code class="sourceCode r R">seq_len</code></a></span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link"><code class="sourceCode r R">length</code></a></span><span class="op">`(`</span><span class="va">`groups`</span><span class="op">`)`</span><span class="op">`)`</span><span class="op">`)`</span>\
 \
-`meta`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(`\
-`  donor ``=`` `[`sub`](https://rdrr.io/r/base/grep.html)`(``"_.*"``, ``""``, ``groups``)``,`\
-`  celltype ``=`` `[`sub`](https://rdrr.io/r/base/grep.html)`(``".*_"``, ``""``, ``groups``)``,`\
-`  row.names ``=`` `[`colnames`](https://rdrr.io/r/base/colnames.html)`(``counts``)`\
-`)`
+<span class="va">`meta`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link"><code class="sourceCode r R">data.frame</code></a></span><span class="op">`(`</span>\
+`  donor `<span class="op">`=`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link"><code class="sourceCode r R">sub</code></a></span><span class="op">`(`</span><span class="st">`"_.*"`</span>`, `<span class="st">`""`</span>`, `<span class="va">`groups`</span><span class="op">`)`</span>`,`\
+`  celltype `<span class="op">`=`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link"><code class="sourceCode r R">sub</code></a></span><span class="op">`(`</span><span class="st">`".*_"`</span>`, `<span class="st">`""`</span>`, `<span class="va">`groups`</span><span class="op">`)`</span>`,`\
+`  row.names `<span class="op">`=`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link"><code class="sourceCode r R">colnames</code></a></span><span class="op">`(`</span><span class="va">`counts`</span><span class="op">`)`</span>\
+<span class="op">`)`</span>
 
-## Build metacells (SuperCell 2.0 + mcRigor)
+</div>
 
-Metacells are built per donor x cell type so they never cross either
-variable. `cells_per_metacell = 15` turns each 60-cell group into ~4
-metacells; mcRigor QC runs on every group.
+</div>
 
-\
-`obj`` ``<-`` ``Seurat``::`[`CreateSeuratObject`](https://satijalab.github.io/seurat-object/reference/CreateSeuratObject.html)`(``counts ``=`` ``counts``, meta.data ``=`` ``meta``)`\
-`obj`` ``<-`` ``Seurat``::`[`NormalizeData`](https://satijalab.org/seurat/reference/NormalizeData.html)`(``obj``, verbose ``=`` ``FALSE``)`\
-`obj`` ``<-`` ``Seurat``::`[`FindVariableFeatures`](https://satijalab.org/seurat/reference/FindVariableFeatures.html)`(``obj``, nfeatures ``=`` ``200``, verbose ``=`` ``FALSE``)`\
-`obj`` ``<-`` ``Seurat``::`[`ScaleData`](https://satijalab.org/seurat/reference/ScaleData.html)`(``obj``, verbose ``=`` ``FALSE``)`\
-`obj`` ``<-`` ``Seurat``::`[`RunPCA`](https://satijalab.org/seurat/reference/RunPCA.html)`(``obj``, npcs ``=`` ``10``, verbose ``=`` ``FALSE``)`\
-\
-`obj`` ``<-`` `[`MetacellsByGroupsSuperCell`](https://mdmanurung.github.io/cellprograms/reference/MetacellsByGroupsSuperCell.md)`(``obj``,`\
-`                                  group.by ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"donor"``, ``"celltype"``)``,`\
-`                                  cells_per_metacell ``=`` ``15``,`\
-`                                  min_cells ``=`` ``50``,`\
-`                                  n_top_genes ``=`` ``200``,`\
-`                                  n_pc ``=`` ``10``,`\
-`                                  mcrigor_args ``=`` `[`list`](https://rdrr.io/r/base/list.html)`(``Nrep ``=`` ``5``)``,`\
-`                                  seed ``=`` ``7``, verbose ``=`` ``FALSE``)`\
-`res`` ``<-`` `[`GetMetacellSuperCell`](https://mdmanurung.github.io/cellprograms/reference/GetMetacellSuperCell.md)`(``obj``)`\
-`mc`` ``<-`` ``res``$``metacell_object`\
-[`ncol`](https://rdrr.io/r/base/nrow.html)`(``mc``)``                          ``# total metacells`\
-[`head`](https://rdrr.io/r/utils/head.html)`(``res``$``qc``[``, `[`c`](https://rdrr.io/r/base/c.html)`(``"metacell"``, ``"mcDiv"``, ``"dubious"``)``]``)`
+<div class="section level2">
 
-[`OptimizeGammaSuperCell()`](https://mdmanurung.github.io/cellprograms/reference/OptimizeGammaSuperCell.md)
-can replace the fixed `cells_per_metacell` when you want the granularity
-chosen by the mcRigor score (see the metacells article); the downstream
-workflow is identical either way.
+## Build metacells (SuperCell 2.0 + mcRigor)<a href="#build-metacells-supercell-2-0-mcrigor" class="anchor" aria-label="anchor"></a>
 
-## Metacell counts to donor pseudobulk
+Metacells are built per donor x cell type so they never cross either variable. `cells_per_metacell = 15` turns each 60-cell group into ~4 metacells; mcRigor QC runs on every group.
 
-With `mode = "sum"` (the default), summing metacell counts within donor
-x cell type reproduces the donor pseudobulk exactly — the metacell layer
-is lossless at the donor level and simply denoises the cells the
-pseudobulk is built from. We log-normalize the aggregated counts with
-the standard `log1p(count / library size x 10^4)` recipe and declare the
-fit’s measurement units as `"logcounts"` (this is what later lets us
-project the programs back onto single cells).
+<div id="cb2" class="sourceCode">
 
 \
-`counts_mc`` ``<-`` ``SeuratObject``::`[`LayerData`](https://satijalab.github.io/seurat-object/reference/Layers.html)`(``mc``[[``"RNA"``]``]``, layer ``=`` ``"counts"``)``  ``# genes x metacells`\
-`mc_donor`` ``<-`` ``mc``$``donor``                       ``# group columns are copied to the`\
-`mc_type`` ``<-`` ``mc``$``celltype``                     ``# metacell object's metadata`\
+<span class="va">`obj`</span>` `<span class="op">`<-`</span>` `<span class="fu">`Seurat`</span><span class="fu">`::`</span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/CreateSeuratObject.html" class="external-link"><code class="sourceCode r R">CreateSeuratObject</code></a></span><span class="op">`(`</span>`counts `<span class="op">`=`</span>` `<span class="va">`counts`</span>`, meta.data `<span class="op">`=`</span>` `<span class="va">`meta`</span><span class="op">`)`</span>\
+<span class="va">`obj`</span>` `<span class="op">`<-`</span>` `<span class="fu">`Seurat`</span><span class="fu">`::`</span><span class="fu"><a href="https://satijalab.org/seurat/reference/NormalizeData.html" class="external-link"><code class="sourceCode r R">NormalizeData</code></a></span><span class="op">`(`</span><span class="va">`obj`</span>`, verbose `<span class="op">`=`</span>` `<span class="cn">`FALSE`</span><span class="op">`)`</span>\
+<span class="va">`obj`</span>` `<span class="op">`<-`</span>` `<span class="fu">`Seurat`</span><span class="fu">`::`</span><span class="fu"><a href="https://satijalab.org/seurat/reference/FindVariableFeatures.html" class="external-link"><code class="sourceCode r R">FindVariableFeatures</code></a></span><span class="op">`(`</span><span class="va">`obj`</span>`, nfeatures `<span class="op">`=`</span>` `<span class="fl">`200`</span>`, verbose `<span class="op">`=`</span>` `<span class="cn">`FALSE`</span><span class="op">`)`</span>\
+<span class="va">`obj`</span>` `<span class="op">`<-`</span>` `<span class="fu">`Seurat`</span><span class="fu">`::`</span><span class="fu"><a href="https://satijalab.org/seurat/reference/ScaleData.html" class="external-link"><code class="sourceCode r R">ScaleData</code></a></span><span class="op">`(`</span><span class="va">`obj`</span>`, verbose `<span class="op">`=`</span>` `<span class="cn">`FALSE`</span><span class="op">`)`</span>\
+<span class="va">`obj`</span>` `<span class="op">`<-`</span>` `<span class="fu">`Seurat`</span><span class="fu">`::`</span><span class="fu"><a href="https://satijalab.org/seurat/reference/RunPCA.html" class="external-link"><code class="sourceCode r R">RunPCA</code></a></span><span class="op">`(`</span><span class="va">`obj`</span>`, npcs `<span class="op">`=`</span>` `<span class="fl">`10`</span>`, verbose `<span class="op">`=`</span>` `<span class="cn">`FALSE`</span><span class="op">`)`</span>\
 \
-`pb`` ``<-`` `[`lapply`](https://rdrr.io/r/base/lapply.html)`(``types``, ``function``(``t``)`` ``{`\
-`  ``mcs`` ``<-`` `[`colnames`](https://rdrr.io/r/base/colnames.html)`(``mc``)``[``mc_type`` ``==`` ``t``]`\
-`  ``agg`` ``<-`` `[`rowsum`](https://rdrr.io/r/base/rowsum.html)`(`[`t`](https://rdrr.io/r/base/t.html)`(`[`as.matrix`](https://rdrr.io/r/base/matrix.html)`(``counts_mc``[``, ``mcs``, drop ``=`` ``FALSE``]``)``)``,`\
-`                group ``=`` ``mc_donor``[``mcs``]``)``              ``# donors x genes (counts)`\
-`  ``agg`` ``<-`` ``agg``[``donors``, , drop ``=`` ``FALSE``]`\
-`  ``lib`` ``<-`` `[`rowSums`](https://rdrr.io/r/base/colSums.html)`(``agg``)`\
-`  ``out`` ``<-`` `[`log1p`](https://rdrr.io/r/base/Log.html)`(`[`sweep`](https://rdrr.io/r/base/sweep.html)`(``agg``, ``1``, ``lib``, ``"/"``)`` ``*`` ``1e4``)``       ``# donors x genes (logcounts)`\
-`  `[`rownames`](https://rdrr.io/r/base/colnames.html)`(``out``)`` ``<-`` ``donors``   ``# same donor id across types: how CMP pairing`\
-`  ``out``                       ``# knows which donors are shared`\
-`}``)`\
-[`names`](https://rdrr.io/r/base/names.html)`(``pb``)`` ``<-`` ``types`\
-[`lapply`](https://rdrr.io/r/base/lapply.html)`(``pb``, ``dim``)`\
-\
-`sample_metadata`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(`\
-`  observation_id ``=`` ``donors``,`\
-`  planted_activity ``=`` ``a_grad`\
-`)`\
-`x`` ``<-`` `[`as_cell_program_data`](https://mdmanurung.github.io/cellprograms/reference/as_cell_program_data.md)`(``pb``, sample_metadata ``=`` ``sample_metadata``)`
+<span class="va">`obj`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`MetacellsByGroupsSuperCell`](../reference/MetacellsByGroupsSuperCell.html)</span><span class="op">`(`</span><span class="va">`obj`</span>`,`\
+`                                  group.by `<span class="op">`=`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link"><code class="sourceCode r R">c</code></a></span><span class="op">`(`</span><span class="st">`"donor"`</span>`, `<span class="st">`"celltype"`</span><span class="op">`)`</span>`,`\
+`                                  cells_per_metacell `<span class="op">`=`</span>` `<span class="fl">`15`</span>`,`\
+`                                  min_cells `<span class="op">`=`</span>` `<span class="fl">`50`</span>`,`\
+`                                  n_top_genes `<span class="op">`=`</span>` `<span class="fl">`200`</span>`,`\
+`                                  n_pc `<span class="op">`=`</span>` `<span class="fl">`10`</span>`,`\
+`                                  mcrigor_args `<span class="op">`=`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link"><code class="sourceCode r R">list</code></a></span><span class="op">`(`</span>`Nrep `<span class="op">`=`</span>` `<span class="fl">`5`</span><span class="op">`)`</span>`,`\
+`                                  seed `<span class="op">`=`</span>` `<span class="fl">`7`</span>`, verbose `<span class="op">`=`</span>` `<span class="cn">`FALSE`</span><span class="op">`)`</span>\
+<span class="va">`res`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`GetMetacellSuperCell`](../reference/GetMetacellSuperCell.html)</span><span class="op">`(`</span><span class="va">`obj`</span><span class="op">`)`</span>\
+<span class="va">`mc`</span>` `<span class="op">`<-`</span>` `<span class="va">`res`</span><span class="op">`$`</span><span class="va">`metacell_object`</span>\
+<span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link"><code class="sourceCode r R">ncol</code></a></span><span class="op">`(`</span><span class="va">`mc`</span><span class="op">`)`</span>`                          `<span class="co">`# total metacells`</span>\
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link"><code class="sourceCode r R">head</code></a></span><span class="op">`(`</span><span class="va">`res`</span><span class="op">`$`</span><span class="va">`qc`</span><span class="op">`[`</span>`, `<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link"><code class="sourceCode r R">c</code></a></span><span class="op">`(`</span><span class="st">`"metacell"`</span>`, `<span class="st">`"mcDiv"`</span>`, `<span class="st">`"dubious"`</span><span class="op">`)`</span><span class="op">`]`</span><span class="op">`)`</span>
 
-## Fit and canonicalize programs
+</div>
 
-One empirical-Bayes matrix factorization per cell type; the coordinated
-block’s donor-varying activity and the private blocks’ constant activity
-should both be recovered as programs.
+[`OptimizeGammaSuperCell()`](../reference/OptimizeGammaSuperCell.html) can replace the fixed `cells_per_metacell` when you want the granularity chosen by the mcRigor score (see the metacells article); the downstream workflow is identical either way.
 
-\
-`fit`` ``<-`` `[`fit_celltype_programs`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)`(``x``, loading_prior ``=`` ``"point_laplace"``,`\
-`                             max_factors ``=`` ``3``, features ``=`` ``"variable"``,`\
-`                             n_variable_genes ``=`` ``400``,`\
-`                             feature_scale ``=`` ``"logcounts"``)`\
-`fit`` ``<-`` `[`canonicalize_programs`](https://mdmanurung.github.io/cellprograms/reference/canonicalize_programs.md)`(``fit``)`\
-[`program_summary`](https://mdmanurung.github.io/cellprograms/reference/program_summary.md)`(``fit``)``[``, `[`c`](https://rdrr.io/r/base/c.html)`(``"cell_type"``, ``"n_programs"``, ``"R2"``, ``"elbo"``)``]`
+</div>
+
+<div class="section level2">
+
+## Metacell counts to donor pseudobulk<a href="#metacell-counts-to-donor-pseudobulk" class="anchor" aria-label="anchor"></a>
+
+With `mode = "sum"` (the default), summing metacell counts within donor x cell type reproduces the donor pseudobulk exactly — the metacell layer is lossless at the donor level and simply denoises the cells the pseudobulk is built from. We log-normalize the aggregated counts with the standard `log1p(count / library size x 10^4)` recipe and declare the fit’s measurement units as `"logcounts"` (this is what later lets us project the programs back onto single cells).
+
+<div id="cb3" class="sourceCode">
 
 \
-[`top_genes`](https://mdmanurung.github.io/cellprograms/reference/top_genes.md)`(``fit``, ``"Tcells_1"``, n ``=`` ``6``)`\
-[`top_genes`](https://mdmanurung.github.io/cellprograms/reference/top_genes.md)`(``fit``, ``"Bcells_1"``, n ``=`` ``6``)`
+<span class="va">`counts_mc`</span>` `<span class="op">`<-`</span>` `<span class="fu">`SeuratObject`</span><span class="fu">`::`</span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/Layers.html" class="external-link"><code class="sourceCode r R">LayerData</code></a></span><span class="op">`(`</span><span class="va">`mc`</span><span class="op">`[[`</span><span class="st">`"RNA"`</span><span class="op">`]`</span><span class="op">`]`</span>`, layer `<span class="op">`=`</span>` `<span class="st">`"counts"`</span><span class="op">`)`</span>`  `<span class="co">`# genes x metacells`</span>\
+<span class="va">`mc_donor`</span>` `<span class="op">`<-`</span>` `<span class="va">`mc`</span><span class="op">`$`</span><span class="va">`donor`</span>`                       `<span class="co">`# group columns are copied to the`</span>\
+<span class="va">`mc_type`</span>` `<span class="op">`<-`</span>` `<span class="va">`mc`</span><span class="op">`$`</span><span class="va">`celltype`</span>`                     `<span class="co">`# metacell object's metadata`</span>\
+\
+<span class="va">`pb`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link"><code class="sourceCode r R">lapply</code></a></span><span class="op">`(`</span><span class="va">`types`</span>`, `<span class="kw">`function`</span><span class="op">`(`</span><span class="va">`t`</span><span class="op">`)`</span>` `<span class="op">`{`</span>\
+`  `<span class="va">`mcs`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link"><code class="sourceCode r R">colnames</code></a></span><span class="op">`(`</span><span class="va">`mc`</span><span class="op">`)`</span><span class="op">`[`</span><span class="va">`mc_type`</span>` `<span class="op">`==`</span>` `<span class="va">`t`</span><span class="op">`]`</span>\
+`  `<span class="va">`agg`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/rowsum.html" class="external-link"><code class="sourceCode r R">rowsum</code></a></span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link"><code class="sourceCode r R">t</code></a></span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link"><code class="sourceCode r R">as.matrix</code></a></span><span class="op">`(`</span><span class="va">`counts_mc`</span><span class="op">`[`</span>`, `<span class="va">`mcs`</span>`, drop `<span class="op">`=`</span>` `<span class="cn">`FALSE`</span><span class="op">`]`</span><span class="op">`)`</span><span class="op">`)`</span>`,`\
+`                group `<span class="op">`=`</span>` `<span class="va">`mc_donor`</span><span class="op">`[`</span><span class="va">`mcs`</span><span class="op">`]`</span><span class="op">`)`</span>`              `<span class="co">`# donors x genes (counts)`</span>\
+`  `<span class="va">`agg`</span>` `<span class="op">`<-`</span>` `<span class="va">`agg`</span><span class="op">`[`</span><span class="va">`donors`</span>`, , drop `<span class="op">`=`</span>` `<span class="cn">`FALSE`</span><span class="op">`]`</span>\
+`  `<span class="va">`lib`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link"><code class="sourceCode r R">rowSums</code></a></span><span class="op">`(`</span><span class="va">`agg`</span><span class="op">`)`</span>\
+`  `<span class="va">`out`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link"><code class="sourceCode r R">log1p</code></a></span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/base/sweep.html" class="external-link"><code class="sourceCode r R">sweep</code></a></span><span class="op">`(`</span><span class="va">`agg`</span>`, `<span class="fl">`1`</span>`, `<span class="va">`lib`</span>`, `<span class="st">`"/"`</span><span class="op">`)`</span>` `<span class="op">`*`</span>` `<span class="fl">`1e4`</span><span class="op">`)`</span>`       `<span class="co">`# donors x genes (logcounts)`</span>\
+`  `<span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link"><code class="sourceCode r R">rownames</code></a></span><span class="op">`(`</span><span class="va">`out`</span><span class="op">`)`</span>` `<span class="op">`<-`</span>` `<span class="va">`donors`</span>`   `<span class="co">`# same donor id across types: how CMP pairing`</span>\
+`  `<span class="va">`out`</span>`                       `<span class="co">`# knows which donors are shared`</span>\
+<span class="op">`}`</span><span class="op">`)`</span>\
+<span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link"><code class="sourceCode r R">names</code></a></span><span class="op">`(`</span><span class="va">`pb`</span><span class="op">`)`</span>` `<span class="op">`<-`</span>` `<span class="va">`types`</span>\
+<span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link"><code class="sourceCode r R">lapply</code></a></span><span class="op">`(`</span><span class="va">`pb`</span>`, `<span class="va">`dim`</span><span class="op">`)`</span>\
+\
+<span class="va">`sample_metadata`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link"><code class="sourceCode r R">data.frame</code></a></span><span class="op">`(`</span>\
+`  observation_id `<span class="op">`=`</span>` `<span class="va">`donors`</span>`,`\
+`  planted_activity `<span class="op">`=`</span>` `<span class="va">`a_grad`</span>\
+<span class="op">`)`</span>\
+<span class="va">`x`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`as_cell_program_data`](../reference/as_cell_program_data.html)</span><span class="op">`(`</span><span class="va">`pb`</span>`, sample_metadata `<span class="op">`=`</span>` `<span class="va">`sample_metadata`</span><span class="op">`)`</span>
 
-The donor x program score matrix carries the planted gradient: the
-coordinated programs’ scores track the donor index, the private programs
-are flat.
+</div>
+
+</div>
+
+<div class="section level2">
+
+## Fit and canonicalize programs<a href="#fit-and-canonicalize-programs" class="anchor" aria-label="anchor"></a>
+
+One empirical-Bayes matrix factorization per cell type; the coordinated block’s donor-varying activity and the private blocks’ constant activity should both be recovered as programs.
+
+<div id="cb4" class="sourceCode">
 
 \
-`Z`` ``<-`` `[`program_scores`](https://mdmanurung.github.io/cellprograms/reference/program_scores.md)`(``fit``)`\
-[`plot_program_scores`](https://mdmanurung.github.io/cellprograms/reference/plot_program_scores.md)`(``fit``, annotation ``=`` ``"planted_activity"``)`\
-[`plot_variance_explained`](https://mdmanurung.github.io/cellprograms/reference/plot_variance_explained.md)`(``fit``)`
+<span class="va">`fit`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`fit_celltype_programs`](../reference/fit_celltype_programs.html)</span><span class="op">`(`</span><span class="va">`x`</span>`, loading_prior `<span class="op">`=`</span>` `<span class="st">`"point_laplace"`</span>`,`\
+`                             max_factors `<span class="op">`=`</span>` `<span class="fl">`3`</span>`, features `<span class="op">`=`</span>` `<span class="st">`"variable"`</span>`,`\
+`                             n_variable_genes `<span class="op">`=`</span>` `<span class="fl">`400`</span>`,`\
+`                             feature_scale `<span class="op">`=`</span>` `<span class="st">`"logcounts"`</span><span class="op">`)`</span>\
+<span class="va">`fit`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`canonicalize_programs`](../reference/canonicalize_programs.html)</span><span class="op">`(`</span><span class="va">`fit`</span><span class="op">`)`</span>\
+<span class="fu">[`program_summary`](../reference/program_summary.html)</span><span class="op">`(`</span><span class="va">`fit`</span><span class="op">`)`</span><span class="op">`[`</span>`, `<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link"><code class="sourceCode r R">c</code></a></span><span class="op">`(`</span><span class="st">`"cell_type"`</span>`, `<span class="st">`"n_programs"`</span>`, `<span class="st">`"R2"`</span>`, `<span class="st">`"elbo"`</span><span class="op">`)`</span><span class="op">`]`</span>
 
-## Stability
+</div>
 
-[`assess_program_stability()`](https://mdmanurung.github.io/cellprograms/reference/assess_program_stability.md)
-refits on donor subsamples and reports how often each program is
-recovered — the same guarantee as in the pseudobulk workflow, now on
-metacell-derived inputs.
-
-\
-`fit`` ``<-`` `[`assess_program_stability`](https://mdmanurung.github.io/cellprograms/reference/assess_program_stability.md)`(``fit``, n_boot ``=`` ``4``, resample_frac ``=`` ``0.7``,`\
-`                                seed ``=`` ``7``, progress ``=`` ``FALSE``)`\
-`fit``$``stability``$``per_program``[``, `[`c`](https://rdrr.io/r/base/c.html)`(``"program_id"``, ``"recovery_freq"``)``]`
-
-## Coordinated multicellular programs
-
-[`find_coordinated_programs()`](https://mdmanurung.github.io/cellprograms/reference/find_coordinated_programs.md)
-tests whether programs from *different* cell types co-vary across
-donors. The planted truth: the two programs of the coordinated block
-(one per type) share donor activity; the private programs do not.
+<div id="cb5" class="sourceCode">
 
 \
-`cmp`` ``<-`` `[`find_coordinated_programs`](https://mdmanurung.github.io/cellprograms/reference/find_coordinated_programs.md)`(``fit``, n_perm ``=`` ``99``, seed ``=`` ``7``)`\
-`cmp`\
-[`plot_cmp_network`](https://mdmanurung.github.io/cellprograms/reference/plot_cmp_network.md)`(``cmp``)`
+<span class="fu">[`top_genes`](../reference/top_genes.html)</span><span class="op">`(`</span><span class="va">`fit`</span>`, `<span class="st">`"Tcells_1"`</span>`, n `<span class="op">`=`</span>` `<span class="fl">`6`</span><span class="op">`)`</span>\
+<span class="fu">[`top_genes`](../reference/top_genes.html)</span><span class="op">`(`</span><span class="va">`fit`</span>`, `<span class="st">`"Bcells_1"`</span>`, n `<span class="op">`=`</span>` `<span class="fl">`6`</span><span class="op">`)`</span>
 
-The coordinated-block pair is called; the private programs (constant
-donor activity, independent noise) are not.
-[`annotate_cmp_tf()`](https://mdmanurung.github.io/cellprograms/reference/annotate_cmp_tf.md)
-/
-[`cmp_triage()`](https://mdmanurung.github.io/cellprograms/reference/cmp_triage.md)
-add TF-footprint annotation and triage on real data (external CollecTRI
-download, not run here).
+</div>
 
-## Shared vs specific programs
+The donor x program score matrix carries the planted gradient: the coordinated programs’ scores track the donor index, the private programs are flat.
 
-[`program_sharing()`](https://mdmanurung.github.io/cellprograms/reference/program_sharing.md)
-asks whether matched programs share their gene *effects* — here the
-coordinated block is literally the same genes in both types, so a shared
-call on the coordinated pair is the planted truth.
+<div id="cb6" class="sourceCode">
 
 \
-`if`` ``(`[`requireNamespace`](https://rdrr.io/r/base/ns-load.html)`(``"mashr"``, quietly ``=`` ``TRUE``)``)`` ``{`\
-`  ``shr`` ``<-`` `[`program_sharing`](https://mdmanurung.github.io/cellprograms/reference/program_sharing.md)`(``fit``, n_perm ``=`` ``99``, seed ``=`` ``7``)`\
-`  ``shr``$``matches`\
-`  `[`plot_sharing`](https://mdmanurung.github.io/cellprograms/reference/plot_sharing.md)`(``shr``)`\
-`}`
+<span class="va">`Z`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`program_scores`](../reference/program_scores.html)</span><span class="op">`(`</span><span class="va">`fit`</span><span class="op">`)`</span>\
+<span class="fu">[`plot_program_scores`](../reference/plot_program_scores.html)</span><span class="op">`(`</span><span class="va">`fit`</span>`, annotation `<span class="op">`=`</span>` `<span class="st">`"planted_activity"`</span><span class="op">`)`</span>\
+<span class="fu">[`plot_variance_explained`](../reference/plot_variance_explained.html)</span><span class="op">`(`</span><span class="va">`fit`</span><span class="op">`)`</span>
 
-## Project programs back onto single cells
+</div>
 
-Because the fit declared `feature_scale = "logcounts"`, the fitted
-programs can be projected onto the original single cells
-([`project_programs_to_cells()`](https://mdmanurung.github.io/cellprograms/reference/project_programs_to_cells.md)
-replays the fit’s preprocessing and infers per-cell activities against
-the frozen loadings). The per-cell activity of a coordinated program
-should recover the planted donor gradient — this is the bridge from
-donor-level discovery to cell-level readout.
+</div>
+
+<div class="section level2">
+
+## Stability<a href="#stability" class="anchor" aria-label="anchor"></a>
+
+[`assess_program_stability()`](../reference/assess_program_stability.html) refits on donor subsamples and reports how often each program is recovered — the same guarantee as in the pseudobulk workflow, now on metacell-derived inputs.
+
+<div id="cb7" class="sourceCode">
 
 \
-`logcounts_sc`` ``<-`` `[`as.matrix`](https://rdrr.io/r/base/matrix.html)`(``SeuratObject``::`[`LayerData`](https://satijalab.github.io/seurat-object/reference/Layers.html)`(``obj``[[``"RNA"``]``]``, layer ``=`` ``"data"``)``)`\
-`logcounts_sc`` ``<-`` `[`t`](https://rdrr.io/r/base/t.html)`(``logcounts_sc``)``                   ``# cells x genes (dense)`\
-`proj`` ``<-`` `[`project_programs_to_cells`](https://mdmanurung.github.io/cellprograms/reference/project_programs_to_cells.md)`(``fit``, expression ``=`` ``logcounts_sc``,`\
-`                                  cell_types ``=`` `[`setNames`](https://rdrr.io/r/stats/setNames.html)`(``meta``$``celltype``,`\
-`                                                        `[`rownames`](https://rdrr.io/r/base/colnames.html)`(``meta``)``)``)`\
-`act`` ``<-`` ``proj``$``activity`\
-`coord_prog`` ``<-`` `[`grep`](https://rdrr.io/r/base/grep.html)`(``"^Tcells"``, `[`colnames`](https://rdrr.io/r/base/colnames.html)`(``act``)``, value ``=`` ``TRUE``)``[``1``]`\
-`# Activity is type-specific: cells outside the program's source type get NA,`\
-`# so donor means are computed within T cells only.`\
-`is_t`` ``<-`` ``meta``$``celltype`` ``==`` ``"Tcells"`\
-`donor_mean`` ``<-`` `[`tapply`](https://rdrr.io/r/base/tapply.html)`(``act``[``is_t``, ``coord_prog``]``, ``meta``$``donor``[``is_t``]``, ``mean``)`\
-[`round`](https://rdrr.io/r/base/Round.html)`(`[`cor`](https://rdrr.io/r/stats/cor.html)`(``donor_mean``[``donors``]``, ``a_grad``, method ``=`` ``"spearman"``)``, ``3``)`
+<span class="va">`fit`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`assess_program_stability`](../reference/assess_program_stability.html)</span><span class="op">`(`</span><span class="va">`fit`</span>`, n_boot `<span class="op">`=`</span>` `<span class="fl">`4`</span>`, resample_frac `<span class="op">`=`</span>` `<span class="fl">`0.7`</span>`,`\
+`                                seed `<span class="op">`=`</span>` `<span class="fl">`7`</span>`, progress `<span class="op">`=`</span>` `<span class="cn">`FALSE`</span><span class="op">`)`</span>\
+<span class="va">`fit`</span><span class="op">`$`</span><span class="va">`stability`</span><span class="op">`$`</span><span class="va">`per_program`</span><span class="op">`[`</span>`, `<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link"><code class="sourceCode r R">c</code></a></span><span class="op">`(`</span><span class="st">`"program_id"`</span>`, `<span class="st">`"recovery_freq"`</span><span class="op">`)`</span><span class="op">`]`</span>
 
-The high rank correlation between the projected per-cell activity
-(averaged within donor) and the planted gradient confirms the metacell
--\> donor fit -\> cell projection round trip preserves the biology.
-Absolute activity levels live on the fit’s scale; the donor ordering is
-the readout.
+</div>
 
-## Session info
+</div>
+
+<div class="section level2">
+
+## Coordinated multicellular programs<a href="#coordinated-multicellular-programs" class="anchor" aria-label="anchor"></a>
+
+[`find_coordinated_programs()`](../reference/find_coordinated_programs.html) tests whether programs from *different* cell types co-vary across donors. The planted truth: the two programs of the coordinated block (one per type) share donor activity; the private programs do not.
+
+<div id="cb8" class="sourceCode">
+
+\
+<span class="va">`cmp`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`find_coordinated_programs`](../reference/find_coordinated_programs.html)</span><span class="op">`(`</span><span class="va">`fit`</span>`, n_perm `<span class="op">`=`</span>` `<span class="fl">`99`</span>`, seed `<span class="op">`=`</span>` `<span class="fl">`7`</span><span class="op">`)`</span>\
+<span class="va">`cmp`</span>\
+<span class="fu">[`plot_cmp_network`](../reference/plot_cmp_network.html)</span><span class="op">`(`</span><span class="va">`cmp`</span><span class="op">`)`</span>
+
+</div>
+
+The coordinated-block pair is called; the private programs (constant donor activity, independent noise) are not. [`annotate_cmp_tf()`](../reference/annotate_cmp_tf.html) / [`cmp_triage()`](../reference/cmp_triage.html) add TF-footprint annotation and triage on real data (external CollecTRI download, not run here).
+
+</div>
+
+<div class="section level2">
+
+## Shared vs specific programs<a href="#shared-vs-specific-programs" class="anchor" aria-label="anchor"></a>
+
+[`program_sharing()`](../reference/program_sharing.html) asks whether matched programs share their gene *effects* — here the coordinated block is literally the same genes in both types, so a shared call on the coordinated pair is the planted truth.
+
+<div id="cb9" class="sourceCode">
+
+\
+<span class="kw">`if`</span>` `<span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link"><code class="sourceCode r R">requireNamespace</code></a></span><span class="op">`(`</span><span class="st">`"mashr"`</span>`, quietly `<span class="op">`=`</span>` `<span class="cn">`TRUE`</span><span class="op">`)`</span><span class="op">`)`</span>` `<span class="op">`{`</span>\
+`  `<span class="va">`shr`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`program_sharing`](../reference/program_sharing.html)</span><span class="op">`(`</span><span class="va">`fit`</span>`, n_perm `<span class="op">`=`</span>` `<span class="fl">`99`</span>`, seed `<span class="op">`=`</span>` `<span class="fl">`7`</span><span class="op">`)`</span>\
+`  `<span class="va">`shr`</span><span class="op">`$`</span><span class="va">`matches`</span>\
+`  `<span class="fu">[`plot_sharing`](../reference/plot_sharing.html)</span><span class="op">`(`</span><span class="va">`shr`</span><span class="op">`)`</span>\
+<span class="op">`}`</span>
+
+</div>
+
+</div>
+
+<div class="section level2">
+
+## Project programs back onto single cells<a href="#project-programs-back-onto-single-cells" class="anchor" aria-label="anchor"></a>
+
+Because the fit declared `feature_scale = "logcounts"`, the fitted programs can be projected onto the original single cells ([`project_programs_to_cells()`](../reference/project_programs_to_cells.html) replays the fit’s preprocessing and infers per-cell activities against the frozen loadings). The per-cell activity of a coordinated program should recover the planted donor gradient — this is the bridge from donor-level discovery to cell-level readout.
+
+<div id="cb10" class="sourceCode">
+
+\
+<span class="va">`logcounts_sc`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link"><code class="sourceCode r R">as.matrix</code></a></span><span class="op">`(`</span><span class="fu">`SeuratObject`</span><span class="fu">`::`</span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/Layers.html" class="external-link"><code class="sourceCode r R">LayerData</code></a></span><span class="op">`(`</span><span class="va">`obj`</span><span class="op">`[[`</span><span class="st">`"RNA"`</span><span class="op">`]`</span><span class="op">`]`</span>`, layer `<span class="op">`=`</span>` `<span class="st">`"data"`</span><span class="op">`)`</span><span class="op">`)`</span>\
+<span class="va">`logcounts_sc`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link"><code class="sourceCode r R">t</code></a></span><span class="op">`(`</span><span class="va">`logcounts_sc`</span><span class="op">`)`</span>`                   `<span class="co">`# cells x genes (dense)`</span>\
+<span class="va">`proj`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`project_programs_to_cells`](../reference/project_programs_to_cells.html)</span><span class="op">`(`</span><span class="va">`fit`</span>`, expression `<span class="op">`=`</span>` `<span class="va">`logcounts_sc`</span>`,`\
+`                                  cell_types `<span class="op">`=`</span>` `<span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link"><code class="sourceCode r R">setNames</code></a></span><span class="op">`(`</span><span class="va">`meta`</span><span class="op">`$`</span><span class="va">`celltype`</span>`,`\
+`                                                        `<span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link"><code class="sourceCode r R">rownames</code></a></span><span class="op">`(`</span><span class="va">`meta`</span><span class="op">`)`</span><span class="op">`)`</span><span class="op">`)`</span>\
+<span class="va">`act`</span>` `<span class="op">`<-`</span>` `<span class="va">`proj`</span><span class="op">`$`</span><span class="va">`activity`</span>\
+<span class="va">`coord_prog`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link"><code class="sourceCode r R">grep</code></a></span><span class="op">`(`</span><span class="st">`"^Tcells"`</span>`, `<span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link"><code class="sourceCode r R">colnames</code></a></span><span class="op">`(`</span><span class="va">`act`</span><span class="op">`)`</span>`, value `<span class="op">`=`</span>` `<span class="cn">`TRUE`</span><span class="op">`)`</span><span class="op">`[`</span><span class="fl">`1`</span><span class="op">`]`</span>\
+<span class="co">`# Activity is type-specific: cells outside the program's source type get NA,`</span>\
+<span class="co">`# so donor means are computed within T cells only.`</span>\
+<span class="va">`is_t`</span>` `<span class="op">`<-`</span>` `<span class="va">`meta`</span><span class="op">`$`</span><span class="va">`celltype`</span>` `<span class="op">`==`</span>` `<span class="st">`"Tcells"`</span>\
+<span class="va">`donor_mean`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/tapply.html" class="external-link"><code class="sourceCode r R">tapply</code></a></span><span class="op">`(`</span><span class="va">`act`</span><span class="op">`[`</span><span class="va">`is_t`</span>`, `<span class="va">`coord_prog`</span><span class="op">`]`</span>`, `<span class="va">`meta`</span><span class="op">`$`</span><span class="va">`donor`</span><span class="op">`[`</span><span class="va">`is_t`</span><span class="op">`]`</span>`, `<span class="va">`mean`</span><span class="op">`)`</span>\
+<span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link"><code class="sourceCode r R">round</code></a></span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link"><code class="sourceCode r R">cor</code></a></span><span class="op">`(`</span><span class="va">`donor_mean`</span><span class="op">`[`</span><span class="va">`donors`</span><span class="op">`]`</span>`, `<span class="va">`a_grad`</span>`, method `<span class="op">`=`</span>` `<span class="st">`"spearman"`</span><span class="op">`)`</span>`, `<span class="fl">`3`</span><span class="op">`)`</span>
+
+</div>
+
+The high rank correlation between the projected per-cell activity (averaged within donor) and the planted gradient confirms the metacell -\> donor fit -\> cell projection round trip preserves the biology. Absolute activity levels live on the fit’s scale; the donor ordering is the readout.
+
+</div>
+
+<div class="section level2">
+
+## Session info<a href="#session-info" class="anchor" aria-label="anchor"></a>
+
+</div>

@@ -29,8 +29,9 @@ loading estimator inherited from flashier/ebnm.
 
 ## Release prerequisites still open
 
-The maintainer email in DESCRIPTION is still a placeholder and requires the
-author's real contact decision. Optional heavy dependencies are not installed
-merely to remove skips. Cross-platform CI is configured, not executed here.
+DESCRIPTION reuses the maintainer's existing public repository contact under
+delegated repository-completion approval. Optional heavy dependencies are not
+installed merely to remove skips. Cross-platform CI must be judged from actual
+run receipts, not from configuration alone.
 Data permissions, final manifests, independent scientific campaigns and release
 publication remain separate gates.

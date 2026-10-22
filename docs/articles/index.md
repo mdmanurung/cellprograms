@@ -1,38 +1,77 @@
+<div class="page-header">
+
 # Articles
+
+</div>
+
+<div class="section">
 
 ### Getting started
 
-- [Quick start: from pseudobulk to shared
-  programs](https://mdmanurung.github.io/cellprograms/articles/quickstart.md):
-- [Metacells: SuperCell (default) and SEACells with mcRigor gamma
-  optimization](https://mdmanurung.github.io/cellprograms/articles/metacells_seacells.md):
-- [From metacells to programs: the SuperCell + mcRigor
-  workflow](https://mdmanurung.github.io/cellprograms/articles/metacells_to_programs.md):
+<div class="section-desc">
+
+</div>
+
+[Quick start: from pseudobulk to shared programs](quickstart.html)<br>
+
+[Metacells: SuperCell (default) and SEACells with mcRigor gamma optimization](metacells_seacells.html)<br>
+
+[From metacells to programs: the SuperCell + mcRigor workflow](metacells_to_programs.html)<br>
+
+</div>
+
+<div class="section">
 
 ### Methods
 
-- [How the model works: mechanisms of
-  cellprograms](https://mdmanurung.github.io/cellprograms/articles/model_mechanisms.md):
-- [The cebmf_torch backend: covariate-EBMF in
-  torch](https://mdmanurung.github.io/cellprograms/articles/cebmf_backend.md):
-- [Joint and tensor factorization: EB-CP and block
-  EBMF](https://mdmanurung.github.io/cellprograms/articles/coordination_joint.md):
+<div class="section-desc">
+
+</div>
+
+[How the model works: mechanisms of cellprograms](model_mechanisms.html)<br>
+
+[The cebmf_torch backend: covariate-EBMF in torch](cebmf_backend.html)<br>
+
+[Joint and tensor factorization: EB-CP and block EBMF](coordination_joint.html)<br>
+
+</div>
+
+<div class="section">
 
 ### Case studies
 
-- [Case study: cross-cell-type programs in COVID-19 PBMC
-  cohorts](https://mdmanurung.github.io/cellprograms/articles/real_data_case_study.md):
-- [Case study: DIVAS COVID-19 multi-omics reanalysis with
-  cellprograms](https://mdmanurung.github.io/cellprograms/articles/divas_case_study.md):
-- [Cross-cohort replication: a preregistered-style case
-  study](https://mdmanurung.github.io/cellprograms/articles/cross_cohort_replication.md):
+<div class="section-desc">
+
+</div>
+
+[Historical case study: cross-cell-type COVID-19 PBMC programs](real_data_case_study.html)<br>
+
+[Historical case study: DIVAS COVID-19 multi-omics](divas_case_study.html)<br>
+
+[Cross-cohort replication: a preregistered-style case study](cross_cohort_replication.html)<br>
+
+</div>
+
+<div class="section">
 
 ### Applications
 
-- [Case study: immune-aging programs across 8 global PBMC
-  cohorts](https://mdmanurung.github.io/cellprograms/articles/immune_aging_cross_cohort.md):
+<div class="section-desc">
+
+</div>
+
+[Case study: immune-aging programs across 8 global PBMC cohorts](immune_aging_cross_cohort.html)<br>
+
+</div>
+
+<div class="section">
 
 ### Comparisons
 
-- [Compared to MOFAcellulaR: local-first vs joint multicellular factor
-  analysis](https://mdmanurung.github.io/cellprograms/articles/mofacellular_comparison.md):
+<div class="section-desc">
+
+</div>
+
+[Historical comparison: local-first and joint multicellular factors](mofacellular_comparison.html)<br>
+
+</div>

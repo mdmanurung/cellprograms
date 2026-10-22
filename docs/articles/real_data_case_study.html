@@ -5,13 +5,13 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Case study: cross-cell-type programs in COVID-19 PBMC cohorts • cellprograms</title>
+<title>Historical case study: cross-cell-type COVID-19 PBMC programs • cellprograms</title>
 <!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Case study: cross-cell-type programs in COVID-19 PBMC cohorts">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Historical case study: cross-cell-type COVID-19 PBMC programs">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -35,15 +35,16 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/quickstart.html">Quick start: from pseudobulk to shared programs</a></li>
-    <li><a class="dropdown-item" href="../articles/metacells_seacells.html">Metacells with SEACells and mcRigor gamma optimization</a></li>
+    <li><a class="dropdown-item" href="../articles/metacells_seacells.html">Metacells: SuperCell (default) and SEACells with mcRigor gamma optimization</a></li>
+    <li><a class="dropdown-item" href="../articles/metacells_to_programs.html">From metacells to programs: the SuperCell + mcRigor workflow</a></li>
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cebmf_backend.html">The cebmf_torch backend: covariate-EBMF in torch</a></li>
     <li><a class="dropdown-item" href="../articles/coordination_joint.html">Joint and tensor factorization: EB-CP and block EBMF</a></li>
-    <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
-    <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Historical case study: cross-cell-type COVID-19 PBMC programs</a></li>
+    <li><a class="dropdown-item" href="../articles/divas_case_study.html">Historical case study: DIVAS COVID-19 multi-omics</a></li>
     <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
     <li><a class="dropdown-item" href="../articles/immune_aging_cross_cohort.html">Case study: immune-aging programs across 8 global PBMC cohorts</a></li>
-    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis</a></li>
+    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Historical comparison: local-first and joint multicellular factors</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -65,7 +66,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Case study: cross-cell-type programs in COVID-19 PBMC cohorts</h1>
+      <h1>Historical case study: cross-cell-type COVID-19 PBMC programs</h1>
             
       
 
@@ -74,13 +75,18 @@
 
     
     
-<p>This article walks through a full <code>cellprograms</code> analysis
-of two real COVID-19 PBMC single-cell cohorts (Stephenson et al. 2021;
+<p><strong>Historical precomputed evidence, not a new source-verified
+reproduction.</strong> Exact matrices, transformations, cohort
+eligibility and use/redistribution rights must be resolved before the
+maintained study is executed. Fixed-input node p-values and descriptive
+sharing labels do not certify edge/CMP-set inference.</p>
+<p>This article preserves a past <code>cellprograms</code> analysis of
+two real COVID-19 PBMC single-cell cohorts (Stephenson et al. 2021;
 COMBAT consortium), demonstrating program discovery, cross-cell-type
 coordination, program sharing, and the artifact-masking workflow. All
 numbers and figures below are precomputed; the code chunks show exactly
-how each result was produced and can be re-run against the public data
-(see <a href="#reproducing">Reproducing</a>).</p>
+the historical intended recipe. This is not a claim that a clean
+checkout currently regenerates those results (see <a href="#reproducing">Reproducing</a>).</p>
 <div class="section level2">
 <h2 id="data-and-fitting">Data and fitting<a class="anchor" aria-label="anchor" href="#data-and-fitting"></a>
 </h2>
@@ -287,11 +293,12 @@ non-empty in 117 group-fits, off-diagonal V entries are nonzero in only
 threshold</strong>. The identity fallback is structural (loading
 posterior SDs are small relative to effect sizes) but harmless — sharing
 calls do not depend on it.</p>
-<p><strong>Matching calibration.</strong> Re-running the cross-cell-type
-matching at n_perm = 1999 (vs 199): edge Jaccard 0.78 (Stephenson) /
-0.82 (COMBAT), sharing-group ARI <strong>0.85 / 0.89</strong>, group
-counts 39 → 41 and 41 → 42. Matching is stable at realistic permutation
-budgets.</p>
+<p><strong>Historical matching sensitivity, not calibration.</strong>
+Re-running the cross-cell-type matching at n_perm = 1999 (vs 199): edge
+Jaccard 0.78 (Stephenson) / 0.82 (COMBAT), sharing-group ARI
+<strong>0.85 / 0.89</strong>, group counts 39 → 41 and 41 → 42. This
+describes sensitivity of the historical matching output, not valid
+sharing inference or independent calibration.</p>
 </div>
 <div class="section level2">
 <h2 id="coordinated-multi-cell-type-programs">Coordinated multi-cell-type programs<a class="anchor" aria-label="anchor" href="#coordinated-multi-cell-type-programs"></a>
@@ -327,10 +334,12 @@ masked Stephenson fit</div>
 carries both disease-relevant and disease-irrelevant multicellular
 programs. CMP membership overlaps the sharing groups but is not
 identical: sharing (mashr) is a loading-space statement, coordination is
-a score-space statement, and the two views agree on the biology
-(interferon, cell cycle) while disagreeing on program-level details —
-which is precisely the information the two-test workflow is designed to
-surface.</p>
+a score-space statement. Apparent historical agreement in biological
+labels is descriptive; it does not validate either test or prove common
+mechanisms. The historical discussion emphasized (interferon, cell
+cycle) while disagreeing on program-level details — which motivate
+separately prespecified follow-up rather than a two-test scientific
+certificate.</p>
 </div>
 <div class="section level2">
 <h2 id="reproducing">Reproducing<a class="anchor" aria-label="anchor" href="#reproducing"></a>
@@ -345,8 +354,9 @@ preregistrations</li>
 <code>benchmarks/divas_comparison/</code> — head-to-head comparison
 against DIVAS on the Su et al. COVID-19 multi-omics case study</li>
 <li>Real-data fits are large and not bundled with the package; the
-scripts rebuild them from public data (ArrayExpress E-MTAB-8731 for
-Stephenson; COMBAT via the consortium release).</li>
+scripts require verified source/units/rights before reconstruction
+(ArrayExpress E-MTAB-10026 for Stephenson; COMBAT via the consortium
+release).</li>
 </ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

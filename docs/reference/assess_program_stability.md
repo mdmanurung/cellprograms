@@ -1,8 +1,24 @@
+<div class="page-header">
+
 # Assess program stability by donor subsampling
+
+<div class="d-none name">
+
+`assess_program_stability.Rd`
+
+</div>
+
+</div>
+
+<div class="ref-description section level2">
 
 Assess program stability by donor subsampling
 
-## Usage
+</div>
+
+<div class="section level2">
+
+## Usage<a href="#ref-usage" class="anchor" aria-label="anchor"></a>
 
 ``` r
 assess_program_stability(
@@ -17,76 +33,58 @@ assess_program_stability(
 )
 ```
 
-## Arguments
+</div>
 
-- fit:
+<div class="section level2">
 
-  A canonicalized \`cell_program_fit\` (refit uses its stored
-  preprocessing settings, gene sets and covariates).
+## Arguments<a href="#arguments" class="anchor" aria-label="anchor"></a>
 
-- n_boot:
+fit<a href="#arg-fit" class="anchor" aria-label="anchor"></a><br>
+A canonicalized \`cell_program_fit\` (refit uses its stored preprocessing settings, gene sets and covariates).
 
-  Number of subsample refits.
+n_boot<a href="#arg-n-boot" class="anchor" aria-label="anchor"></a><br>
+Number of subsample refits.
 
-- match_method:
+match_method<a href="#arg-match-method" class="anchor" aria-label="anchor"></a><br>
+Matching method for \`match_programs\`.
 
-  Matching method for \`match_programs\`.
+sim_threshold<a href="#arg-sim-threshold" class="anchor" aria-label="anchor"></a><br>
+Minimum \|cosine\| for a factor-level match.
 
-- sim_threshold:
+top_n<a href="#arg-top-n" class="anchor" aria-label="anchor"></a><br>
+Top-gene set size for Jaccard recovery.
 
-  Minimum \|cosine\| for a factor-level match.
+resample_frac<a href="#arg-resample-frac" class="anchor" aria-label="anchor"></a><br>
+Fraction of donors kept per cell type per refit.
 
-- top_n:
+seed<a href="#arg-seed" class="anchor" aria-label="anchor"></a><br>
+Random seed.
 
-  Top-gene set size for Jaccard recovery.
+progress<a href="#arg-progress" class="anchor" aria-label="anchor"></a><br>
+Print progress messages.
 
-- resample_frac:
+</div>
 
-  Fraction of donors kept per cell type per refit.
+<div class="section level2">
 
-- seed:
-
-  Random seed.
-
-- progress:
-
-  Print progress messages.
-
-## Value
+## Value<a href="#value" class="anchor" aria-label="anchor"></a>
 
 The fit with \`fit\$stability\` populated:
 
-- per_program:
+per_program<br>
+One row per program: \`n_hit\` (refits whose match recovered the program), \`n_eligible\` (successful refits in which the program's cell type produced at least one factor, i.e. matching was possible), \`recovery_freq\` (\*\*legacy\*\*: unconditional hit fraction over all REQUESTED iterations, \`n_hit / n_boot\` — not an estimate of biological recovery conditional on successful refitting), \`conditional_recovery_freq\` (\`n_hit / valid_refits\`, NA when no refit succeeded; the denominator counts successful refits, not the replicates where the program's cell type retained a factor — use \`n_hit / n_eligible\` for the per-program conditional rate), median score correlation, median loading cosine, sign consistency, and top-gene Jaccard.
 
-  One row per program: \`n_hit\` (refits whose match recovered the
-  program), \`n_eligible\` (successful refits in which the program's
-  cell type produced at least one factor, i.e. matching was possible),
-  \`recovery_freq\` (\*\*legacy\*\*: unconditional hit fraction over all
-  REQUESTED iterations, \`n_hit / n_boot\` — not an estimate of
-  biological recovery conditional on successful refitting),
-  \`conditional_recovery_freq\` (\`n_hit / valid_refits\`, NA when no
-  refit succeeded; the denominator counts successful refits, not the
-  replicates where the program's cell type retained a factor — use
-  \`n_hit / n_eligible\` for the per-program conditional rate), median
-  score correlation, median loading cosine, sign consistency, and
-  top-gene Jaccard.
+valid_refits, failed_refits<br>
+Refit denominator accounting. Failed refits are never silently dropped: any failure warns, and an all-fail run yields NA rates (undefined), never an artificial 0.
 
-- valid_refits, failed_refits:
+replicate_log<br>
+One row per requested refit: \`replicate\`, \`seed\`, \`status\` ("ok"/"error"), \`error_class\`/\`error_message\`, \`elapsed_seconds\`, \`n_obs\` (sampled observations per cell type), \`n_factors\` (refit factor count per cell type), and \`eligible\` (whether matching could be attempted). A successful refit with no matched factor is distinguishable from a failed refit. \`refit_settings\` records the intended estimator arguments, including backend/noise controls, for every success and failure. Frozen specs govern preprocessing and units; legacy fits use their stored units. \`effective_refit\` retains actual per-type effective settings, fallback, known noise and backend convergence when available; NULL after failure. Stability targets the full fitting procedure including documented fallback behavior, not a fixed selected estimator.
 
-  Refit denominator accounting. Failed refits are never silently
-  dropped: any failure warns, and an all-fail run yields NA rates
-  (undefined), never an artificial 0.
+</div>
 
-- replicate_log:
+<div class="section level2">
 
-  One row per requested refit: \`replicate\`, \`seed\`, \`status\`
-  ("ok"/"error"), \`error_class\`/\`error_message\`,
-  \`elapsed_seconds\`, \`n_obs\` (sampled observations per cell type),
-  \`n_factors\` (refit factor count per cell type), and \`eligible\`
-  (whether matching could be attempted). A successful refit with no
-  matched factor is distinguishable from a failed refit.
-
-## Examples
+## Examples<a href="#ref-examples" class="anchor" aria-label="anchor"></a>
 
 ``` r
 sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
@@ -96,22 +94,6 @@ fit <- canonicalize_programs(fit)
 # few subsamples for a quick example; use more (e.g. 100) in practice
 fit <- assess_program_stability(fit, n_boot = 2, seed = 1, progress = FALSE)
 fit$stability$per_program
-#>   program_id cell_type n_hit n_eligible recovery_freq conditional_recovery_freq
-#> 1        B_1         B     2          2             1                         1
-#> 2        B_2         B     2          2             1                         1
-#> 3      CD4_1       CD4     2          2             1                         1
-#> 4      CD8_1       CD8     2          2             1                         1
-#> 5       NK_1        NK     2          2             1                         1
-#> 6       NK_2        NK     2          2             1                         1
-#> 7     Mono_1      Mono     2          2             1                         1
-#> 8     Mono_2      Mono     2          2             1                         1
-#>   median_score_cor median_loading_cos sign_consistency top_gene_jaccard
-#> 1        0.9998990          0.9945869                1        0.8614719
-#> 2        0.9997762          0.9910575                1        0.9047619
-#> 3        0.9998526          0.9907171                1        0.8614719
-#> 4        0.9992491          0.9792686                1        0.9090909
-#> 5        0.9998482          0.9894768                1        0.8614719
-#> 6        0.9996598          0.9930686                1        0.8614719
-#> 7        0.9999030          0.9952342                1        0.9090909
-#> 8        0.9997262          0.9925613                1        0.8181818
 ```
+
+</div>

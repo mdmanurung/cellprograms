@@ -35,15 +35,16 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/quickstart.html">Quick start: from pseudobulk to shared programs</a></li>
-    <li><a class="dropdown-item" href="../articles/metacells_seacells.html">Metacells with SEACells and mcRigor gamma optimization</a></li>
+    <li><a class="dropdown-item" href="../articles/metacells_seacells.html">Metacells: SuperCell (default) and SEACells with mcRigor gamma optimization</a></li>
+    <li><a class="dropdown-item" href="../articles/metacells_to_programs.html">From metacells to programs: the SuperCell + mcRigor workflow</a></li>
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cebmf_backend.html">The cebmf_torch backend: covariate-EBMF in torch</a></li>
     <li><a class="dropdown-item" href="../articles/coordination_joint.html">Joint and tensor factorization: EB-CP and block EBMF</a></li>
-    <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
-    <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Historical case study: cross-cell-type COVID-19 PBMC programs</a></li>
+    <li><a class="dropdown-item" href="../articles/divas_case_study.html">Historical case study: DIVAS COVID-19 multi-omics</a></li>
     <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
     <li><a class="dropdown-item" href="../articles/immune_aging_cross_cohort.html">Case study: immune-aging programs across 8 global PBMC cohorts</a></li>
-    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis</a></li>
+    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Historical comparison: local-first and joint multicellular factors</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -243,9 +244,9 @@ overlap plays no role in the call. The procedure:</p>
 <li>
 <strong>Rank-first scores.</strong> Each program’s donor scores are
 rank-transformed to normal scores, then residualized on the blocking
-strata. Point-Laplace priors produce single-donor spike factors that
-break Pearson-based max-T calibration; ranks remove that failure
-mode.</li>
+strata. Point-Laplace priors can produce single-donor spike factors.
+Ranking changes that sensitivity; it does not by itself establish
+calibration.</li>
 <li>
 <strong>Ambient filter.</strong> Programs whose loadings track
 another cell type’s expression specificity (ambient RNA / doublet
@@ -270,14 +271,20 @@ partner.</li>
 <strong>Permutation null.</strong> Donor rows are permuted within
 strata, independently per cell type — this removes cross-cell-type
 coupling while keeping within-cell-type structure. Program p-values are
-adjusted by the permutation maximum of <span class="math inline">A</span> (single-step max-T), so the family-wise
-error rate of calling <em>any</em> CMP is controlled at
-<code>alpha</code>.</li>
+adjusted by the permutation maximum of <span class="math inline">A</span> (single-step max-T). These are fixed-input
+node-family calculations, conditional on the supplied factors and a
+valid exchangeability design. Programs are not refitted under
+permutation. General learned-factor, edge-family and merged-CMP-set
+error control remain unestablished; no error-control claim follows
+merely from forming a CMP.</li>
 <li>
 <strong>Clustering.</strong> Significant programs are grouped into
 CMPs by their edge structure; the internal <code><a href="../reference/cmp_scores.html">cmp_scores()</a></code>
 summarizes each CMP as a donor-level consensus score.</li>
 </ol>
+<p>Ordinary row shuffling is not patient-cluster permutation for
+repeated visits. Uncallable nodes and missing-support reasons must
+remain visible.</p>
 <p><code>mode = "within"</code> tests the same structure <em>within</em>
 levels of a context variable (e.g. severity) — coordination that
 survives is not an artifact of case/control composition.</p>
@@ -291,8 +298,9 @@ survives is not an artifact of case/control composition.</p>
 <p>Sharing is a different axis from coordination: two cell types can use
 the same biological program (shared gene loadings) with uncorrelated
 donor scores, and vice versa. <code><a href="../reference/program_sharing.html">program_sharing()</a></code> assesses
-shared <em>loadings</em> post hoc with mashr (Urbut et al. 2019), never
-assuming them:</p>
+shared <em>loadings</em> post hoc with mashr (Urbut et al. 2019). Its
+matching and ternary labels are descriptive, not calibrated sharing
+discoveries:</p>
 <ul>
 <li>
 <strong>Mapping</strong>: units = genes on the shared panel;
@@ -325,6 +333,11 @@ evidence source. Note the criterion is significance-based, not
 sign-based: a gene significant in two conditions with opposite posterior
 signs still counts as shared.</li>
 </ul>
+<p>Consequently, active-in-both is not equal-effect or common-structure
+evidence, and an unmatched <code>private</code> label does not prove
+biological absence. Inspect <code>p_all_shared</code>, effect patterns
+and support directly. Formal sharing inference requires a separately
+approved target and calibration.</p>
 </div>
 <div class="section level2">
 <h2 id="artifact-masking">6. Artifact masking<a class="anchor" aria-label="anchor" href="#artifact-masking"></a>

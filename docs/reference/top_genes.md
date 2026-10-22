@@ -1,33 +1,52 @@
+<div class="page-header">
+
 # Top genes of a program
+
+<div class="d-none name">
+
+`top_genes.Rd`
+
+</div>
+
+</div>
+
+<div class="ref-description section level2">
 
 Top genes of a program
 
-## Usage
+</div>
+
+<div class="section level2">
+
+## Usage<a href="#ref-usage" class="anchor" aria-label="anchor"></a>
 
 ``` r
 top_genes(fit, program, n = 20L, by = c("abs_loading", "lfsr"))
 ```
 
-## Arguments
+</div>
 
-- fit:
+<div class="section level2">
 
-  A canonicalized \`cell_program_fit\`.
+## Arguments<a href="#arguments" class="anchor" aria-label="anchor"></a>
 
-- program:
+fit<a href="#arg-fit" class="anchor" aria-label="anchor"></a><br>
+A canonicalized \`cell_program_fit\`.
 
-  Program ID, e.g. \`"Mono_3"\`.
+program<a href="#arg-program" class="anchor" aria-label="anchor"></a><br>
+Program ID, e.g. \`"Mono_3"\`.
 
-- n:
+n<a href="#arg-n" class="anchor" aria-label="anchor"></a><br>
+Number of genes.
 
-  Number of genes.
+by<a href="#arg-by" class="anchor" aria-label="anchor"></a><br>
+Rank by \`"abs_loading"\` or \`"lfsr"\` (flashier local false sign rate; needs the fit's gene-side lfsr).
 
-- by:
+</div>
 
-  Rank by \`"abs_loading"\` or \`"lfsr"\` (flashier local false sign
-  rate; needs the fit's gene-side lfsr).
+<div class="section level2">
 
-## Examples
+## Examples<a href="#ref-examples" class="anchor" aria-label="anchor"></a>
 
 ``` r
 sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
@@ -35,10 +54,6 @@ x <- as_cell_program_data(sim$pseudobulk)
 fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 150)
 fit <- canonicalize_programs(fit)
 top_genes(fit, "B_1", n = 5)
-#>   gene   loading         lfsr
-#> 2 G117  2.925181 2.920352e-40
-#> 3  G41  2.824554 1.119050e-37
-#> 4 G292  2.722820 3.720503e-35
-#> 7  G64 -2.270005 0.000000e+00
-#> 6 G130  2.252322 1.108095e-24
 ```
+
+</div>

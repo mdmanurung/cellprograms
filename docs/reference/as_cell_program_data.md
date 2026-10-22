@@ -1,8 +1,24 @@
+<div class="page-header">
+
 # Create a cell program data object
+
+<div class="d-none name">
+
+`as_cell_program_data.Rd`
+
+</div>
+
+</div>
+
+<div class="ref-description section level2">
 
 Create a cell program data object
 
-## Usage
+</div>
+
+<div class="section level2">
+
+## Usage<a href="#ref-usage" class="anchor" aria-label="anchor"></a>
 
 ``` r
 as_cell_program_data(
@@ -12,38 +28,39 @@ as_cell_program_data(
 )
 ```
 
-## Arguments
+</div>
 
-- pseudobulk:
+<div class="section level2">
 
-  Named list of numeric matrices (observations x genes), one per cell
-  type. Row names must be observation IDs.
+## Arguments<a href="#arguments" class="anchor" aria-label="anchor"></a>
 
-- sample_metadata:
+pseudobulk<a href="#arg-pseudobulk" class="anchor" aria-label="anchor"></a><br>
+Named list of numeric matrices (observations x genes), one per cell type. Row names must be observation IDs.
 
-  A data.frame containing an \`observation_id\` column. Outcome
-  variables may be present but are never used for factorization.
+sample_metadata<a href="#arg-sample-metadata" class="anchor" aria-label="anchor"></a><br>
+A data.frame containing an \`observation_id\` column. Outcome variables may be present but are never used for factorization.
 
-- feature_metadata:
+feature_metadata<a href="#arg-feature-metadata" class="anchor" aria-label="anchor"></a><br>
+Optional data.frame keyed by gene ID.
 
-  Optional data.frame keyed by gene ID.
+</div>
 
-## Value
+<div class="section level2">
+
+## Value<a href="#value" class="anchor" aria-label="anchor"></a>
 
 An object of class \`cell_program_data\`.
 
-## Examples
+</div>
+
+<div class="section level2">
+
+## Examples<a href="#ref-examples" class="anchor" aria-label="anchor"></a>
 
 ``` r
 sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
 x <- as_cell_program_data(sim$pseudobulk)
 x
-#> cell_program_data
-#> Cell types: 5 "B", "CD4", "CD8", "NK", and "Mono"
-#> B: 24 observations x 300 genes
-#> CD4: 24 observations x 300 genes
-#> CD8: 24 observations x 300 genes
-#> NK: 24 observations x 300 genes
-#> Mono: 24 observations x 300 genes
-#> Shared genes across all cell types: 300
 ```
+
+</div>

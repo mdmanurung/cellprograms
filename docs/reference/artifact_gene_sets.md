@@ -1,62 +1,58 @@
+<div class="page-header">
+
 # Artifact-gene sets
 
-Gene classes that can produce cross-donor co-variation without
-coordinated biology, used for flagging called programs and for fit-time
-exclusion:
+<div class="d-none name">
 
-## Usage
+`artifact_gene_sets.Rd`
+
+</div>
+
+</div>
+
+<div class="ref-description section level2">
+
+Gene classes that can produce cross-donor co-variation without coordinated biology, used for flagging called programs and for fit-time exclusion:
+
+</div>
+
+<div class="section level2">
+
+## Usage<a href="#ref-usage" class="anchor" aria-label="anchor"></a>
 
 ``` r
 artifact_gene_sets
 ```
 
-## Format
+</div>
 
-A named list of character vectors (\`vdj\` is a length-1 regular
-expression; the other sets are gene IDs).
+<div class="section level2">
 
-## Details
+## Format<a href="#format" class="anchor" aria-label="anchor"></a>
 
-\* \`vdj\`: immunoglobulin and T-cell-receptor V, D, J and constant
-genes (including the lambda-like surrogates IGLL1/IGLL5). Stored as a
-single regular expression,
-\`^(IG\[HKL\]\[VDJC\]\|IGH\[GAMDE\]\|IGLL\[0-9\]\|JCHAIN\|TR\[ABGD\]\[VDJC\])\`,
-not an enumerated gene list, because the full V-gene complement is
-genome-annotation-dependent; expand it against a gene universe with
-\`.expand_vdj()\` (or use \`artifact_genes()\`, which expands every
-set). \* \`genotype_marker\`: genes with common germline deletion,
-copy-number or HLA-haplotype expression variation (GSTM1/GSTT1
-deletions, CCL3L1/CCL4L1 copy number, HLA-DRB3/4/5 and HLA-DQA/DQB
-haplotypes, ...). \* \`sex\`: XIST and the male-specific Y-chromosome
-genes RPS4Y1, DDX3Y, UTY, KDM5D, EIF1AY, NLGN4Y, TMSB4Y, USP9Y, ZFY. \*
-\`canonical_marker\`: canonical lineage-identity markers of PBMC
-annotation canons (T: CD3D/CD3E/CD3G/CD4/CD8A/CD8B; B: CD19/MS4A1/
-CD79A/CD79B; plasma: MZB1; NK: NCAM1/FCGR3A; monocyte: CD14/LST1; DC:
-CD1C/FCER1A/CLEC9A; platelet: PPBP/PF4; erythroid: HBB/HBA1/HBA2). In
-the cell type they mark, these genes mostly reflect identity rather than
-state; in every other cell type they are contamination candidates. State
-genes with real biology (GZMB, PRF1, IL7R, ...) are deliberately not
-included.
+A named list of character vectors (\`vdj\` is a length-1 regular expression; the other sets are gene IDs).
 
-Provenance: the \`genotype_marker\` list is a screening heuristic, not
-validated against genotype data; extend or replace it for your cohort.
-The sets overlap \`cmp_nuisance_genes()\` (used by \`cmp_triage()\`);
-unlike that regex vector, \`artifact_gene_sets\` stores explicit gene
-IDs where the set is closed, so it can be subtracted from a feature
-panel directly.
+</div>
 
-## Examples
+<div class="section level2">
+
+## Details<a href="#details" class="anchor" aria-label="anchor"></a>
+
+\* \`vdj\`: immunoglobulin and T-cell-receptor V, D, J and constant genes (including the lambda-like surrogates IGLL1/IGLL5). Stored as a single regular expression, \`^(IG\[HKL\]\[VDJC\]\|IGH\[GAMDE\]\|IGLL\[0-9\]\|JCHAIN\|TR\[ABGD\]\[VDJC\])\`, not an enumerated gene list, because the full V-gene complement is genome-annotation-dependent; expand it against a gene universe with \`.expand_vdj()\` (or use \`artifact_genes()\`, which expands every set). \* \`genotype_marker\`: genes with common germline deletion, copy-number or HLA-haplotype expression variation (GSTM1/GSTT1 deletions, CCL3L1/CCL4L1 copy number, HLA-DRB3/4/5 and HLA-DQA/DQB haplotypes, ...). \* \`sex\`: XIST and the male-specific Y-chromosome genes RPS4Y1, DDX3Y, UTY, KDM5D, EIF1AY, NLGN4Y, TMSB4Y, USP9Y, ZFY. \* \`canonical_marker\`: canonical lineage-identity markers of PBMC annotation canons (T: CD3D/CD3E/CD3G/CD4/CD8A/CD8B; B: CD19/MS4A1/ CD79A/CD79B; plasma: MZB1; NK: NCAM1/FCGR3A; monocyte: CD14/LST1; DC: CD1C/FCER1A/CLEC9A; platelet: PPBP/PF4; erythroid: HBB/HBA1/HBA2). In the cell type they mark, these genes mostly reflect identity rather than state; in every other cell type they are contamination candidates. State genes with real biology (GZMB, PRF1, IL7R, ...) are deliberately not included.
+
+Provenance: the \`genotype_marker\` list is a screening heuristic, not validated against genotype data; extend or replace it for your cohort. The sets overlap \`cmp_nuisance_genes()\` (used by \`cmp_triage()\`); unlike that regex vector, \`artifact_gene_sets\` stores explicit gene IDs where the set is closed, so it can be subtracted from a feature panel directly.
+
+</div>
+
+<div class="section level2">
+
+## Examples<a href="#ref-examples" class="anchor" aria-label="anchor"></a>
 
 ``` r
 names(artifact_gene_sets)
-#> [1] "vdj"              "genotype_marker"  "sex"              "canonical_marker"
 artifact_gene_sets$vdj   # V(D)J genes are stored as a regular expression
-#> [1] "^(IG[HKL][VDJC]|IGH[GAMDE]|IGLL[0-9]|JCHAIN|TR[ABGD][VDJC])"
 artifact_gene_sets$sex
-#>  [1] "XIST"   "RPS4Y1" "DDX3Y"  "UTY"    "KDM5D"  "EIF1AY" "NLGN4Y" "TMSB4Y"
-#>  [9] "USP9Y"  "ZFY"   
 artifact_gene_sets$canonical_marker
-#>  [1] "CD3D"   "CD3E"   "CD3G"   "CD4"    "CD8A"   "CD8B"   "CD19"   "MS4A1" 
-#>  [9] "CD79A"  "CD79B"  "MZB1"   "NCAM1"  "FCGR3A" "CD14"   "LST1"   "CD1C"  
-#> [17] "FCER1A" "CLEC9A" "PPBP"   "PF4"    "HBB"    "HBA1"   "HBA2"  
 ```
+
+</div>

@@ -1,24 +1,47 @@
+<div class="page-header">
+
 # Consensus donor scores of coordinated programs
 
-Mean of the member programs' standardized scores, each oriented by its
-sign within the CMP (available-case over cell types for each donor).
+<div class="d-none name">
 
-## Usage
+`cmp_scores.Rd`
+
+</div>
+
+</div>
+
+<div class="ref-description section level2">
+
+Mean of the member programs' standardized scores, each oriented by its sign within the CMP (available-case over cell types for each donor).
+
+</div>
+
+<div class="section level2">
+
+## Usage<a href="#ref-usage" class="anchor" aria-label="anchor"></a>
 
 ``` r
 cmp_scores(fit, cmp)
 ```
 
-## Arguments
+</div>
 
-- fit:
+<div class="section level2">
 
-  A canonicalized \`cell_program_fit\`.
+## Arguments<a href="#arguments" class="anchor" aria-label="anchor"></a>
 
-- cmp:
+fit<a href="#arg-fit" class="anchor" aria-label="anchor"></a><br>
+A canonicalized \`cell_program_fit\`.
 
-  A \`cmp_result\` or its \`cmps\` data frame.
+cmp<a href="#arg-cmp" class="anchor" aria-label="anchor"></a><br>
+A \`cmp_result\` or its \`cmps\` data frame.
 
-## Value
+</div>
+
+<div class="section level2">
+
+## Value<a href="#value" class="anchor" aria-label="anchor"></a>
 
 Matrix, donors x CMPs.
+
+</div>

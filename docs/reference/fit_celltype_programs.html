@@ -24,11 +24,11 @@
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cebmf_backend.html">The cebmf_torch backend: covariate-EBMF in torch</a></li>
     <li><a class="dropdown-item" href="../articles/coordination_joint.html">Joint and tensor factorization: EB-CP and block EBMF</a></li>
-    <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
-    <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Historical case study: cross-cell-type COVID-19 PBMC programs</a></li>
+    <li><a class="dropdown-item" href="../articles/divas_case_study.html">Historical case study: DIVAS COVID-19 multi-omics</a></li>
     <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
     <li><a class="dropdown-item" href="../articles/immune_aging_cross_cohort.html">Case study: immune-aging programs across 8 global PBMC cohorts</a></li>
-    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis</a></li>
+    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Historical comparison: local-first and joint multicellular factors</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -87,7 +87,8 @@
 
 <dt id="arg-loading-prior">loading_prior<a class="anchor" aria-label="anchor" href="#arg-loading-prior"></a></dt>
 <dd><p>Gene-side EBNM prior family: "point_laplace" (default),
-"point_normal", or "unimodal".</p></dd>
+"point_normal", or "unimodal". The distinct optional torch estimator
+requires explicit "laplace" (Laplace activity and loading priors).</p></dd>
 
 
 <dt id="arg-max-factors">max_factors<a class="anchor" aria-label="anchor" href="#arg-max-factors"></a></dt>
@@ -96,11 +97,9 @@ Must leave at least one residual degree of freedom per cell type:
 the fit aborts if `max_factors &gt; n - q - 1`, where n is the number of
 donors for the cell type and q the number of covariate columns adjusted
 for (safety guard; never binds at n &gt;= 50 with `max_factors &lt;= 10`).
-Default 10: benchmarked on COMBAT pseudobulk (32-config factorial),
-K=10 dominated all prior/variance/backfit combinations; K &gt;= 30
-overfits and collapses disease-signal recovery. For coordinated-program
-detection (`find_coordinated_programs()`), use `max_factors = 30`: it
-raised CMP membership F1 in the cmp-bench-v1.2 held-out benchmark.</p></dd>
+Default 10. Historical study-specific rank comparisons do not establish
+a universal optimum; freeze a study's rank/tuning policy independently of
+test outcomes rather than increasing rank to obtain coordination calls.</p></dd>
 
 
 <dt id="arg-center">center<a class="anchor" aria-label="anchor" href="#arg-center"></a></dt>
@@ -175,8 +174,7 @@ levels carried by a single donor trigger a leverage warning.</p></dd>
 `"fixed"` (soft, SOFA-style: the covariate design columns enter flashier as
 fixed sample-side factors with unshrunk gene effects, and the K free
 programs are fit jointly with them; free programs can still share
-variance with a covariate. Requires `center = TRUE`, ignores
-`flash_control`). Fixed columns are not returned as programs;
+variance with a covariate. Requires `center = TRUE`). Fixed columns are not returned as programs;
 `Y_used` is `Y` minus the fitted covariate part. Note: `"fixed"` fits
 cannot be projected to single cells — `project_programs_to_cells()`
 refuses them because the fixed covariate adjustment cannot be replayed
@@ -199,7 +197,8 @@ batch-adjusted fits (the adjustment cannot yet be replayed on a query).</p></dd>
 
 
 <dt id="arg-flash-control">flash_control<a class="anchor" aria-label="anchor" href="#arg-flash-control"></a></dt>
-<dd><p>Optional list overriding flashier::flash arguments.</p></dd>
+<dd><p>Optional named list containing only `verbose`.
+Scientific estimator controls must use the explicit arguments.</p></dd>
 
 
 <dt id="arg-feature-scale">feature_scale<a class="anchor" aria-label="anchor" href="#arg-feature-scale"></a></dt>
@@ -226,8 +225,11 @@ frozen genes must be present in the dataset.</p></dd>
 <dt id="arg-backend">backend<a class="anchor" aria-label="anchor" href="#arg-backend"></a></dt>
 <dd><p>EBMF implementation: `"flashier"` (default; the
 flashier.utils R backend, with a nullcheck fallback ladder) or
-`"cebmf_torch"` (the covariate-EBMF torch backend, which fails loudly
-instead of falling back). Both backends share preprocessing, program
+`"cebmf_torch"` (a distinct experimental Laplace/Laplace estimator).
+Torch requires explicit `loading_prior="laplace"`, `var_type=2`,
+`backfit=TRUE`, `nullcheck=FALSE`, no fixed covariates and empty
+`flash_control`; incompatible requests fail before Python.
+Both backends share preprocessing, program
 extraction, and the output contract, with two exceptions: torch fits
 carry no posterior SDs (so `program_sharing()` is unavailable) and
 cannot be projected to single cells with `project_programs_to_cells()`
@@ -243,10 +245,10 @@ estimated as usual), `"vignette"` (fixed at the flashier single-cell
 vignette's S = sd(log(Poisson(1/n) + 1)), drawn once per cell type with a
 fixed local seed, so the value is deterministic and independent of
 `seed`), or a positive numeric scalar S (residual SDs fixed at S). Fixed
-S binds on the `cebmf_torch` backend. On the `flashier` backend the
-value is passed through but does not currently bind (CAND-13: fits with
-and without a fixed scalar S are bit-identical at the pinned flashier
-version); a fail-closed remediation is pending.</p></dd>
+S uses known-noise mode on both backends; flashier is called internally
+with `var_type=NULL`. This is fixed noise, not a lower bound on estimated
+noise. Effective engine, priors, noise and fallback settings are recorded
+in each nondegenerate cell-type fit's `effective_config`.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -261,19 +263,12 @@ version); a fail-closed remediation is pending.</p></dd>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="simulate_pseudobulk.html">simulate_pseudobulk</a></span><span class="op">(</span>n_samples <span class="op">=</span> <span class="fl">24</span>, n_genes <span class="op">=</span> <span class="fl">300</span>, program_size <span class="op">=</span> <span class="fl">30</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="as_cell_program_data.html">as_cell_program_data</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">pseudobulk</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">fit_celltype_programs</span><span class="op">(</span><span class="va">x</span>, max_factors <span class="op">=</span> <span class="fl">3</span>, features <span class="op">=</span> <span class="st">"variable"</span>,</span></span>
-<span class="r-in"><span>                             n_variable_genes <span class="op">=</span> <span class="fl">150</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="canonicalize_programs.html">canonicalize_programs</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="program_summary.html">program_summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   cell_type n_obs n_genes n_programs        R2      elbo</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1         B    24     150          2 0.4107044 -5719.888</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2       CD4    24     150          1 0.3463505 -5544.727</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3       CD8    24     150          1 0.2399331 -5506.694</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4        NK    24     150          2 0.3943826 -5716.026</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5      Mono    24     150          2 0.4113416 -5653.769</span>
-</code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="simulate_pseudobulk.html">simulate_pseudobulk</a></span><span class="op">(</span>n_samples <span class="op">=</span> <span class="fl">24</span>, n_genes <span class="op">=</span> <span class="fl">300</span>, program_size <span class="op">=</span> <span class="fl">30</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="as_cell_program_data.html">as_cell_program_data</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">pseudobulk</span><span class="op">)</span></span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">fit_celltype_programs</span><span class="op">(</span><span class="va">x</span>, max_factors <span class="op">=</span> <span class="fl">3</span>, features <span class="op">=</span> <span class="st">"variable"</span>,</span>
+<span>                             n_variable_genes <span class="op">=</span> <span class="fl">150</span><span class="op">)</span></span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="canonicalize_programs.html">canonicalize_programs</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<span><span class="fu"><a href="program_summary.html">program_summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

@@ -1,7 +1,16 @@
+<div class="page-header">
+
 # The cebmf_torch backend: covariate-EBMF in torch
 
-[`fit_celltype_programs()`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)
-ships two interchangeable EBMF backends:
+<div class="d-none name">
+
+`cebmf_backend.Rmd`
+
+</div>
+
+</div>
+
+[`fit_celltype_programs()`](../reference/fit_celltype_programs.html) ships two interchangeable EBMF backends:
 
 |  | `backend = "flashier"` (default) | `backend = "cebmf_torch"` |
 |----|----|----|
@@ -10,186 +19,217 @@ ships two interchangeable EBMF backends:
 | ELBO | reported | `NA` (not produced; the trace is) |
 | Convergence record | ELBO trace | `objective_trace` |
 
-Everything around the factorization — preprocessing, canonicalization,
-program extraction, plots, sharing — is backend-agnostic. This vignette
-runs the torch backend on a small simulated count dataset and shows
-where the two contracts differ.
+Everything around the factorization — preprocessing, canonicalization, program extraction, plots, sharing — is backend-agnostic. This vignette runs the torch backend on a small simulated count dataset and shows where the two contracts differ.
 
-## Python environment
+<div class="section level2">
 
-The torch backend needs a Python environment with `torch`, `numpy`,
-`scipy`, `pandas`, and `cebmf_torch`. By default the package uses a
-**basilisk-managed environment** with pinned versions (Python 3.11,
-`torch==2.7.1` CPU build, `cebmf_torch` at a pinned commit), built
-automatically on first use and cached across sessions. To point at your
-own environment instead:
+## Python environment<a href="#python-environment" class="anchor" aria-label="anchor"></a>
+
+The torch backend needs a Python environment with `torch`, `numpy`, `scipy`, `pandas`, and `cebmf_torch`. By default the package uses a **basilisk-managed environment** with pinned versions (Python 3.11, `torch==2.7.1` CPU build, `cebmf_torch` at a pinned commit), built automatically on first use and cached across sessions. To point at your own environment instead:
+
+<div id="cb1" class="sourceCode">
 
 \
-[`options`](https://rdrr.io/r/base/options.html)`(``cellprograms.cebmf_python_env ``=`` ``"/path/to/venv"``)``  ``# venv dir or python binary`
+<span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link"><code class="sourceCode r R">options</code></a></span><span class="op">`(`</span>`cellprograms.cebmf_python_env `<span class="op">`=`</span>` `<span class="st">`"/path/to/venv"`</span><span class="op">`)`</span>`  `<span class="co">`# venv dir or python binary`</span>
 
-## Input regime: normalize counts first
+</div>
 
-The torch backend estimates column-wise noise and **diverges immediately
-on raw unnormalized Gaussian-scale matrices** (the objective goes
-non-finite at iteration 0; the backend fails loudly rather than
-returning a garbage fit — this is by design and is the documented reason
-the test suite’s registered fixture normalizes counts). Feed it what the
-single-cell pipeline produces: counts, size-factor normalization, log1p,
-gene z-scaling.
+</div>
 
-\
-[`library`](https://rdrr.io/r/base/library.html)`(``cellprograms``)`\
-[`set.seed`](https://rdrr.io/r/base/Random.html)`(``3``)`\
-`n`` ``<-`` ``60``; ``g`` ``<-`` ``400``; ``p`` ``<-`` ``2`\
-\
-`# block-structured counts: 2 planted programs over private gene sets`\
-`W`` ``<-`` `[`matrix`](https://rdrr.io/r/base/matrix.html)`(``0``, ``g``, ``p``)`\
-`for`` ``(``j`` ``in`` `[`seq_len`](https://rdrr.io/r/base/seq.html)`(``p``)``)`` ``W``[`[`sample.int`](https://rdrr.io/r/base/sample.html)`(``g``, ``60``)``, ``j``]`` ``<-`` `[`runif`](https://rdrr.io/r/stats/Uniform.html)`(``60``, ``0.5``, ``1.5``)`\
-`S`` ``<-`` `[`matrix`](https://rdrr.io/r/base/matrix.html)`(``0``, ``n``, ``p``)`\
-`for`` ``(``j`` ``in`` `[`seq_len`](https://rdrr.io/r/base/seq.html)`(``p``)``)`` ``S``[`[`sample.int`](https://rdrr.io/r/base/sample.html)`(``n``, ``20``)``, ``j``]`` ``<-`` `[`runif`](https://rdrr.io/r/stats/Uniform.html)`(``20``, ``1``, ``2.5``)`\
-`lam`` ``<-`` `[`exp`](https://rdrr.io/r/base/Log.html)`(`[`pmin`](https://rdrr.io/r/base/Extremes.html)`(`[`pmax`](https://rdrr.io/r/base/Extremes.html)`(``S`` `[`%*%`](https://rdrr.io/r/base/matmult.html)` `[`t`](https://rdrr.io/r/base/t.html)`(``W``)``, ``0``)``, ``4``)``)`` ``+`` ``0.05`\
-`counts`` ``<-`` `[`matrix`](https://rdrr.io/r/base/matrix.html)`(`[`rpois`](https://rdrr.io/r/stats/Poisson.html)`(``n`` ``*`` ``g``, `[`as.vector`](https://rdrr.io/r/base/vector.html)`(``lam``)``)``, ``n``, ``g``)`\
-\
-`# size-factor log1p + gene z-scale: the backend's input regime`\
-`sf`` ``<-`` `[`rowSums`](https://rdrr.io/r/base/colSums.html)`(``counts``)``; ``sf`` ``<-`` ``sf`` ``/`` `[`mean`](https://rdrr.io/r/base/mean.html)`(``sf``)`\
-`Y`` ``<-`` `[`scale`](https://rdrr.io/r/base/scale.html)`(`[`log1p`](https://rdrr.io/r/base/Log.html)`(``counts`` ``/`` ``sf``)``)`\
-[`dimnames`](https://rdrr.io/r/base/dimnames.html)`(``Y``)`` ``<-`` `[`list`](https://rdrr.io/r/base/list.html)`(`[`paste0`](https://rdrr.io/r/base/paste.html)`(``"s"``, `[`seq_len`](https://rdrr.io/r/base/seq.html)`(``n``)``)``, `[`paste0`](https://rdrr.io/r/base/paste.html)`(``"g"``, `[`seq_len`](https://rdrr.io/r/base/seq.html)`(``g``)``)``)`\
-\
-`x`` ``<-`` `[`as_cell_program_data`](https://mdmanurung.github.io/cellprograms/reference/as_cell_program_data.md)`(`[`list`](https://rdrr.io/r/base/list.html)`(``CT1 ``=`` ``Y``)``)`\
-[`validate_cell_program_data`](https://mdmanurung.github.io/cellprograms/reference/validate_cell_program_data.md)`(``x``)`
+<div class="section level2">
 
-## Fit with the torch backend
+## Input regime: normalize counts first<a href="#input-regime-normalize-counts-first" class="anchor" aria-label="anchor"></a>
+
+The torch backend estimates column-wise noise and **diverges immediately on raw unnormalized Gaussian-scale matrices** (the objective goes non-finite at iteration 0; the backend fails loudly rather than returning a garbage fit — this is by design and is the documented reason the test suite’s registered fixture normalizes counts). Feed it what the single-cell pipeline produces: counts, size-factor normalization, log1p, gene z-scaling.
+
+<div id="cb2" class="sourceCode">
 
 \
-`fit`` ``<-`` `[`fit_celltype_programs`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)`(``x``, backend ``=`` ``"cebmf_torch"``,`\
-`                             max_factors ``=`` ``6``, seed ``=`` ``1``)`\
-`fl`` ``<-`` ``fit``$``fits``$``CT1``$``flash`\
-`fl``$``backend`\
-`fl``$``n_factors`\
-[`head`](https://rdrr.io/r/utils/head.html)`(``fl``$``objective_trace``)``   ``# convergence record (the torch backend's ELBO analogue)`
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link"><code class="sourceCode r R">library</code></a></span><span class="op">`(`</span><span class="va">`cellprograms`</span><span class="op">`)`</span>\
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link"><code class="sourceCode r R">set.seed</code></a></span><span class="op">`(`</span><span class="fl">`3`</span><span class="op">`)`</span>\
+<span class="va">`n`</span>` `<span class="op">`<-`</span>` `<span class="fl">`60`</span>`; `<span class="va">`g`</span>` `<span class="op">`<-`</span>` `<span class="fl">`400`</span>`; `<span class="va">`p`</span>` `<span class="op">`<-`</span>` `<span class="fl">`2`</span>\
+\
+<span class="co">`# block-structured counts: 2 planted programs over private gene sets`</span>\
+<span class="va">`W`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link"><code class="sourceCode r R">matrix</code></a></span><span class="op">`(`</span><span class="fl">`0`</span>`, `<span class="va">`g`</span>`, `<span class="va">`p`</span><span class="op">`)`</span>\
+<span class="kw">`for`</span>` `<span class="op">`(`</span><span class="va">`j`</span>` `<span class="kw">`in`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link"><code class="sourceCode r R">seq_len</code></a></span><span class="op">`(`</span><span class="va">`p`</span><span class="op">`)`</span><span class="op">`)`</span>` `<span class="va">`W`</span><span class="op">`[`</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link"><code class="sourceCode r R">sample.int</code></a></span><span class="op">`(`</span><span class="va">`g`</span>`, `<span class="fl">`60`</span><span class="op">`)`</span>`, `<span class="va">`j`</span><span class="op">`]`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link"><code class="sourceCode r R">runif</code></a></span><span class="op">`(`</span><span class="fl">`60`</span>`, `<span class="fl">`0.5`</span>`, `<span class="fl">`1.5`</span><span class="op">`)`</span>\
+<span class="va">`S`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link"><code class="sourceCode r R">matrix</code></a></span><span class="op">`(`</span><span class="fl">`0`</span>`, `<span class="va">`n`</span>`, `<span class="va">`p`</span><span class="op">`)`</span>\
+<span class="kw">`for`</span>` `<span class="op">`(`</span><span class="va">`j`</span>` `<span class="kw">`in`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link"><code class="sourceCode r R">seq_len</code></a></span><span class="op">`(`</span><span class="va">`p`</span><span class="op">`)`</span><span class="op">`)`</span>` `<span class="va">`S`</span><span class="op">`[`</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link"><code class="sourceCode r R">sample.int</code></a></span><span class="op">`(`</span><span class="va">`n`</span>`, `<span class="fl">`20`</span><span class="op">`)`</span>`, `<span class="va">`j`</span><span class="op">`]`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link"><code class="sourceCode r R">runif</code></a></span><span class="op">`(`</span><span class="fl">`20`</span>`, `<span class="fl">`1`</span>`, `<span class="fl">`2.5`</span><span class="op">`)`</span>\
+<span class="va">`lam`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link"><code class="sourceCode r R">exp</code></a></span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link"><code class="sourceCode r R">pmin</code></a></span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link"><code class="sourceCode r R">pmax</code></a></span><span class="op">`(`</span><span class="va">`S`</span>` `<span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link"><code class="sourceCode r R"><span class="sc">%*%</span></code></a></span>` `<span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link"><code class="sourceCode r R">t</code></a></span><span class="op">`(`</span><span class="va">`W`</span><span class="op">`)`</span>`, `<span class="fl">`0`</span><span class="op">`)`</span>`, `<span class="fl">`4`</span><span class="op">`)`</span><span class="op">`)`</span>` `<span class="op">`+`</span>` `<span class="fl">`0.05`</span>\
+<span class="va">`counts`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link"><code class="sourceCode r R">matrix</code></a></span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link"><code class="sourceCode r R">rpois</code></a></span><span class="op">`(`</span><span class="va">`n`</span>` `<span class="op">`*`</span>` `<span class="va">`g`</span>`, `<span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link"><code class="sourceCode r R">as.vector</code></a></span><span class="op">`(`</span><span class="va">`lam`</span><span class="op">`)`</span><span class="op">`)`</span>`, `<span class="va">`n`</span>`, `<span class="va">`g`</span><span class="op">`)`</span>\
+\
+<span class="co">`# size-factor log1p + gene z-scale: the backend's input regime`</span>\
+<span class="va">`sf`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link"><code class="sourceCode r R">rowSums</code></a></span><span class="op">`(`</span><span class="va">`counts`</span><span class="op">`)`</span>`; `<span class="va">`sf`</span>` `<span class="op">`<-`</span>` `<span class="va">`sf`</span>` `<span class="op">`/`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link"><code class="sourceCode r R">mean</code></a></span><span class="op">`(`</span><span class="va">`sf`</span><span class="op">`)`</span>\
+<span class="va">`Y`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/scale.html" class="external-link"><code class="sourceCode r R">scale</code></a></span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link"><code class="sourceCode r R">log1p</code></a></span><span class="op">`(`</span><span class="va">`counts`</span>` `<span class="op">`/`</span>` `<span class="va">`sf`</span><span class="op">`)`</span><span class="op">`)`</span>\
+<span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link"><code class="sourceCode r R">dimnames</code></a></span><span class="op">`(`</span><span class="va">`Y`</span><span class="op">`)`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link"><code class="sourceCode r R">list</code></a></span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link"><code class="sourceCode r R">paste0</code></a></span><span class="op">`(`</span><span class="st">`"s"`</span>`, `<span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link"><code class="sourceCode r R">seq_len</code></a></span><span class="op">`(`</span><span class="va">`n`</span><span class="op">`)`</span><span class="op">`)`</span>`, `<span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link"><code class="sourceCode r R">paste0</code></a></span><span class="op">`(`</span><span class="st">`"g"`</span>`, `<span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link"><code class="sourceCode r R">seq_len</code></a></span><span class="op">`(`</span><span class="va">`g`</span><span class="op">`)`</span><span class="op">`)`</span><span class="op">`)`</span>\
+\
+<span class="va">`x`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`as_cell_program_data`](../reference/as_cell_program_data.html)</span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link"><code class="sourceCode r R">list</code></a></span><span class="op">`(`</span>`CT1 `<span class="op">`=`</span>` `<span class="va">`Y`</span><span class="op">`)`</span><span class="op">`)`</span>\
+<span class="fu">[`validate_cell_program_data`](../reference/validate_cell_program_data.html)</span><span class="op">`(`</span><span class="va">`x`</span><span class="op">`)`</span>
 
-The registered mapping contract: the torch backend does not produce an
-ELBO, so
-[`program_summary()`](https://mdmanurung.github.io/cellprograms/reference/program_summary.md)
-reports `NA` there and nothing is manufactured to fill the gap;
-`objective_trace` is the honest convergence record. Loadings and scores
-arrive in the same shapes as the flashier backend:
+</div>
+
+</div>
+
+<div class="section level2">
+
+## Fit with the torch backend<a href="#fit-with-the-torch-backend" class="anchor" aria-label="anchor"></a>
+
+<div id="cb3" class="sourceCode">
 
 \
-[`dim`](https://rdrr.io/r/base/dim.html)`(``fl``$``L_pm``)``   ``# samples x factors`\
-[`dim`](https://rdrr.io/r/base/dim.html)`(``fl``$``F_pm``)``   ``# genes x factors`
+<span class="va">`fit`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`fit_celltype_programs`](../reference/fit_celltype_programs.html)</span><span class="op">`(`</span><span class="va">`x`</span>`, backend `<span class="op">`=`</span>` `<span class="st">`"cebmf_torch"`</span>`,`\
+`                             max_factors `<span class="op">`=`</span>` `<span class="fl">`6`</span>`, seed `<span class="op">`=`</span>` `<span class="fl">`1`</span><span class="op">`)`</span>\
+<span class="va">`fl`</span>` `<span class="op">`<-`</span>` `<span class="va">`fit`</span><span class="op">`$`</span><span class="va">`fits`</span><span class="op">`$`</span><span class="va">`CT1`</span><span class="op">`$`</span><span class="va">`flash`</span>\
+<span class="va">`fl`</span><span class="op">`$`</span><span class="va">`backend`</span>\
+<span class="va">`fl`</span><span class="op">`$`</span><span class="va">`n_factors`</span>\
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link"><code class="sourceCode r R">head</code></a></span><span class="op">`(`</span><span class="va">`fl`</span><span class="op">`$`</span><span class="va">`objective_trace`</span><span class="op">`)`</span>`   `<span class="co">`# convergence record (the torch backend's ELBO analogue)`</span>
 
-## Determinism at a fixed seed
+</div>
 
-\
-`fit2`` ``<-`` `[`fit_celltype_programs`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)`(``x``, backend ``=`` ``"cebmf_torch"``,`\
-`                              max_factors ``=`` ``6``, seed ``=`` ``1``)`\
-[`identical`](https://rdrr.io/r/base/identical.html)`(``fit``$``fits``$``CT1``$``flash``$``L_pm``, ``fit2``$``fits``$``CT1``$``flash``$``L_pm``)`
+The registered mapping contract: the torch backend does not produce an ELBO, so [`program_summary()`](../reference/program_summary.html) reports `NA` there and nothing is manufactured to fill the gap; `objective_trace` is the honest convergence record. Loadings and scores arrive in the same shapes as the flashier backend:
 
-## var_floor passes through
-
-`var_floor` (a positive scalar) is forwarded to the torch fit as a known
-noise standard deviation, replacing the column-wise noise estimate:
+<div id="cb4" class="sourceCode">
 
 \
-`fit3`` ``<-`` `[`fit_celltype_programs`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)`(``x``, backend ``=`` ``"cebmf_torch"``,`\
-`                              max_factors ``=`` ``6``, seed ``=`` ``1``, var_floor ``=`` ``0.5``)`\
-[`all`](https://rdrr.io/r/base/all.html)`(`[`is.finite`](https://rdrr.io/r/base/is.finite.html)`(``fit3``$``fits``$``CT1``$``flash``$``objective_trace``)``)`
+<span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link"><code class="sourceCode r R">dim</code></a></span><span class="op">`(`</span><span class="va">`fl`</span><span class="op">`$`</span><span class="va">`L_pm`</span><span class="op">`)`</span>`   `<span class="co">`# samples x factors`</span>\
+<span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link"><code class="sourceCode r R">dim</code></a></span><span class="op">`(`</span><span class="va">`fl`</span><span class="op">`$`</span><span class="va">`F_pm`</span><span class="op">`)`</span>`   `<span class="co">`# genes x factors`</span>
 
-## Covariate adjustment (residualize mode)
+</div>
 
-Sample-level covariates are regressed out of the pseudobulk before
-factorization — pass column names of `sample_metadata` (or a one-sided
-formula). To show the adjustment doing real work, plant a known batch
-effect (a global shift on a nuisance gene set for the `b2` samples), fit
-with and without adjustment, and compare how much program activity
-aligns with batch:
+</div>
 
-\
-`batch_genes`` ``<-`` `[`sort`](https://rdrr.io/r/base/sort.html)`(`[`sample.int`](https://rdrr.io/r/base/sample.html)`(``g``, ``60``)``)`\
-`batch`` ``<-`` `[`rep`](https://rdrr.io/r/base/rep.html)`(`[`c`](https://rdrr.io/r/base/c.html)`(``"b1"``, ``"b2"``)``, `[`c`](https://rdrr.io/r/base/c.html)`(``40``, ``20``)``)`\
-`Yb`` ``<-`` ``Y`\
-`Yb``[``batch`` ``==`` ``"b2"``, ``batch_genes``]`` ``<-`` ``Yb``[``batch`` ``==`` ``"b2"``, ``batch_genes``]`` ``+`` ``1.2`\
-`meta`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``observation_id ``=`` `[`rownames`](https://rdrr.io/r/base/colnames.html)`(``Yb``)``, batch ``=`` ``batch``)`\
-`x_batch`` ``<-`` `[`as_cell_program_data`](https://mdmanurung.github.io/cellprograms/reference/as_cell_program_data.md)`(`[`list`](https://rdrr.io/r/base/list.html)`(``CT1 ``=`` ``Yb``)``, sample_metadata ``=`` ``meta``)`\
-\
-`fit_raw`` ``<-`` `[`fit_celltype_programs`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)`(``x_batch``, backend ``=`` ``"cebmf_torch"``,`\
-`                                 max_factors ``=`` ``6``, seed ``=`` ``1``)`\
-`fit_adj`` ``<-`` `[`fit_celltype_programs`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)`(``x_batch``, backend ``=`` ``"cebmf_torch"``,`\
-`                                 covariates ``=`` ``"batch"``,`\
-`                                 max_factors ``=`` ``6``, seed ``=`` ``1``)`\
-\
-`batch_num`` ``<-`` `[`as.numeric`](https://rdrr.io/r/base/numeric.html)`(``batch`` ``==`` ``"b2"``)`\
-`max_batch_corr`` ``<-`` ``function``(``fit``)`` ``{`\
-`  ``Z`` ``<-`` ``fit``$``scores``$``CT1`\
-`  ``if`` ``(`[`is.null`](https://rdrr.io/r/base/NULL.html)`(``Z``)`` ``||`` `[`ncol`](https://rdrr.io/r/base/nrow.html)`(``Z``)`` ``==`` ``0``)`` `[`return`](https://rdrr.io/r/base/function.html)`(``NA_real_``)`\
-`  `[`max`](https://rdrr.io/r/base/Extremes.html)`(`[`abs`](https://rdrr.io/r/base/MathFun.html)`(`[`apply`](https://rdrr.io/r/base/apply.html)`(``Z``, ``2``, ``cor``, y ``=`` ``batch_num``)``)``)`\
-`}`\
-[`round`](https://rdrr.io/r/base/Round.html)`(`[`c`](https://rdrr.io/r/base/c.html)`(``unadjusted ``=`` ``max_batch_corr``(``fit_raw``)``,`\
-`        adjusted   ``=`` ``max_batch_corr``(``fit_adj``)``)``, ``3``)`
+<div class="section level2">
 
-The unadjusted fit devotes its strongest component to the batch shift;
-after `covariates = "batch"` the alignment drops and the planted
-programs — which are independent of batch — carry the factorization
-instead.
+## Determinism at a fixed seed<a href="#determinism-at-a-fixed-seed" class="anchor" aria-label="anchor"></a>
 
-Two contract notes: `covariate_mode = "fixed"` (covariates as fixed
-loadings inside the factorization) is **flashier-only** — the torch
-backend aborts with guidance rather than silently residualizing. And the
-covariate design must leave at least 10 residual degrees of freedom in
-every cell type; the fit fails closed otherwise.
-
-## Downstream is backend-agnostic
+<div id="cb5" class="sourceCode">
 
 \
-`fit`` ``<-`` `[`canonicalize_programs`](https://mdmanurung.github.io/cellprograms/reference/canonicalize_programs.md)`(``fit``)`\
-[`program_summary`](https://mdmanurung.github.io/cellprograms/reference/program_summary.md)`(``fit``)``[``, `[`c`](https://rdrr.io/r/base/c.html)`(``"cell_type"``, ``"n_obs"``, ``"n_programs"``, ``"R2"``, ``"elbo"``)``]`\
-\
-`pid`` ``<-`` `[`head`](https://rdrr.io/r/utils/head.html)`(`[`colnames`](https://rdrr.io/r/base/colnames.html)`(`[`program_scores`](https://mdmanurung.github.io/cellprograms/reference/program_scores.md)`(``fit``)``)``, ``1``)`\
-[`top_genes`](https://mdmanurung.github.io/cellprograms/reference/top_genes.md)`(``fit``, ``pid``, n ``=`` ``8``)`
+<span class="va">`fit2`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`fit_celltype_programs`](../reference/fit_celltype_programs.html)</span><span class="op">`(`</span><span class="va">`x`</span>`, backend `<span class="op">`=`</span>` `<span class="st">`"cebmf_torch"`</span>`,`\
+`                              max_factors `<span class="op">`=`</span>` `<span class="fl">`6`</span>`, seed `<span class="op">`=`</span>` `<span class="fl">`1`</span><span class="op">`)`</span>\
+<span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link"><code class="sourceCode r R">identical</code></a></span><span class="op">`(`</span><span class="va">`fit`</span><span class="op">`$`</span><span class="va">`fits`</span><span class="op">`$`</span><span class="va">`CT1`</span><span class="op">`$`</span><span class="va">`flash`</span><span class="op">`$`</span><span class="va">`L_pm`</span>`, `<span class="va">`fit2`</span><span class="op">`$`</span><span class="va">`fits`</span><span class="op">`$`</span><span class="va">`CT1`</span><span class="op">`$`</span><span class="va">`flash`</span><span class="op">`$`</span><span class="va">`L_pm`</span><span class="op">`)`</span>
+
+</div>
+
+</div>
+
+<div class="section level2">
+
+## var_floor passes through<a href="#var_floor-passes-through" class="anchor" aria-label="anchor"></a>
+
+`var_floor` (a positive scalar) is forwarded to the torch fit as a known noise standard deviation, replacing the column-wise noise estimate:
+
+<div id="cb6" class="sourceCode">
 
 \
-[`plot_top_genes`](https://mdmanurung.github.io/cellprograms/reference/plot_top_genes.md)`(``fit``, programs ``=`` `[`head`](https://rdrr.io/r/utils/head.html)`(`[`colnames`](https://rdrr.io/r/base/colnames.html)`(`[`program_scores`](https://mdmanurung.github.io/cellprograms/reference/program_scores.md)`(``fit``)``)``, ``2``)``, n ``=`` ``8``)`
+<span class="va">`fit3`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`fit_celltype_programs`](../reference/fit_celltype_programs.html)</span><span class="op">`(`</span><span class="va">`x`</span>`, backend `<span class="op">`=`</span>` `<span class="st">`"cebmf_torch"`</span>`,`\
+`                              max_factors `<span class="op">`=`</span>` `<span class="fl">`6`</span>`, seed `<span class="op">`=`</span>` `<span class="fl">`1`</span>`, var_floor `<span class="op">`=`</span>` `<span class="fl">`0.5`</span><span class="op">`)`</span>\
+<span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link"><code class="sourceCode r R">all</code></a></span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/base/is.finite.html" class="external-link"><code class="sourceCode r R">is.finite</code></a></span><span class="op">`(`</span><span class="va">`fit3`</span><span class="op">`$`</span><span class="va">`fits`</span><span class="op">`$`</span><span class="va">`CT1`</span><span class="op">`$`</span><span class="va">`flash`</span><span class="op">`$`</span><span class="va">`objective_trace`</span><span class="op">`)`</span><span class="op">`)`</span>
 
-## When to prefer which backend
+</div>
 
-- **flashier (default)**: pure R, ELBO-based null checks with a fallback
-  ladder, mature on small pseudobulk problems, and the only backend with
-  a `covariate_mode = "fixed"` path.
-- **cebmf_torch**: torch acceleration, covariate-EBMF machinery, and
-  loud failure when the fit is unusable (no silent fallback). Covariates
-  are handled identically for both backends — residualized in the R
-  preprocessing stage (`covariate_mode = "residualize"`, the default).
+</div>
 
-&nbsp;
+<div class="section level2">
+
+## Covariate adjustment (residualize mode)<a href="#covariate-adjustment-residualize-mode" class="anchor" aria-label="anchor"></a>
+
+Sample-level covariates are regressed out of the pseudobulk before factorization — pass column names of `sample_metadata` (or a one-sided formula). To show the adjustment doing real work, plant a known batch effect (a global shift on a nuisance gene set for the `b2` samples), fit with and without adjustment, and compare how much program activity aligns with batch:
+
+<div id="cb7" class="sourceCode">
+
+\
+<span class="va">`batch_genes`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link"><code class="sourceCode r R">sort</code></a></span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link"><code class="sourceCode r R">sample.int</code></a></span><span class="op">`(`</span><span class="va">`g`</span>`, `<span class="fl">`60`</span><span class="op">`)`</span><span class="op">`)`</span>\
+<span class="va">`batch`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link"><code class="sourceCode r R">rep</code></a></span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link"><code class="sourceCode r R">c</code></a></span><span class="op">`(`</span><span class="st">`"b1"`</span>`, `<span class="st">`"b2"`</span><span class="op">`)`</span>`, `<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link"><code class="sourceCode r R">c</code></a></span><span class="op">`(`</span><span class="fl">`40`</span>`, `<span class="fl">`20`</span><span class="op">`)`</span><span class="op">`)`</span>\
+<span class="va">`Yb`</span>` `<span class="op">`<-`</span>` `<span class="va">`Y`</span>\
+<span class="va">`Yb`</span><span class="op">`[`</span><span class="va">`batch`</span>` `<span class="op">`==`</span>` `<span class="st">`"b2"`</span>`, `<span class="va">`batch_genes`</span><span class="op">`]`</span>` `<span class="op">`<-`</span>` `<span class="va">`Yb`</span><span class="op">`[`</span><span class="va">`batch`</span>` `<span class="op">`==`</span>` `<span class="st">`"b2"`</span>`, `<span class="va">`batch_genes`</span><span class="op">`]`</span>` `<span class="op">`+`</span>` `<span class="fl">`1.2`</span>\
+<span class="va">`meta`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link"><code class="sourceCode r R">data.frame</code></a></span><span class="op">`(`</span>`observation_id `<span class="op">`=`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link"><code class="sourceCode r R">rownames</code></a></span><span class="op">`(`</span><span class="va">`Yb`</span><span class="op">`)`</span>`, batch `<span class="op">`=`</span>` `<span class="va">`batch`</span><span class="op">`)`</span>\
+<span class="va">`x_batch`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`as_cell_program_data`](../reference/as_cell_program_data.html)</span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link"><code class="sourceCode r R">list</code></a></span><span class="op">`(`</span>`CT1 `<span class="op">`=`</span>` `<span class="va">`Yb`</span><span class="op">`)`</span>`, sample_metadata `<span class="op">`=`</span>` `<span class="va">`meta`</span><span class="op">`)`</span>\
+\
+<span class="va">`fit_raw`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`fit_celltype_programs`](../reference/fit_celltype_programs.html)</span><span class="op">`(`</span><span class="va">`x_batch`</span>`, backend `<span class="op">`=`</span>` `<span class="st">`"cebmf_torch"`</span>`,`\
+`                                 max_factors `<span class="op">`=`</span>` `<span class="fl">`6`</span>`, seed `<span class="op">`=`</span>` `<span class="fl">`1`</span><span class="op">`)`</span>\
+<span class="va">`fit_adj`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`fit_celltype_programs`](../reference/fit_celltype_programs.html)</span><span class="op">`(`</span><span class="va">`x_batch`</span>`, backend `<span class="op">`=`</span>` `<span class="st">`"cebmf_torch"`</span>`,`\
+`                                 covariates `<span class="op">`=`</span>` `<span class="st">`"batch"`</span>`,`\
+`                                 max_factors `<span class="op">`=`</span>` `<span class="fl">`6`</span>`, seed `<span class="op">`=`</span>` `<span class="fl">`1`</span><span class="op">`)`</span>\
+\
+<span class="va">`batch_num`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link"><code class="sourceCode r R">as.numeric</code></a></span><span class="op">`(`</span><span class="va">`batch`</span>` `<span class="op">`==`</span>` `<span class="st">`"b2"`</span><span class="op">`)`</span>\
+<span class="va">`max_batch_corr`</span>` `<span class="op">`<-`</span>` `<span class="kw">`function`</span><span class="op">`(`</span><span class="va">`fit`</span><span class="op">`)`</span>` `<span class="op">`{`</span>\
+`  `<span class="va">`Z`</span>` `<span class="op">`<-`</span>` `<span class="va">`fit`</span><span class="op">`$`</span><span class="va">`scores`</span><span class="op">`$`</span><span class="va">`CT1`</span>\
+`  `<span class="kw">`if`</span>` `<span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link"><code class="sourceCode r R">is.null</code></a></span><span class="op">`(`</span><span class="va">`Z`</span><span class="op">`)`</span>` `<span class="op">`||`</span>` `<span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link"><code class="sourceCode r R">ncol</code></a></span><span class="op">`(`</span><span class="va">`Z`</span><span class="op">`)`</span>` `<span class="op">`==`</span>` `<span class="fl">`0`</span><span class="op">`)`</span>` `<span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link"><code class="sourceCode r R">return</code></a></span><span class="op">`(`</span><span class="cn">`NA_real_`</span><span class="op">`)`</span>\
+`  `<span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link"><code class="sourceCode r R">max</code></a></span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link"><code class="sourceCode r R">abs</code></a></span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link"><code class="sourceCode r R">apply</code></a></span><span class="op">`(`</span><span class="va">`Z`</span>`, `<span class="fl">`2`</span>`, `<span class="va">`cor`</span>`, y `<span class="op">`=`</span>` `<span class="va">`batch_num`</span><span class="op">`)`</span><span class="op">`)`</span><span class="op">`)`</span>\
+<span class="op">`}`</span>\
+<span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link"><code class="sourceCode r R">round</code></a></span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link"><code class="sourceCode r R">c</code></a></span><span class="op">`(`</span>`unadjusted `<span class="op">`=`</span>` `<span class="fu">`max_batch_corr`</span><span class="op">`(`</span><span class="va">`fit_raw`</span><span class="op">`)`</span>`,`\
+`        adjusted   `<span class="op">`=`</span>` `<span class="fu">`max_batch_corr`</span><span class="op">`(`</span><span class="va">`fit_adj`</span><span class="op">`)`</span><span class="op">`)`</span>`, `<span class="fl">`3`</span><span class="op">`)`</span>
+
+</div>
+
+The unadjusted fit devotes its strongest component to the batch shift; after `covariates = "batch"` the alignment drops and the planted programs — which are independent of batch — carry the factorization instead.
+
+Two contract notes: `covariate_mode = "fixed"` (covariates as fixed loadings inside the factorization) is **flashier-only** — the torch backend aborts with guidance rather than silently residualizing. And the covariate design must leave at least 10 residual degrees of freedom in every cell type; the fit fails closed otherwise.
+
+</div>
+
+<div class="section level2">
+
+## Downstream is backend-agnostic<a href="#downstream-is-backend-agnostic" class="anchor" aria-label="anchor"></a>
+
+<div id="cb8" class="sourceCode">
+
+\
+<span class="va">`fit`</span>` `<span class="op">`<-`</span>` `<span class="fu">[`canonicalize_programs`](../reference/canonicalize_programs.html)</span><span class="op">`(`</span><span class="va">`fit`</span><span class="op">`)`</span>\
+<span class="fu">[`program_summary`](../reference/program_summary.html)</span><span class="op">`(`</span><span class="va">`fit`</span><span class="op">`)`</span><span class="op">`[`</span>`, `<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link"><code class="sourceCode r R">c</code></a></span><span class="op">`(`</span><span class="st">`"cell_type"`</span>`, `<span class="st">`"n_obs"`</span>`, `<span class="st">`"n_programs"`</span>`, `<span class="st">`"R2"`</span>`, `<span class="st">`"elbo"`</span><span class="op">`)`</span><span class="op">`]`</span>\
+\
+<span class="va">`pid`</span>` `<span class="op">`<-`</span>` `<span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link"><code class="sourceCode r R">head</code></a></span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link"><code class="sourceCode r R">colnames</code></a></span><span class="op">`(`</span><span class="fu">[`program_scores`](../reference/program_scores.html)</span><span class="op">`(`</span><span class="va">`fit`</span><span class="op">`)`</span><span class="op">`)`</span>`, `<span class="fl">`1`</span><span class="op">`)`</span>\
+<span class="fu">[`top_genes`](../reference/top_genes.html)</span><span class="op">`(`</span><span class="va">`fit`</span>`, `<span class="va">`pid`</span>`, n `<span class="op">`=`</span>` `<span class="fl">`8`</span><span class="op">`)`</span>
+
+</div>
+
+<div id="cb9" class="sourceCode">
+
+\
+<span class="fu">[`plot_top_genes`](../reference/plot_top_genes.html)</span><span class="op">`(`</span><span class="va">`fit`</span>`, programs `<span class="op">`=`</span>` `<span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link"><code class="sourceCode r R">head</code></a></span><span class="op">`(`</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link"><code class="sourceCode r R">colnames</code></a></span><span class="op">`(`</span><span class="fu">[`program_scores`](../reference/program_scores.html)</span><span class="op">`(`</span><span class="va">`fit`</span><span class="op">`)`</span><span class="op">`)`</span>`, `<span class="fl">`2`</span><span class="op">`)`</span>`, n `<span class="op">`=`</span>` `<span class="fl">`8`</span><span class="op">`)`</span>
+
+</div>
+
+</div>
+
+<div class="section level2">
+
+## When to prefer which backend<a href="#when-to-prefer-which-backend" class="anchor" aria-label="anchor"></a>
+
+- **flashier (default)**: pure R, ELBO-based null checks with a fallback ladder, mature on small pseudobulk problems, and the only backend with a `covariate_mode = "fixed"` path.
+- **cebmf_torch**: torch acceleration, covariate-EBMF machinery, and loud failure when the fit is unusable (no silent fallback). Covariates are handled identically for both backends — residualized in the R preprocessing stage (`covariate_mode = "residualize"`, the default).
+
+<!-- -->
 
     #> R version 4.4.2 (2024-10-31)
     #> Platform: x86_64-conda-linux-gnu
     #> Running under: Ubuntu 24.04.5 LTS
-    #> 
+    #>
     #> Matrix products: default
     #> BLAS/LAPACK: /opt/conda/lib/libopenblasp-r0.3.34.so;  LAPACK version 3.12.0
-    #> 
+    #>
     #> locale:
-    #>  [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       
-    #>  [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   
-    #>  [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          
-    #> [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   
-    #> 
+    #>  [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8<br>
+    #>  [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8<br>
+    #>  [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C<br>
+    #> [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C<br>
+    #>
     #> time zone: Etc/UTC
     #> tzcode source: system (glibc)
-    #> 
+    #>
     #> attached base packages:
-    #> [1] stats     graphics  grDevices utils     datasets  methods   base     
-    #> 
+    #> [1] stats     graphics  grDevices utils     datasets  methods   base<br>
+    #>
     #> other attached packages:
     #> [1] cellprograms_0.2.0.9001
-    #> 
+    #>
     #> loaded via a namespace (and not attached):
-    #>  [1] digest_0.6.39     desc_1.4.3        R6_2.6.1          fastmap_1.2.0    
-    #>  [5] xfun_0.61         cachem_1.1.0      knitr_1.52        htmltools_0.5.9  
-    #>  [9] rmarkdown_2.32    lifecycle_1.0.5   cli_3.6.6         sass_0.4.10      
+    #>  [1] digest_0.6.39     desc_1.4.3        R6_2.6.1          fastmap_1.2.0<br>
+    #>  [5] xfun_0.61         cachem_1.1.0      knitr_1.52        htmltools_0.5.9<br>
+    #>  [9] rmarkdown_2.32    lifecycle_1.0.5   cli_3.6.6         sass_0.4.10<br>
     #> [13] pkgdown_2.2.1     textshaping_0.4.0 jquerylib_0.1.4   systemfonts_1.3.2
-    #> [17] compiler_4.4.2    tools_4.4.2       ragg_1.5.2        bslib_0.12.0     
-    #> [21] evaluate_1.0.5    yaml_2.3.12       otel_0.2.0        jsonlite_2.0.0   
+    #> [17] compiler_4.4.2    tools_4.4.2       ragg_1.5.2        bslib_0.12.0<br>
+    #> [21] evaluate_1.0.5    yaml_2.3.12       otel_0.2.0        jsonlite_2.0.0<br>
     #> [25] rlang_1.3.0       fs_2.1.0          htmlwidgets_1.6.4
+
+</div>

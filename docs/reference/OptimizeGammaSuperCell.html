@@ -32,11 +32,11 @@ one graph partition per group per candidate granularity (seconds)."></head><body
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cebmf_backend.html">The cebmf_torch backend: covariate-EBMF in torch</a></li>
     <li><a class="dropdown-item" href="../articles/coordination_joint.html">Joint and tensor factorization: EB-CP and block EBMF</a></li>
-    <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
-    <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Historical case study: cross-cell-type COVID-19 PBMC programs</a></li>
+    <li><a class="dropdown-item" href="../articles/divas_case_study.html">Historical case study: DIVAS COVID-19 multi-omics</a></li>
     <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
     <li><a class="dropdown-item" href="../articles/immune_aging_cross_cohort.html">Case study: immune-aging programs across 8 global PBMC cohorts</a></li>
-    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis</a></li>
+    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Historical comparison: local-first and joint multicellular factors</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -101,15 +101,53 @@ one graph partition per group per candidate granularity (seconds).</p>
 Default `c(25, 50, 100)`.</p></dd>
 
 
-<dt id="arg-reduction-">reduction, <a class="anchor" aria-label="anchor" href="#arg-reduction-"></a></dt>
-<dd><p>dims, assay, slot, layer, n_top_genes, n_pc, k.knn,
-min_cells, seed, verbose
-Passed to [MetacellsByGroupsSuperCell()] internals.</p></dd>
+<dt id="arg-reduction">reduction<a class="anchor" aria-label="anchor" href="#arg-reduction"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSuperCell()] internals.</p></dd>
+
+
+<dt id="arg-dims">dims<a class="anchor" aria-label="anchor" href="#arg-dims"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSuperCell()] internals.</p></dd>
+
+
+<dt id="arg-assay">assay<a class="anchor" aria-label="anchor" href="#arg-assay"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSuperCell()] internals.</p></dd>
+
+
+<dt id="arg-slot">slot<a class="anchor" aria-label="anchor" href="#arg-slot"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSuperCell()] internals.</p></dd>
+
+
+<dt id="arg-layer">layer<a class="anchor" aria-label="anchor" href="#arg-layer"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSuperCell()] internals.</p></dd>
+
+
+<dt id="arg-min-cells">min_cells<a class="anchor" aria-label="anchor" href="#arg-min-cells"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSuperCell()] internals.</p></dd>
+
+
+<dt id="arg-k-knn">k.knn<a class="anchor" aria-label="anchor" href="#arg-k-knn"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSuperCell()] internals.</p></dd>
+
+
+<dt id="arg-n-top-genes">n_top_genes<a class="anchor" aria-label="anchor" href="#arg-n-top-genes"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSuperCell()] internals.</p></dd>
+
+
+<dt id="arg-n-pc">n_pc<a class="anchor" aria-label="anchor" href="#arg-n-pc"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSuperCell()] internals.</p></dd>
 
 
 <dt id="arg-mcrigor-args">mcrigor_args<a class="anchor" aria-label="anchor" href="#arg-mcrigor-args"></a></dt>
 <dd><p>Optional named list overriding mcRigor_OPTIMIZE
 arguments (`Nrep`, `weight`, ...).</p></dd>
+
+
+<dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSuperCell()] internals.</p></dd>
+
+
+<dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSuperCell()] internals.</p></dd>
 
 </dl></div>
     <div class="section level2">

@@ -1,15 +1,24 @@
+<div class="page-header">
+
 # Project fitted programs onto individual cells
 
-Estimates per-cell program activities for a \`cell_program_fit\`: each
-cell's expression vector is adjusted with the fit's recorded
-preprocessing (covariate residualization coefficients, then the stored
-centering and scale values), and activities are inferred against the
-frozen gene loadings with \`flashier.utils::project_factor_activity()\`.
-Raw activities are canonicalized with the same RMS-scale and sign
-multipliers as the donor scores, so projected activities are on the
-canonical program scale and comparable across cell types and cohorts.
+<div class="d-none name">
 
-## Usage
+`project_programs_to_cells.Rd`
+
+</div>
+
+</div>
+
+<div class="ref-description section level2">
+
+Estimates per-cell program activities for a \`cell_program_fit\`: each cell's expression vector is adjusted with the fit's recorded preprocessing (covariate residualization coefficients, then the stored centering and scale values), and activities are inferred against the frozen gene loadings with \`flashier.utils::project_factor_activity()\`. Raw activities are canonicalized with the same RMS-scale and sign multipliers as the donor scores, so projected activities are on the canonical program scale and comparable across cell types and cohorts.
+
+</div>
+
+<div class="section level2">
+
+## Usage<a href="#ref-usage" class="anchor" aria-label="anchor"></a>
 
 ``` r
 project_programs_to_cells(
@@ -27,100 +36,68 @@ project_programs_to_cells(
 )
 ```
 
-## Arguments
+</div>
 
-- fit:
+<div class="section level2">
 
-  A canonicalized \`cell_program_fit\` (from
-  \`fit_celltype_programs()\` + \`canonicalize_programs()\`).
+## Arguments<a href="#arguments" class="anchor" aria-label="anchor"></a>
 
-- expression:
+fit<a href="#arg-fit" class="anchor" aria-label="anchor"></a><br>
+A canonicalized \`cell_program_fit\` (from \`fit_celltype_programs()\` + \`canonicalize_programs()\`).
 
-  Dense numeric matrix with cells in rows and genes in columns (row and
-  column names required). Sparse matrices are not supported in v1. Genes
-  absent from a cell type's fit panel are handled by \`flashier.utils\`
-  intersection matching against \`min_coverage\`.
+expression<a href="#arg-expression" class="anchor" aria-label="anchor"></a><br>
+Dense numeric matrix with cells in rows and genes in columns (row and column names required). Sparse matrices are not supported in v1. Genes absent from a cell type's fit panel are handled by \`flashier.utils\` intersection matching against \`min_coverage\`.
 
-- cell_types:
+cell_types<a href="#arg-cell-types" class="anchor" aria-label="anchor"></a><br>
+Named character vector mapping every row of \`expression\` to its cell type; names must be exactly the row names of \`expression\`. Cell types not in the fit (and fit cell types with no cells here) yield \`NA\` activities.
 
-  Named character vector mapping every row of \`expression\` to its cell
-  type; names must be exactly the row names of \`expression\`. Cell
-  types not in the fit (and fit cell types with no cells here) yield
-  \`NA\` activities.
+feature_scale<a href="#arg-feature-scale" class="anchor" aria-label="anchor"></a><br>
+Declared measurement units of \`expression\` (e.g. "logcounts"). Defaults to the fit's recorded \`feature_scale\`, which must not be "unknown"; a query whose declared units differ from the fit's is refused. This argument declares query units only: a reference with unknown or missing units must be refit with truthful units declared at fit time. It cannot be relabeled by a projection-time override.
 
-- feature_scale:
+donors<a href="#arg-donors" class="anchor" aria-label="anchor"></a><br>
+Optional named character vector mapping every cell to its donor ID (\`sample_metadata\$observation_id\` values). Required whenever any projected cell type was fit with residualized covariates.
 
-  Declared measurement units of \`expression\` (e.g. "logcounts").
-  Defaults to the fit's recorded \`feature_scale\`, which must not be
-  "unknown"; a query whose declared units differ from the fit's is
-  refused.
+sample_metadata<a href="#arg-sample-metadata" class="anchor" aria-label="anchor"></a><br>
+Optional data.frame with an \`observation_id\` column plus the covariate columns used at fit time. Required with \`donors\` when replaying residualization.
 
-- donors:
+min_coverage<a href="#arg-min-coverage" class="anchor" aria-label="anchor"></a><br>
+Minimum fraction of a cell type's fit genes that must be present in \`expression\` (passed to the projection oracle).
 
-  Optional named character vector mapping every cell to its donor ID
-  (\`sample_metadata\$observation_id\` values). Required whenever any
-  projected cell type was fit with residualized covariates.
+maxiter<a href="#arg-maxiter" class="anchor" aria-label="anchor"></a><br>
+Maximum projection iterations per cell type.
 
-- sample_metadata:
+query_var_type<a href="#arg-query-var-type" class="anchor" aria-label="anchor"></a><br>
+Residual variance model for the query data: 0 = constant (default for single-cell profiles), 1 = per-cell, 2 = per-gene.
 
-  Optional data.frame with an \`observation_id\` column plus the
-  covariate columns used at fit time. Required with \`donors\` when
-  replaying residualization.
+dense_budget_bytes<a href="#arg-dense-budget-bytes" class="anchor" aria-label="anchor"></a><br>
+Memory budget for dense intermediates (passed to the projection oracle).
 
-- min_coverage:
+keep_native<a href="#arg-keep-native" class="anchor" aria-label="anchor"></a><br>
+When TRUE, include the native flash fit object for each projected cell type in \`per_type\[\[ct\]\]\$native\`.
 
-  Minimum fraction of a cell type's fit genes that must be present in
-  \`expression\` (passed to the projection oracle).
+</div>
 
-- maxiter:
+<div class="section level2">
 
-  Maximum projection iterations per cell type.
+## Value<a href="#value" class="anchor" aria-label="anchor"></a>
 
-- query_var_type:
+A list with components: \`activity\` (cells x programs matrix; canonicalized activities, \`NA\` for cells whose type contributed no programs), \`per_type\` (per cell type: \`activity\`, \`reconstruction\` metrics, and optionally \`native\`), \`coverage\` (per cell type: programs, cells, shared/reference genes, coverage), \`analysis_metadata\`, and \`provenance\`.
 
-  Residual variance model for the query data: 0 = constant (default for
-  single-cell profiles), 1 = per-cell, 2 = per-gene.
+</div>
 
-- dense_budget_bytes:
+<div class="section level2">
 
-  Memory budget for dense intermediates (passed to the projection
-  oracle).
+## Details<a href="#details" class="anchor" aria-label="anchor"></a>
 
-- keep_native:
+The fit must be canonicalized (\`canonicalize_programs()\`) and must carry a flashier.utils manifest (the default backend) with declared measurement units (\`feature_scale\`); legacy-backend and fixed-covariate fits are refused because their adjustment cannot be replayed. When the fit residualized covariates for a cell type, \`donors\` and \`sample_metadata\` are required so the adjustment can be rebuilt for the query cells; the rebuilt design must reproduce the fit's design columns exactly (fail closed on cohort changes that add or drop covariate levels).
 
-  When TRUE, include the native flash fit object for each projected cell
-  type in \`per_type\[\[ct\]\]\$native\`.
+Projection is joint over the supplied cells within each cell type: activity priors are re-estimated from the query set, so the same cell projected in two different query sets can receive different activities. Chunked projection would be an approximation and is not offered; oversize queries are refused pre-flight against \`dense_budget_bytes\` (decision record: flashier.utils \`reports/FU3B_CP6_CHUNKING_DECISION.md\`).
 
-## Value
+</div>
 
-A list with components: \`activity\` (cells x programs matrix;
-canonicalized activities, \`NA\` for cells whose type contributed no
-programs), \`per_type\` (per cell type: \`activity\`, \`reconstruction\`
-metrics, and optionally \`native\`), \`coverage\` (per cell type:
-programs, cells, shared/reference genes, coverage),
-\`analysis_metadata\`, and \`provenance\`.
+<div class="section level2">
 
-## Details
-
-The fit must be canonicalized (\`canonicalize_programs()\`) and must
-carry a flashier.utils manifest (the default backend) with declared
-measurement units (\`feature_scale\`); legacy-backend and
-fixed-covariate fits are refused because their adjustment cannot be
-replayed. When the fit residualized covariates for a cell type,
-\`donors\` and \`sample_metadata\` are required so the adjustment can be
-rebuilt for the query cells; the rebuilt design must reproduce the fit's
-design columns exactly (fail closed on cohort changes that add or drop
-covariate levels).
-
-Projection is joint over the supplied cells within each cell type:
-activity priors are re-estimated from the query set, so the same cell
-projected in two different query sets can receive different activities.
-Chunked projection would be an approximation and is not offered;
-oversize queries are refused pre-flight against \`dense_budget_bytes\`
-(decision record: flashier.utils
-\`reports/FU3B_CP6_CHUNKING_DECISION.md\`).
-
-## Examples
+## Examples<a href="#ref-examples" class="anchor" aria-label="anchor"></a>
 
 ``` r
 sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
@@ -133,5 +110,6 @@ ct1 <- fit$cell_types[1]
 cells <- setNames(rep(ct1, nrow(x$pseudobulk[[ct1]])), rownames(x$pseudobulk[[ct1]]))
 proj <- project_programs_to_cells(fit, x$pseudobulk[[ct1]], cell_types = cells)
 cor(proj$activity[, 1], fit$scores[[ct1]][, 1])   # high by construction
-#> [1] 0.9999978
 ```
+
+</div>

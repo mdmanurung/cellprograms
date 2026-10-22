@@ -1,23 +1,24 @@
+<div class="page-header">
+
 # Transcription-factor footprints of coordinated programs
 
-For each CMP member program, a univariate linear model (decoupler-style
-ULM) of its signed loadings on each TF's signed regulon (\`mor\` for
-targets, 0 otherwise) within the program's gene universe. Loadings are
-multiplied by the member's CMP sign, so a positive \`t\` means the TF's
-targets go up in donors with a high CMP score; with \`use_lfsr\`,
-loadings are shrunk by (1 - lfsr). \`p\` is the ULM t-test p-value (what
-a gene-label permutation converges to, without its 1/(n_perm + 1) floor,
-which would otherwise stop BH from reaching significance over hundreds
-of TFs), \`padj\` is BH within the member, and \`p_fwer\` uses the
-gene-permutation maximum of \|t\| over all TFs tested for that member.
-This competitive test asks whether targets are more (or less) loaded
-than random genes. Because loadings have a natural zero, a regulon of
-unloaded genes in a program skewed to one sign would look "depleted"; a
-TF is therefore called (\`sig\`) only if it also passes a self-contained
-sign-flip test (\`p_self \< q_self\`: the mor-signed target loadings are
-coherently non-zero) in the same direction as \`t\`.
+<div class="d-none name">
 
-## Usage
+`annotate_cmp_tf.Rd`
+
+</div>
+
+</div>
+
+<div class="ref-description section level2">
+
+For each CMP member program, a univariate linear model (decoupler-style ULM) of its signed loadings on each TF's signed regulon (\`mor\` for targets, 0 otherwise) within the program's gene universe. Loadings are multiplied by the member's CMP sign, so a positive \`t\` means the TF's targets go up in donors with a high CMP score; with \`use_lfsr\`, loadings are shrunk by (1 - lfsr). \`p\` is the ULM t-test p-value (what a gene-label permutation converges to, without its 1/(n_perm + 1) floor, which would otherwise stop BH from reaching significance over hundreds of TFs), \`padj\` is BH within the member, and \`p_fwer\` uses the gene-permutation maximum of \|t\| over all TFs tested for that member. This competitive test asks whether targets are more (or less) loaded than random genes. Because loadings have a natural zero, a regulon of unloaded genes in a program skewed to one sign would look "depleted"; a TF is therefore called (\`sig\`) only if it also passes a self-contained sign-flip test (\`p_self \< q_self\`: the mor-signed target loadings are coherently non-zero) in the same direction as \`t\`.
+
+</div>
+
+<div class="section level2">
+
+## Usage<a href="#ref-usage" class="anchor" aria-label="anchor"></a>
 
 ``` r
 annotate_cmp_tf(
@@ -33,76 +34,62 @@ annotate_cmp_tf(
 )
 ```
 
-## Arguments
+</div>
 
-- fit:
+<div class="section level2">
 
-  A canonicalized \`cell_program_fit\`.
+## Arguments<a href="#arguments" class="anchor" aria-label="anchor"></a>
 
-- cmp:
+fit<a href="#arg-fit" class="anchor" aria-label="anchor"></a><br>
+A canonicalized \`cell_program_fit\`.
 
-  A \`cmp_result\` or its \`cmps\` table.
+cmp<a href="#arg-cmp" class="anchor" aria-label="anchor"></a><br>
+A \`cmp_result\` or its \`cmps\` table.
 
-- net:
+net<a href="#arg-net" class="anchor" aria-label="anchor"></a><br>
+Data frame with \`source\` (TF), \`target\` and \`mor\` (+1/-1), e.g. from \`prepare_collectri()\`.
 
-  Data frame with \`source\` (TF), \`target\` and \`mor\` (+1/-1), e.g.
-  from \`prepare_collectri()\`.
+min_size<a href="#arg-min-size" class="anchor" aria-label="anchor"></a><br>
+Minimum regulon targets within the program's genes (default 5).
 
-- min_size:
+n_perm<a href="#arg-n-perm" class="anchor" aria-label="anchor"></a><br>
+Permutations for \`p_fwer\` and \`p_self\` (default 1000; 0 for normal approximations).
 
-  Minimum regulon targets within the program's genes (default 5).
+q<a href="#arg-q" class="anchor" aria-label="anchor"></a><br>
+Threshold on the competitive \`padj\` (default 0.05).
 
-- n_perm:
+q_self<a href="#arg-q-self" class="anchor" aria-label="anchor"></a><br>
+Threshold on the self-contained \`p_self\` (default 0.05).
 
-  Permutations for \`p_fwer\` and \`p_self\` (default 1000; 0 for normal
-  approximations).
+use_lfsr<a href="#arg-use-lfsr" class="anchor" aria-label="anchor"></a><br>
+Shrink loadings by (1 - lfsr) when available (default TRUE).
 
-- q:
+seed<a href="#arg-seed" class="anchor" aria-label="anchor"></a><br>
+Random seed.
 
-  Threshold on the competitive \`padj\` (default 0.05).
+</div>
 
-- q_self:
+<div class="section level2">
 
-  Threshold on the self-contained \`p_self\` (default 0.05).
+## Value<a href="#value" class="anchor" aria-label="anchor"></a>
 
-- use_lfsr:
+List of class \`cmp_tf\`: \`members\` (one row per member and tested TF: \`cmp\`, \`cell_type\`, \`program_id\`, \`tf\`, \`n_targets\`, \`t\`, \`p\`, \`padj\`, \`p_fwer\`, \`p_self\`, \`mean_target_loading\` (mean mor-signed target loading, scaled by the member's maximum \|loading\|), \`sig\`, \`tf_loading\` = the TF gene's own oriented loading scaled by the member's maximum \|loading\|, NA if absent) and \`summary\` (one row per CMP and TF significant in at least one member: \`cmp\`, \`tf\`, \`n_tested\`, \`n_up\`, \`n_down\`, \`z\`, \`class\`, \`members_sig\`).
 
-  Shrink loadings by (1 - lfsr) when available (default TRUE).
+</div>
 
-- seed:
+<div class="section level2">
 
-  Random seed.
+## Details<a href="#details" class="anchor" aria-label="anchor"></a>
 
-## Value
+Members are then summarized per CMP and TF. A TF is \`"shared"\` if it is called (\`sig\`) with the same sign in at least two members and at least half of the members it was tested in; \`"specific"\` if significant in exactly one member; and \`"mixed"\` otherwise (significant in several members with discordant signs or in fewer than half). \`z\` is the Stouffer combination of member t-statistics (converted to normal scores), used for ranking only: members share genes and priors, so it is not a calibrated test.
 
-List of class \`cmp_tf\`: \`members\` (one row per member and tested TF:
-\`cmp\`, \`cell_type\`, \`program_id\`, \`tf\`, \`n_targets\`, \`t\`,
-\`p\`, \`padj\`, \`p_fwer\`, \`p_self\`, \`mean_target_loading\` (mean
-mor-signed target loading, scaled by the member's maximum \|loading\|),
-\`sig\`, \`tf_loading\` = the TF gene's own oriented loading scaled by
-the member's maximum \|loading\|, NA if absent) and \`summary\` (one row
-per CMP and TF significant in at least one member: \`cmp\`, \`tf\`,
-\`n_tested\`, \`n_up\`, \`n_down\`, \`z\`, \`class\`, \`members_sig\`).
+The gene-permutation null treats genes as exchangeable. Co-regulated genes violate that assumption, so \`padj\` is anticonservative when a large block of correlated genes drives a program; large, promiscuous regulons (e.g. NFKB, AP1, SP1, MYC) reach significance more readily. A footprint says which regulons a program resembles, not which TF caused the coordination.
 
-## Details
+</div>
 
-Members are then summarized per CMP and TF. A TF is \`"shared"\` if it
-is called (\`sig\`) with the same sign in at least two members and at
-least half of the members it was tested in; \`"specific"\` if
-significant in exactly one member; and \`"mixed"\` otherwise
-(significant in several members with discordant signs or in fewer than
-half). \`z\` is the Stouffer combination of member t-statistics
-(converted to normal scores), used for ranking only: members share genes
-and priors, so it is not a calibrated test.
+<div class="section level2">
 
-The gene-permutation null treats genes as exchangeable. Co-regulated
-genes violate that assumption, so \`padj\` is anticonservative when a
-large block of correlated genes drives a program; large, promiscuous
-regulons (e.g. NFKB, AP1, SP1, MYC) reach significance more readily. A
-footprint says which regulons a program resembles, not which TF caused
-the coordination.
-
-## Examples
+## Examples<a href="#ref-examples" class="anchor" aria-label="anchor"></a>
 
 ``` r
 # Toy canonicalized fit: program 1 of cell types A and B shares donor
@@ -131,6 +118,6 @@ net <- rbind(data.frame(source = "TF1", target = paste0("G", 1:15), mor = 1),
              data.frame(source = "TF2", target = paste0("G", 20:34), mor = 1))
 tf <- annotate_cmp_tf(fit, res, net, n_perm = 99)
 tf$summary
-#>   cmp  tf n_tested n_up n_down        z  class members_sig
-#> 1   1 TF1        2    2      0 22.50606 shared       A+,B+
 ```
+
+</div>

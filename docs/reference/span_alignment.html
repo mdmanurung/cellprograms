@@ -34,11 +34,11 @@ between the spans."></head><body>
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cebmf_backend.html">The cebmf_torch backend: covariate-EBMF in torch</a></li>
     <li><a class="dropdown-item" href="../articles/coordination_joint.html">Joint and tensor factorization: EB-CP and block EBMF</a></li>
-    <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
-    <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
+    <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Historical case study: cross-cell-type COVID-19 PBMC programs</a></li>
+    <li><a class="dropdown-item" href="../articles/divas_case_study.html">Historical case study: DIVAS COVID-19 multi-omics</a></li>
     <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
     <li><a class="dropdown-item" href="../articles/immune_aging_cross_cohort.html">Case study: immune-aging programs across 8 global PBMC cohorts</a></li>
-    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Compared to MOFAcellulaR: local-first vs joint multicellular factor analysis</a></li>
+    <li><a class="dropdown-item" href="../articles/mofacellular_comparison.html">Historical comparison: local-first and joint multicellular factors</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -74,8 +74,12 @@ between the spans.</p>
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
 
 
-<dl><dt id="arg-w-">W1, <a class="anchor" aria-label="anchor" href="#arg-w-"></a></dt>
-<dd><p>W2 Loading matrices (genes x programs) on the same gene panel.
+<dl><dt id="arg-w-">W1<a class="anchor" aria-label="anchor" href="#arg-w-"></a></dt>
+<dd><p>Loading matrix (genes x programs) on the common gene panel.</p></dd>
+
+
+<dt id="arg-w-">W2<a class="anchor" aria-label="anchor" href="#arg-w-"></a></dt>
+<dd><p>Second loading matrix (genes x programs) on that same panel.
 Row names should match; rows are matched by name when both have row
 names, otherwise by position.</p></dd>
 
@@ -104,13 +108,10 @@ noise ceiling; near 0 means the shared subspace is no larger than noise.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">W</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span> <span class="op">*</span> <span class="fl">3</span><span class="op">)</span>, <span class="fl">100</span>, <span class="fl">3</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">span_alignment</span><span class="op">(</span><span class="va">W</span>, <span class="va">W</span><span class="op">)</span><span class="op">$</span><span class="va">mean_overlap</span>          <span class="co"># 1: identical span</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1</span>
-<span class="r-in"><span><span class="va">W2</span> <span class="op">&lt;-</span> <span class="va">W</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span></span>
-<span class="r-in"><span><span class="fu">span_alignment</span><span class="op">(</span><span class="va">W</span>, <span class="va">W2</span><span class="op">)</span><span class="op">$</span><span class="va">mean_overlap_topk</span>    <span class="co"># subset span fully contained</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1</span>
-</code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="va">W</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span> <span class="op">*</span> <span class="fl">3</span><span class="op">)</span>, <span class="fl">100</span>, <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="fu">span_alignment</span><span class="op">(</span><span class="va">W</span>, <span class="va">W</span><span class="op">)</span><span class="op">$</span><span class="va">mean_overlap</span>          <span class="co"># 1: identical span</span></span>
+<span><span class="va">W2</span> <span class="op">&lt;-</span> <span class="va">W</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
+<span><span class="fu">span_alignment</span><span class="op">(</span><span class="va">W</span>, <span class="va">W2</span><span class="op">)</span><span class="op">$</span><span class="va">mean_overlap_topk</span>    <span class="co"># subset span fully contained</span></span></code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

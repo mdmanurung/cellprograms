@@ -1,40 +1,57 @@
+<div class="page-header">
+
 # Ambient-likeness of programs
 
-For each program, the largest absolute correlation between its gene
-loadings and another cell type's expression specificity
-(\`profile_other - profile_own\`, log scale). High values indicate a
-program that tracks contamination by another cell type's transcripts
-(ambient RNA, doublets) rather than biology intrinsic to the cell type.
-Genuine biology can also score high (e.g. a monocyte-like program in
-DCs), so treat it as a flag.
+<div class="d-none name">
 
-## Usage
+`ambient_program_scores.Rd`
+
+</div>
+
+</div>
+
+<div class="ref-description section level2">
+
+For each program, the largest absolute correlation between its gene loadings and another cell type's expression specificity (\`profile_other - profile_own\`, log scale). High values indicate a program that tracks contamination by another cell type's transcripts (ambient RNA, doublets) rather than biology intrinsic to the cell type. Genuine biology can also score high (e.g. a monocyte-like program in DCs), so treat it as a flag.
+
+</div>
+
+<div class="section level2">
+
+## Usage<a href="#ref-usage" class="anchor" aria-label="anchor"></a>
 
 ``` r
 ambient_program_scores(fit, profiles = NULL, min_genes = 50L)
 ```
 
-## Arguments
+</div>
 
-- fit:
+<div class="section level2">
 
-  A canonicalized \`cell_program_fit\`.
+## Arguments<a href="#arguments" class="anchor" aria-label="anchor"></a>
 
-- profiles:
+fit<a href="#arg-fit" class="anchor" aria-label="anchor"></a><br>
+A canonicalized \`cell_program_fit\`.
 
-  Optional named list of per-cell-type mean log-expression vectors named
-  by gene; defaults to column means of \`fit\$pseudobulk\`.
+profiles<a href="#arg-profiles" class="anchor" aria-label="anchor"></a><br>
+Optional named list of per-cell-type mean log-expression vectors named by gene; defaults to column means of \`fit\$pseudobulk\`.
 
-- min_genes:
+min_genes<a href="#arg-min-genes" class="anchor" aria-label="anchor"></a><br>
+Minimum shared genes to compare two cell types (default 50).
 
-  Minimum shared genes to compare two cell types (default 50).
+</div>
 
-## Value
+<div class="section level2">
 
-Data frame with \`cell_type\`, \`program_id\`, \`ambient_score\` and
-\`source\` (the cell type giving the maximum).
+## Value<a href="#value" class="anchor" aria-label="anchor"></a>
 
-## Examples
+Data frame with \`cell_type\`, \`program_id\`, \`ambient_score\` and \`source\` (the cell type giving the maximum).
+
+</div>
+
+<div class="section level2">
+
+## Examples<a href="#ref-examples" class="anchor" aria-label="anchor"></a>
 
 ``` r
 sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
@@ -42,13 +59,6 @@ x <- as_cell_program_data(sim$pseudobulk)
 fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 150)
 fit <- canonicalize_programs(fit)
 ambient_program_scores(fit)
-#>   cell_type program_id ambient_score source
-#> 1         B        B_1    0.49352750     NK
-#> 2         B        B_2    0.16956795     NK
-#> 3       CD4      CD4_1    0.55106699    CD8
-#> 4       CD8      CD8_1    0.09585351    CD4
-#> 5        NK       NK_1    0.40634664      B
-#> 6        NK       NK_2    0.10544901    CD8
-#> 7      Mono     Mono_1    0.65147659    CD8
-#> 8      Mono     Mono_2    0.37685525     NK
 ```
+
+</div>
