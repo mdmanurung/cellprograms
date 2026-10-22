@@ -1,5 +1,39 @@
 # cellprograms 0.2.0.9001 (development)
 
+## CPUB correctness and support corrections (local candidate, 2026-10-22)
+
+* EB-CP now orients two modes, preserving each component's tensor product.
+  Reconstruction diagnostics are computed from the returned factors. Held-out
+  selection is experimental screening, not a winner's-curse or set-error
+  guarantee; this supersedes stronger wording in the historical entry below.
+  Unusable continuous/singleton strata and insufficient per-type split halves
+  are refused before solving.
+* Covariate residualization records trained terms, prediction variables,
+  factor levels, contrasts and numeric scaling constants. Linear, factor,
+  polynomial and spline query designs use training state. Unsupported custom
+  transforms and legacy residualized models without state require explicit
+  preprocessing/refitting, rather than query-dependent recomputation.
+* Frozen preprocessing schema 1.1 records feature units and validates its content
+  digest on consumption. Intact schema 1.0 remains readable with unknown units.
+* Known residual noise now uses `S` together with `var_type = NULL` internally;
+  passing `S` alone did not disable noise estimation in the pinned engine.
+  Effective engine, priors, variance mode and fallback controls are recorded.
+* Experimental `cebmf_torch` is explicitly a distinct Laplace/Laplace estimator:
+  use `loading_prior="laplace"`, `var_type=2`, `backfit=TRUE`,
+  `nullcheck=FALSE`. Incompatible controls fail before Python. Loss increases
+  cannot establish plateau convergence. Only `flash_control$verbose` remains
+  accepted; estimator controls must use their explicit arguments.
+* Score-level block fits retain block masses; score/private-first is refused.
+  Observed-support CMP residualization uses rank-aware QR and exposes program
+  and edge callability. These guards do not establish new calibration.
+* Stability refits forward backend/noise controls in frozen and unfrozen paths
+  and retain intended settings for failed as well as successful replicates.
+* Optional metacell reduction preparation returns the updated Seurat object
+  with a consistent PCA key. Full SuperCell/mcRigor integration remains optional.
+* Added the installed-package test entrypoint. CI now configures minimum R,
+  current Linux/macOS/Windows and an upstream-dependency lane; configuration is
+  not evidence that these platforms have executed successfully.
+
 ## Batch adjustment, subspace metrics, and covariate-audit tests (2026-10-22)
 
 * New `adjust_batches=` argument in `fit_celltype_programs()`: `sva::ComBat`

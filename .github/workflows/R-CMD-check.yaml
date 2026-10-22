@@ -19,6 +19,8 @@ jobs:
           # pinned-compatible lane: exact dependency commits from Remotes
           - {os: ubuntu-latest, r: 'release', lane: 'pinned'}
           - {os: macos-latest, r: 'release', lane: 'pinned'}
+          - {os: windows-latest, r: 'release', lane: 'pinned'}
+          - {os: ubuntu-latest, r: '4.3', lane: 'pinned'}
           # upstream-main lane: flashier-utils main, to catch upstream drift early
           - {os: ubuntu-latest, r: 'release', lane: 'upstream-main'}
     env:
@@ -34,7 +36,7 @@ jobs:
 
       # Installs Imports/Suggests and rcmdcheck; packages are cached across runs.
       # Remotes pins flashier (willwerscheid/flashier@fd44811) and, for the
-      # pinned lane, flashier-utils (mdmanurung/flashier-utils@sync/stage-a).
+      # pinned lane, flashier-utils (exact SHA in DESCRIPTION).
       # any::remotes is needed by the upstream-main lane install step below.
       # mashr's RcppGSL binary from the RSPM is built against libgsl.so.27
       # (Posit's build environment) while ubuntu-24.04 ships libgsl.so.28 -
@@ -59,10 +61,10 @@ jobs:
           upload-snapshots: "no"
           build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
           args: 'c("--no-manual","--as-cran")'
-          error-on: '"error"'
+          error-on: '"warning"'
 
       - name: Run testthat
         shell: Rscript {0}
         run: |
           cat("Running testthat::test_local()\n")
-          testthat::test_local(".")
+          testthat::test_local(".", stop_on_failure = TRUE)

@@ -16,6 +16,7 @@ Imports:
     stats,
     utils,
     methods,
+    splines,
     cli,
     digest,
     Matrix,
@@ -42,8 +43,10 @@ Suggests:
     sva
 Remotes:
     willwerscheid/flashier@fd44811ab22d61ee905e1964175571c452fe7683,
-    flashier.utils=mdmanurung/flashier-utils,
-    JSB-UCLA/mcRigor,
+    stephenslab/ebnm@825edf1e308af9f3e594a5482300b9fb99793129,
+    stephenslab/fastTopics@5cf9a448b17a7eb8f139cc916e22cb3ad1766b70,
+    flashier.utils=mdmanurung/flashier-utils@63f197843cd3115c072fbc8038bf4027f69a141f,
+    JSB-UCLA/mcRigor@c70cd6f8a0beeaabec76e49abdaff814ab531efa,
     GfellerLab/SuperCell@89b34c078dba0b91289a5a23cf75a6db3a46d232
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.1.1
