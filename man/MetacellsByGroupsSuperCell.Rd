@@ -56,7 +56,7 @@ computed dimensions of the reduction.}
 (raw-count sums, the SEACells default and the benchmark configuration) or
 `"average"` (divide by metacell size). Default `"sum"`.}
 
-\item{cells_per_metacell}{Target number of single cells per metacell —
+\item{cells_per_metacell}{Target number of single cells per metacell  - 
 SuperCell's native `gamma`. Default 75 (SEACells guidance; hdWGCNA k
 guidance: 20-75).}
 
