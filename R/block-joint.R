@@ -114,6 +114,7 @@ fit_joint_block <- function(fit, level = c("scores", "expression"),
     } else {
       recon <- matrix(0, nrow(X), ncol(X))
     }
+    dimnames(recon) <- dimnames(X)   # character-indexed below; plain matrix(0) has none
     for (ct in if (level == "expression") unique(block_id) else character(0)) {
       idx <- which(block_id == ct)
       obs <- rownames(fit$fits[[ct]]$Y_used)

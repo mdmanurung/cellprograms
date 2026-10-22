@@ -3,8 +3,8 @@
 ## Library file: caller sources sim_coord.R / methods.R / eb_cp.R / score.R and
 ## the package R/ files first. Driver: main_run.R.
 
-METHODS_ALL <- c("pa_cc", "node_cor", "subspace_sum", "gene_match", "block_E", "eb_cp",
-                 "oracle")
+METHODS_ALL <- c("pa_cc", "node_cor", "subspace_sum", "gene_match", "block_E", "block_E_cal",
+                 "eb_cp", "oracle")
 
 run_one_replicate <- function(mode, breadth, amp, rep, seed, act_cor = 1,
                               G = 2000L, outdir, methods = METHODS_ALL) {
@@ -22,15 +22,22 @@ run_one_replicate <- function(mode, breadth, amp, rep, seed, act_cor = 1,
   t_stage1 <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
 
   prog_rows <- list(); ds_rows <- list()
+  bfit_cache <- list()   # block_E / block_E_cal share one joint fit per replicate
   for (m in methods) {
     t0 <- Sys.time()
     res <- tryCatch(
       if (m == "oracle") {
         method_oracle(lapply(fit$fits[fit$cell_types], function(f) f$Y_used),
                       d$truth, d$strata, n_perm = 999L, seed = seed)
+      } else if (m %in% c("block_E", "block_E_cal")) {
+        run_method(m, fit, d$strata, seed = seed, bfit = bfit_cache$bfit)
       } else {
         run_method(m, fit, d$strata, seed = seed)
       }, error = function(e) e)
+    if (!inherits(res, "error") && is.null(bfit_cache$bfit) &&
+        m %in% c("block_E", "block_E_cal") && !is.null(res$fit)) {
+      bfit_cache$bfit <- res$fit
+    }
     t_m <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
     if (inherits(res, "error")) {
       ds_rows[[m]] <- data.frame(cell_id = cell_id, mode = mode, breadth = breadth,

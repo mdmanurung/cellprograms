@@ -266,10 +266,14 @@ method_subspace_sum <- function(fit, strata, n_perm = 999L, seed = 1L, alpha = 0
 }
 
 ## ---- block_E: joint block EBMF at expression level -------------------------
+## bfit: optionally reuse a precomputed fit_joint_block result (run_one_replicate
+## caches it so block_E and block_E_cal share one ~15-min joint fit).
 method_block_e <- function(fit, max_factors = 20L, seed = 1L, mass_thresh = 0.1,
-                           strata = NULL, n_perm = 0L, alpha = 0.05) {
-  bfit <- fit_joint_block(fit, level = "expression", order = "shared_first",
-                          max_factors = max_factors, seed = seed, verbose = 0L)
+                           strata = NULL, n_perm = 0L, alpha = 0.05, bfit = NULL) {
+  if (is.null(bfit)) {
+    bfit <- fit_joint_block(fit, level = "expression", order = "shared_first",
+                            max_factors = max_factors, seed = seed, verbose = 0L)
+  }
   bc <- block_clusters(bfit, mass_thresh = mass_thresh)
   out <- list(method = "block_E", n_perm = n_perm, clusters = bc$clusters,
               activity = bc$activity, fit = bfit)
@@ -418,6 +422,99 @@ method_block_e <- function(fit, max_factors = 20L, seed = 1L, mass_thresh = 0.1,
   data.frame(factor_id = fids, T_obs = T_obs, p = p, stringsAsFactors = FALSE)
 }
 
+## ---- block_E_cal: block_E + activity-replication permutation calibration ---
+## Preregistered FWER layer for block_E's FPR defect (DECISION_prereg_coord_v1:
+## block_E called all 16 null datasets, mean 15.9 spurious clusters). No refit:
+## for each called cluster, each member type's activity is its own expression
+## block projected on the shared factor's loadings restricted to that block
+## (v_ct = Y_used_ct %*% w_ct, w_ct = F_pm[ct block, k]); the statistic is the
+## mean pairwise |cor| across member types over shared donors. Null: permute
+## every member's donor rows independently within strata (in distribution this
+## realizes the pair-specific relative permutations simultaneously), max-T
+## across called clusters -> FWER p. Clusters with fwer_p > alpha are dropped
+## (cluster ids and activity columns renumbered); uncalibratable clusters
+## (< min_shared shared donors) keep fwer_p = NA and are retained. stat becomes
+## the alignment statistic (block_E's max block mass is replaced).
+method_block_e_cal <- function(fit, strata = NULL, n_perm = 199L, seed = 1L,
+                               alpha = 0.05, min_shared = 10L, bfit = NULL,
+                               mass_thresh = 0.1) {
+  if (is.null(bfit)) {
+    bfit <- fit_joint_block(fit, level = "expression", order = "shared_first",
+                            max_factors = 20L, seed = seed, verbose = 0L)
+  }
+  bc <- block_clusters(bfit, mass_thresh = mass_thresh)
+  cl <- bc$clusters
+  out <- list(method = "block_E_cal", n_perm = n_perm, clusters = cl,
+              activity = bc$activity, fit = bfit)
+  if (!nrow(cl)) return(out)
+
+  F_pm <- bfit$shared_fit$F_pm
+  block_id <- bfit$block_id
+  cl_ids <- sort(unique(cl$cluster))
+
+  ## member activities: v[[i]][[ct]] = named vector over ct's own donors
+  v <- lapply(cl_ids, function(k) {
+    fk <- cl$program_id[cl$cluster == k][1L]
+    fpos <- match(fk, bfit$summary$factor_id)   # F_pm has no SF.. colnames
+    mem <- cl$cell_type[cl$cluster == k]
+    setNames(lapply(mem, function(ct) {
+      idx <- which(block_id == ct)
+      gn <- sub(paste0("^", ct, "__"), "", rownames(F_pm)[idx])
+      Y <- fit$fits[[ct]]$Y_used
+      w <- numeric(ncol(Y)); j <- match(gn, colnames(Y))
+      w[j[!is.na(j)]] <- F_pm[idx[!is.na(j)], fpos]
+      setNames(as.vector(Y %*% w), rownames(Y))
+    }), mem)
+  })
+  ids_k <- lapply(v, function(vk) Reduce(intersect, lapply(vk, names)))
+
+  ## mean pairwise |cor| over shared donors (M columns = member activities)
+  stat1 <- function(vk, ids, perms = NULL) {
+    M <- sapply(vk, function(x) x[ids])
+    if (!is.null(perms)) for (j in seq_along(vk)) M[, j] <- M[perms[[j]], j]
+    R <- suppressWarnings(stats::cor(M))
+    R[!is.finite(R)] <- 0
+    mean(abs(R[lower.tri(R)]))
+  }
+
+  obs <- vapply(seq_along(cl_ids), function(i) {
+    if (length(ids_k[[i]]) < min_shared) NA_real_ else stat1(v[[i]], ids_k[[i]])
+  }, numeric(1L))
+  calib <- !is.na(obs)
+  fwer <- rep(NA_real_, length(cl_ids))
+  if (any(calib) && n_perm > 0L) {
+    set.seed(seed)
+    mx <- numeric(n_perm)
+    for (b in seq_len(n_perm)) {
+      mx[b] <- max(vapply(which(calib), function(i) {
+        ids <- ids_k[[i]]
+        perms <- lapply(v[[i]], function(x) .perm_within(length(ids), strata[ids]))
+        stat1(v[[i]], ids, perms)
+      }, numeric(1L)))
+    }
+    fwer[calib] <- vapply(obs[calib],
+                          function(s) (1 + sum(mx >= s)) / (n_perm + 1L), numeric(1L))
+  }
+  pos <- match(cl$cluster, cl_ids)
+  cl$fwer_p <- fwer[pos]
+  cl$stat <- ifelse(calib[pos], obs[pos], NA_real_)
+
+  keep <- is.na(cl$fwer_p) | cl$fwer_p <= alpha
+  if (!all(keep)) {
+    kept <- sort(unique(cl$cluster[keep]))
+    remap <- setNames(seq_along(kept), as.character(kept))
+    cl <- cl[keep, , drop = FALSE]
+    cl$cluster <- unname(remap[as.character(cl$cluster)])
+    if (!is.null(out$activity)) {
+      out$activity <- out$activity[, paste0("cluster_", kept), drop = FALSE]
+      colnames(out$activity) <- paste0("cluster_", unname(remap[as.character(kept)]))
+    }
+  }
+  if (!nrow(cl)) out$activity <- NULL
+  out$clusters <- cl
+  out
+}
+
 ## ---- eb_cp: EB-CP tensor factorization ------------------------------------
 method_eb_cp <- function(fit, strata = NULL, Kmax = 15L, seed = 1L, member_thresh = 0.2) {
   mats <- lapply(fit$fits[fit$cell_types], function(f) f$Y_used)
@@ -428,14 +525,15 @@ method_eb_cp <- function(fit, strata = NULL, Kmax = 15L, seed = 1L, member_thres
        fit = cp)
 }
 
-METHODS <- c("pa_cc", "node_cor", "subspace_sum", "gene_match", "block_E", "eb_cp")
-run_method <- function(name, fit, strata, n_perm = 999L, seed = 1L) {
+METHODS <- c("pa_cc", "node_cor", "subspace_sum", "gene_match", "block_E", "block_E_cal", "eb_cp")
+run_method <- function(name, fit, strata, n_perm = 999L, seed = 1L, bfit = NULL) {
   switch(name,
          pa_cc = method_pa_cc(fit, strata, n_perm = 1999L, seed = seed),
          node_cor = method_node_cor(fit, strata, n_perm, seed),
          subspace_sum = method_subspace_sum(fit, strata, n_perm, seed),
          gene_match = method_gene_match(fit, n_perm, seed),
-         block_E = method_block_e(fit, seed = seed),
+         block_E = method_block_e(fit, seed = seed, bfit = bfit),
+         block_E_cal = method_block_e_cal(fit, strata, n_perm = n_perm, seed = seed, bfit = bfit),
          eb_cp = method_eb_cp(fit, strata = strata, seed = seed),
          stop("unknown method ", name))
 }

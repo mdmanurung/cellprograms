@@ -48,7 +48,7 @@ operating point on the cmp-bench-v1.2 held-out CMP F1 by >= 2 points absolute wi
 non-overlapping bootstrap CIs. Cost: cNMF is cheap (~minutes per dataset on 8 cores);
 benchmark harness ~15 CPU-h. Registration draft to be filed before any benchmark run.
 
-## MR-3 — Metacells design doc (STAGED)
+## MR-3 — Metacells design doc (CLOSED 2026-10-22 — overtaken by implementation)
 
 Design-only milestone: when single-cell factorization is needed (sparse cell types,
 rare states), metacells are the candidate middle ground between donor pseudobulk
@@ -56,6 +56,21 @@ rare states), metacells are the candidate middle ground between donor pseudobulk
 covering metacell grouting (SEACell/Metacell-2 candidates), program fitting on
 metacell pseudobulk, and projection of remaining cells; no code until the doc is
 reviewed. Cost: authoring only.
+
+**Closure note (2026-10-22):** the milestone is overtaken by events — the package
+now ships metacell grouting and fitting as code, not design: the SuperCell 2.0
+backend (`MetacellsByGroupsSuperCell` / `OptimizeGammaSuperCell`,
+mcRigor-gamma-optimized, commit-pinned GfellerLab/SuperCell) is the default
+R-native path, the SEACells trio remains exported as the documented alternative,
+program fitting on metacell pseudobulk is the exercised default path
+(`as_cell_program_data` -> `fit_celltype_programs`), and projection of remaining
+cells is `project_programs_to_cells`. The design questions the doc was to answer
+(builder choice, gamma/QC policy, aggregation-scale caveats) are answered by the
+W5/M6 measurement records (SEACells transfer gates honestly failed; SuperCell
+benchmark verdict REPLACE, executed) and the R3/R4 documentation
+(docs/cebmf-extension/05-granularity-case-study.md). No design doc is owed; the
+open questions that remain (rare-state fidelity trade-offs) are measurement
+results, not unbuilt design.
 
 ## MR-4 — mcRigor / anchored refinement + ablation benchmarking (STAGED)
 

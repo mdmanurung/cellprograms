@@ -1,4 +1,5 @@
-## smoke test on fake score/loading fits (no flashier needed for these 4 methods):
+## smoke test on fake score/loading fits (no flashier needed for the 4 fast
+## methods; the block_E_cal section at the end is guarded on flashier/ebnm):
 ## R_LIBS_USER=/workspace/.Rlib Rscript benchmarks/coordination/test_methods.R
 ## v2: hard assertions (Defect E fix) — null must give 0 clusters for every
 ## method; planted must recover the R100 pattern (Defect D regression guard).
@@ -49,4 +50,43 @@ for (m in c("node_cor", "subspace_sum", "pa_cc", "gene_match")) {
 
 ## scorer self-check
 score_selfcheck()
+
+## block_E_cal: permutation-calibrated block-mass calls (needs flashier)
+if (requireNamespace("flashier", quietly = TRUE) && requireNamespace("ebnm", quietly = TRUE)) {
+  mk_expr_fit <- function(null = FALSE) {
+    cts2 <- c("ctA", "ctB", "ctC"); ids2 <- sprintf("d%03d", 1:60)
+    genes <- paste0("g", 1:200)
+    z <- setNames(rnorm(60), ids2)
+    fits <- list()
+    for (ct in cts2) {
+      Y <- matrix(rnorm(60 * 200, sd = 0.6), 60, 200, dimnames = list(ids2, genes))
+      if (!null) {
+        w <- rnorm(200); w[-(1:30)] <- 0
+        Y <- Y + 2 * outer(z, w)          # one recurring program, all 3 types
+      }
+      fits[[ct]] <- list(Y_used = Y)
+    }
+    list(cell_types = cts2, fits = fits)
+  }
+  strata2 <- setNames(sample(c("a", "b"), 60, TRUE), sprintf("d%03d", 1:60))
+
+  fpl <- mk_expr_fit(FALSE)
+  fp <- run_method("block_E_cal", fpl, strata2, n_perm = 199, seed = 3)
+  chk(nrow(fp$clusters) >= 1L, "block_E_cal keeps the planted call")
+  chk(all(fp$clusters$fwer_p <= 0.05), "block_E_cal fills significant fwer_p on planted calls")
+  chk(setequal(fp$clusters$cell_type[fp$clusters$cluster == fp$clusters$cluster[1]],
+               c("ctA", "ctB", "ctC")), "block_E_cal planted call spans all 3 types")
+  chk(all(fp$clusters$stat > 0 & fp$clusters$stat <= 1),
+      "block_E_cal stat is the mean pairwise |cor|")
+
+  fnn <- mk_expr_fit(TRUE)
+  be <- run_method("block_E", fnn, strata2, seed = 4)
+  cat("block_E on null calls:", length(unique(be$clusters$cluster)), "clusters\n")
+  rn <- run_method("block_E_cal", fnn, strata2, n_perm = 199, seed = 4, bfit = be$fit)
+  chk(nrow(rn$clusters) == 0L, "block_E_cal returns 0 clusters on the null")
+
+  fp2 <- run_method("block_E_cal", fpl, strata2, n_perm = 199, seed = 3, bfit = fp$fit)
+  chk(identical(fp$clusters, fp2$clusters), "block_E_cal cached-bfit run reproduces clusters")
+}
+
 cat("all method smoke checks passed\n")

@@ -9,6 +9,7 @@ choice <- read.csv(file.path(here, "out", "amp_choice.csv"), stringsAsFactors = 
 amp_of <- setNames(choice$amp, choice$breadth)
 
 N_PRIMARY <- as.integer(Sys.getenv("N_PRIMARY", "32"))
+N_ACTGENES <- as.integer(Sys.getenv("N_ACTGENES", N_PRIMARY))  # dev: act+genes tracks the primary count; confirmatory sets 0 (primary endpoint is act_only)
 N_NULL <- as.integer(Sys.getenv("N_NULL", "16"))
 N_PRIV <- as.integer(Sys.getenv("N_PRIV", "24"))
 N_GENES <- as.integer(Sys.getenv("N_GENES", "16"))
@@ -27,7 +28,7 @@ add <- function(mode, breadth, amp, act_cor, n) {
 ## primary cells
 for (b in c("R50", "R20")) {
   add("act_only",  b, amp_of[[b]], 1, N_PRIMARY)
-  add("act+genes", b, amp_of[[b]], 1, N_PRIMARY)
+  add("act+genes", b, amp_of[[b]], 1, N_ACTGENES)
 }
 ## secondary
 add("null",       "R50", amp_of[["R50"]], 1, N_NULL)   # amp unused by null

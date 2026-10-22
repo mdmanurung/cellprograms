@@ -38,7 +38,8 @@ Suggests:
     Seurat,
     SeuratObject,
     SuperCell,
-    mcRigor
+    mcRigor,
+    sva
 Remotes:
     willwerscheid/flashier@fd44811ab22d61ee905e1964175571c452fe7683,
     flashier.utils=mdmanurung/flashier-utils,

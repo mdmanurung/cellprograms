@@ -467,3 +467,76 @@ match_programs <- function(fit_a, fit_b, cell_type,
   list(matches = matches, angles = angles, split_map = split_map,
        method = method, space = space, cell_type = cell_type)
 }
+
+## ROADMAP tier-2 extension (registered 2026-10-16): subspace-level alignment
+## between two loading matrices' SPANS — e.g. a discovery fit vs a stability
+## refit or an independent cohort refit. Unlike principal_angles() (which
+## tests per-program pairs between two CELL TYPES of one fit), this compares
+## two arbitrary loading matrices on the same gene panel and quantifies how
+## much of one program subspace the other spans.
+
+#' Principal-angle alignment between two loading subspaces
+#'
+#' Computes the principal angles between the column spans of two loading
+#' matrices (genes x programs) on the same gene panel — e.g. a discovery fit
+#' vs a stability refit, or the same cohort fit by two methods. Each span is
+#' orthonormalized (rank-aware via SVD), and the singular values of the
+#' cross-product of the bases are the cosines of the principal angles
+#' between the spans.
+#'
+#' The registered tier-2 use (immune-aging application, 2026-10-16) is the
+#' **stability-normalized conservation ratio**: the between-cohort span
+#' overlap (`mean_overlap`) divided by the within-cohort bootstrap ceiling —
+#' the same quantity computed between discovery and bootstrap refits of the
+#' SAME cohort (from [assess_program_stability()] refits). A ratio near 1
+#' means cross-cohort alignment is as strong as the fit's own sampling
+#' noise ceiling; near 0 means the shared subspace is no larger than noise.
+#'
+#' @param W1, W2 Loading matrices (genes x programs) on the same gene panel.
+#'   Row names should match; rows are matched by name when both have row
+#'   names, otherwise by position.
+#' @param k Optional number of leading principal cosines to average for
+#'   `mean_overlap_topk` (default: all).
+#' @return A list with `principal_cosines` (descending cosines of the
+#'   principal angles, length = min(rank1, rank2)), `mean_overlap`,
+#'   `mean_overlap_topk`, and `dim` (the two span ranks).
+#' @export
+#' @examples
+#' W <- matrix(rnorm(100 * 3), 100, 3)
+#' span_alignment(W, W)$mean_overlap          # 1: identical span
+#' W2 <- W[, 1:2, drop = FALSE]
+#' span_alignment(W, W2)$mean_overlap_topk    # subset span fully contained
+span_alignment <- function(W1, W2, k = NULL) {
+  if (!is.numeric(W1) || !is.numeric(W2)) {
+    .stopf("`W1` and `W2` must be numeric loading matrices (genes x programs).")
+  }
+  W1 <- as.matrix(W1); W2 <- as.matrix(W2)
+  if (nrow(W1) != nrow(W2)) {
+    .stopf("`W1` and `W2` must have the same number of gene rows ({nrow(W1)} vs {nrow(W2)}).")
+  }
+  if (!is.null(rownames(W1)) && !is.null(rownames(W2)) &&
+      !setequal(rownames(W1), rownames(W2))) {
+    common <- intersect(rownames(W1), rownames(W2))
+    if (!length(common)) {
+      .stopf("`W1` and `W2` share no gene row names.")
+    }
+    W1 <- W1[common, , drop = FALSE]; W2 <- W2[common, , drop = FALSE]
+  } else if (!is.null(rownames(W1)) && !is.null(rownames(W2))) {
+    W2 <- W2[rownames(W1), , drop = FALSE]
+  }
+  basis <- function(W) {
+    s <- svd(W)
+    keep <- s$d > 1e-8 * max(s$d[1], 1)
+    s$u[, keep, drop = FALSE]
+  }
+  B1 <- basis(W1); B2 <- basis(W2)
+  if (!ncol(B1) || !ncol(B2)) {
+    .stopf("Both loading matrices must have positive rank.")
+  }
+  cosines <- pmin(svd(crossprod(B1, B2), nu = 0, nv = 0)$d, 1)
+  k <- if (is.null(k)) length(cosines) else max(1L, min(as.integer(k), length(cosines)))
+  list(principal_cosines = cosines,
+       mean_overlap = mean(cosines),
+       mean_overlap_topk = mean(cosines[seq_len(k)]),
+       dim = c(ncol(B1), ncol(B2)))
+}

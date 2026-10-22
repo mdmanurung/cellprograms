@@ -115,6 +115,7 @@ assess_program_stability <- function(fit, n_boot = 100L,
            center = pre$centered, scale = pre$scaled, features = pre$feature_sets,
            var_type = pre$var_type, backfit = pre$backfit, nullcheck = pre$nullcheck,
            covariates = pre$covariates, covariate_mode = pre$covariate_mode,
+           adjust_batches = pre$batch_adjusted,
            flash_control = pre$flash_control, feature_scale = pre$feature_scale,
            seed = fit_seed + b)
     } else {

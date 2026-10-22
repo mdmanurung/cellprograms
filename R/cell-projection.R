@@ -174,6 +174,9 @@ project_programs_to_cells <- function(fit, expression, cell_types,
     if (K == 0L) next          # skipped/degenerate cell type: no programs
     if (length(cells_ct) == 0L) next
     f <- fit$fits[[ct]]$flash
+    if (!is.null(fit$preprocessing$batch_adjusted)) {
+      cli::cli_abort("Cell type {.val {ct}}: the fit used batch adjustment ({.field {fit$preprocessing$batch_adjusted}}), which projection cannot replay; refit without {.arg adjust_batches} to project.")
+    }
     if (!is.null(f$fixed_L) || is.null(attr(f, "flashbridge_metadata"))) {
       cli::cli_abort("Cell type {.val {ct}}: the stored fit has no flashier.utils manifest (legacy, fixed-covariate, or cebmf_torch backend) and its adjustment cannot be replayed; refit with the default flashier backend to project.")
     }

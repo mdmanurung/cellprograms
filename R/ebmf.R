@@ -66,6 +66,14 @@
 #'   cannot be projected to single cells — `project_programs_to_cells()`
 #'   refuses them because the fixed covariate adjustment cannot be replayed
 #'   on a query.
+#' @param adjust_batches Optional name (character scalar) of a batch column in
+#'   `sample_metadata`. When given, `sva::ComBat` removes the batch location/
+#'   scale from each cell type's panel before covariate residualization.
+#'   Intended for small-batch designs where OLS residualization is
+#'   underpowered (the batch benchmark found ComBat better at ~5 donors/batch
+#'   but with residual batch structure). Not the default; not supported with
+#'   a frozen `preprocessing_spec`; `project_programs_to_cells()` refuses
+#'   batch-adjusted fits (the adjustment cannot yet be replayed on a query).
 #' @param seed Random seed for reproducibility.
 #' @param flash_control Optional list overriding flashier::flash arguments.
 #' @param feature_scale Declared measurement units of the pseudobulk
@@ -128,6 +136,7 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
                                   backfit = TRUE, nullcheck = TRUE,
                                   covariates = NULL,
                                   covariate_mode = c("residualize", "fixed"),
+                                  adjust_batches = NULL,
                                   seed = 1, flash_control = list(),
                                   feature_scale = "unknown",
                                   preprocessing_spec = NULL,
@@ -136,6 +145,23 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
   stopifnot(inherits(x, "cell_program_data"))
   covariate_mode <- match.arg(covariate_mode)
   backend <- match.arg(backend)
+  # Batch adjustment (ROADMAP small-batch item): ComBat via sva, applied per
+  # cell type BEFORE covariate residualization. OLS residualization remains
+  # the default; the small-batch benchmark (benchmarks/batch_adjustment/)
+  # showed ComBat wins at ~5 donors/batch but leaves residual batch structure.
+  if (!is.null(adjust_batches)) {
+    if (!is.character(adjust_batches) || length(adjust_batches) != 1L ||
+        is.na(adjust_batches) || !adjust_batches %in% names(x$sample_metadata)) {
+      cli::cli_abort("{.arg adjust_batches} must name a single column of {.field sample_metadata}.")
+    }
+    if (!is.null(preprocessing_spec)) {
+      cli::cli_abort("{.arg adjust_batches} is not supported with a frozen {.arg preprocessing_spec}; the spec governs preprocessing.")
+    }
+    if (!requireNamespace("sva", quietly = TRUE)) {
+      cli::cli_abort("Batch adjustment requires the {.pkg sva} package; install it or leave {.arg adjust_batches} NULL.")
+    }
+    cli::cli_warn("{.fn sva::ComBat} batch adjustment is applied before covariate adjustment; residual batch structure may remain. This is not the default path.")
+  }
   if (!is.numeric(max_factors) || length(max_factors) != 1L ||
       !is.finite(max_factors) || max_factors < 1 || max_factors != round(max_factors)) {
     cli::cli_abort("{.arg max_factors} must be a single positive integer, not {.val {max_factors}}.")
@@ -264,6 +290,14 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     Y <- as.matrix(x$pseudobulk[[ct]])
     genes <- feature_sets[[ct]]
     Y <- Y[, genes, drop = FALSE]
+    if (!is.null(adjust_batches)) {
+      bt <- x$sample_metadata[[adjust_batches]][match(rownames(Y), x$sample_metadata$observation_id)]
+      if (length(unique(bt)) < 2L) {
+        cli::cli_inform("Batch column {.val {adjust_batches}} has a single level in cell type {.val {ct}}; no batch adjustment applied there.")
+      } else {
+        Y <- t(sva::ComBat(t(Y), batch = factor(bt)))
+      }
+    }
     Xres <- if (!is.null(covariates) && covariate_mode == "residualize") {
       .cov_design(rownames(Y), x$sample_metadata, covariates, ct)
     } else NULL
@@ -473,6 +507,7 @@ fit_celltype_programs <- function(x, loading_prior = "point_laplace",
     max_factors = max_factors, var_type = var_type,
     backfit = backfit, nullcheck = nullcheck,
     covariates = covariates, covariate_mode = covariate_mode,
+    batch_adjusted = adjust_batches,
     flash_control = flash_control,
     feature_scale = feature_scale,
     frozen_spec = frozen_digest,
