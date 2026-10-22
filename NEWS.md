@@ -1,5 +1,17 @@
 # cellprograms 0.2.0.9001 (development)
 
+## Bounded ordinary-core acceptance
+
+* Projection now rejects unknown or missing reference measurement units before
+  native inference and requires refitting with truthful units declared.
+  Projection-time `feature_scale` declares query units only; it cannot relabel
+  reference provenance (delegated implementation decision TR03-D001).
+* The installed suite includes the byte-identical historical node-count
+  accounting oracle. Its fixture no longer becomes an empty installed test.
+  This is accounting validation, not a calibration campaign.
+* Known warning fixtures assert their complete expected messages and recorded
+  fallback settings rather than leaving extra warnings unexplained.
+
 ## CPUB correctness and support corrections (local candidate, 2026-10-22)
 
 * EB-CP now orients two modes, preserving each component's tensor product.

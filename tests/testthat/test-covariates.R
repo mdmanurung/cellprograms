@@ -46,10 +46,15 @@ test_that("a flashier nullcheck failure falls back to no nullcheck and is record
   testthat::local_mocked_bindings(
     flash = function(...) { if (isTRUE(list(...)$nullcheck)) stop("NaN ELBO") else real(...) },
     .package = "flashier")
-  fit <- suppressWarnings(fit_celltype_programs(.toy(), max_factors = 2,
-                                                loading_prior = "point_normal", seed = 1))
-  expect_identical(fit$fits$A$fallback, "no_nullcheck")
-  expect_warning(fit_celltype_programs(.toy(), max_factors = 2, loading_prior = "point_normal"), "fallback")
+  expected <- sprintf('flashier needed fallback "no_nullcheck" in cell type "%s".',
+                      c("A", "B"))
+  fit <- .expect_warning_messages(
+    fit_celltype_programs(.toy(), max_factors = 2,
+                         loading_prior = "point_normal", seed = 1), expected)
+  for (ct in c("A", "B")) {
+    expect_identical(fit$fits[[ct]]$fallback, "no_nullcheck")
+    expect_false(fit$fits[[ct]]$effective_config$nullcheck)
+  }
 })
 
 ## Regression tests for the 2026-10 covariate audit (reports/audit/covariate_audit/):

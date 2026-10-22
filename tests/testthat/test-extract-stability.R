@@ -16,7 +16,16 @@ test_that("assess_program_stability recovers the strong planted program", {
   skip_if_not_installed("flashier"); skip_if_not_installed("ebnm")
   fit <- canonicalize_programs(fit_celltype_programs(.toy(), covariates = ~ batch + age,
                                                      max_factors = 3, seed = 1))
-  fit <- assess_program_stability(fit, n_boot = 6, seed = 1, progress = FALSE)
+  fit <- .expect_warning_messages(
+    assess_program_stability(fit, n_boot = 6, seed = 1, progress = FALSE),
+    'flashier needed fallback "point_normal" in cell type "B".')
+  effective <- fit$stability$replicate_log$effective_refit
+  recorded <- unlist(lapply(effective, function(refit) {
+    vapply(refit, function(ct) ct$fallback, character(1))
+  }), use.names = FALSE)
+  expect_true(any(recorded == "point_normal"))
+  expect_identical(fit$stability$target,
+                   "full_fitting_procedure_including_documented_fallback_ladder")
   st <- fit$stability$per_program
   expect_equal(st$program_id, program_metadata(fit)$program_id)
   expect_gt(max(st$recovery_freq), 0.8)

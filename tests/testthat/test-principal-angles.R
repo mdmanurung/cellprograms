@@ -5,7 +5,9 @@ test_that("principal_angles on adjusted fits finds the shared program", {
   pa <- principal_angles(fit, "A", "B", n_perm = 99, seed = 1)
   expect_gt(pa$cosines[1], 0.9)
   expect_lt(pa$p_values[1], 0.05)
-  pl <- principal_angles(fit, "A", "B", space = "loadings", weight = "residual_sd", n_perm = 0)
+  pl <- .expect_warning_messages(
+    principal_angles(fit, "A", "B", space = "loadings", weight = "residual_sd", n_perm = 0),
+    "Gene intersection for A vs B is 60 (< 200); angles may be unstable.")
   expect_s3_class(pl, "principal_angles")
 })
 

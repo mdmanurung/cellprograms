@@ -1,8 +1,12 @@
 test_that("CPUB-004 historical node counts separate events and failure accounting", {
-  path <- testthat::test_path("..", "..", "benchmarks", "cmp_calibration",
-                              "analyze_corrected.R")
-  # Benchmark source is deliberately excluded from built tarballs.
-  if (!file.exists(path)) return(invisible(NULL))
+  # The portable oracle must be installed: absence is an error, never a skip.
+  path <- system.file("validation", "analyze_corrected.R",
+                      package = "cellprograms", mustWork = TRUE)
+  benchmark <- testthat::test_path("..", "..", "benchmarks", "cmp_calibration",
+                                  "analyze_corrected.R")
+  if (file.exists(benchmark)) {
+    expect_identical(readLines(path), readLines(benchmark))
+  }
   env <- new.env(parent = globalenv()); sys.source(path, env)
   requested <- data.frame(scenario = "mixed", seed = 1:4)
   r <- data.frame(scenario = "mixed", seed = 1:3, status = c("ok", "ok", "error"),

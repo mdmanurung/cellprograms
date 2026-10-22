@@ -50,8 +50,9 @@ test_that("validate warns on small N and zero-variance genes", {
   m[, 1] <- 1  # zero variance gene
   x <- as_cell_program_data(list(B = m),
                             data.frame(observation_id = ids))
-  expect_warning(validate_cell_program_data(x), "near-zero variance")
-  expect_warning(validate_cell_program_data(x), "only 5 observations")
+  .expect_warning_messages(validate_cell_program_data(x), c(
+    'Cell type "B" has only 5 observations; EBMF is unreliable at very small N.',
+    'Cell type "B": 1 gene(s) have near-zero variance.'))
 })
 
 test_that("package defaults match the optimized configuration (eval-v3 selection)", {

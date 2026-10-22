@@ -41,7 +41,9 @@
 #' @param feature_scale Declared measurement units of `expression` (e.g.
 #'   "logcounts"). Defaults to the fit's recorded `feature_scale`, which must
 #'   not be "unknown"; a query whose declared units differ from the fit's is
-#'   refused.
+#'   refused. This argument declares query units only: a reference with
+#'   unknown or missing units must be refit with truthful units declared at
+#'   fit time. It cannot be relabeled by a projection-time override.
 #' @param donors Optional named character vector mapping every cell to its
 #'   donor ID (`sample_metadata$observation_id` values). Required whenever
 #'   any projected cell type was fit with residualized covariates.
@@ -123,15 +125,20 @@ project_programs_to_cells <- function(fit, expression, cell_types,
     cli::cli_abort("{.arg maxiter} must be a single positive integer.")
   }
   fit_fs <- fit$preprocessing$feature_scale
+  if (!is.character(fit_fs) || length(fit_fs) != 1L ||
+      is.na(fit_fs) || !nzchar(fit_fs) || identical(fit_fs, "unknown")) {
+    cli::cli_abort(c(
+      "The fit's reference measurement units are undeclared; refit with truthful {.arg feature_scale} before projection.",
+      i = "Projection-time {.arg feature_scale} declares query units only and cannot relabel an unknown-unit reference."
+    ))
+  }
   if (!is.null(feature_scale)) {
-    if (!is.character(feature_scale) || length(feature_scale) != 1L) {
+    if (!is.character(feature_scale) || length(feature_scale) != 1L ||
+        is.na(feature_scale) || !nzchar(feature_scale)) {
       cli::cli_abort("{.arg feature_scale} must be a single string (e.g. {.val logcounts}).")
     }
-    # Documented refusal: a query whose declared units differ from the fit's
-    # recorded units is rejected (previously the user's value was adopted
-    # silently). A fit with undeclared units ("unknown") may still be
-    # rescued by an explicit declaration here.
-    if (!is.null(fit_fs) && !identical(fit_fs, "unknown") && !identical(feature_scale, fit_fs)) {
+    # Query declaration is a compatibility check, not a reference-unit override.
+    if (!identical(feature_scale, fit_fs)) {
       cli::cli_abort("Query {.arg feature_scale} {.val {feature_scale}} differs from the fit's recorded units {.val {fit_fs}}; refusing to project across measurement units.")
     }
     fs <- feature_scale
@@ -142,7 +149,7 @@ project_programs_to_cells <- function(fit, expression, cell_types,
       identical(fs, "unknown")) {
     cli::cli_abort(c(
       "The fit's measurement units are undeclared ({.val unknown}), so query compatibility cannot be checked.",
-      i = "Refit with {.code feature_scale = \"logcounts\"} (or pass {.arg feature_scale} here)."
+      i = "Refit with truthful declared units before projection."
     ))
   }
   if (!requireNamespace("flashier.utils", quietly = TRUE)) {

@@ -240,7 +240,11 @@ test_that("var_floor numeric scalar fixes S and is recorded in provenance", {
   skip_if_not_installed("flashier")
   Y <- .synth_counts(n = 30, g = 40)$Y
   cpd <- as_cell_program_data(list(CT1 = Y))
-  fit <- fit_celltype_programs(cpd, max_factors = 3, seed = 1, var_floor = 0.5)
+  expected <- if (requireNamespace("flashier.utils", quietly = TRUE)) {
+    "`var_floor` requires the legacy flashier backend for this fit (flashier.utils::fit_ebmf() does not expose S); routing through `flashier::flash()`."
+  } else character()
+  fit <- .expect_warning_messages(
+    fit_celltype_programs(cpd, max_factors = 3, seed = 1, var_floor = 0.5), expected)
   expect_identical(fit$fits$CT1$S_used, 0.5)
   expect_identical(fit$preprocessing$var_floor, 0.5)
   expect_identical(fit$provenance$var_floor, 0.5)
@@ -250,7 +254,11 @@ test_that("var_floor vignette computes the documented deterministic S", {
   skip_if_not_installed("flashier")
   Y <- .synth_counts(n = 30, g = 40)$Y
   cpd <- as_cell_program_data(list(CT1 = Y))
-  fit <- fit_celltype_programs(cpd, max_factors = 3, seed = 1, var_floor = "vignette")
+  expected <- if (requireNamespace("flashier.utils", quietly = TRUE)) {
+    "`var_floor` requires the legacy flashier backend for this fit (flashier.utils::fit_ebmf() does not expose S); routing through `flashier::flash()`."
+  } else character()
+  fit <- .expect_warning_messages(
+    fit_celltype_programs(cpd, max_factors = 3, seed = 1, var_floor = "vignette"), expected)
   n <- nrow(fit$fits$CT1$Y_used)
   set.seed(20261016)   # the registered fixed local seed
   s_expected <- sd(log(stats::rpois(1e7, 1 / n) + 1))

@@ -35,7 +35,9 @@ cells here) yield `NA` activities.}
 \item{feature_scale}{Declared measurement units of `expression` (e.g.
 "logcounts"). Defaults to the fit's recorded `feature_scale`, which must
 not be "unknown"; a query whose declared units differ from the fit's is
-refused.}
+refused. This argument declares query units only: a reference with
+unknown or missing units must be refit with truthful units declared at
+fit time. It cannot be relabeled by a projection-time override.}
 
 \item{donors}{Optional named character vector mapping every cell to its
 donor ID (`sample_metadata$observation_id` values). Required whenever

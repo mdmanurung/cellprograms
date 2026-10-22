@@ -113,7 +113,7 @@ test_that("projection refuses undeclared units, incompatible units, and fixed-mo
   expect_error(project_programs_to_cells(fit_u, sim$pseudobulk[[ct]],
     cell_types = cells), "undeclared")
   expect_error(project_programs_to_cells(fit_u, sim$pseudobulk[[ct]],
-    cell_types = cells, feature_scale = "simulated"), "incompatible")
+    cell_types = cells, feature_scale = "simulated"), "refit")
   fit_fx <- make_mr1_fit(sim, meta, max_factors = 3, features = "variable",
                          n_variable_genes = 150, covariates = ~sex,
                          covariate_mode = "fixed")
