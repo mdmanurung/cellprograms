@@ -59,3 +59,5 @@ registered under pkgname `cellprograms`; the first call after install
 rebuilds the environment (one-time cost). mcRigor is a GitHub Suggests
 dependency (JSB-UCLA/mcRigor), not CRAN. Evidence: fold-in ledger entries
 2026-10-18.
+
+- L7 (2026-10-22): cebmf_torch backend env install fails on macos - the basilisk pip spec pins `torch==2.7.1+cpu`, a Linux wheel convention (PyPI macos torch wheels are CPU-only WITHOUT the +cpu local version), so the basilisk env build fails at fit time on macos. The backend tests skip on macos in CI (ubuntu legs exercise the backend); the proper fix is a platform-conditional torch pin in `.cebmf_basilisk_env()`, to be validated on a macos host before shipping.

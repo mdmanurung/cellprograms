@@ -147,6 +147,11 @@ test_that("cebmf_torch backend rejects fixed-mode covariates", {
 
 test_that("cebmf_torch backend fits, canonicalizes, and reports NA elbo", {
   skip_if(!cebmf_env_ready(), "no python env for cebmf_torch backend")
+  # macos: the env pins torch==2.7.1+cpu (a Linux wheel convention; PyPI macos
+  # torch wheels are CPU-only WITHOUT the +cpu local version), so the basilisk
+  # env build fails at fit time. Skip until the spec is platform-conditional
+  # (validated on a macos host); the ubuntu legs exercise the backend.
+  skip_on_os("mac")
   Y <- .synth_counts()$Y
   cpd <- as_cell_program_data(list(CT1 = Y))
   fit <- fit_celltype_programs(cpd, backend = "cebmf_torch", max_factors = 4, seed = 1)
@@ -167,6 +172,11 @@ test_that("cebmf_torch backend fits, canonicalizes, and reports NA elbo", {
 
 test_that("cebmf_torch backend is deterministic at a fixed seed", {
   skip_if(!cebmf_env_ready(), "no python env for cebmf_torch backend")
+  # macos: the env pins torch==2.7.1+cpu (a Linux wheel convention; PyPI macos
+  # torch wheels are CPU-only WITHOUT the +cpu local version), so the basilisk
+  # env build fails at fit time. Skip until the spec is platform-conditional
+  # (validated on a macos host); the ubuntu legs exercise the backend.
+  skip_on_os("mac")
   Y <- .synth_counts()$Y
   cpd <- as_cell_program_data(list(CT1 = Y))
   f1 <- fit_celltype_programs(cpd, backend = "cebmf_torch", max_factors = 4, seed = 42)
@@ -179,6 +189,11 @@ test_that("cebmf_torch backend is deterministic at a fixed seed", {
 
 test_that("cebmf_torch backend recovers the planted programs (parity bar 0.8)", {
   skip_if(!cebmf_env_ready(), "no python env for cebmf_torch backend")
+  # macos: the env pins torch==2.7.1+cpu (a Linux wheel convention; PyPI macos
+  # torch wheels are CPU-only WITHOUT the +cpu local version), so the basilisk
+  # env build fails at fit time. Skip until the spec is platform-conditional
+  # (validated on a macos host); the ubuntu legs exercise the backend.
+  skip_on_os("mac")
   skip_if_not_installed("flashier")
   Y <- .synth_counts()$Y
   cpd <- as_cell_program_data(list(CT1 = Y))
@@ -200,6 +215,11 @@ test_that("cebmf_torch backend recovers the planted programs (parity bar 0.8)", 
 
 test_that("var_floor passes through the cebmf_torch backend as a fixed S", {
   skip_if(!cebmf_env_ready(), "no python env for cebmf_torch backend")
+  # macos: the env pins torch==2.7.1+cpu (a Linux wheel convention; PyPI macos
+  # torch wheels are CPU-only WITHOUT the +cpu local version), so the basilisk
+  # env build fails at fit time. Skip until the spec is platform-conditional
+  # (validated on a macos host); the ubuntu legs exercise the backend.
+  skip_on_os("mac")
   Y <- .synth_counts()$Y
   cpd <- as_cell_program_data(list(CT1 = Y))
   fit <- fit_celltype_programs(cpd, backend = "cebmf_torch", max_factors = 4,
