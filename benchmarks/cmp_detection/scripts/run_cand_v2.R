@@ -1,11 +1,12 @@
 ## run_cand_v2.R -- evaluate candidates (REG or REG_V2) on cached fits; v2 adds a context variable in marginal mode.
 ## Rscript run_cand_v2.R <cand1,...> <arm> <split: dev|test|heldout2|nullx> <cores> [bases=param,semi]
 ## env: CMP_SEEDS="1:15" restricts seeds; CMP_TAG suffix for output dir (default _v2); CMP_FITROOT (default fits)
-source("/mnt/shared-workspace/cmp/bench/common.R")
-source("/mnt/shared-workspace/cmp/bench/eval_cmp.R")
-source("/mnt/shared-workspace/cmp/bench/config.R")
-source("/mnt/shared-workspace/cmp/bench/registry.R")
-source("/mnt/shared-workspace/cmp/bench/cand_v2.R")
+HERE <- local({ f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)[1]); if (length(f)) dirname(normalizePath(f)) else getwd() })
+source(file.path(HERE, "common.R"))
+source(file.path(HERE, "eval_cmp.R"))
+source(file.path(HERE, "config.R"))
+source(file.path(HERE, "registry.R"))
+source(file.path(HERE, "cand_v2.R"))
 ALL <- c(REG, REG_V2)
 
 ## context variable supplied to methods in marginal mode: true context (context scenario) or an independent dummy

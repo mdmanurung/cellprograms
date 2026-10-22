@@ -1,3 +1,4 @@
+`%||%` <- function(a, b) if (is.null(a)) b else a
 ## sim_cmp.R -- frozen simulator for coordinated multicellular programs (CMPs).
 ## Two bases share one planting engine:
 ##   param : Gaussian pseudobulk (extends benchmarks/coordination/sim_coord.R), real gene symbols
@@ -8,7 +9,7 @@
 ##   context -> target in marginal mode, decoy in within-context mode
 ## Scenarios: null, cmp_distinct, cmp_mixed, genes_only, context, ambient, lr, weak
 
-CMP_RES <- "/mnt/shared-workspace/cmp/res"
+CMP_RES <- Sys.getenv("CMP_RES", file.path(HERE %||% "..", "res"))
 CMP_SCEN <- c("null", "cmp_distinct", "cmp_mixed", "genes_only", "context", "ambient", "lr", "weak")
 CMP_BREADTH <- c(R100 = 1, R50 = 0.5, R20 = 0.2)
 
@@ -188,7 +189,7 @@ gen_param <- function(scenario, seed, amp = 0.5, n_prog_genes = 50L, priv_amp = 
 }
 
 ## ---- semi base (Stephenson) -------------------------------------------------------------
-SEMI_DIR <- "/mnt/shared-workspace/cmp/data/stephenson_pb"
+SEMI_DIR <- Sys.getenv("SEMI_DIR", file.path(HERE %||% "..", "data", "stephenson_pb"))
 .semi_load <- function() {
   if (!is.null(.cmp_env$semi)) return(.cmp_env$semi)
   .cmp_env$semi <- readRDS(file.path(SEMI_DIR, "semi_base.rds"))   # list(ct = list(Y logCPM, site, ncell, msd, cpm_mean), ...)

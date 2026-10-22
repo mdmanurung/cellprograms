@@ -11,7 +11,12 @@ data.
 
 The Stephenson et al. (2021) COVID-19 PBMC cohort, processed to a donor x
 gene pseudobulk matrix per cell type (12 cell types, 72-117 donors per
-type). Source: ArrayExpress **E-MTAB-8731**. The scripts expect a pseudobulk
+type). Source: ArrayExpress **E-MTAB-10026** (the Stephenson et al. 2021
+cohort; the previously documented E-MTAB-8731 is an unrelated mouse miRNA
+study — corrected 2026-10-22). Raw objects: `covid_portal_210320_with_raw.h5ad`
+(7.19 GB) + `annotation_200112.csv` (barcode -> full_clustering) from the
+ArrayExpress E-MTAB-10026 download; donor metadata comes from the h5ad `obs`.
+The scripts expect a pseudobulk
 object at `data/stephenson_pb/semi_base.rds` — a list with `cts` (per
 cell-type `list(Y = donor x gene count matrix, ...)`) and `donor_meta`
 (donor-level metadata with `donor_id`, `site`, `sex`,

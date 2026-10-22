@@ -1,7 +1,9 @@
 ## fit_cache.R -- simulate + fit per-cell-type programs, cache fit essentials + truth.
 ## Rscript fit_cache.R <arm> <base> <scenarios,comma> <seed_from> <seed_to> <amp> <cores> [outroot]
 ## arms: main (repo M2 defaults, residualize on institute), noadj, K20, featall
-source("/mnt/shared-workspace/cmp/bench/common.R")
+HERE <- local({ f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)[1]); if (length(f)) dirname(normalizePath(f)) else getwd() })
+source(file.path(HERE, "common.R"))
+source(file.path(HERE, "cand_cnmf.R"))
 suppressPackageStartupMessages(library(parallel))
 
 ARMS <- list(
@@ -12,7 +14,8 @@ ARMS <- list(
   hvg4000 = list(n_variable_genes = 4000L),
   pnormal = list(loading_prior = "point_normal"),
   K30 = list(max_factors = 30L),
-  K40 = list(max_factors = 40L)
+  K40 = list(max_factors = 40L),
+  cnmf = list()   # MR-2: fit-level arm, handled specially in cache_one
 )
 fit_args <- function(arm) modifyList(list(loading_prior = "point_laplace", var_type = 1, features = "variable",
                                           n_variable_genes = 2000L, covariate_mode = "residualize", seed = 1L,
@@ -38,7 +41,11 @@ cache_one <- function(arm, base, sc, seed, amp, outroot) {
   t0 <- Sys.time()
   d <- gen_cmp(base, sc, seed, amp)
   a <- fit_args(arm)
-  fit <- tryCatch(canonicalize_programs(do.call(fit_celltype_programs, c(list(d$x), a))),
+  fit <- if (identical(arm, "cnmf")) {
+    # MR-2 cNMF arm: replaces the flashier fit; canonicalize_programs SKIPPED
+    # (non-negative usage/spectra; PREREG_mr2-cnmf-v1.md structural difference)
+    tryCatch(cnmf_fit_object(d$x), error = function(e) structure(conditionMessage(e), class = "fit_error"))
+  } else tryCatch(canonicalize_programs(do.call(fit_celltype_programs, c(list(d$x), a))),
                   error = function(e) structure(conditionMessage(e), class = "fit_error"))
   rt <- as.numeric(Sys.time() - t0, units = "secs")
   obj <- list(fit = if (inherits(fit, "fit_error")) fit else strip_fit(fit), truth = d$truth, strata = d$strata,

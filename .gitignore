@@ -48,3 +48,4 @@ tests/testthat/_problems/
 tests/testthat/testthat-problems.rds
 *.pyc
 __pycache__/
+data/
