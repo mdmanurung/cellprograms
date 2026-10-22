@@ -250,7 +250,11 @@ test_that("var_floor reroutes the flashier.utils fast path through legacy flash 
 test_that("cebmf basilisk env spec satisfies the pip invariants CI taught us", {
   skip_if_not(requireNamespace("basilisk", quietly = TRUE))
   env <- .cebmf_basilisk_env()
-  pip <- env@pip
+  # basilisk <= 1.2x keeps a separate `pip` slot; newer basilisk deprecates the
+  # constructor arg and APPENDS pip entries to `packages` (slot removed). The
+  # conda spec here is exactly c("python=3.11"), so setdiff recovers the pip
+  # entries under both layouts.
+  pip <- if ("pip" %in% slotNames(env)) env@pip else setdiff(env@packages, "python=3.11")
   # basilisk 1.18 passes pip entries through system2 unquoted (shell splits
   # on whitespace); basilisk 1.24 shell-quotes each entry (a flag entry
   # becomes a quoted "package name"). Both break on flag entries or spaces.

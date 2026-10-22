@@ -36,6 +36,13 @@ jobs:
       # Remotes pins flashier (willwerscheid/flashier@fd44811) and, for the
       # pinned lane, flashier-utils (mdmanurung/flashier-utils@sync/stage-a).
       # any::remotes is needed by the upstream-main lane install step below.
+      # mashr's RcppGSL binary from the RSPM is built against libgsl.so.27
+      # (Posit's build environment) while ubuntu-24.04 ships libgsl.so.28 -
+      # dyn.load fails on soname mismatch. Install system GSL so mashr (and
+      # the mashr-gated tests) work on the Linux legs, matching pkgdown.yaml.
+      - name: Install GSL for mashr
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libgsl-dev
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck, any::remotes

@@ -162,6 +162,7 @@ test_that("chain-joined CMP members orient along linking edges, not noise edges 
 # ---- D-2a/D-2c: matches validation + forced-pair warning ----------------
 test_that("program_sharing validates matches references and shape (D-2a/D-2c)", {
   skip_if_not_installed("flashier"); skip_if_not_installed("ebnm")
+  skip_if_not_installed("mashr")  # program_sharing requires mashr before validating matches
   fit <- canonicalize_programs(fit_celltype_programs(.toy(), max_factors = 3, seed = 1))
   bad_ref <- data.frame(cell_type = c("A", "B"), program_id = c("A_1", "NOPE"))
   expect_error(program_sharing(fit, matches = bad_ref), "unknown program")
