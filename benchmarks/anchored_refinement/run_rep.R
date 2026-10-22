@@ -169,8 +169,9 @@ for (nm in names(run_arms)) {
     gn <- intersect(rownames(p$loadings), rownames(ref$loadings[[ct]]))
     if (length(gn) < 10L) return(NA_real_)
     Xp <- X_all[sel, gn, drop = FALSE]
+    rs <- ref$scores[[ct]][intersect(rownames(Xp), rownames(ref$scores[[ct"]])), , drop = FALSE]
     recon_ratio(Xp, p$activities, p$loadings[gn, , drop = FALSE],
-                ref$scores[[ct]][rownames(Xp), , drop = FALSE], ref$loadings[[ct]][gn, , drop = FALSE])
+                rs, ref$loadings[[ct]][gn, , drop = FALSE])
   }, numeric(1))
   rows[[length(rows) + 1L]] <- data.frame(rep = rep, arm = nm, f1 = f1, tp = tp, fp = fp,
                                           n_calls = n_calls, drift = dr, stability = st,

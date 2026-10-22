@@ -201,9 +201,15 @@ activity_stability <- function(X_cell, activities, loadings, n_sub = 10L, frac =
 ## reconstruction guardrail: mean per-gene residual variance ratio vs denovo
 ## (ELBO-equivalent proxy; > 1.01 flags the guardrail).
 recon_ratio <- function(X_cell, activities, loadings, ref_activities, ref_loadings) {
+  X_cell <- as.matrix(X_cell)
   .mrv <- function(A, L) {
-    R <- X_cell - A %*% t(L)
+    A <- as.matrix(A); L <- as.matrix(L)
+    rn <- intersect(rownames(X_cell), rownames(A))
+    if (length(rn) < 5L) return(NA_real_)
+    R <- X_cell[rn, , drop = FALSE] - A[rn, , drop = FALSE] %*% t(L)
     mean(apply(R, 1, stats::var, na.rm = TRUE))
   }
-  .mrv(activities, loadings) / .mrv(ref_activities, ref_loadings)
+  num <- .mrv(activities, loadings); den <- .mrv(ref_activities, ref_loadings)
+  if (is.na(num) || is.na(den) || den <= 0) return(NA_real_)
+  num / den
 }
