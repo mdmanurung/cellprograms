@@ -2,6 +2,49 @@
 
 ## cellprograms 0.2.0.9001 (development)
 
+### Batch adjustment, subspace metrics, and covariate-audit tests (2026-10-22)
+
+- New `adjust_batches=` argument in
+  [`fit_celltype_programs()`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md):
+  `sva::ComBat` removes batch location/scale from each cell type’s panel
+  before covariate residualization. Intended for small-batch designs
+  where OLS residualization is underpowered (~5 donors/batch). Not the
+  default; unsupported with a frozen `preprocessing_spec`;
+  [`project_programs_to_cells()`](https://mdmanurung.github.io/cellprograms/reference/project_programs_to_cells.md)
+  refuses batch-adjusted fits (the adjustment cannot yet be replayed on
+  a query).
+- New
+  [`span_alignment()`](https://mdmanurung.github.io/cellprograms/reference/span_alignment.md):
+  principal-angle subspace metrics between two loading sets (mean
+  overlap, top-k overlap) — the discovery-vs-refit span-conservation
+  diagnostic.
+- [`fit_joint_block()`](https://mdmanurung.github.io/cellprograms/reference/fit_joint_block.md)
+  no longer crashes when the shared-first pass finds zero factors: the
+  zero reconstruction now carries dimnames.
+- New Suggests: sva (ComBat reference implementation, used by the
+  covariate-audit regression tests and cross-checked against
+  `adjust_batches`).
+- Ported the covariate-audit regression suite (`test-covariates.R`) and
+  a new batch-subspace suite (`test-batch-subspace.R`, 15 checks)
+  covering the replay center/scale, NA-coefficient, fixed-mode
+  centering, and interaction-drop fixes already in main since
+  2026-10-19.
+- Benchmark-only: `block_E_cal` arm in `benchmarks/coordination/` — a
+  no-refit FWER permutation layer on block_E’s calls (within-strata
+  donor-row permutation, max-T across clusters). Reduces but does not
+  eliminate the raw block-mass rule’s null false positives
+  (double-dipping: member loadings are fit on member expression).
+  Confirmatory run preregistered as
+  `benchmarks/coordination/PREREG_confirm_v1.md`.
+- Registrations filed: `PREREG_confirm_v1.md` (block_E_cal confirmatory)
+  and `benchmarks/cmp_detection/PREREG_mr2-cnmf-v1.md` (cNMF baseline vs
+  the Stage A operating point); `res/hallmark.csv` and
+  `res/lr_consensus.csv` reconstructed (msigdbr 26.1.1; CellChatDB, 1020
+  ligand-receptor pairs).
+- Corrected the Stephenson cohort accession in the mofacellular
+  benchmark README: E-MTAB-8731 (wrong, unrelated mouse study) -\>
+  E-MTAB-10026.
+
 ### Metacells-to-programs vignette (2026-10-22)
 
 - New article `vignettes/articles/metacells_to_programs.Rmd`: the full

@@ -54,6 +54,7 @@ reference:
   - assess_program_stability
   - match_programs
   - align_programs
+  - span_alignment
   - program_sharing
   - sharing_spectrum
   - principal_angles

@@ -20,6 +20,7 @@ fit_celltype_programs(
   nullcheck = TRUE,
   covariates = NULL,
   covariate_mode = c("residualize", "fixed"),
+  adjust_batches = NULL,
   seed = 1,
   flash_control = list(),
   feature_scale = "unknown",
@@ -131,6 +132,18 @@ fit_celltype_programs(
   fits cannot be projected to single cells —
   \`project_programs_to_cells()\` refuses them because the fixed
   covariate adjustment cannot be replayed on a query.
+
+- adjust_batches:
+
+  Optional name (character scalar) of a batch column in
+  \`sample_metadata\`. When given, \`sva::ComBat\` removes the batch
+  location/ scale from each cell type's panel before covariate
+  residualization. Intended for small-batch designs where OLS
+  residualization is underpowered (the batch benchmark found ComBat
+  better at ~5 donors/batch but with residual batch structure). Not the
+  default; not supported with a frozen \`preprocessing_spec\`;
+  \`project_programs_to_cells()\` refuses batch-adjusted fits (the
+  adjustment cannot yet be replayed on a query).
 
 - seed:
 

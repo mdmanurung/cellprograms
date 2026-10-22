@@ -92,7 +92,7 @@ MetacellsByGroupsSuperCell(
 
 - cells_per_metacell:
 
-  Target number of single cells per metacell — SuperCell's native
+  Target number of single cells per metacell - SuperCell's native
   \`gamma\`. Default 75 (SEACells guidance; hdWGCNA k guidance: 20-75).
 
 - target_metacells:

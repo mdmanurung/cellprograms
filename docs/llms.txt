@@ -402,6 +402,8 @@ donor-level sharing structure.
   : Match programs across two fits (bootstrap refits or cohorts)
 - [`align_programs()`](https://mdmanurung.github.io/cellprograms/reference/align_programs.md)
   : Align all cell types' program subspaces to a reference cell type
+- [`span_alignment()`](https://mdmanurung.github.io/cellprograms/reference/span_alignment.md)
+  : Principal-angle alignment between two loading subspaces
 - [`program_sharing()`](https://mdmanurung.github.io/cellprograms/reference/program_sharing.md)
   : Post-hoc shared-vs-specific assessment of fitted programs (mashr)
 - [`sharing_spectrum()`](https://mdmanurung.github.io/cellprograms/reference/sharing_spectrum.md)
