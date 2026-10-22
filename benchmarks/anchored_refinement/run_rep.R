@@ -5,8 +5,10 @@
 
 `%||%` <- function(a, b) if (is.null(a)) b else a
 rep <- if (exists("rep") && !is.na(rep)) rep else as.integer(commandArgs(TRUE)[1] %||% "1")
-outdir <- commandArgs(TRUE)[2] %||% "out"
+outdir <- commandArgs(TRUE)[2]
+if (is.null(outdir) || is.na(outdir)) outdir <- "out"   # %||% misses NA; sourced runs have no CLI args
 dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
+if (!dir.exists(outdir)) stop("cannot create outdir: ", outdir)
 
 source("harness.R")
 
