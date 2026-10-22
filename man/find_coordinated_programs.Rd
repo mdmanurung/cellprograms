@@ -47,7 +47,8 @@ strata x context).}
 \item{profiles}{Optional per-cell-type mean log-expression profiles for the
 ambient score; defaults to column means of `fit$pseudobulk`.}
 
-\item{alpha}{Family-wise error level (default 0.05).}
+\item{alpha}{Nominal node rejection threshold (default 0.05); rejection uses
+strict `node_p < alpha`. This is not a certified CMP-set error rate.}
 
 \item{n_perm}{Number of permutations (default 199).}
 
@@ -68,7 +69,7 @@ to be compared (default 20).}
 An object of class `cmp_result`, a list with
   \describe{
     \item{cmps}{one row per (CMP, program): `cmp`, `cell_type`,
-      `program_id`, `node_p` (FWER-adjusted), `sign` (orientation relative
+      `program_id`, `node_p` (permutation-max-adjusted), `sign` (orientation relative
       to the CMP's first program, propagated along linking edges as the
       product of edge signs along the path; CAND-05) and `ambient_flag`.}
     \item{edges}{edges among members of the same CMP (`stat` = |T|).}
@@ -81,7 +82,9 @@ An object of class `cmp_result`, a list with
 \description{
 Detects groups of programs from different cell types whose donor-level
 scores co-vary (coordinated multicellular programs, CMPs), with
-family-wise error control by within-strata donor permutation. Gene overlap
+permutation-max-adjusted node p-values from within-strata donor permutation.
+General learned-factor, edge-family and CMP-set error control are not
+established by this calculation. Gene overlap
 plays no role in the call; programs in a CMP may be thematically unrelated.
 }
 \section{Observed support}{
@@ -99,17 +102,32 @@ These guards are eligibility checks, not a new calibration guarantee under
 arbitrary missingness or disconnected donor support.
 }
 
+\section{Inferential scope}{
+
+The input score matrices, selected programs and ambient filter are held
+fixed during permutation; the full discovery pipeline is not refitted.
+The proposed fixed-score node null is independence from the joint score
+collection of all other cell types, conditional on the declared blocks.
+Its validity requires an appropriate exchangeability argument; residualizing
+on blocks is not a blanket guarantee. Row permutation does not implement
+patient-cluster permutation for repeated visits. A future known-score
+calibration cannot be relabeled as strong end-to-end learned-factor FWER.
+Fixed-threshold links and greedy grouping add no edge- or CMP-set error
+guarantee; two genuine groups can be falsely bridged without rejecting a
+true-null node. Calibration campaigns and scientific signoff remain pending.
+}
+
 \section{Program cap}{
 
 CMP detection depends on each member program existing upstream. In the
-cmp-bench-v1.2 held-out benchmark, fits with `max_factors = 30` raised
-pooled membership F1 from 0.571 to 0.705 over the default `max_factors = 10`
-(paired difference 0.127, 95% CI 0.113-0.142), with all false-call
-guardrails <= 0.06. The `fit_celltype_programs()` default of 10 was tuned for
-a different goal (donor-level disease signal in the concatenated
-representation), so it is not changed; use `max_factors = 30` when the fit
-is intended for `find_coordinated_programs()`. A one-time message is shown
-when a fit with `max_factors < 30` has a cell type at its cap.
+historical cmp-bench-v1.2 aggregate reports, cap 30 performed better than
+cap 10 on the reported membership endpoint. Per-replicate raw outputs have
+not been recovered in the bounded implementation audit, so these reports
+are historical summary-only evidence, not an independently reproduced
+general cap recommendation or error-control certificate. Select the cap
+by a prespecified training-only rule for the intended analysis. The fitting
+default remains 10. A one-time message is shown when a fit with
+`max_factors < 30` has a cell type at its cap.
 }
 
 \section{Missing donor scores}{

@@ -20,7 +20,7 @@ Major functionality of the cellprograms package:
 - `program_loadings()` Gene x program loading matrix
 - `top_genes()` Top-loaded genes of a single program, with optional lfsr
 - `program_summary()` Per-cell-type summary: number of programs, R2, ELBO
-- `find_coordinated_programs()` Detect coordinated multicellular programs (CMPs) with family-wise error control by within-strata donor permutation
+- `find_coordinated_programs()` Detect candidate coordinated multicellular programs (CMPs) using fixed-input permutation-max-adjusted node p-values; general learned-factor and CMP-set error control remain unestablished
 - `cmp_scores()` Donor x CMP consensus scores
 - `annotate_cmp_tf()` TF footprint of every member program from CollecTRI regulons (competitive + self-contained tests)
 - `cmp_triage()` One-row-per-CMP triage: recurrent genes, nuisance counts, context association, replication, shared TFs
@@ -170,7 +170,12 @@ runners live in `python/`.
 
 `find_coordinated_programs()` finds groups of programs from different cell
 types whose donor-level scores co-vary (coordinated multicellular programs,
-CMPs), with family-wise error control by within-strata donor permutation.
+CMPs), using fixed-input permutation-max-adjusted node p-values.
+**Inferential limit:** the selected programs and score matrices are not refitted
+under permutation. Calibration and exchangeability must be established for the
+declared analysis; this calculation does not certify general learned-factor,
+edge-family or merged-CMP-set error control. Row shuffling is not a
+patient-cluster permutation design for repeated visits.
 Gene overlap plays no role in the call; `annotate_cmp_lr()`,
 `annotate_cmp_themes()`, `cmp_gene_overlap()` and `cmp_context_association()`
 annotate called CMPs, each with its own null.
@@ -182,14 +187,18 @@ res <- find_coordinated_programs(fit, strata = "site", ambient = "flag", n_perm 
 cmp_scores(fit, res)                      # donors x CMPs consensus scores
 ```
 
-**Use `max_factors = 30` for fits intended for CMP detection.** A CMP can only
+**Historical cap comparison, not a general recommendation.** A CMP can only
 be called if each member program exists upstream. In the pre-registered
 cmp-bench-v1.2 held-out benchmark (seeds 1051-1100; 8 scenarios x 2
 simulation bases; 800 datasets per arm), fitting with `max_factors = 30`
 raised pooled membership F1 from 0.571 to 0.705 (paired difference +0.127,
-95% CI 0.113-0.142), entirely on the semi-synthetic base built from
+95% CI 0.113-0.142) in the retained aggregate report, predominantly on the semi-synthetic base built from
 Stephenson pseudobulk (0.671 -> 0.934), with every false-call guardrail
-<= 0.06 (null FWER 0.04 / 0.00). The global default stays at 10 because the
+<= 0.06 (null FWER 0.04 / 0.00).
+Per-replicate outputs were not located in the bounded implementation search:
+these numbers and intervals remain **historical summary-only evidence**, not
+a fresh reproduction or a general error-control guarantee. Choose the cap
+using a prespecified training-only rule. The global default stays at 10 because the
 tuning benchmark below optimizes a different target (disease signal in the
 concatenated representation), where K >= 30 overfits.
 `find_coordinated_programs()` prints a one-time message when a fit with

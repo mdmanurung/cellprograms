@@ -22,8 +22,9 @@
 #      across partner cell types.
 #   5. Null: donor rows permuted within strata, independently per cell type
 #      (removes cross-cell-type coupling, keeps within-cell-type structure).
-#      Program p-values are adjusted by the permutation maximum of A
-#      (single-step max-T), so P(any CMP | no coordination) <= alpha.
+#      Program p-values are adjusted by the permutation maximum of A.
+#      This is a fixed-input node-max adjustment, not a demonstrated general
+#      learned-factor, edge-family or CMP-set error-control guarantee.
 #   6. Significant programs are linked by edges with |T| >= link_threshold
 #      and grouped greedily, strongest edge first, one program per cell type.
 
@@ -220,7 +221,9 @@
 #'
 #' Detects groups of programs from different cell types whose donor-level
 #' scores co-vary (coordinated multicellular programs, CMPs), with
-#' family-wise error control by within-strata donor permutation. Gene overlap
+#' permutation-max-adjusted node p-values from within-strata donor permutation.
+#' General learned-factor, edge-family and CMP-set error control are not
+#' established by this calculation. Gene overlap
 #' plays no role in the call; programs in a CMP may be thematically unrelated.
 #'
 #' @param fit A canonicalized `cell_program_fit` (see `canonicalize_programs()`).
@@ -241,7 +244,8 @@
 #'   (default 0.3).
 #' @param profiles Optional per-cell-type mean log-expression profiles for the
 #'   ambient score; defaults to column means of `fit$pseudobulk`.
-#' @param alpha Family-wise error level (default 0.05).
+#' @param alpha Nominal node rejection threshold (default 0.05); rejection uses
+#'   strict `node_p < alpha`. This is not a certified CMP-set error rate.
 #' @param n_perm Number of permutations (default 199).
 #' @param tau Node-statistic offset; only edges with |T| > `tau` contribute
 #'   (default 2).
@@ -265,16 +269,29 @@
 #' These guards are eligibility checks, not a new calibration guarantee under
 #' arbitrary missingness or disconnected donor support.
 #'
+#' @section Inferential scope:
+#' The input score matrices, selected programs and ambient filter are held
+#' fixed during permutation; the full discovery pipeline is not refitted.
+#' The proposed fixed-score node null is independence from the joint score
+#' collection of all other cell types, conditional on the declared blocks.
+#' Its validity requires an appropriate exchangeability argument; residualizing
+#' on blocks is not a blanket guarantee. Row permutation does not implement
+#' patient-cluster permutation for repeated visits. A future known-score
+#' calibration cannot be relabeled as strong end-to-end learned-factor FWER.
+#' Fixed-threshold links and greedy grouping add no edge- or CMP-set error
+#' guarantee; two genuine groups can be falsely bridged without rejecting a
+#' true-null node. Calibration campaigns and scientific signoff remain pending.
+#'
 #' @section Program cap:
 #' CMP detection depends on each member program existing upstream. In the
-#' cmp-bench-v1.2 held-out benchmark, fits with `max_factors = 30` raised
-#' pooled membership F1 from 0.571 to 0.705 over the default `max_factors = 10`
-#' (paired difference 0.127, 95% CI 0.113-0.142), with all false-call
-#' guardrails <= 0.06. The `fit_celltype_programs()` default of 10 was tuned for
-#' a different goal (donor-level disease signal in the concatenated
-#' representation), so it is not changed; use `max_factors = 30` when the fit
-#' is intended for `find_coordinated_programs()`. A one-time message is shown
-#' when a fit with `max_factors < 30` has a cell type at its cap.
+#' historical cmp-bench-v1.2 aggregate reports, cap 30 performed better than
+#' cap 10 on the reported membership endpoint. Per-replicate raw outputs have
+#' not been recovered in the bounded implementation audit, so these reports
+#' are historical summary-only evidence, not an independently reproduced
+#' general cap recommendation or error-control certificate. Select the cap
+#' by a prespecified training-only rule for the intended analysis. The fitting
+#' default remains 10. A one-time message is shown when a fit with
+#' `max_factors < 30` has a cell type at its cap.
 #'
 #' @section Missing donor scores:
 #' Programs with missing donor scores (NA) are handled by pairwise-complete
@@ -287,7 +304,7 @@
 #' @return An object of class `cmp_result`, a list with
 #'   \describe{
 #'     \item{cmps}{one row per (CMP, program): `cmp`, `cell_type`,
-#'       `program_id`, `node_p` (FWER-adjusted), `sign` (orientation relative
+#'       `program_id`, `node_p` (permutation-max-adjusted), `sign` (orientation relative
 #'       to the CMP's first program, propagated along linking edges as the
 #'       product of edge signs along the path; CAND-05) and `ambient_flag`.}
 #'     \item{edges}{edges among members of the same CMP (`stat` = |T|).}
@@ -475,8 +492,9 @@ find_coordinated_programs <- function(fit, strata = NULL, context = NULL,
 #' @export
 print.cmp_result <- function(x, ...) {
   ks <- unique(x$cmps$cmp)
-  cat(sprintf("<cmp_result> %d coordinated multicellular program(s) at FWER %g (mode: %s, ambient: %s)\n",
+  cat(sprintf("<cmp_result> %d coordinated multicellular program(s) at nominal node threshold %g (mode: %s, ambient: %s)\n",
               length(ks), x$settings$alpha, x$settings$mode, x$settings$ambient))
+  cat("  Fixed-input permutation-max adjustment; learned-factor, edge and CMP-set error control not certified.\n")
   for (k in ks) {
     m <- x$cmps[x$cmps$cmp == k, ]
     cat(sprintf("  CMP %d: %s\n", k, paste0(m$program_id, ifelse(!is.na(m$sign) & m$sign < 0, " (-)", ""),
@@ -564,8 +582,8 @@ cmp_scores <- function(fit, cmp) {
   M
 }
 
-## cmp-bench-v1.2: recall of CMP member programs saturates at max_factors = 30; the fitting default (10)
-## was tuned for disease-signal recovery. Message once per session, only if some cell type hit the cap.
+## Keep the historical notification trigger, but do not promote an aggregate
+## benchmark result into a general cap recommendation. Numerical fitting is unchanged.
 .cmp_cap_message <- function(fit) {
   k <- fit$preprocessing$max_factors
   if (!is.numeric(k) || length(k) != 1L || k >= 30 || isTRUE(getOption("cellprograms.cmp_cap_message_shown"))) return(invisible(FALSE))
@@ -573,7 +591,8 @@ cmp_scores <- function(fit, cmp) {
   if (!length(at_cap)) return(invisible(FALSE))
   options(cellprograms.cmp_cap_message_shown = TRUE)
   message(sprintf(paste0("find_coordinated_programs(): %d cell type(s) reached max_factors = %g (e.g. %s). ",
-                         "For CMP detection, refitting with max_factors = 30 recovered more member programs in the ",
-                         "cmp-bench-v1.2 benchmark. Shown once per session."), length(at_cap), k, at_cap[1]))
+                         "Historical cmp-bench-v1.2 evaluated max_factors = 30 (summary-only evidence), ",
+                         "not a general cap recommendation. Use a prespecified training-only cap rule. ",
+                         "Shown once per session."), length(at_cap), k, at_cap[1]))
   invisible(TRUE)
 }
