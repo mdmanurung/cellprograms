@@ -1,8 +1,8 @@
 ## common.R -- load repo package code + benchmark helpers on any machine
 ## CMP_ROOT env overrides the legacy layout; default = this repo checkout.
 if (dir.exists("/workspace/.Rlib")) .libPaths(c("/workspace/.Rlib", .libPaths()))
-HERE <- local({ f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)[1])
-  if (length(f)) dirname(normalizePath(f)) else getwd() })
+HERE <- local({ a <- grep("^--file=", commandArgs(FALSE), value = TRUE); f <- if (length(a)) sub("^--file=", "", a)[1] else NA_character_
+  if (!is.na(f)) dirname(normalizePath(f)) else getwd() })
 REPO_ROOT <- normalizePath(file.path(HERE, "..", "..", ".."))  # scripts/ -> cmp_detection -> benchmarks -> repo
 CMP_ROOT <- Sys.getenv("CMP_ROOT", unset = REPO_ROOT)
 suppressPackageStartupMessages({ library(Matrix); library(data.table) })
