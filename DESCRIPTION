@@ -1,7 +1,7 @@
 Package: cellprograms
 Type: Package
 Title: Cell-Type-Specific Transcriptional Programs via Empirical-Bayes Matrix Factorization
-Version: 0.2.0
+Version: 0.2.0.9001
 Authors@R: person("Mikhael Dito", "Manurung", email = "mikhael@example.org", role = c("aut", "cre"))
 Description: Discover cell-type-specific transcriptional programs from
     pseudobulk single-cell RNA-seq data using empirical-Bayes matrix
@@ -21,6 +21,7 @@ Imports:
     Matrix,
     flashier,
     ebnm,
+    matrixStats,
     flashier.utils,
     reticulate,
     withr
