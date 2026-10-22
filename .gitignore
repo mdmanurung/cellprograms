@@ -49,3 +49,4 @@ tests/testthat/testthat-problems.rds
 *.pyc
 __pycache__/
 data/
+cellprograms_*.tar.gz
