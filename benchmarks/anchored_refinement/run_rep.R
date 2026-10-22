@@ -154,7 +154,8 @@ for (nm in names(run_arms)) {
     p <- if (nm == "denovo_cell") NULL else a$per_ct[[ct]]
     L2 <- if (nm == "denovo_cell") a$fit$loadings[[ct]] else p$loadings
     A2 <- if (nm == "denovo_cell") a$fit$scores[[ct]] else p$activities
-    X2 <- if (nm == "denovo_cell") X_all[sim$meta$cell_type == ct, , drop = FALSE] else NULL
+    ## subset to the fit's own gene panel: ols_activity requires nrow(L) == ncol(X)
+    X2 <- if (nm == "denovo_cell") X_all[sim$meta$cell_type == ct, rownames(L2), drop = FALSE] else NULL
     if (nm == "denovo_cell") activity_stability(X2, A2, L2, n_sub = 5L, seed = 1) else NA_real_
   }, numeric(1)), na.rm = TRUE)
   rr <- vapply(names(scores), function(ct) {
