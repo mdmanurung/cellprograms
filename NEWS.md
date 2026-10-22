@@ -1,5 +1,16 @@
 # cellprograms 0.2.0.9001 (development)
 
+## Metacells-to-programs vignette (2026-10-22)
+
+* New article `vignettes/articles/metacells_to_programs.Rmd`: the full
+  downstream workflow after SuperCell 2.0 + mcRigor metacell construction —
+  metacell counts -> donor pseudobulk (sum mode is lossless at the donor
+  level) -> `fit_celltype_programs(feature_scale = "logcounts")` ->
+  canonicalization -> stability -> CMP detection (planted coordinated pair
+  recovered, private programs not called) -> `program_sharing()` ->
+  `project_programs_to_cells()` back onto the original single cells
+  (per-cell activities recover the planted donor gradient).
+
 ## EB-CP tensor factorization and block EBMF (2026-10-21)
 
 

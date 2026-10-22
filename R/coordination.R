@@ -305,6 +305,16 @@ find_coordinated_programs <- function(fit, strata = NULL, context = NULL,
     }
     Z <- Z[vapply(Z, ncol, 1L) > 0L]
   }
+  if (!length(Z)) {
+    # fail closed: .cmp_prep (min_donors) or the ambient drop above can empty
+    # the score set; downstream do.call(rbind, ...) on an empty list returns
+    # NULL and crashed opaquely ("argument is of length zero" in nrow(naf)).
+    obs <- vapply(fit$scores, function(S) {
+      if (is.null(S)) 0L else sum(rowSums(!is.na(S)) > 0L)
+    }, integer(1))
+    .stopf("No cell type retained programs for CMP detection (min_donors = %d; observed donors per cell type: %s). Lower `min_donors` or pool more donors, or set ambient = \"flag\"/\"none\" if the ambient drop removed every program.",
+           min_donors, paste(sprintf("%s=%d", names(obs), obs), collapse = ", "))
+  }
   naf <- do.call(rbind, lapply(names(Z), function(ct) {
     data.frame(cell_type = ct, program_id = colnames(Z[[ct]]), n_missing = colSums(is.na(Z[[ct]])),
                stringsAsFactors = FALSE)

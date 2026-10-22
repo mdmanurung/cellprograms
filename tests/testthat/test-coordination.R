@@ -149,3 +149,20 @@ test_that("a one-time message suggests max_factors = 30 only when a cell type hi
   fit$preprocessing <- list(max_factors = 30)
   expect_no_message(find_coordinated_programs(fit, strata = "site", n_perm = 99, ambient = "none"))
 })
+
+test_that("empty score set after min_donors/ambient filtering fails closed (was: 'argument is of length zero')", {
+  fit <- .cmp_toy(n = 6)   # 6 observed donors < min_donors = 20 default
+  expect_error(
+    find_coordinated_programs(fit, n_perm = 99, ambient = "none"),
+    "No cell type retained programs"
+  )
+  expect_error(
+    find_coordinated_programs(fit, n_perm = 99, ambient = "none"),
+    "min_donors = 20"
+  )
+  # the same guard covers the ambient-drop path emptying every cell type
+  expect_error(
+    find_coordinated_programs(fit, n_perm = 99, ambient = "drop", ambient_threshold = -1),
+    "No cell type retained programs"
+  )
+})

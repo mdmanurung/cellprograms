@@ -107,6 +107,7 @@ articles:
   contents:
   - quickstart
   - articles/metacells_seacells
+  - articles/metacells_to_programs
 
 - title: Methods
   navbar: ~
