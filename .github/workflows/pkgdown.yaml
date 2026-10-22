@@ -39,12 +39,14 @@ jobs:
           # code, and mofacellular_comparison() loads its committed cache
           # (vignettes/articles/mofacellular_stephenson_cache.rds).
           pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
-      - name: Verify static audit docs are in the built site
-        # docs/cebmf-extension/ is source-controlled narrative (repository
+      - name: Restore static audit docs into the built site
+        # reports/cebmf-extension/ is source-controlled narrative (repository
         # audit, statistical/computational design, experiment plan) served at
-        # the same URL as before. pkgdown does not manage that directory and
-        # leaves unmanaged files in place, but assert rather than assume.
+        # the same URL as before. pkgdown >= 2.2 clears the output directory
+        # at build start (unmanaged files are NOT preserved), so the narrative
+        # is copied in AFTER the build rather than stored under docs/.
         run: |
+          cp -r reports/cebmf-extension docs/cebmf-extension
           test -d docs/cebmf-extension || {
             echo "::error::docs/cebmf-extension missing from built site"
             exit 1

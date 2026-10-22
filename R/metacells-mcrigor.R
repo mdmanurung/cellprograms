@@ -23,7 +23,7 @@
     # mangling and crash buildmc ("No cell overlap between new meta data and
     # Seurat object"). "MC<n>" strings pass both paths. tgamma is left at
     # DEFAULT (passing tgamma="1" re-triggers the integer-coercion crash).
-    # NOTE: as.character() drops vector names in R 4.4 — build the labels
+    # NOTE: as.character() drops vector names in R 4.4  -  build the labels
     # directly and reassign names explicitly.
     lab_in <- as.character(membership)
     lab <- paste0("MC", as.integer(factor(lab_in, levels = sort(unique(lab_in)))))

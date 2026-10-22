@@ -131,7 +131,7 @@
 #' @param mode How to aggregate constituent cells into metacells: `"sum"`
 #'   (raw-count sums, the SEACells default and the benchmark configuration) or
 #'   `"average"` (divide by metacell size). Default `"sum"`.
-#' @param cells_per_metacell Target number of single cells per metacell —
+#' @param cells_per_metacell Target number of single cells per metacell  - 
 #'   SuperCell's native `gamma`. Default 75 (SEACells guidance; hdWGCNA k
 #'   guidance: 20-75).
 #' @param target_metacells Optional cap on the number of metacells per group.
@@ -410,7 +410,7 @@ MetacellsByGroupsSuperCell <- function(
 
 #' Optimize SuperCell granularity with mcRigor
 #'
-#' Runs SuperCell's SCimplify at several granularities (cells per metacell —
+#' Runs SuperCell's SCimplify at several granularities (cells per metacell  - 
 #' SuperCell's native `gamma`) per group and calls `mcRigor::mcRigor_OPTIMIZE`
 #' to select the granularity maximizing the mcRigor Score
 #' (1 - w*DubRate - (1-w)*ZeroRate). Cheap relative to the SEACells analogue:
@@ -503,7 +503,7 @@ OptimizeGammaSuperCell <- function(
         drop_gamma <- gammas[n_unique < 2L]
         if (length(drop_gamma)) {
             warning("group '", g, "': gamma ", paste(drop_gamma, collapse = ", "),
-                    " yield(s) a single metacell; mcRigor cannot score it — dropped",
+                    " yield(s) a single metacell; mcRigor cannot score it  -  dropped",
                     call. = FALSE)
         }
         if (!length(keep_gamma)) {
