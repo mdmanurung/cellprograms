@@ -7,18 +7,17 @@
 block_clusters(bfit, mass_thresh = 0.1)
 }
 \arguments{
-\item{bfit}{A joint block fit from \code{\link[=fit_joint_block]{fit_joint_block()}}.}
+\item{bfit}{A `block_joint` object from [fit_joint_block()].}
 
-\item{mass_thresh}{Block-mass threshold for membership (0.1 matches the
-classifier's partial rule).}
+\item{mass_thresh}{Block-mass threshold for member cell types.}
 }
 \value{
 data.frame(cluster, cell_type, program_id, stat, fwer_p) with one
-row per member cell type, plus \code{activity}: donor x cluster state matrix.
+  row per member cell type, plus `activity`: donor x cluster state matrix.
 }
 \description{
 A shared factor (class "global" or "partial") with >= 2 member cell types
-is one coordination call; membership = block mass > \code{mass_thresh}
+is one coordination call; membership = block mass > `mass_thresh`
 (0.1 matches the classifier's partial rule). Private factors are
 single-cell-type and never become calls.
 }

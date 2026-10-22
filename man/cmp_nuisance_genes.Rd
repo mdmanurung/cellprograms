@@ -20,8 +20,4 @@ not fitted, so the ambient score cannot see them). The
 `genotype` list is a screening heuristic, not validated against genotype
 data; extend or replace it for your cohort.
 }
-\examples{
-cmp_nuisance_genes()
-grep(cmp_nuisance_genes()["vdj"], c("IGHV1-2", "IGKC", "GAPDH"), value = TRUE)
-}
 \keyword{internal}

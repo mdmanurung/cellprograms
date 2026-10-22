@@ -35,5 +35,4 @@ sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, see
 x <- as_cell_program_data(sim$pseudobulk)
 fit <- canonicalize_programs(fit_celltype_programs(x, max_factors = 3, seed = 1))
 plot_alignment(principal_angles(fit, "B", "CD4", n_perm = 200))
-#> Error in principal_angles(fit, "B", "CD4", n_perm = 200): could not find function "principal_angles"
 ```

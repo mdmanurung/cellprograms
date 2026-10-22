@@ -66,151 +66,8 @@ everything under the Seurat object’s `misc`:
 `                                 n_top_genes ``=`` ``60``,`\
 `                                 n_pc ``=`` ``10``,`\
 `                                 seed ``=`` ``11``, verbose ``=`` ``FALSE``)`\
-`#> Welcome to SEACells!`\
-`#> Computing kNN graph using scanpy NN ...`\
-`#> Computing radius for adaptive bandwidth kernel...`\
-`#>   0%|          | 0/80 [00:00<?, ?it/s]`\
-`#> Making graph symmetric...`\
-`#> Parameter graph_construction = union being used to build KNN graph...`\
-`#> Computing RBF kernel...`\
-`#>   0%|          | 0/80 [00:00<?, ?it/s]`\
-`#> Building similarity LIL matrix...`\
-`#>   0%|          | 0/80 [00:00<?, ?it/s]`\
-`#> Constructing CSR matrix...`\
-`#> Building kernel on X_pca`\
-`#> Computing diffusion components from X_pca for waypoint initialization ... `\
-`#> Done.`\
-`#> Sampling waypoints ...`\
-`#> Done.`\
-`#> Selecting 7 cells from waypoint initialization.`\
-`#> Initializing residual matrix using greedy column selection`\
-`#> Initializing f and g...`\
-`#> Selecting -3 cells from greedy initialization.`\
-`#> Randomly initialized A matrix.`\
-`#> Setting convergence threshold at 0.00014`\
-`#> Starting iteration 1.`\
-`#> Completed iteration 1.`\
-`#> Starting iteration 10.`\
-`#> Completed iteration 10.`\
-`#> Starting iteration 20.`\
-`#> Completed iteration 20.`\
-`#> SEACells fit did not converge: Warning: Algorithm has not converged - you may need to increase the maximum number of iterations`\
-`#> Normalizing data...`\
-`` #> First group.by variable `Metacell` starts with a number, appending `g` to ensure valid variable names ``\
-`#> ``This message is displayed once every 8 hours.`\
-`#> gamma = 1 `\
-`#>   |                                                                              |                                                                      |   0%  |                                                                              |==================                                                    |  25%  |                                                                              |===================================                                   |  50%  |                                                                              |====================================================                  |  75%  |                                                                              |======================================================================| 100%`\
-`#> `\
-`#> trustworthy `\
-`#>           4 `\
-`#> Welcome to SEACells!`\
-`#> Computing kNN graph using scanpy NN ...`\
-`#> Computing radius for adaptive bandwidth kernel...`\
-`#>   0%|          | 0/80 [00:00<?, ?it/s]`\
-`#> Making graph symmetric...`\
-`#> Parameter graph_construction = union being used to build KNN graph...`\
-`#> Computing RBF kernel...`\
-`#>   0%|          | 0/80 [00:00<?, ?it/s]`\
-`#> Building similarity LIL matrix...`\
-`#>   0%|          | 0/80 [00:00<?, ?it/s]`\
-`#> Constructing CSR matrix...`\
-`#> Building kernel on X_pca`\
-`#> Computing diffusion components from X_pca for waypoint initialization ... `\
-`#> Done.`\
-`#> Sampling waypoints ...`\
-`#> Done.`\
-`#> Selecting 7 cells from waypoint initialization.`\
-`#> Initializing residual matrix using greedy column selection`\
-`#> Initializing f and g...`\
-`#> Selecting -3 cells from greedy initialization.`\
-`#> Randomly initialized A matrix.`\
-`#> Setting convergence threshold at 0.00014`\
-`#> Starting iteration 1.`\
-`#> Completed iteration 1.`\
-`#> Starting iteration 10.`\
-`#> Completed iteration 10.`\
-`#> Starting iteration 20.`\
-`#> Completed iteration 20.`\
-`#> SEACells fit did not converge: Warning: Algorithm has not converged - you may need to increase the maximum number of iterations`\
-`#> Normalizing data...`\
-`#> gamma = 1 `\
-`#>   |                                                                              |                                                                      |   0%  |                                                                              |==================                                                    |  25%  |                                                                              |===================================                                   |  50%  |                                                                              |====================================================                  |  75%  |                                                                              |======================================================================| 100%`\
-`#> `\
-`#> trustworthy `\
-`#>           4 `\
-`#> Welcome to SEACells!`\
-`#> Computing kNN graph using scanpy NN ...`\
-`#> Computing radius for adaptive bandwidth kernel...`\
-`#>   0%|          | 0/80 [00:00<?, ?it/s]`\
-`#> Making graph symmetric...`\
-`#> Parameter graph_construction = union being used to build KNN graph...`\
-`#> Computing RBF kernel...`\
-`#>   0%|          | 0/80 [00:00<?, ?it/s]`\
-`#> Building similarity LIL matrix...`\
-`#>   0%|          | 0/80 [00:00<?, ?it/s]`\
-`#> Constructing CSR matrix...`\
-`#> Building kernel on X_pca`\
-`#> Computing diffusion components from X_pca for waypoint initialization ... `\
-`#> Done.`\
-`#> Sampling waypoints ...`\
-`#> Done.`\
-`#> Selecting 7 cells from waypoint initialization.`\
-`#> Initializing residual matrix using greedy column selection`\
-`#> Initializing f and g...`\
-`#> Selecting -3 cells from greedy initialization.`\
-`#> Randomly initialized A matrix.`\
-`#> Setting convergence threshold at 0.00014`\
-`#> Starting iteration 1.`\
-`#> Completed iteration 1.`\
-`#> Starting iteration 10.`\
-`#> Completed iteration 10.`\
-`#> Converged after 17 iterations.`\
-`#> Normalizing data...`\
-`#> gamma = 1 `\
-`#>   |                                                                              |                                                                      |   0%  |                                                                              |==================                                                    |  25%  |                                                                              |===================================                                   |  50%  |                                                                              |====================================================                  |  75%  |                                                                              |======================================================================| 100%`\
-`#> `\
-`#> trustworthy `\
-`#>           4 `\
-`#> Welcome to SEACells!`\
-`#> Computing kNN graph using scanpy NN ...`\
-`#> Computing radius for adaptive bandwidth kernel...`\
-`#>   0%|          | 0/80 [00:00<?, ?it/s]`\
-`#> Making graph symmetric...`\
-`#> Parameter graph_construction = union being used to build KNN graph...`\
-`#> Computing RBF kernel...`\
-`#>   0%|          | 0/80 [00:00<?, ?it/s]`\
-`#> Building similarity LIL matrix...`\
-`#>   0%|          | 0/80 [00:00<?, ?it/s]`\
-`#> Constructing CSR matrix...`\
-`#> Building kernel on X_pca`\
-`#> Computing diffusion components from X_pca for waypoint initialization ... `\
-`#> Done.`\
-`#> Sampling waypoints ...`\
-`#> Done.`\
-`#> Selecting 7 cells from waypoint initialization.`\
-`#> Initializing residual matrix using greedy column selection`\
-`#> Initializing f and g...`\
-`#> Selecting -3 cells from greedy initialization.`\
-`#> Randomly initialized A matrix.`\
-`#> Setting convergence threshold at 0.00015`\
-`#> Starting iteration 1.`\
-`#> Completed iteration 1.`\
-`#> Starting iteration 10.`\
-`#> Completed iteration 10.`\
-`#> Starting iteration 20.`\
-`#> Completed iteration 20.`\
-`#> SEACells fit did not converge: Warning: Algorithm has not converged - you may need to increase the maximum number of iterations`\
-`#> Normalizing data...`\
-`#> gamma = 1 `\
-`#>   |                                                                              |                                                                      |   0%  |                                                                              |==================                                                    |  25%  |                                                                              |===================================                                   |  50%  |                                                                              |====================================================                  |  75%  |                                                                              |======================================================================| 100%`\
-`#> `\
-`#> trustworthy `\
-`#>           4`\
 `res`` ``<-`` `[`GetMetacellSEACells`](https://mdmanurung.github.io/cellprograms/reference/GetMetacellSEACells.md)`(``obj``)`\
-[`names`](https://rdrr.io/r/base/names.html)`(``res``)`\
-`#>  [1] "metacell_object"  "soft_assignments" "qc"               "fit_stats"       `\
-`#>  [5] "zerorate_overall" "dubrate_overall"  "score_overall"    "params"          `\
-`#>  [9] "skipped_groups"   "call"`
+[`names`](https://rdrr.io/r/base/names.html)`(``res``)`
 
 The result carries the metacell Seurat object, the soft (cells x
 archetypes) assignment matrix, per-metacell mcRigor QC, fit statistics,
@@ -218,23 +75,7 @@ the parameters used, and any skipped groups:
 
 \
 [`head`](https://rdrr.io/r/utils/head.html)`(``res``$``qc``)``                 ``# mcDiv, dubious flag, ZeroRate per metacell`\
-`#>                                       metacell         Group     mcDiv`\
-`#> donor1_Bcells.1 donor_celltype_donor1_Bcells_1 donor1_Bcells 0.2183076`\
-`#> donor1_Bcells.2 donor_celltype_donor1_Bcells_2 donor1_Bcells 0.2113657`\
-`#> donor1_Bcells.3 donor_celltype_donor1_Bcells_3 donor1_Bcells 0.2407715`\
-`#> donor1_Bcells.4 donor_celltype_donor1_Bcells_4 donor1_Bcells 0.2486250`\
-`#> donor1_Tcells.1 donor_celltype_donor1_Tcells_1 donor1_Tcells 0.1986494`\
-`#> donor1_Tcells.2 donor_celltype_donor1_Tcells_2 donor1_Tcells 0.2436692`\
-`#>                 mcDiv_threshold dubious n_cells zerorate_mc`\
-`#> donor1_Bcells.1        1.012731   FALSE      23       0.000`\
-`#> donor1_Bcells.2        1.015679   FALSE      18       0.010`\
-`#> donor1_Bcells.3        1.013817   FALSE      22       0.005`\
-`#> donor1_Bcells.4        1.017314   FALSE      17       0.005`\
-`#> donor1_Tcells.1        1.009874   FALSE      18       0.000`\
-`#> donor1_Tcells.2        1.008547   FALSE      19       0.000`\
-`res``$``skipped_groups``           ``# groups dropped (e.g. too few cells) - usually empty`\
-`#> [1] group   n_cells reason `\
-`#> <0 rows> (or 0-length row.names)`
+`res``$``skipped_groups``           ``# groups dropped (e.g. too few cells) - usually empty`
 
 Groups with too few cells (below `min_cells`) are skipped with a warning
 rather than failing the call, and degenerate SEACells fits (all hard
@@ -258,152 +99,8 @@ by the mcRigor optimization score:
 `                             min_cells ``=`` ``50``,`\
 `                             mcrigor_args ``=`` `[`list`](https://rdrr.io/r/base/list.html)`(``Nrep ``=`` ``5``)``,`\
 `                             seed ``=`` ``11``, verbose ``=`` ``FALSE``)`\
-`#> Welcome to SEACells!`\
-`#> Computing kNN graph using scanpy NN ...`\
-`#> Computing radius for adaptive bandwidth kernel...`\
-`#>   0%|          | 0/160 [00:00<?, ?it/s]`\
-`#> Making graph symmetric...`\
-`#> Parameter graph_construction = union being used to build KNN graph...`\
-`#> Computing RBF kernel...`\
-`#>   0%|          | 0/160 [00:00<?, ?it/s]`\
-`#> Building similarity LIL matrix...`\
-`#>   0%|          | 0/160 [00:00<?, ?it/s]`\
-`#> Constructing CSR matrix...`\
-`#> Building kernel on X_pca`\
-`#> Computing diffusion components from X_pca for waypoint initialization ... `\
-`#> Done.`\
-`#> Sampling waypoints ...`\
-`#> Done.`\
-`#> Selecting 9 cells from waypoint initialization.`\
-`#> Initializing residual matrix using greedy column selection`\
-`#> Initializing f and g...`\
-`#> Selecting 7 cells from greedy initialization.`\
-`#> Randomly initialized A matrix.`\
-`#> Setting convergence threshold at 0.00018`\
-`#> Starting iteration 1.`\
-`#> Completed iteration 1.`\
-`#> Starting iteration 10.`\
-`#> Completed iteration 10.`\
-`#> Starting iteration 20.`\
-`#> Completed iteration 20.`\
-`#> SEACells fit did not converge: Warning: Algorithm has not converged - you may need to increase the maximum number of iterations`\
-`#> Welcome to SEACells!`\
-`#> Computing kNN graph using scanpy NN ...`\
-`#> Computing radius for adaptive bandwidth kernel...`\
-`#>   0%|          | 0/160 [00:00<?, ?it/s]`\
-`#> Making graph symmetric...`\
-`#> Parameter graph_construction = union being used to build KNN graph...`\
-`#> Computing RBF kernel...`\
-`#>   0%|          | 0/160 [00:00<?, ?it/s]`\
-`#> Building similarity LIL matrix...`\
-`#>   0%|          | 0/160 [00:00<?, ?it/s]`\
-`#> Constructing CSR matrix...`\
-`#> Building kernel on X_pca`\
-`#> Computing diffusion components from X_pca for waypoint initialization ... `\
-`#> Done.`\
-`#> Sampling waypoints ...`\
-`#> Done.`\
-`#> Selecting 9 cells from waypoint initialization.`\
-`#> Initializing residual matrix using greedy column selection`\
-`#> Initializing f and g...`\
-`#> Selecting -1 cells from greedy initialization.`\
-`#> Randomly initialized A matrix.`\
-`#> Setting convergence threshold at 0.00021`\
-`#> Starting iteration 1.`\
-`#> Completed iteration 1.`\
-`#> Starting iteration 10.`\
-`#> Completed iteration 10.`\
-`#> Starting iteration 20.`\
-`#> Completed iteration 20.`\
-`#> SEACells fit did not converge: Warning: Algorithm has not converged - you may need to increase the maximum number of iterations`\
-`#> Normalizing data...`\
-`#> gamma = 10 `\
-`#>   |                                                                              |                                                                      |   0%  |                                                                              |====                                                                  |   6%  |                                                                              |=========                                                             |  12%  |                                                                              |=============                                                         |  19%  |                                                                              |==================                                                    |  25%  |                                                                              |======================                                                |  31%  |                                                                              |==========================                                            |  38%  |                                                                              |===============================                                       |  44%  |                                                                              |===================================                                   |  50%  |                                                                              |=======================================                               |  56%  |                                                                              |============================================                          |  62%  |                                                                              |================================================                      |  69%  |                                                                              |====================================================                  |  75%  |                                                                              |=========================================================             |  81%  |                                                                              |=============================================================         |  88%  |                                                                              |==================================================================    |  94%  |                                                                              |======================================================================| 100%`\
-`#> gamma = 20 `\
-`#>   |                                                                              |                                                                      |   0%  |                                                                              |=========                                                             |  12%  |                                                                              |==================                                                    |  25%  |                                                                              |==========================                                            |  38%  |                                                                              |===================================                                   |  50%  |                                                                              |============================================                          |  62%  |                                                                              |====================================================                  |  75%  |                                                                              |=============================================================         |  88%  |                                                                              |======================================================================| 100%`\
-`#> optimal gamma = 10 `\
-`#> `\
-`#>     dubious trustworthy `\
-`#>          10           6 `\
-`#> Welcome to SEACells!`\
-`#> Computing kNN graph using scanpy NN ...`\
-`#> Computing radius for adaptive bandwidth kernel...`\
-`#>   0%|          | 0/160 [00:00<?, ?it/s]`\
-`#> Making graph symmetric...`\
-`#> Parameter graph_construction = union being used to build KNN graph...`\
-`#> Computing RBF kernel...`\
-`#>   0%|          | 0/160 [00:00<?, ?it/s]`\
-`#> Building similarity LIL matrix...`\
-`#>   0%|          | 0/160 [00:00<?, ?it/s]`\
-`#> Constructing CSR matrix...`\
-`#> Building kernel on X_pca`\
-`#> Computing diffusion components from X_pca for waypoint initialization ... `\
-`#> Done.`\
-`#> Sampling waypoints ...`\
-`#> Done.`\
-`#> Selecting 9 cells from waypoint initialization.`\
-`#> Initializing residual matrix using greedy column selection`\
-`#> Initializing f and g...`\
-`#> Selecting 7 cells from greedy initialization.`\
-`#> Randomly initialized A matrix.`\
-`#> Setting convergence threshold at 0.00018`\
-`#> Starting iteration 1.`\
-`#> Completed iteration 1.`\
-`#> Starting iteration 10.`\
-`#> Completed iteration 10.`\
-`#> Starting iteration 20.`\
-`#> Completed iteration 20.`\
-`#> SEACells fit did not converge: Warning: Algorithm has not converged - you may need to increase the maximum number of iterations`\
-`#> Welcome to SEACells!`\
-`#> Computing kNN graph using scanpy NN ...`\
-`#> Computing radius for adaptive bandwidth kernel...`\
-`#>   0%|          | 0/160 [00:00<?, ?it/s]`\
-`#> Making graph symmetric...`\
-`#> Parameter graph_construction = union being used to build KNN graph...`\
-`#> Computing RBF kernel...`\
-`#>   0%|          | 0/160 [00:00<?, ?it/s]`\
-`#> Building similarity LIL matrix...`\
-`#>   0%|          | 0/160 [00:00<?, ?it/s]`\
-`#> Constructing CSR matrix...`\
-`#> Building kernel on X_pca`\
-`#> Computing diffusion components from X_pca for waypoint initialization ... `\
-`#> Done.`\
-`#> Sampling waypoints ...`\
-`#> Done.`\
-`#> Selecting 9 cells from waypoint initialization.`\
-`#> Initializing residual matrix using greedy column selection`\
-`#> Initializing f and g...`\
-`#> Selecting -1 cells from greedy initialization.`\
-`#> Randomly initialized A matrix.`\
-`#> Setting convergence threshold at 0.00021`\
-`#> Starting iteration 1.`\
-`#> Completed iteration 1.`\
-`#> Starting iteration 10.`\
-`#> Completed iteration 10.`\
-`#> Starting iteration 20.`\
-`#> Completed iteration 20.`\
-`#> SEACells fit did not converge: Warning: Algorithm has not converged - you may need to increase the maximum number of iterations`\
-`#> Normalizing data...`\
-`#> gamma = 10 `\
-`#>   |                                                                              |                                                                      |   0%  |                                                                              |====                                                                  |   6%  |                                                                              |=========                                                             |  12%  |                                                                              |=============                                                         |  19%  |                                                                              |==================                                                    |  25%  |                                                                              |======================                                                |  31%  |                                                                              |==========================                                            |  38%  |                                                                              |===============================                                       |  44%  |                                                                              |===================================                                   |  50%  |                                                                              |=======================================                               |  56%  |                                                                              |============================================                          |  62%  |                                                                              |================================================                      |  69%  |                                                                              |====================================================                  |  75%  |                                                                              |=========================================================             |  81%  |                                                                              |=============================================================         |  88%  |                                                                              |==================================================================    |  94%  |                                                                              |======================================================================| 100%`\
-`#> gamma = 20 `\
-`#>   |                                                                              |                                                                      |   0%  |                                                                              |=========                                                             |  12%  |                                                                              |==================                                                    |  25%  |                                                                              |==========================                                            |  38%  |                                                                              |===================================                                   |  50%  |                                                                              |============================================                          |  62%  |                                                                              |====================================================                  |  75%  |                                                                              |=============================================================         |  88%  |                                                                              |======================================================================| 100%`\
-`#> optimal gamma = 10 `\
-`#> `\
-`#>     dubious trustworthy `\
-`#>          12           4`\
 `opt``$``optimal_gamma``            ``# winning gamma per donor group`\
-`#> $donor1`\
-`#> [1] 10`\
-`#> `\
-`#> $donor2`\
-`#> [1] 10`\
-`opt``$``scores``                   ``# mcRigor score per gamma x group`\
-`#>           group gamma     score`\
-`#> donor1.1 donor1    10 0.6332813`\
-`#> donor1.2 donor1    20 0.4987500`\
-`#> donor2.1 donor2    10 0.5868750`\
-`#> donor2.2 donor2    20 0.4984375`
+`opt``$``scores``                   ``# mcRigor score per gamma x group`
 
 Gammas whose membership labels degenerate (fewer than two distinct
 labels after Seurat v5 aggregation) are dropped with a warning and
@@ -422,10 +119,7 @@ excluded from the pick rather than crashing the run.
 `                             max_factors ``=`` ``4``, features ``=`` ``"variable"``,`\
 `                             n_variable_genes ``=`` ``100``)`\
 `fit`` ``<-`` `[`canonicalize_programs`](https://mdmanurung.github.io/cellprograms/reference/canonicalize_programs.md)`(``fit``)`\
-[`program_summary`](https://mdmanurung.github.io/cellprograms/reference/program_summary.md)`(``fit``)``[``, `[`c`](https://rdrr.io/r/base/c.html)`(``"cell_type"``, ``"n_programs"``, ``"R2"``, ``"elbo"``)``]`\
-`#>   cell_type n_programs        R2      elbo`\
-`#> 1    Bcells          3 0.8143525 -2631.787`\
-`#> 2    Tcells          3 0.8728723 -2619.892`
+[`program_summary`](https://mdmanurung.github.io/cellprograms/reference/program_summary.md)`(``fit``)``[``, `[`c`](https://rdrr.io/r/base/c.html)`(``"cell_type"``, ``"n_programs"``, ``"R2"``, ``"elbo"``)``]`
 
 The planted structure survives the aggregation: each cell type’s
 programs are dominated by its private marker block.
@@ -444,8 +138,6 @@ programs are dominated by its private marker block.
 `  ``ggplot2``::`[`labs`](https://ggplot2.tidyverse.org/reference/labs.html)`(``x ``=`` ``"metacell"``, y ``=`` ``"marker gene"``)`` ``+`\
 `  ``ggplot2``::`[`theme`](https://ggplot2.tidyverse.org/reference/theme.html)`(``axis.text.x ``=`` ``ggplot2``::`[`element_blank`](https://ggplot2.tidyverse.org/reference/element.html)`(``)``,`\
 `                 axis.text.y ``=`` ``ggplot2``::`[`element_text`](https://ggplot2.tidyverse.org/reference/element.html)`(``size ``=`` ``6``)``)`
-
-![](metacells_seacells_files/figure-html/markers-1.png)
 
 ## Session info
 
@@ -469,81 +161,46 @@ programs are dominated by its private marker block.
     #> [1] stats     graphics  grDevices utils     datasets  methods   base     
     #> 
     #> other attached packages:
-    #> [1] cellprograms_0.2.0
+    #> [1] cellprograms_0.2.0.9001
     #> 
     #> loaded via a namespace (and not attached):
-    #>   [1] RColorBrewer_1.1-3        jsonlite_2.0.0           
-    #>   [3] magrittr_2.0.5            spatstat.utils_3.2-5     
-    #>   [5] farver_2.1.2              rmarkdown_2.32           
-    #>   [7] fs_2.1.0                  ragg_1.5.2               
-    #>   [9] vctrs_0.7.3               ROCR_1.0-12              
-    #>  [11] spatstat.explore_3.8-3    SQUAREM_2026.1           
-    #>  [13] mixsqp_0.3-54             progress_1.2.3           
-    #>  [15] htmltools_0.5.9           truncnorm_1.0-9          
-    #>  [17] sass_0.4.10               sctransform_0.4.3        
-    #>  [19] parallelly_1.48.0         KernSmooth_2.23-27       
-    #>  [21] bslib_0.12.0              fastTopics_0.7-46        
-    #>  [23] htmlwidgets_1.6.4         basilisk_1.18.0          
-    #>  [25] desc_1.4.3                ica_1.0-3                
-    #>  [27] plyr_1.8.9                plotly_4.12.1            
-    #>  [29] zoo_1.9-1                 cachem_1.1.0             
-    #>  [31] igraph_2.3.4              mime_0.13                
-    #>  [33] lifecycle_1.0.5           pkgconfig_2.0.3          
-    #>  [35] Matrix_1.7-6              R6_2.6.1                 
-    #>  [37] fastmap_1.2.0             fitdistrplus_1.2-6       
-    #>  [39] future_1.80.0             shiny_1.14.0             
-    #>  [41] digest_0.6.39             colorspace_2.1-4         
-    #>  [43] patchwork_1.3.2           Seurat_5.6.0             
-    #>  [45] tensor_1.5.1              RSpectra_0.16-2          
-    #>  [47] irlba_2.4.1               textshaping_0.4.0        
-    #>  [49] labeling_0.4.3            invgamma_1.2             
-    #>  [51] filelock_1.0.3            progressr_1.0.0          
-    #>  [53] spatstat.sparse_3.2-0     deconvolveR_1.2-2        
-    #>  [55] httr_1.4.9                polyclip_1.10-7          
-    #>  [57] abind_1.4-8               compiler_4.4.2           
-    #>  [59] withr_3.0.3               S7_0.2.2                 
-    #>  [61] fastDummies_1.7.6         MASS_7.3-66              
-    #>  [63] scatterplot3d_0.3-45      gtools_3.9.5             
-    #>  [65] tools_4.4.2               trust_0.1-9              
-    #>  [67] lmtest_0.9-40             otel_0.2.0               
-    #>  [69] httpuv_1.6.17             ebnm_1.1-42              
-    #>  [71] future.apply_1.21.0       goftest_1.2-3            
-    #>  [73] quadprog_1.5-8            glue_1.8.1               
-    #>  [75] nlme_3.1-170              promises_1.5.0           
-    #>  [77] grid_4.4.2                Rtsne_0.17               
-    #>  [79] cluster_2.1.8.3           reshape2_1.4.5           
-    #>  [81] generics_0.1.4            flashier.utils_1.1.0.9000
-    #>  [83] gtable_0.3.6              spatstat.data_3.1-9      
-    #>  [85] tidyr_1.3.2               hms_1.1.4                
-    #>  [87] data.table_1.18.6.1       sp_2.2-4                 
-    #>  [89] spatstat.geom_3.8-3       RcppAnnoy_0.0.23         
-    #>  [91] ggrepel_0.9.8             RANN_2.6.3               
-    #>  [93] pillar_1.11.1             stringr_1.6.0            
-    #>  [95] spam_2.11-4               RcppHNSW_0.7.0           
-    #>  [97] later_1.4.8               softImpute_1.4-3         
-    #>  [99] splines_4.4.2             dplyr_1.2.1              
-    #> [101] lattice_0.23-1            survival_3.8-12          
-    #> [103] deldir_2.0-4              tidyselect_1.2.1         
-    #> [105] miniUI_0.1.2              pbapply_1.7-5            
-    #> [107] knitr_1.52                gridExtra_2.3.1          
-    #> [109] flashier_1.0.60           scattermore_1.2          
-    #> [111] RhpcBLASctl_0.23-42       xfun_0.62                
-    #> [113] matrixStats_1.5.0         stringi_1.8.9            
-    #> [115] yaml_2.3.12               evaluate_1.0.5           
-    #> [117] codetools_0.2-20          tibble_3.3.1             
-    #> [119] Polychrome_1.6.2          cli_3.6.6                
-    #> [121] RcppParallel_6.2.1        uwot_0.2.5               
-    #> [123] xtable_1.8-8              reticulate_1.47.0        
-    #> [125] systemfonts_1.3.2         jquerylib_0.1.4          
-    #> [127] mcRigor_1.0               Rcpp_1.1.2               
-    #> [129] globals_0.20.0            spatstat.random_3.5-2    
-    #> [131] dir.expiry_1.14.0         png_0.1-9                
-    #> [133] spatstat.univar_3.2-0     parallel_4.4.2           
-    #> [135] pkgdown_2.2.1             ggplot2_4.0.3            
-    #> [137] prettyunits_1.2.0         basilisk.utils_1.18.0    
-    #> [139] dotCall64_1.2             listenv_1.1.0            
-    #> [141] viridisLite_0.4.3         scales_1.4.0             
-    #> [143] ggridges_0.5.7            crayon_1.5.3             
-    #> [145] SeuratObject_5.4.0        purrr_1.2.2              
-    #> [147] rlang_1.3.0               ashr_2.2-69              
-    #> [149] cowplot_1.2.0
+    #>   [1] deldir_2.0-4           pbapply_1.7-4          gridExtra_2.3.1       
+    #>   [4] rlang_1.3.0            magrittr_2.0.5         RcppAnnoy_0.0.23      
+    #>   [7] otel_0.2.0             spatstat.geom_3.8-2    matrixStats_1.5.0     
+    #>  [10] ggridges_0.5.7         compiler_4.4.2         png_0.1-9             
+    #>  [13] systemfonts_1.3.2      vctrs_0.7.3            reshape2_1.4.5        
+    #>  [16] stringr_1.6.0          pkgconfig_2.0.3        fastmap_1.2.0         
+    #>  [19] promises_1.5.0         rmarkdown_2.32         ragg_1.5.2            
+    #>  [22] purrr_1.2.2            xfun_0.61              cachem_1.1.0          
+    #>  [25] jsonlite_2.0.0         goftest_1.2-3          later_1.4.8           
+    #>  [28] spatstat.utils_3.2-5   irlba_2.4.1            parallel_4.4.2        
+    #>  [31] cluster_2.1.8.3        R6_2.6.1               ica_1.0-3             
+    #>  [34] spatstat.data_3.1-9    bslib_0.12.0           stringi_1.8.7         
+    #>  [37] RColorBrewer_1.1-3     reticulate_1.47.0      spatstat.univar_3.2-0 
+    #>  [40] parallelly_1.48.0      lmtest_0.9-40          jquerylib_0.1.4       
+    #>  [43] scattermore_1.2        Rcpp_1.1.2             knitr_1.52            
+    #>  [46] tensor_1.5.1           future.apply_1.21.0    zoo_1.9-0             
+    #>  [49] sctransform_0.4.3      httpuv_1.6.17          Matrix_1.7-6          
+    #>  [52] splines_4.4.2          igraph_2.1.4           tidyselect_1.2.1      
+    #>  [55] abind_1.4-8            yaml_2.3.12            spatstat.random_3.5-1 
+    #>  [58] spatstat.explore_3.8-2 codetools_0.2-20       miniUI_0.1.2          
+    #>  [61] listenv_1.1.0          lattice_0.23-1         tibble_3.3.1          
+    #>  [64] plyr_1.8.9             shiny_1.14.0           S7_0.2.2              
+    #>  [67] ROCR_1.0-12            evaluate_1.0.5         Rtsne_0.17            
+    #>  [70] future_1.80.0          fastDummies_1.7.6      desc_1.4.3            
+    #>  [73] survival_3.8-12        polyclip_1.10-7        fitdistrplus_1.2-6    
+    #>  [76] pillar_1.11.1          Seurat_5.5.1           KernSmooth_2.23-27    
+    #>  [79] plotly_4.12.1          generics_0.1.4         RcppHNSW_0.7.0        
+    #>  [82] sp_2.2-3               ggplot2_4.0.3          scales_1.4.0          
+    #>  [85] globals_0.20.0         xtable_1.8-8           glue_1.8.1            
+    #>  [88] tools_4.4.2            data.table_1.18.6.1    RSpectra_0.16-2       
+    #>  [91] RANN_2.6.2             fs_2.1.0               dotCall64_1.2         
+    #>  [94] cowplot_1.2.0          grid_4.4.2             tidyr_1.3.2           
+    #>  [97] nlme_3.1-170           patchwork_1.3.2        cli_3.6.6             
+    #> [100] spatstat.sparse_3.2-0  textshaping_0.4.0      spam_2.11-4           
+    #> [103] viridisLite_0.4.3      dplyr_1.2.1            uwot_0.2.5            
+    #> [106] gtable_0.3.6           sass_0.4.10            digest_0.6.39         
+    #> [109] progressr_1.1.0        ggrepel_0.9.8          htmlwidgets_1.6.4     
+    #> [112] SeuratObject_5.4.0     farver_2.1.2           htmltools_0.5.9       
+    #> [115] pkgdown_2.2.1          lifecycle_1.0.5        httr_1.4.9            
+    #> [118] mime_0.13              MASS_7.3-66

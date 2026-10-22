@@ -54,17 +54,3 @@ principal_angles(
 ## Value
 
 An object of class \`principal_angles\`.
-
-## Examples
-
-``` r
-sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
-x <- as_cell_program_data(sim$pseudobulk)
-fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 150)
-fit <- canonicalize_programs(fit)
-# CD8 and NK share a planted donor-activity program in this simulation
-pa <- principal_angles(fit, "CD8", "NK", n_perm = 99, seed = 1)
-#> Error in principal_angles(fit, "CD8", "NK", n_perm = 99, seed = 1): could not find function "principal_angles"
-pa
-#> Error: object 'pa' not found
-```

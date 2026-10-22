@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">cellprograms</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -22,6 +22,7 @@
     <li><a class="dropdown-item" href="../articles/metacells_seacells.html">Metacells with SEACells and mcRigor gamma optimization</a></li>
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cebmf_backend.html">The cebmf_torch backend: covariate-EBMF in torch</a></li>
+    <li><a class="dropdown-item" href="../articles/coordination_joint.html">Joint and tensor factorization: EB-CP and block EBMF</a></li>
     <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
@@ -44,7 +45,22 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.0.9001" id="cellprograms-0209001-development">cellprograms 0.2.0.9001 (development)<a class="anchor" aria-label="anchor" href="#cellprograms-0209001-development"></a></h2>
+<div class="section level3">
+<h3 id="eb-cp-tensor-factorization-and-block-ebmf-0-2-0-9001">EB-CP tensor factorization and block EBMF (2026-10-21)<a class="anchor" aria-label="anchor" href="#eb-cp-tensor-factorization-and-block-ebmf-0-2-0-9001"></a></h3>
+<ul><li>New <code><a href="../reference/fit_eb_cp.html">fit_eb_cp()</a></code>: greedy rank-1 empirical-Bayes CANDECOMP/PARAFAC factorization across cell types (genes x donors x cell types) with EBNM normal-means updates per mode (point-Laplace on gene and cell-type modes, normal on donors) and per-(cell-type, donor) residual variance — the tensor analogue of flashier <code>var_type = 1</code>. Components are selected by a winner’s-curse-proof held-out likelihood test on a donor-synchronous 50/50 split and refit on the full data with backfitting.</li>
+<li>New <code><a href="../reference/eb_cp_from_fit.html">eb_cp_from_fit()</a></code>: runs the tensor factorization on the adjusted expression matrices (<code>Y_used</code>) of a <code>cell_program_fit</code>; the held-out split is stratified on the fit’s covariates by default (stratification is load-bearing: an unstratified split leaves residual covariate imbalance that the greedy pass spends components on).</li>
+<li>New <code><a href="../reference/eb_cp_programs.html">eb_cp_programs()</a></code>: per-component cell-type memberships (member iff |W| &gt;= 0.2 of the component maximum) and donor activities; components with &gt;= 2 member cell types are coordination calls.</li>
+<li>New <code><a href="../reference/fit_joint_block.html">fit_joint_block()</a></code> / <code><a href="../reference/block_clusters.html">block_clusters()</a></code>: joint block EBMF at expression or scores level (shared-first greedy + private pass), with block-mass-based membership extraction.</li>
+<li>New benchmark suite <code>benchmarks/coordination/</code>: simulator with correlated-private decoys (<code>priv_corr</code>) and each-alone breadth families, six methods (pa_cc, node_cor, subspace_sum, gene_match, block_E, eb_cp) + oracle floor, scorer with Hungarian matching, resumable replicate harness, runtime/amplitude pilots, and the filled preregistration (<code>benchmarks/coordination/PREREG.md</code>, prereg-coord-v1).</li>
+</ul></div>
+</div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0.9000" id="cellprograms-0209000-development">cellprograms 0.2.0.9000 (development)<a class="anchor" aria-label="anchor" href="#cellprograms-0209000-development"></a></h2>
+<div class="section level3">
+<h3 id="metacell-benchmark-0-2-0-9000">Metacell benchmark (2026-10-22)<a class="anchor" aria-label="anchor" href="#metacell-benchmark-0-2-0-9000"></a></h3>
+<ul><li>Preregistered benchmark of SEACells vs SuperCell 2.0 (pure R) with mcRigor QC across 2 scales x 3 seeds x 4 granularities (<code>benchmarks/metacell_comparison/</code>). Verdict: <strong>REPLACE</strong> - SuperCell 2.0 + mcRigor is the default R-native metacell path (mean |ARI gap| 0.019 &lt;= 0.05; mean relative fidelity gap 5.4% &lt;= 10%; membership construction ~200x faster; downstream program fit is N- and method-insensitive). SEACells remains available and unchanged.</li>
+</ul></div>
 <div class="section level3">
 <h3 id="api-streamlining-0-2-0-9000">API streamlining (2026-10-21)<a class="anchor" aria-label="anchor" href="#api-streamlining-0-2-0-9000"></a></h3>
 <ul><li>Eight internal helpers are no longer exported (still callable via <code>cellprograms:::</code>; nothing is deleted): <code>program_metadata</code> (derivable from <code><a href="../reference/program_loadings.html">program_loadings()</a></code> column names), <code>principal_angles</code> (pairwise primitive behind <code><a href="../reference/align_programs.html">align_programs()</a></code> / <code><a href="../reference/match_programs.html">match_programs()</a></code>), <code>cmp_scores</code>, <code>cmp_gene_overlap</code>, <code>cmp_context_association</code> and <code>cmp_nuisance_genes</code> (components orchestrated by <code><a href="../reference/cmp_triage.html">cmp_triage()</a></code>), <code>union_panel_loadings</code> and <code>ambient_program_scores</code> (coordination machinery). The user-facing surface drops from 50 to 42 verbs.</li>

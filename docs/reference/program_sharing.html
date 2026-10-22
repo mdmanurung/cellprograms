@@ -23,7 +23,7 @@ patterns (e.g. `equal_effects` = shared across all conditions,
 
     <a class="navbar-brand me-2" href="../index.html">cellprograms</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,6 +38,7 @@ patterns (e.g. `equal_effects` = shared across all conditions,
     <li><a class="dropdown-item" href="../articles/metacells_seacells.html">Metacells with SEACells and mcRigor gamma optimization</a></li>
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cebmf_backend.html">The cebmf_torch backend: covariate-EBMF in torch</a></li>
+    <li><a class="dropdown-item" href="../articles/coordination_joint.html">Joint and tensor factorization: EB-CP and block EBMF</a></li>
     <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
@@ -216,31 +217,6 @@ workstream; a shared program need not have correlated donor scores.</p>
 <span class="r-in"><span>  <span class="va">res</span> <span class="op">&lt;-</span> <span class="fu">program_sharing</span><span class="op">(</span><span class="va">fit</span>, matches <span class="op">=</span> <span class="va">grp</span>, n_top <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">res</span><span class="op">$</span><span class="va">summary</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`matches` supplied: matched sets are user-forced, not data-driven. The 'shared' classification counts top genes active (lfsr &lt; 0.05) in &gt;= 2 conditions and can label independent loadings 'shared' at high loading SNR; check `p_all_shared` (mixture weight of the equal-effects pattern) before interpretation.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  - Computing 73 x 241 likelihood matrix.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  - Likelihood calculations took 0.01 seconds.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  - Fitting model with 241 mixture components.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  - Model fitting took 0.65 seconds.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  - Computing posterior matrices.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  - Computation allocated took 0.01 seconds.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   program_id cell_type group_id n_conditions classification frac_top_shared</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1        B_1         B       NA            1        private              NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2        B_2         B       NA            1        private              NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3      CD4_1       CD4       NA            1        private              NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4      CD8_1       CD8        1            2        private            0.05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5       NK_1        NK        1            2        private            0.05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6       NK_2        NK       NA            1        private              NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7     Mono_1      Mono       NA            1        private              NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8     Mono_2      Mono       NA            1        private              NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   frac_top_private p_all_shared             evidence</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1               NA           NA no_significant_match</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2               NA           NA no_significant_match</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3               NA           NA no_significant_match</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4              0.6            0                mashr</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5              0.6            0                mashr</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6               NA           NA no_significant_match</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7               NA           NA no_significant_match</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8               NA           NA no_significant_match</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

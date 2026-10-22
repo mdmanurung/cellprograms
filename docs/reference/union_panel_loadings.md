@@ -43,19 +43,3 @@ common panel (one per cell type, 0 columns for skipped cell types), and
 The fit's preprocessing is replayed on the panel before the regression:
 covariate residualization (residualize mode) or removal of the fitted
 covariate part (fixed mode), then the recorded centering/scaling.
-
-## Examples
-
-``` r
-sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
-x <- as_cell_program_data(sim$pseudobulk)
-fit <- canonicalize_programs(fit_celltype_programs(x, max_factors = 3,
-                                                   features = "variable",
-                                                   n_variable_genes = 150))
-up <- union_panel_loadings(fit)
-#> Error in union_panel_loadings(fit): could not find function "union_panel_loadings"
-sapply(up$loadings, nrow)   # same gene rows for every cell type
-#> Error: object 'up' not found
-up$genes[1:5]
-#> Error: object 'up' not found
-```

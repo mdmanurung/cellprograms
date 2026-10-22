@@ -2,21 +2,21 @@
 % Please edit documentation in R/eb-cp.R
 \name{eb_cp_from_fit}
 \alias{eb_cp_from_fit}
-\title{EB-CP coordination programs from a fitted \code{cell_program_fit}}
+\title{EB-CP coordination programs from a fitted `cell_program_fit`}
 \usage{
 eb_cp_from_fit(fit, strata, ...)
 }
 \arguments{
-\item{fit}{A \code{cell_program_fit} object (see \code{\link[=fit_celltype_programs]{fit_celltype_programs()}}).}
+\item{fit}{A `cell_program_fit` object (see [fit_celltype_programs()]).}
 
 \item{strata}{Optional named donor strata overriding the default derived
 from the fit's covariates.}
 
-\item{...}{Forwarded to \code{\link[=fit_eb_cp]{fit_eb_cp()}} (\code{Kmax}, \code{heldout_z}, \code{seed}, ...).}
+\item{...}{Forwarded to [fit_eb_cp()] (`Kmax`, `heldout_z`, `seed`, ...).}
 }
 \description{
-Runs \code{\link[=fit_eb_cp]{fit_eb_cp()}} on the adjusted expression matrices (\code{Y_used}) of a
-\code{cell_program_fit}. If \code{strata} is missing, it is derived from the
+Runs [fit_eb_cp()] on the adjusted expression matrices (`Y_used`) of a
+`cell_program_fit`. If `strata` is missing, it is derived from the
 covariates used at fit time (interaction of all covariate columns), so the
 held-out split respects the adjustment covariates by default.
 }

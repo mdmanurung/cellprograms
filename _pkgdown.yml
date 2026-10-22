@@ -56,6 +56,7 @@ reference:
   - align_programs
   - program_sharing
   - sharing_spectrum
+  - principal_angles
 - title: Coordination & annotation
   desc: >
     Cross-cell-type coordinated programs (CMPs): detection, triage, and
@@ -68,6 +69,21 @@ reference:
   - annotate_cmp_themes
   - assess_cmp_stability
   - prepare_collectri
+  - ambient_program_scores
+  - cmp_context_association
+- title: Joint & tensor factorization
+  desc: >
+    Post-fit joint factorization across cell types: empirical-Bayes CP tensor
+    factorization (genes x donors x cell types) and block-structured joint
+    EBMF at expression or scores level, with benchmark-contract coordination
+    calls. See `vignette("coordination_joint")` and the preregistered
+    benchmark under `benchmarks/coordination/`.
+  contents:
+  - fit_eb_cp
+  - eb_cp_from_fit
+  - eb_cp_programs
+  - fit_joint_block
+  - block_clusters
 - title: Metacells (SuperCell + mcRigor)
   desc: >
     Optional upstream aggregation of single cells into metacells before
@@ -100,6 +116,26 @@ reference:
   - plot_context_association
   - plot_sharing
   - plot_sharing_spectrum
+- title: Internal
+  desc: >
+    Internal helpers, S3 methods and package overview, not usually called
+    directly.
+  contents:
+  - cellprograms-package
+  - cmp_gene_overlap
+  - cmp_nuisance_genes
+  - cmp_scores
+  - ".degenerate_programs"
+  - ".estimate_V"
+  - ".match_programs_loadings"
+  - print.cell_program_data
+  - print.cmp_result
+  - print.cmp_tf
+  - print.principal_angles
+  - print.program_sharing
+  - program_metadata
+  - summary.cell_program_data
+  - union_panel_loadings
 
 articles:
 - title: Getting started
@@ -114,6 +150,7 @@ articles:
   contents:
   - articles/model_mechanisms
   - articles/cebmf_backend
+  - articles/coordination_joint
 
 - title: Case studies
   navbar: ~

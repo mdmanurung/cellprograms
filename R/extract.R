@@ -12,12 +12,6 @@
 
 #' Program metadata table (one row per program)
 #' @param fit A canonicalized `cell_program_fit`.
-#' @examples
-#' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
-#' x <- as_cell_program_data(sim$pseudobulk)
-#' fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 150)
-#' fit <- canonicalize_programs(fit)
-#' program_metadata(fit)
 #' @keywords internal
 program_metadata <- function(fit) .program_table(fit)
 
@@ -161,15 +155,6 @@ top_genes <- function(fit, program, n = 20L, by = c("abs_loading", "lfsr")) {
 #'   the common panel (one per cell type, 0 columns for skipped cell types),
 #'   and `genes`, the panel used.
 #'
-#' @examples
-#' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
-#' x <- as_cell_program_data(sim$pseudobulk)
-#' fit <- canonicalize_programs(fit_celltype_programs(x, max_factors = 3,
-#'                                                    features = "variable",
-#'                                                    n_variable_genes = 150))
-#' up <- union_panel_loadings(fit)
-#' sapply(up$loadings, nrow)   # same gene rows for every cell type
-#' up$genes[1:5]
 #' @keywords internal
 union_panel_loadings <- function(fit, genes = NULL) {
   if (!inherits(fit, "cell_program_fit")) {

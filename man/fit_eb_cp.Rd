@@ -22,8 +22,8 @@ fit_eb_cp(
 \arguments{
 \item{mats}{Named list of (donors_ct x genes) matrices, one per cell type;
 common gene columns are intersected, rownames are donor ids. Inputs must
-already be covariate-adjusted and gene-centered (e.g. the \code{Y_used}
-matrices of a \code{cell_program_fit}).}
+already be covariate-adjusted and gene-centered (e.g. the `Y_used`
+matrices of a `cell_program_fit`).}
 
 \item{strata}{Optional named factor/vector of donor strata (e.g. the
 batching covariate) used to stratify the held-out split. Strongly
@@ -35,7 +35,7 @@ recommended whenever the input was residualized on a covariate.}
 and cell-type modes.}
 
 \item{member_thresh}{Membership threshold on max-normalized |W| (stored on
-the result; used by \code{\link[=eb_cp_programs]{eb_cp_programs()}}).}
+the result; used by [eb_cp_programs()]).}
 
 \item{heldout_z}{Held-out z threshold for keeping a component.}
 
@@ -46,11 +46,11 @@ the result; used by \code{\link[=eb_cp_programs]{eb_cp_programs()}}).}
 \item{seed}{Random seed (split and EBNM reproducibility).}
 }
 \value{
-A list of class \code{eb_cp_fit} with gene loadings \code{U} (genes x
-components), donor activities \code{V} (donors x components), cell-type
-loadings \code{W} (cell types x components), the retained \code{genes}/\code{donors}/
-\code{cts}, selection diagnostics (\code{kept_heldout_z}, \code{trace_z},
-\code{frac_unexplained}, \code{n_components}), and the frozen rules.
+A list of class `eb_cp_fit` with gene loadings `U` (genes x
+  components), donor activities `V` (donors x components), cell-type
+  loadings `W` (cell types x components), the retained `genes`/`donors`/
+  `cts`, selection diagnostics (`kept_heldout_z`, `trace_z`,
+  `frac_unexplained`, `n_components`), and the frozen rules.
 }
 \description{
 Fits a greedy rank-greedy three-mode tensor factorization (genes x donors x
@@ -58,6 +58,6 @@ cell types) to per-cell-type pseudobulk matrices with EBNM normal-means
 updates per mode (point-laplace on gene and cell-type modes, normal on the
 donor mode) and per-(cell-type, donor) residual variance. Components are
 selected by a held-out likelihood test on a donor-synchronous 50/50 split
-(stratified by \code{strata} when supplied), refit on the full data, and
+(stratified by `strata` when supplied), refit on the full data, and
 backfit. See the file header for the model and selection details.
 }

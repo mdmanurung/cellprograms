@@ -1,6 +1,55 @@
 # Changelog
 
+## cellprograms 0.2.0.9001 (development)
+
+### EB-CP tensor factorization and block EBMF (2026-10-21)
+
+- New
+  [`fit_eb_cp()`](https://mdmanurung.github.io/cellprograms/reference/fit_eb_cp.md):
+  greedy rank-1 empirical-Bayes CANDECOMP/PARAFAC factorization across
+  cell types (genes x donors x cell types) with EBNM normal-means
+  updates per mode (point-Laplace on gene and cell-type modes, normal on
+  donors) and per-(cell-type, donor) residual variance — the tensor
+  analogue of flashier `var_type = 1`. Components are selected by a
+  winner’s-curse-proof held-out likelihood test on a donor-synchronous
+  50/50 split and refit on the full data with backfitting.
+- New
+  [`eb_cp_from_fit()`](https://mdmanurung.github.io/cellprograms/reference/eb_cp_from_fit.md):
+  runs the tensor factorization on the adjusted expression matrices
+  (`Y_used`) of a `cell_program_fit`; the held-out split is stratified
+  on the fit’s covariates by default (stratification is load-bearing: an
+  unstratified split leaves residual covariate imbalance that the greedy
+  pass spends components on).
+- New
+  [`eb_cp_programs()`](https://mdmanurung.github.io/cellprograms/reference/eb_cp_programs.md):
+  per-component cell-type memberships (member iff \|W\| \>= 0.2 of the
+  component maximum) and donor activities; components with \>= 2 member
+  cell types are coordination calls.
+- New
+  [`fit_joint_block()`](https://mdmanurung.github.io/cellprograms/reference/fit_joint_block.md)
+  /
+  [`block_clusters()`](https://mdmanurung.github.io/cellprograms/reference/block_clusters.md):
+  joint block EBMF at expression or scores level (shared-first greedy +
+  private pass), with block-mass-based membership extraction.
+- New benchmark suite `benchmarks/coordination/`: simulator with
+  correlated-private decoys (`priv_corr`) and each-alone breadth
+  families, six methods (pa_cc, node_cor, subspace_sum, gene_match,
+  block_E, eb_cp) + oracle floor, scorer with Hungarian matching,
+  resumable replicate harness, runtime/amplitude pilots, and the filled
+  preregistration (`benchmarks/coordination/PREREG.md`,
+  prereg-coord-v1).
+
 ## cellprograms 0.2.0.9000 (development)
+
+### Metacell benchmark (2026-10-22)
+
+- Preregistered benchmark of SEACells vs SuperCell 2.0 (pure R) with
+  mcRigor QC across 2 scales x 3 seeds x 4 granularities
+  (`benchmarks/metacell_comparison/`). Verdict: **REPLACE** - SuperCell
+  2.0 + mcRigor is the default R-native metacell path (mean \|ARI gap\|
+  0.019 \<= 0.05; mean relative fidelity gap 5.4% \<= 10%; membership
+  construction ~200x faster; downstream program fit is N- and
+  method-insensitive). SEACells remains available and unchanged.
 
 ### API streamlining (2026-10-21)
 

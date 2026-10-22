@@ -441,7 +441,7 @@ print.cmp_result <- function(x, ...) {
 #' fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 150)
 #' fit <- canonicalize_programs(fit)
 #' ambient_program_scores(fit)
-#' @keywords internal
+#' @export
 ambient_program_scores <- function(fit, profiles = NULL, min_genes = 50L) {
   if (is.null(profiles)) {
     if (is.null(fit$pseudobulk)) .stopf("No `profiles` given and `fit$pseudobulk` is absent.")
@@ -479,31 +479,6 @@ ambient_program_scores <- function(fit, profiles = NULL, min_genes = 50L) {
 #' @param fit A canonicalized `cell_program_fit`.
 #' @param cmp A `cmp_result` or its `cmps` data frame.
 #' @return Matrix, donors x CMPs.
-#' @examples
-#' # Toy canonicalized fit: program 1 of cell types A and B shares donor
-#' # activity z (a planted coordinated program) and top genes G1-G15.
-#' set.seed(1)
-#' ids <- paste0("d", seq_len(40))
-#' genes <- paste0("G", seq_len(100))
-#' z <- rnorm(40)
-#' mk <- function(ct) {
-#'   S <- matrix(rnorm(40 * 2), 40, 2, dimnames = list(ids, paste0(ct, "_", 1:2)))
-#'   S[, 1] <- z + rnorm(40, sd = 0.3)
-#'   W <- matrix(rnorm(length(genes) * 2, sd = 0.1), length(genes), 2,
-#'               dimnames = list(genes, colnames(S)))
-#'   W[1:15, 1] <- W[1:15, 1] + 1
-#'   list(S = S, W = W)
-#' }
-#' ta <- mk("A"); tb <- mk("B")
-#' fit <- structure(list(
-#'   scores = list(A = ta$S, B = tb$S), loadings = list(A = ta$W, B = tb$W),
-#'   cell_types = c("A", "B"), observation_ids = ids,
-#'   sample_metadata = data.frame(observation_id = ids,
-#'                                group = rep(c("ctrl", "stim"), each = 20))),
-#'   class = c("cell_program_fit", "cell_program_data", "list"))
-#' res <- find_coordinated_programs(fit, n_perm = 99, ambient = "none")
-#' S <- cmp_scores(fit, res)
-#' head(S)
 #' @keywords internal
 cmp_scores <- function(fit, cmp) {
   tab <- if (inherits(cmp, "cmp_result")) cmp$cmps else cmp

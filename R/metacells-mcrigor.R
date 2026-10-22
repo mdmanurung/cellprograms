@@ -147,10 +147,22 @@
 #' @param gammas Candidate granularities as cells-per-metacell values.
 #'   Default `c(25, 50, 100)` (mcRigor semi-synthetic optimum was 50 for
 #'   SEACells).
-#' @param reduction, dims, assay, slot, layer, n_top_genes, n_pc,
-#'   n_waypoint_eigs, waypt_proportion, n_neighbors, convergence_epsilon,
-#'   max_iter, use_sparse, min_cells, seed, verbose
-#'   Passed to [MetacellsByGroupsSEACells()] internals.
+#' @param reduction Passed to [MetacellsByGroupsSEACells()] internals.
+#' @param dims Passed to [MetacellsByGroupsSEACells()] internals.
+#' @param assay Passed to [MetacellsByGroupsSEACells()] internals.
+#' @param slot Passed to [MetacellsByGroupsSEACells()] internals.
+#' @param layer Passed to [MetacellsByGroupsSEACells()] internals.
+#' @param n_top_genes Passed to [MetacellsByGroupsSEACells()] internals.
+#' @param n_pc Passed to [MetacellsByGroupsSEACells()] internals.
+#' @param n_waypoint_eigs Passed to [MetacellsByGroupsSEACells()] internals.
+#' @param waypt_proportion Passed to [MetacellsByGroupsSEACells()] internals.
+#' @param n_neighbors Passed to [MetacellsByGroupsSEACells()] internals.
+#' @param convergence_epsilon Passed to [MetacellsByGroupsSEACells()] internals.
+#' @param max_iter Passed to [MetacellsByGroupsSEACells()] internals.
+#' @param use_sparse Passed to [MetacellsByGroupsSEACells()] internals.
+#' @param min_cells Passed to [MetacellsByGroupsSEACells()] internals.
+#' @param seed Passed to [MetacellsByGroupsSEACells()] internals.
+#' @param verbose Passed to [MetacellsByGroupsSEACells()] internals.
 #' @param mcrigor_args Optional named list overriding mcRigor_OPTIMIZE
 #'   arguments (`D_bw`, `optim_method`, `weight`, `Nrep`, ...).
 #'
@@ -247,19 +259,19 @@ OptimizeGammaSEACells <- function(
         # mcRigor's buildmc aligns per-metacell sizes through Seurat's
         # AggregateExpression colnames, which mangle membership labels
         # (digit-leading values gain a "g" prefix; "_" becomes "-" under
-        # Seurat v5) and only undo the digit case (an is.numeric gate) —
+        # Seurat v5) and only undo the digit case (an is.numeric gate) --
         # the "mc_<k>" labels used here would never realign, failing every
         # group with "No cell overlap between new meta data and Seurat
         # object". Score on integer codes per gamma column (the same
         # contract as .mcrigor_detect_group) and keep the labels for the
         # return value. A gamma whose membership collapsed to a single
         # metacell cannot be scored (no between-metacell variance, and
-        # AggregateExpression ignores 1-value groupings) — drop it up
+        # AggregateExpression ignores 1-value groupings) -- drop it up
         # front with a warning instead of failing the whole group.
         coded <- .mc_optimize_membership_codes(mem_cols, gammas, cells_g)
         if (length(coded$drop_gamma)) {
             warning("group '", g, "': gamma ", paste(coded$drop_gamma, collapse = ", "),
-                    " yield(s) a single metacell; mcRigor cannot score it — dropped",
+                    " yield(s) a single metacell; mcRigor cannot score it -- dropped",
                     call. = FALSE)
         }
         if (!length(coded$keep_gamma)) {

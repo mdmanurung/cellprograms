@@ -13,7 +13,7 @@ per group per candidate granularity."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">cellprograms</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -28,6 +28,7 @@ per group per candidate granularity."></head><body>
     <li><a class="dropdown-item" href="../articles/metacells_seacells.html">Metacells with SEACells and mcRigor gamma optimization</a></li>
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cebmf_backend.html">The cebmf_torch backend: covariate-EBMF in torch</a></li>
+    <li><a class="dropdown-item" href="../articles/coordination_joint.html">Joint and tensor factorization: EB-CP and block EBMF</a></li>
     <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
@@ -102,16 +103,73 @@ Default `c(25, 50, 100)` (mcRigor semi-synthetic optimum was 50 for
 SEACells).</p></dd>
 
 
-<dt id="arg-reduction-">reduction, <a class="anchor" aria-label="anchor" href="#arg-reduction-"></a></dt>
-<dd><p>dims, assay, slot, layer, n_top_genes, n_pc,
-n_waypoint_eigs, waypt_proportion, n_neighbors, convergence_epsilon,
-max_iter, use_sparse, min_cells, seed, verbose
-Passed to [MetacellsByGroupsSEACells()] internals.</p></dd>
+<dt id="arg-reduction">reduction<a class="anchor" aria-label="anchor" href="#arg-reduction"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSEACells()] internals.</p></dd>
+
+
+<dt id="arg-dims">dims<a class="anchor" aria-label="anchor" href="#arg-dims"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSEACells()] internals.</p></dd>
+
+
+<dt id="arg-assay">assay<a class="anchor" aria-label="anchor" href="#arg-assay"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSEACells()] internals.</p></dd>
+
+
+<dt id="arg-slot">slot<a class="anchor" aria-label="anchor" href="#arg-slot"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSEACells()] internals.</p></dd>
+
+
+<dt id="arg-layer">layer<a class="anchor" aria-label="anchor" href="#arg-layer"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSEACells()] internals.</p></dd>
+
+
+<dt id="arg-n-top-genes">n_top_genes<a class="anchor" aria-label="anchor" href="#arg-n-top-genes"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSEACells()] internals.</p></dd>
+
+
+<dt id="arg-n-pc">n_pc<a class="anchor" aria-label="anchor" href="#arg-n-pc"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSEACells()] internals.</p></dd>
+
+
+<dt id="arg-n-waypoint-eigs">n_waypoint_eigs<a class="anchor" aria-label="anchor" href="#arg-n-waypoint-eigs"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSEACells()] internals.</p></dd>
+
+
+<dt id="arg-waypt-proportion">waypt_proportion<a class="anchor" aria-label="anchor" href="#arg-waypt-proportion"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSEACells()] internals.</p></dd>
+
+
+<dt id="arg-n-neighbors">n_neighbors<a class="anchor" aria-label="anchor" href="#arg-n-neighbors"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSEACells()] internals.</p></dd>
+
+
+<dt id="arg-convergence-epsilon">convergence_epsilon<a class="anchor" aria-label="anchor" href="#arg-convergence-epsilon"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSEACells()] internals.</p></dd>
+
+
+<dt id="arg-max-iter">max_iter<a class="anchor" aria-label="anchor" href="#arg-max-iter"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSEACells()] internals.</p></dd>
+
+
+<dt id="arg-use-sparse">use_sparse<a class="anchor" aria-label="anchor" href="#arg-use-sparse"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSEACells()] internals.</p></dd>
+
+
+<dt id="arg-min-cells">min_cells<a class="anchor" aria-label="anchor" href="#arg-min-cells"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSEACells()] internals.</p></dd>
 
 
 <dt id="arg-mcrigor-args">mcrigor_args<a class="anchor" aria-label="anchor" href="#arg-mcrigor-args"></a></dt>
 <dd><p>Optional named list overriding mcRigor_OPTIMIZE
 arguments (`D_bw`, `optim_method`, `weight`, `Nrep`, ...).</p></dd>
+
+
+<dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSEACells()] internals.</p></dd>
+
+
+<dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
+<dd><p>Passed to [MetacellsByGroupsSEACells()] internals.</p></dd>
 
 </dl></div>
     <div class="section level2">

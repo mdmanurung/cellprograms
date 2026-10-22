@@ -20,12 +20,3 @@ cmp_nuisance_genes()
 ## Value
 
 Named character vector of regular expressions.
-
-## Examples
-
-``` r
-cmp_nuisance_genes()
-#> Error in cmp_nuisance_genes(): could not find function "cmp_nuisance_genes"
-grep(cmp_nuisance_genes()["vdj"], c("IGHV1-2", "IGKC", "GAPDH"), value = TRUE)
-#> Error in cmp_nuisance_genes(): could not find function "cmp_nuisance_genes"
-```

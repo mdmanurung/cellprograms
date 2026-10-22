@@ -42,5 +42,13 @@ x <- as_cell_program_data(sim$pseudobulk)
 fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 150)
 fit <- canonicalize_programs(fit)
 ambient_program_scores(fit)
-#> Error in ambient_program_scores(fit): could not find function "ambient_program_scores"
+#>   cell_type program_id ambient_score source
+#> 1         B        B_1    0.49352750     NK
+#> 2         B        B_2    0.16956795     NK
+#> 3       CD4      CD4_1    0.55106699    CD8
+#> 4       CD8      CD8_1    0.09585351    CD4
+#> 5        NK       NK_1    0.40634664      B
+#> 6        NK       NK_2    0.10544901    CD8
+#> 7      Mono     Mono_1    0.65147659    CD8
+#> 8      Mono     Mono_2    0.37685525     NK
 ```

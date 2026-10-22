@@ -13,6 +13,8 @@
   cellprograms](https://mdmanurung.github.io/cellprograms/articles/model_mechanisms.md):
 - [The cebmf_torch backend: covariate-EBMF in
   torch](https://mdmanurung.github.io/cellprograms/articles/cebmf_backend.md):
+- [Joint and tensor factorization: EB-CP and block
+  EBMF](https://mdmanurung.github.io/cellprograms/articles/coordination_joint.md):
 
 ### Case studies
 

@@ -146,15 +146,7 @@
 #'   permuted only within strata, so the null preserves stratum-level
 #'   structure shared by both cell types (blocked permutation).
 #' @return An object of class `principal_angles`.
-#' @examples
-#' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
-#' x <- as_cell_program_data(sim$pseudobulk)
-#' fit <- fit_celltype_programs(x, max_factors = 3, features = "variable", n_variable_genes = 150)
-#' fit <- canonicalize_programs(fit)
-#' # CD8 and NK share a planted donor-activity program in this simulation
-#' pa <- principal_angles(fit, "CD8", "NK", n_perm = 99, seed = 1)
-#' pa
-#' @keywords internal
+#' @export
 principal_angles <- function(fit, ct_a, ct_b,
                              space = c("scores", "loadings"),
                              weight = c("none", "residual_sd"),

@@ -7,20 +7,20 @@
 eb_cp_programs(cp, member_thresh = cp$member_thresh, min_members = 2L)
 }
 \arguments{
-\item{cp}{An \code{eb_cp_fit} object from \code{\link[=fit_eb_cp]{fit_eb_cp()}} or \code{\link[=eb_cp_from_fit]{eb_cp_from_fit()}}.}
+\item{cp}{An `eb_cp_fit` object from [fit_eb_cp()] or [eb_cp_from_fit()].}
 
 \item{member_thresh}{Membership threshold on max-normalized |W|.}
 
 \item{min_members}{Minimum member cell types for a "coordination" program.}
 }
 \value{
-A list with \code{programs} (one row per component: program id, member
-cell types, n_members, is_coordination, held-out z) and \code{activity}
-(donors x components, only for coordination components).
+A list with `programs` (one row per component: program id, member
+  cell types, n_members, is_coordination, held-out z) and `activity`
+  (donors x components, only for coordination components).
 }
 \description{
 Extracts per-component cell-type memberships (a cell type is a member of
-component r iff its |W| reaches \code{member_thresh} of the component maximum)
-and donor activities. Components with fewer than \code{min_members} member cell
+component r iff its |W| reaches `member_thresh` of the component maximum)
+and donor activities. Components with fewer than `min_members` member cell
 types are private programs and are flagged, not dropped.
 }

@@ -37,13 +37,40 @@ OptimizeGammaSEACells(
 Default `c(25, 50, 100)` (mcRigor semi-synthetic optimum was 50 for
 SEACells).}
 
-\item{reduction, }{dims, assay, slot, layer, n_top_genes, n_pc,
-n_waypoint_eigs, waypt_proportion, n_neighbors, convergence_epsilon,
-max_iter, use_sparse, min_cells, seed, verbose
-Passed to [MetacellsByGroupsSEACells()] internals.}
+\item{reduction}{Passed to [MetacellsByGroupsSEACells()] internals.}
+
+\item{dims}{Passed to [MetacellsByGroupsSEACells()] internals.}
+
+\item{assay}{Passed to [MetacellsByGroupsSEACells()] internals.}
+
+\item{slot}{Passed to [MetacellsByGroupsSEACells()] internals.}
+
+\item{layer}{Passed to [MetacellsByGroupsSEACells()] internals.}
+
+\item{n_top_genes}{Passed to [MetacellsByGroupsSEACells()] internals.}
+
+\item{n_pc}{Passed to [MetacellsByGroupsSEACells()] internals.}
+
+\item{n_waypoint_eigs}{Passed to [MetacellsByGroupsSEACells()] internals.}
+
+\item{waypt_proportion}{Passed to [MetacellsByGroupsSEACells()] internals.}
+
+\item{n_neighbors}{Passed to [MetacellsByGroupsSEACells()] internals.}
+
+\item{convergence_epsilon}{Passed to [MetacellsByGroupsSEACells()] internals.}
+
+\item{max_iter}{Passed to [MetacellsByGroupsSEACells()] internals.}
+
+\item{use_sparse}{Passed to [MetacellsByGroupsSEACells()] internals.}
+
+\item{min_cells}{Passed to [MetacellsByGroupsSEACells()] internals.}
 
 \item{mcrigor_args}{Optional named list overriding mcRigor_OPTIMIZE
 arguments (`D_bw`, `optim_method`, `weight`, `Nrep`, ...).}
+
+\item{seed}{Passed to [MetacellsByGroupsSEACells()] internals.}
+
+\item{verbose}{Passed to [MetacellsByGroupsSEACells()] internals.}
 }
 \value{
 A list with `optimal_gamma` (named list, per group), `scores` (per

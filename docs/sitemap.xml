@@ -2,6 +2,7 @@
 <url><loc>https://mdmanurung.github.io/cellprograms/404.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/LICENSE-text.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/articles/cebmf_backend.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/articles/coordination_joint.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/articles/cross_cohort_replication.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/articles/divas_case_study.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/articles/immune_aging_cross_cohort.html</loc></url>
@@ -28,6 +29,7 @@
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/as_mofacellular_input.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/assess_cmp_stability.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/assess_program_stability.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/block_clusters.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/canonicalize_programs.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/cellprograms-package.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/cmp_context_association.html</loc></url>
@@ -38,8 +40,12 @@
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/dot-degenerate_programs.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/dot-estimate_V.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/dot-match_programs_loadings.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/eb_cp_from_fit.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/eb_cp_programs.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/find_coordinated_programs.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/fit_eb_cp.html</loc></url>
+<url><loc>https://mdmanurung.github.io/cellprograms/reference/fit_joint_block.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/flag_artifact_genes.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/freeze_preprocessing.html</loc></url>
 <url><loc>https://mdmanurung.github.io/cellprograms/reference/index.html</loc></url>

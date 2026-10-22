@@ -17,11 +17,11 @@ fit_joint_block(
 )
 }
 \arguments{
-\item{fit}{A \code{cell_program_fit} (uses its processed matrices / scores).}
+\item{fit}{A `cell_program_fit` (uses its processed matrices / scores).}
 
-\item{level}{\code{"expression"} or \code{"scores"}.}
+\item{level}{`"expression"` or `"scores"`.}
 
-\item{order}{\code{"shared_first"} (default) or \code{"private_first"} (ablation).}
+\item{order}{`"shared_first"` (default) or `"private_first"` (ablation).}
 
 \item{max_factors}{Candidate factors for the joint pass.}
 
@@ -36,7 +36,7 @@ fit_joint_block(
 \item{verbose}{Verbosity.}
 }
 \value{
-An integration-style list with method \code{"block"}.
+An integration-style list with method `"block"`.
 }
 \description{
 Block-structured joint EBMF (Level 3 candidate A)

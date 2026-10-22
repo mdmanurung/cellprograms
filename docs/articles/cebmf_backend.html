@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">cellprograms</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,6 +38,7 @@
     <li><a class="dropdown-item" href="../articles/metacells_seacells.html">Metacells with SEACells and mcRigor gamma optimization</a></li>
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cebmf_backend.html">The cebmf_torch backend: covariate-EBMF in torch</a></li>
+    <li><a class="dropdown-item" href="../articles/coordination_joint.html">Joint and tensor factorization: EB-CP and block EBMF</a></li>
     <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
@@ -163,11 +164,8 @@ size-factor normalization, log1p, gene z-scaling.</p>
 <span>                             max_factors <span class="op">=</span> <span class="fl">6</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">fl</span> <span class="op">&lt;-</span> <span class="va">fit</span><span class="op">$</span><span class="va">fits</span><span class="op">$</span><span class="va">CT1</span><span class="op">$</span><span class="va">flash</span></span>
 <span><span class="va">fl</span><span class="op">$</span><span class="va">backend</span></span>
-<span><span class="co">#&gt; [1] "cebmf_torch"</span></span>
 <span><span class="va">fl</span><span class="op">$</span><span class="va">n_factors</span></span>
-<span><span class="co">#&gt; [1] 6</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">fl</span><span class="op">$</span><span class="va">objective_trace</span><span class="op">)</span>   <span class="co"># convergence record (the torch backend's ELBO analogue)</span></span>
-<span><span class="co">#&gt; [1] 32326.09 32264.43 32245.19 32234.13 32227.26 32222.10</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">fl</span><span class="op">$</span><span class="va">objective_trace</span><span class="op">)</span>   <span class="co"># convergence record (the torch backend's ELBO analogue)</span></span></code></pre></div>
 <p>The registered mapping contract: the torch backend does not produce
 an ELBO, so <code><a href="../reference/program_summary.html">program_summary()</a></code> reports <code>NA</code> there
 and nothing is manufactured to fill the gap;
@@ -175,9 +173,7 @@ and nothing is manufactured to fill the gap;
 and scores arrive in the same shapes as the flashier backend:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">fl</span><span class="op">$</span><span class="va">L_pm</span><span class="op">)</span>   <span class="co"># samples x factors</span></span>
-<span><span class="co">#&gt; [1] 60  6</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">fl</span><span class="op">$</span><span class="va">F_pm</span><span class="op">)</span>   <span class="co"># genes x factors</span></span>
-<span><span class="co">#&gt; [1] 400   6</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">fl</span><span class="op">$</span><span class="va">F_pm</span><span class="op">)</span>   <span class="co"># genes x factors</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="determinism-at-a-fixed-seed">Determinism at a fixed seed<a class="anchor" aria-label="anchor" href="#determinism-at-a-fixed-seed"></a>
@@ -185,8 +181,7 @@ and scores arrive in the same shapes as the flashier backend:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_celltype_programs.html">fit_celltype_programs</a></span><span class="op">(</span><span class="va">x</span>, backend <span class="op">=</span> <span class="st">"cebmf_torch"</span>,</span>
 <span>                              max_factors <span class="op">=</span> <span class="fl">6</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">fits</span><span class="op">$</span><span class="va">CT1</span><span class="op">$</span><span class="va">flash</span><span class="op">$</span><span class="va">L_pm</span>, <span class="va">fit2</span><span class="op">$</span><span class="va">fits</span><span class="op">$</span><span class="va">CT1</span><span class="op">$</span><span class="va">flash</span><span class="op">$</span><span class="va">L_pm</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">fits</span><span class="op">$</span><span class="va">CT1</span><span class="op">$</span><span class="va">flash</span><span class="op">$</span><span class="va">L_pm</span>, <span class="va">fit2</span><span class="op">$</span><span class="va">fits</span><span class="op">$</span><span class="va">CT1</span><span class="op">$</span><span class="va">flash</span><span class="op">$</span><span class="va">L_pm</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="var_floor-passes-through">var_floor passes through<a class="anchor" aria-label="anchor" href="#var_floor-passes-through"></a>
@@ -197,11 +192,7 @@ estimate:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_celltype_programs.html">fit_celltype_programs</a></span><span class="op">(</span><span class="va">x</span>, backend <span class="op">=</span> <span class="st">"cebmf_torch"</span>,</span>
 <span>                              max_factors <span class="op">=</span> <span class="fl">6</span>, seed <span class="op">=</span> <span class="fl">1</span>, var_floor <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: `var_floor` requires the legacy flashier backend for this fit</span></span>
-<span><span class="co">#&gt; (flashier.utils::fit_ebmf() does not expose S); routing through</span></span>
-<span><span class="co">#&gt; `flashier::flash()`.</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/is.finite.html" class="external-link">is.finite</a></span><span class="op">(</span><span class="va">fit3</span><span class="op">$</span><span class="va">fits</span><span class="op">$</span><span class="va">CT1</span><span class="op">$</span><span class="va">flash</span><span class="op">$</span><span class="va">objective_trace</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/is.finite.html" class="external-link">is.finite</a></span><span class="op">(</span><span class="va">fit3</span><span class="op">$</span><span class="va">fits</span><span class="op">$</span><span class="va">CT1</span><span class="op">$</span><span class="va">flash</span><span class="op">$</span><span class="va">objective_trace</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="covariate-adjustment-residualize-mode">Covariate adjustment (residualize mode)<a class="anchor" aria-label="anchor" href="#covariate-adjustment-residualize-mode"></a>
@@ -233,9 +224,7 @@ how much program activity aligns with batch:</p>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">Z</span>, <span class="fl">2</span>, <span class="va">cor</span>, y <span class="op">=</span> <span class="va">batch_num</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>unadjusted <span class="op">=</span> <span class="fu">max_batch_corr</span><span class="op">(</span><span class="va">fit_raw</span><span class="op">)</span>,</span>
-<span>        adjusted   <span class="op">=</span> <span class="fu">max_batch_corr</span><span class="op">(</span><span class="va">fit_adj</span><span class="op">)</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span></span>
-<span><span class="co">#&gt; unadjusted   adjusted </span></span>
-<span><span class="co">#&gt;         NA         NA</span></span></code></pre></div>
+<span>        adjusted   <span class="op">=</span> <span class="fu">max_batch_corr</span><span class="op">(</span><span class="va">fit_adj</span><span class="op">)</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
 <p>The unadjusted fit devotes its strongest component to the batch
 shift; after <code>covariates = "batch"</code> the alignment drops and
 the planted programs — which are independent of batch — carry the
@@ -253,23 +242,11 @@ fails closed otherwise.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/canonicalize_programs.html">canonicalize_programs</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/program_summary.html">program_summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cell_type"</span>, <span class="st">"n_obs"</span>, <span class="st">"n_programs"</span>, <span class="st">"R2"</span>, <span class="st">"elbo"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="co">#&gt;   cell_type n_obs n_programs        R2 elbo</span></span>
-<span><span class="co">#&gt; 1       CT1    60          6 0.2609597   NA</span></span>
 <span></span>
 <span><span class="va">pid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="fu"><a href="../reference/program_scores.html">program_scores</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/top_genes.html">top_genes</a></span><span class="op">(</span><span class="va">fit</span>, <span class="va">pid</span>, n <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span>
-<span><span class="co">#&gt;     gene   loading</span></span>
-<span><span class="co">#&gt; 10   g10 0.8753200</span></span>
-<span><span class="co">#&gt; 128 g128 0.8473847</span></span>
-<span><span class="co">#&gt; 117 g117 0.8364598</span></span>
-<span><span class="co">#&gt; 247 g247 0.8220154</span></span>
-<span><span class="co">#&gt; 344 g344 0.8172340</span></span>
-<span><span class="co">#&gt; 102 g102 0.8111324</span></span>
-<span><span class="co">#&gt; 50   g50 0.7587792</span></span>
-<span><span class="co">#&gt; 356 g356 0.6985158</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/top_genes.html">top_genes</a></span><span class="op">(</span><span class="va">fit</span>, <span class="va">pid</span>, n <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_top_genes.html">plot_top_genes</a></span><span class="op">(</span><span class="va">fit</span>, programs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="fu"><a href="../reference/program_scores.html">program_scores</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>, n <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span></code></pre></div>
-<p><img src="cebmf_backend_files/figure-html/viz-1.png" class="r-plt" alt="" width="1200"></p>
 </div>
 <div class="section level2">
 <h2 id="when-to-prefer-which-backend">When to prefer which backend<a class="anchor" aria-label="anchor" href="#when-to-prefer-which-backend"></a>
@@ -306,57 +283,16 @@ residualized in the R preprocessing stage
 <span><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt; [1] cellprograms_0.2.0</span></span>
+<span><span class="co">#&gt; [1] cellprograms_0.2.0.9001</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
-<span><span class="co">#&gt;  [1] tidyselect_1.2.1          viridisLite_0.4.3        </span></span>
-<span><span class="co">#&gt;  [3] dplyr_1.2.1               farver_2.1.2             </span></span>
-<span><span class="co">#&gt;  [5] filelock_1.0.3            S7_0.2.2                 </span></span>
-<span><span class="co">#&gt;  [7] fastmap_1.2.0             digest_0.6.39            </span></span>
-<span><span class="co">#&gt;  [9] lifecycle_1.0.5           invgamma_1.2             </span></span>
-<span><span class="co">#&gt; [11] magrittr_2.0.5            compiler_4.4.2           </span></span>
-<span><span class="co">#&gt; [13] rlang_1.3.0               sass_0.4.10              </span></span>
-<span><span class="co">#&gt; [15] progress_1.2.3            tools_4.4.2              </span></span>
-<span><span class="co">#&gt; [17] yaml_2.3.12               data.table_1.18.6.1      </span></span>
-<span><span class="co">#&gt; [19] knitr_1.52                labeling_0.4.3           </span></span>
-<span><span class="co">#&gt; [21] prettyunits_1.2.0         htmlwidgets_1.6.4        </span></span>
-<span><span class="co">#&gt; [23] scatterplot3d_0.3-45      reticulate_1.47.0        </span></span>
-<span><span class="co">#&gt; [25] plyr_1.8.9                RColorBrewer_1.1-3       </span></span>
-<span><span class="co">#&gt; [27] Rtsne_0.17                withr_3.0.3              </span></span>
-<span><span class="co">#&gt; [29] purrr_1.2.2               flashier_1.0.60          </span></span>
-<span><span class="co">#&gt; [31] desc_1.4.3                grid_4.4.2               </span></span>
-<span><span class="co">#&gt; [33] flashier.utils_1.1.0.9000 fastTopics_0.7-46        </span></span>
-<span><span class="co">#&gt; [35] colorspace_2.1-4          ggplot2_4.0.3            </span></span>
-<span><span class="co">#&gt; [37] scales_1.4.0              gtools_3.9.5             </span></span>
-<span><span class="co">#&gt; [39] cli_3.6.6                 rmarkdown_2.32           </span></span>
-<span><span class="co">#&gt; [41] crayon_1.5.3              ragg_1.5.2               </span></span>
-<span><span class="co">#&gt; [43] generics_0.1.4            otel_0.2.0               </span></span>
-<span><span class="co">#&gt; [45] RcppParallel_6.2.1        httr_1.4.9               </span></span>
-<span><span class="co">#&gt; [47] reshape2_1.4.5            pbapply_1.7-5            </span></span>
-<span><span class="co">#&gt; [49] cachem_1.1.0              stringr_1.6.0            </span></span>
-<span><span class="co">#&gt; [51] splines_4.4.2             parallel_4.4.2           </span></span>
-<span><span class="co">#&gt; [53] softImpute_1.4-3          basilisk_1.18.0          </span></span>
-<span><span class="co">#&gt; [55] vctrs_0.7.3               Matrix_1.7-6             </span></span>
-<span><span class="co">#&gt; [57] jsonlite_2.0.0            dir.expiry_1.14.0        </span></span>
-<span><span class="co">#&gt; [59] hms_1.1.4                 mixsqp_0.3-54            </span></span>
-<span><span class="co">#&gt; [61] ggrepel_0.9.8             irlba_2.4.1              </span></span>
-<span><span class="co">#&gt; [63] systemfonts_1.3.2         trust_0.1-9              </span></span>
-<span><span class="co">#&gt; [65] plotly_4.12.1             jquerylib_0.1.4          </span></span>
-<span><span class="co">#&gt; [67] tidyr_1.3.2               glue_1.8.1               </span></span>
-<span><span class="co">#&gt; [69] ebnm_1.1-42               pkgdown_2.2.1            </span></span>
-<span><span class="co">#&gt; [71] uwot_0.2.5                cowplot_1.2.0            </span></span>
-<span><span class="co">#&gt; [73] stringi_1.8.9             Polychrome_1.6.2         </span></span>
-<span><span class="co">#&gt; [75] gtable_0.3.6              quadprog_1.5-8           </span></span>
-<span><span class="co">#&gt; [77] tibble_3.3.1              pillar_1.11.1            </span></span>
-<span><span class="co">#&gt; [79] basilisk.utils_1.18.0     htmltools_0.5.9          </span></span>
-<span><span class="co">#&gt; [81] truncnorm_1.0-9           R6_2.6.1                 </span></span>
-<span><span class="co">#&gt; [83] textshaping_0.4.0         evaluate_1.0.5           </span></span>
-<span><span class="co">#&gt; [85] lattice_0.23-1            png_0.1-9                </span></span>
-<span><span class="co">#&gt; [87] RhpcBLASctl_0.23-42       SQUAREM_2026.1           </span></span>
-<span><span class="co">#&gt; [89] ashr_2.2-69               bslib_0.12.0             </span></span>
-<span><span class="co">#&gt; [91] Rcpp_1.1.2                deconvolveR_1.2-2        </span></span>
-<span><span class="co">#&gt; [93] xfun_0.62                 fs_2.1.0                 </span></span>
-<span><span class="co">#&gt; [95] pkgconfig_2.0.3</span></span></code></pre>
+<span><span class="co">#&gt;  [1] digest_0.6.39     desc_1.4.3        R6_2.6.1          fastmap_1.2.0    </span></span>
+<span><span class="co">#&gt;  [5] xfun_0.61         cachem_1.1.0      knitr_1.52        htmltools_0.5.9  </span></span>
+<span><span class="co">#&gt;  [9] rmarkdown_2.32    lifecycle_1.0.5   cli_3.6.6         sass_0.4.10      </span></span>
+<span><span class="co">#&gt; [13] pkgdown_2.2.1     textshaping_0.4.0 jquerylib_0.1.4   systemfonts_1.3.2</span></span>
+<span><span class="co">#&gt; [17] compiler_4.4.2    tools_4.4.2       ragg_1.5.2        bslib_0.12.0     </span></span>
+<span><span class="co">#&gt; [21] evaluate_1.0.5    yaml_2.3.12       otel_0.2.0        jsonlite_2.0.0   </span></span>
+<span><span class="co">#&gt; [25] rlang_1.3.0       fs_2.1.0          htmlwidgets_1.6.4</span></span></code></pre>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

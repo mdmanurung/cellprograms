@@ -264,9 +264,6 @@ print.cmp_tf <- function(x, ...) {
 #' data; extend or replace it for your cohort.
 #'
 #' @return Named character vector of regular expressions.
-#' @examples
-#' cmp_nuisance_genes()
-#' grep(cmp_nuisance_genes()["vdj"], c("IGHV1-2", "IGKC", "GAPDH"), value = TRUE)
 #' @keywords internal
 cmp_nuisance_genes <- function() {
   c(vdj = "^(IG[HKL]V|IG[KL]C|IGH[GAMDE]|JCHAIN|TR[ABGD]V)",

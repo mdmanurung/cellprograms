@@ -65,11 +65,8 @@ gene z-scaling.
 `                             max_factors ``=`` ``6``, seed ``=`` ``1``)`\
 `fl`` ``<-`` ``fit``$``fits``$``CT1``$``flash`\
 `fl``$``backend`\
-`#> [1] "cebmf_torch"`\
 `fl``$``n_factors`\
-`#> [1] 6`\
-[`head`](https://rdrr.io/r/utils/head.html)`(``fl``$``objective_trace``)``   ``# convergence record (the torch backend's ELBO analogue)`\
-`#> [1] 32326.09 32264.43 32245.19 32234.13 32227.26 32222.10`
+[`head`](https://rdrr.io/r/utils/head.html)`(``fl``$``objective_trace``)``   ``# convergence record (the torch backend's ELBO analogue)`
 
 The registered mapping contract: the torch backend does not produce an
 ELBO, so
@@ -80,17 +77,14 @@ arrive in the same shapes as the flashier backend:
 
 \
 [`dim`](https://rdrr.io/r/base/dim.html)`(``fl``$``L_pm``)``   ``# samples x factors`\
-`#> [1] 60  6`\
-[`dim`](https://rdrr.io/r/base/dim.html)`(``fl``$``F_pm``)``   ``# genes x factors`\
-`#> [1] 400   6`
+[`dim`](https://rdrr.io/r/base/dim.html)`(``fl``$``F_pm``)``   ``# genes x factors`
 
 ## Determinism at a fixed seed
 
 \
 `fit2`` ``<-`` `[`fit_celltype_programs`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)`(``x``, backend ``=`` ``"cebmf_torch"``,`\
 `                              max_factors ``=`` ``6``, seed ``=`` ``1``)`\
-[`identical`](https://rdrr.io/r/base/identical.html)`(``fit``$``fits``$``CT1``$``flash``$``L_pm``, ``fit2``$``fits``$``CT1``$``flash``$``L_pm``)`\
-`#> [1] TRUE`
+[`identical`](https://rdrr.io/r/base/identical.html)`(``fit``$``fits``$``CT1``$``flash``$``L_pm``, ``fit2``$``fits``$``CT1``$``flash``$``L_pm``)`
 
 ## var_floor passes through
 
@@ -100,11 +94,7 @@ noise standard deviation, replacing the column-wise noise estimate:
 \
 `fit3`` ``<-`` `[`fit_celltype_programs`](https://mdmanurung.github.io/cellprograms/reference/fit_celltype_programs.md)`(``x``, backend ``=`` ``"cebmf_torch"``,`\
 `                              max_factors ``=`` ``6``, seed ``=`` ``1``, var_floor ``=`` ``0.5``)`\
-`` #> Warning: `var_floor` requires the legacy flashier backend for this fit ``\
-`#> (flashier.utils::fit_ebmf() does not expose S); routing through`\
-`` #> `flashier::flash()`. ``\
-[`all`](https://rdrr.io/r/base/all.html)`(`[`is.finite`](https://rdrr.io/r/base/is.finite.html)`(``fit3``$``fits``$``CT1``$``flash``$``objective_trace``)``)`\
-`#> [1] TRUE`
+[`all`](https://rdrr.io/r/base/all.html)`(`[`is.finite`](https://rdrr.io/r/base/is.finite.html)`(``fit3``$``fits``$``CT1``$``flash``$``objective_trace``)``)`
 
 ## Covariate adjustment (residualize mode)
 
@@ -136,9 +126,7 @@ aligns with batch:
 `  `[`max`](https://rdrr.io/r/base/Extremes.html)`(`[`abs`](https://rdrr.io/r/base/MathFun.html)`(`[`apply`](https://rdrr.io/r/base/apply.html)`(``Z``, ``2``, ``cor``, y ``=`` ``batch_num``)``)``)`\
 `}`\
 [`round`](https://rdrr.io/r/base/Round.html)`(`[`c`](https://rdrr.io/r/base/c.html)`(``unadjusted ``=`` ``max_batch_corr``(``fit_raw``)``,`\
-`        adjusted   ``=`` ``max_batch_corr``(``fit_adj``)``)``, ``3``)`\
-`#> unadjusted   adjusted `\
-`#>         NA         NA`
+`        adjusted   ``=`` ``max_batch_corr``(``fit_adj``)``)``, ``3``)`
 
 The unadjusted fit devotes its strongest component to the batch shift;
 after `covariates = "batch"` the alignment drops and the planted
@@ -156,25 +144,12 @@ every cell type; the fit fails closed otherwise.
 \
 `fit`` ``<-`` `[`canonicalize_programs`](https://mdmanurung.github.io/cellprograms/reference/canonicalize_programs.md)`(``fit``)`\
 [`program_summary`](https://mdmanurung.github.io/cellprograms/reference/program_summary.md)`(``fit``)``[``, `[`c`](https://rdrr.io/r/base/c.html)`(``"cell_type"``, ``"n_obs"``, ``"n_programs"``, ``"R2"``, ``"elbo"``)``]`\
-`#>   cell_type n_obs n_programs        R2 elbo`\
-`#> 1       CT1    60          6 0.2609597   NA`\
 \
 `pid`` ``<-`` `[`head`](https://rdrr.io/r/utils/head.html)`(`[`colnames`](https://rdrr.io/r/base/colnames.html)`(`[`program_scores`](https://mdmanurung.github.io/cellprograms/reference/program_scores.md)`(``fit``)``)``, ``1``)`\
-[`top_genes`](https://mdmanurung.github.io/cellprograms/reference/top_genes.md)`(``fit``, ``pid``, n ``=`` ``8``)`\
-`#>     gene   loading`\
-`#> 10   g10 0.8753200`\
-`#> 128 g128 0.8473847`\
-`#> 117 g117 0.8364598`\
-`#> 247 g247 0.8220154`\
-`#> 344 g344 0.8172340`\
-`#> 102 g102 0.8111324`\
-`#> 50   g50 0.7587792`\
-`#> 356 g356 0.6985158`
+[`top_genes`](https://mdmanurung.github.io/cellprograms/reference/top_genes.md)`(``fit``, ``pid``, n ``=`` ``8``)`
 
 \
 [`plot_top_genes`](https://mdmanurung.github.io/cellprograms/reference/plot_top_genes.md)`(``fit``, programs ``=`` `[`head`](https://rdrr.io/r/utils/head.html)`(`[`colnames`](https://rdrr.io/r/base/colnames.html)`(`[`program_scores`](https://mdmanurung.github.io/cellprograms/reference/program_scores.md)`(``fit``)``)``, ``2``)``, n ``=`` ``8``)`
-
-![](cebmf_backend_files/figure-html/viz-1.png)
 
 ## When to prefer which backend
 
@@ -208,54 +183,13 @@ every cell type; the fit fails closed otherwise.
     #> [1] stats     graphics  grDevices utils     datasets  methods   base     
     #> 
     #> other attached packages:
-    #> [1] cellprograms_0.2.0
+    #> [1] cellprograms_0.2.0.9001
     #> 
     #> loaded via a namespace (and not attached):
-    #>  [1] tidyselect_1.2.1          viridisLite_0.4.3        
-    #>  [3] dplyr_1.2.1               farver_2.1.2             
-    #>  [5] filelock_1.0.3            S7_0.2.2                 
-    #>  [7] fastmap_1.2.0             digest_0.6.39            
-    #>  [9] lifecycle_1.0.5           invgamma_1.2             
-    #> [11] magrittr_2.0.5            compiler_4.4.2           
-    #> [13] rlang_1.3.0               sass_0.4.10              
-    #> [15] progress_1.2.3            tools_4.4.2              
-    #> [17] yaml_2.3.12               data.table_1.18.6.1      
-    #> [19] knitr_1.52                labeling_0.4.3           
-    #> [21] prettyunits_1.2.0         htmlwidgets_1.6.4        
-    #> [23] scatterplot3d_0.3-45      reticulate_1.47.0        
-    #> [25] plyr_1.8.9                RColorBrewer_1.1-3       
-    #> [27] Rtsne_0.17                withr_3.0.3              
-    #> [29] purrr_1.2.2               flashier_1.0.60          
-    #> [31] desc_1.4.3                grid_4.4.2               
-    #> [33] flashier.utils_1.1.0.9000 fastTopics_0.7-46        
-    #> [35] colorspace_2.1-4          ggplot2_4.0.3            
-    #> [37] scales_1.4.0              gtools_3.9.5             
-    #> [39] cli_3.6.6                 rmarkdown_2.32           
-    #> [41] crayon_1.5.3              ragg_1.5.2               
-    #> [43] generics_0.1.4            otel_0.2.0               
-    #> [45] RcppParallel_6.2.1        httr_1.4.9               
-    #> [47] reshape2_1.4.5            pbapply_1.7-5            
-    #> [49] cachem_1.1.0              stringr_1.6.0            
-    #> [51] splines_4.4.2             parallel_4.4.2           
-    #> [53] softImpute_1.4-3          basilisk_1.18.0          
-    #> [55] vctrs_0.7.3               Matrix_1.7-6             
-    #> [57] jsonlite_2.0.0            dir.expiry_1.14.0        
-    #> [59] hms_1.1.4                 mixsqp_0.3-54            
-    #> [61] ggrepel_0.9.8             irlba_2.4.1              
-    #> [63] systemfonts_1.3.2         trust_0.1-9              
-    #> [65] plotly_4.12.1             jquerylib_0.1.4          
-    #> [67] tidyr_1.3.2               glue_1.8.1               
-    #> [69] ebnm_1.1-42               pkgdown_2.2.1            
-    #> [71] uwot_0.2.5                cowplot_1.2.0            
-    #> [73] stringi_1.8.9             Polychrome_1.6.2         
-    #> [75] gtable_0.3.6              quadprog_1.5-8           
-    #> [77] tibble_3.3.1              pillar_1.11.1            
-    #> [79] basilisk.utils_1.18.0     htmltools_0.5.9          
-    #> [81] truncnorm_1.0-9           R6_2.6.1                 
-    #> [83] textshaping_0.4.0         evaluate_1.0.5           
-    #> [85] lattice_0.23-1            png_0.1-9                
-    #> [87] RhpcBLASctl_0.23-42       SQUAREM_2026.1           
-    #> [89] ashr_2.2-69               bslib_0.12.0             
-    #> [91] Rcpp_1.1.2                deconvolveR_1.2-2        
-    #> [93] xfun_0.62                 fs_2.1.0                 
-    #> [95] pkgconfig_2.0.3
+    #>  [1] digest_0.6.39     desc_1.4.3        R6_2.6.1          fastmap_1.2.0    
+    #>  [5] xfun_0.61         cachem_1.1.0      knitr_1.52        htmltools_0.5.9  
+    #>  [9] rmarkdown_2.32    lifecycle_1.0.5   cli_3.6.6         sass_0.4.10      
+    #> [13] pkgdown_2.2.1     textshaping_0.4.0 jquerylib_0.1.4   systemfonts_1.3.2
+    #> [17] compiler_4.4.2    tools_4.4.2       ragg_1.5.2        bslib_0.12.0     
+    #> [21] evaluate_1.0.5    yaml_2.3.12       otel_0.2.0        jsonlite_2.0.0   
+    #> [25] rlang_1.3.0       fs_2.1.0          htmlwidgets_1.6.4

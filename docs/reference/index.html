@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">cellprograms</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -22,6 +22,7 @@
     <li><a class="dropdown-item" href="../articles/metacells_seacells.html">Metacells with SEACells and mcRigor gamma optimization</a></li>
     <li><a class="dropdown-item" href="../articles/model_mechanisms.html">How the model works: mechanisms of cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cebmf_backend.html">The cebmf_torch backend: covariate-EBMF in torch</a></li>
+    <li><a class="dropdown-item" href="../articles/coordination_joint.html">Joint and tensor factorization: EB-CP and block EBMF</a></li>
     <li><a class="dropdown-item" href="../articles/real_data_case_study.html">Case study: cross-cell-type programs in COVID-19 PBMC cohorts</a></li>
     <li><a class="dropdown-item" href="../articles/divas_case_study.html">Case study: DIVAS COVID-19 multi-omics reanalysis with cellprograms</a></li>
     <li><a class="dropdown-item" href="../articles/cross_cohort_replication.html">Cross-cohort replication: a preregistered-style case study</a></li>
@@ -218,6 +219,13 @@
 
         </dt>
         <dd>Pairwise sharing spectra across all cell types</dd>
+
+        <dt>
+
+          <code><a href="principal_angles.html">principal_angles()</a></code>
+
+        </dt>
+        <dd>Principal angles between the program subspaces of two cell types</dd>
       </dl></div><div class="section level2">
       <h2 id="coordination-annotation">Coordination &amp; annotation<a class="anchor" aria-label="anchor" href="#coordination-annotation"></a></h2>
 
@@ -276,6 +284,64 @@
 
         </dt>
         <dd>Format an OmniPath CollecTRI table as a signed TF-target network</dd>
+
+        <dt>
+
+          <code><a href="ambient_program_scores.html">ambient_program_scores()</a></code>
+
+        </dt>
+        <dd>Ambient-likeness of programs</dd>
+
+        <dt>
+
+          <code><a href="cmp_context_association.html">cmp_context_association()</a></code>
+
+        </dt>
+        <dd>Association of coordinated programs with a donor variable</dd>
+      </dl></div><div class="section level2">
+      <h2 id="joint-tensor-factorization">Joint &amp; tensor factorization<a class="anchor" aria-label="anchor" href="#joint-tensor-factorization"></a></h2>
+
+      <div class="section-desc"><p>Post-fit joint factorization across cell types: empirical-Bayes CP tensor factorization (genes x donors x cell types) and block-structured joint EBMF at expression or scores level, with benchmark-contract coordination calls. See <code>vignette("coordination_joint")</code> and the preregistered benchmark under <code>benchmarks/coordination/</code>.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="fit_eb_cp.html">fit_eb_cp()</a></code>
+
+        </dt>
+        <dd>EB-CP tensor factorization across cell types</dd>
+
+        <dt>
+
+          <code><a href="eb_cp_from_fit.html">eb_cp_from_fit()</a></code>
+
+        </dt>
+        <dd>EB-CP coordination programs from a fitted `cell_program_fit`</dd>
+
+        <dt>
+
+          <code><a href="eb_cp_programs.html">eb_cp_programs()</a></code>
+
+        </dt>
+        <dd>Coordination programs from an EB-CP fit</dd>
+
+        <dt>
+
+          <code><a href="fit_joint_block.html">fit_joint_block()</a></code>
+
+        </dt>
+        <dd>Block-structured joint EBMF (Level 3 candidate A)</dd>
+
+        <dt>
+
+          <code><a href="block_clusters.html">block_clusters()</a></code>
+
+        </dt>
+        <dd>Coordination calls from a block_joint fit (benchmark output contract)</dd>
       </dl></div><div class="section level2">
       <h2 id="metacells-seacells-mcrigor-">Metacells (SEACells + mcRigor)<a class="anchor" aria-label="anchor" href="#metacells-seacells-mcrigor-"></a></h2>
 
@@ -408,6 +474,120 @@
 
         </dt>
         <dd>Plot the sharing spectrum</dd>
+      </dl></div><div class="section level2">
+      <h2 id="internal">Internal<a class="anchor" aria-label="anchor" href="#internal"></a></h2>
+
+      <div class="section-desc"><p>Internal helpers, S3 methods and package overview, not usually called directly.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="cellprograms-package.html">cellprograms</a></code> <code><a href="cellprograms-package.html">cellprograms-package</a></code>
+
+        </dt>
+        <dd>cellprograms: Cell-Type-Specific Transcriptional Programs via EBMF</dd>
+
+        <dt>
+
+          <code><a href="cmp_gene_overlap.html">cmp_gene_overlap()</a></code>
+
+        </dt>
+        <dd>Gene-overlap class of coordinated programs</dd>
+
+        <dt>
+
+          <code><a href="cmp_nuisance_genes.html">cmp_nuisance_genes()</a></code>
+
+        </dt>
+        <dd>Default nuisance-gene patterns for CMP triage</dd>
+
+        <dt>
+
+          <code><a href="cmp_scores.html">cmp_scores()</a></code>
+
+        </dt>
+        <dd>Consensus donor scores of coordinated programs</dd>
+
+        <dt>
+
+          <code><a href="dot-degenerate_programs.html">.degenerate_programs()</a></code>
+
+        </dt>
+        <dd>Numerically degenerate programs, two kinds: 1. flashier can retain factors whose loadings underflow to numerical noise (median |loading| many orders of magnitude below the cell type's strongest program; e.g. sparse factors whose support is a few genes and whose remaining entries sit at ~1e-16). Their posterior SDs underflow as well, producing garbage z-scores, and correlation-based matching is scale-invariant, so they spuriously match every strong program. 2. Fixed, never-updated factors: real-scale loadings whose posterior SD column collapsed to machine precision (observed for the smallest cell type in both real cohorts). Point estimates without usable uncertainty: mashr cannot assess them. A program is degenerate when median |loading| &lt; `rel_tol` x the cell type's largest, or when its median posterior SD (scaled to the loadings) is &lt;= `sd_floor`.</dd>
+
+        <dt>
+
+          <code><a href="dot-estimate_V.html">.estimate_V()</a></code>
+
+        </dt>
+        <dd>CorShrink-style null-correlation estimate for a matched program set</dd>
+
+        <dt>
+
+          <code><a href="dot-match_programs_loadings.html">.match_programs_loadings()</a></code>
+
+        </dt>
+        <dd>Candidate cross-cell-type program matches from loading correlation</dd>
+
+        <dt>
+
+          <code><a href="print.cell_program_data.html">print(<i>&lt;cell_program_data&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print a cell program data object</dd>
+
+        <dt>
+
+          <code><a href="print.cmp_result.html">print(<i>&lt;cmp_result&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print a CMP detection result</dd>
+
+        <dt>
+
+          <code><a href="print.cmp_tf.html">print(<i>&lt;cmp_tf&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print a CMP transcription-factor triage result</dd>
+
+        <dt>
+
+          <code><a href="print.principal_angles.html">print(<i>&lt;principal_angles&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print a principal-angles summary</dd>
+
+        <dt>
+
+          <code><a href="print.program_sharing.html">print(<i>&lt;program_sharing&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Print a program-sharing summary</dd>
+
+        <dt>
+
+          <code><a href="program_metadata.html">program_metadata()</a></code>
+
+        </dt>
+        <dd>Program metadata table (one row per program)</dd>
+
+        <dt>
+
+          <code><a href="summary.cell_program_data.html">summary(<i>&lt;cell_program_data&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Summarize a cell program data object</dd>
+
+        <dt>
+
+          <code><a href="union_panel_loadings.html">union_panel_loadings()</a></code>
+
+        </dt>
+        <dd>Refit program loadings on a common (union) gene panel</dd>
       </dl></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
