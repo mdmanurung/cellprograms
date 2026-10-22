@@ -64,10 +64,14 @@ def main(h5ad_path, annot_path, semi_dir):
     obs = adata.obs.copy()
     print("obs columns:", list(obs.columns))
     # donor/site/sex/status columns -- verify names on first run
-    donor_col = next(c for c in obs.columns if c.lower() in ("donor_id", "donor", "sample"))
+    # columns PINNED from the actual E-MTAB-10026 h5ad obs (verified 2026-10-22);
+    # heuristics kept only as fallback
+    donor_col = next((c for c in obs.columns if c.lower() in ("patient_id", "donor_id", "donor")), None) or \
+        next(c for c in obs.columns if "sample" in c.lower())
     site_col = next(c for c in obs.columns if "site" in c.lower() or c.lower() in ("institute", "hospital"))
     sex_col = next((c for c in obs.columns if c.lower() == "sex"), None)
-    status_col = next(c for c in obs.columns if "status" in c.lower())
+    status_col = next((c for c in obs.columns if c.lower() == "status_on_day_collection_summary"), None) or \
+        next(c for c in obs.columns if "status" in c.lower())
 
     bc2major = ann["major"].to_dict()
     keep_mask = np.array([b in bc2major for b in obs_names(adata)])
