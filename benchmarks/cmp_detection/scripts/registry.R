@@ -1,12 +1,9 @@
 ## registry.R -- named candidates (cmp-bench-v1). Each entry: function(fit, strata, seed) -> clusters df / list(clusters)
-source("/mnt/shared-workspace/cmp/bench/candidates.R")
-source("/mnt/shared-workspace/cmp/bench/cand_spec.R")
-source("/mnt/shared-workspace/cmp/bench/cand_edge.R")
-source("/mnt/shared-workspace/cmp/bench/cand_nodeagg.R")
-source("/mnt/shared-workspace/cmp/bench/cand_ext.R")
-source("/mnt/shared-workspace/cmp/bench/cand_flash.R")
-source("/mnt/shared-workspace/cmp/bench/annot_lr.R")
-source("/mnt/shared-workspace/cmp/bench/ambient.R")
+## source from this repo (HERE is defined by common.R before registry.R loads)
+for (f in c("candidates.R", "cand_spec.R", "cand_edge.R", "cand_nodeagg.R",
+            "cand_ext.R", "cand_flash.R", "annot_lr.R", "ambient.R")) {
+  source(file.path(HERE, f))
+}
 NP <- 199L
 REG <- list(
   ## F1 repo baselines

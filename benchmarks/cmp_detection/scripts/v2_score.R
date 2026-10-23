@@ -1,7 +1,8 @@
 ## v2_score.R -- PLAN v2 scoring: scorecard + breadth diagnostics + paired bootstrap vs reference, on common datasets.
 ## Rscript v2_score.R <out.csv> <seed_expr e.g. 1:15> <ref_label=ref.rds[,ref_nullx.rds]> <label=path.rds[,nullx.rds]> ...
 suppressPackageStartupMessages(library(data.table))
-source("/mnt/shared-workspace/cmp/bench/config.R")
+source(local({ a <- grep("^--file=", commandArgs(FALSE), value = TRUE); f <- if (length(a)) sub("^--file=", "", a)[1] else NA_character_
+  file.path(if (!is.na(f)) dirname(normalizePath(f)) else getwd(), "config.R") }))
 POS_SCEN <- c("cmp_distinct", "cmp_mixed", "context", "ambient", "lr", "weak")
 a <- commandArgs(TRUE); out <- a[1]; seeds <- eval(parse(text = a[2]))
 spec <- lapply(a[-(1:2)], function(x) { p <- strsplit(x, "=")[[1]]; f <- strsplit(p[2], ",")[[1]]; list(label = p[1], dev = f[1], nullx = if (length(f) > 1) f[2] else NA) })
