@@ -12,6 +12,10 @@
 * Ordinary CI installs hard dependencies explicitly, limits threads, and permits
   only documented optional-Suggests notes. Cross-platform coverage requires
   actual CI outcomes; development checks do not constitute CRAN acceptance.
+* Optional mashr regression expectations now preserve `unmatched` for programs
+  without a significant loading match, rather than treating nonmatching as
+  calibrated private evidence. The zero-group mock declares its namespace so
+  the same fixture runs in installed-package context.
 
 ## Bounded ordinary-core acceptance
 

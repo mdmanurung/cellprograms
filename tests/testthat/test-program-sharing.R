@@ -140,7 +140,7 @@ test_that("numerically degenerate programs are excluded from matching and sharin
   expect_false(any(mt4$prog_a == "A_2" | mt4$prog_b == "A_2"))
 })
 
-test_that("end-to-end: planted shared program is shared, private programs are private", {
+test_that("end-to-end: shared programs are shared and unmatched programs remain descriptive", {
   skip_if_not_installed("mashr")
   fit <- .sharing_toy()
   res <- program_sharing(fit, n_perm = 199, seed = 1)
@@ -148,8 +148,9 @@ test_that("end-to-end: planted shared program is shared, private programs are pr
   s <- res$summary
   expect_equal(s$classification[s$program_id == "A_1"], "shared")
   expect_equal(s$classification[s$program_id == "B_1"], "shared")
-  expect_equal(s$classification[s$program_id == "A_2"], "private")
-  expect_equal(s$classification[s$program_id == "C_1"], "private")
+  # No significant match is evidence of unmatched, not a calibrated private call.
+  expect_equal(s$classification[s$program_id == "A_2"], "unmatched")
+  expect_equal(s$classification[s$program_id == "C_1"], "unmatched")
   expect_equal(s$evidence[s$program_id == "C_1"], "no_significant_match")
   r <- res$results$group1
   expect_equal(dim(r$posterior_mean), c(300L, 2L))
@@ -181,7 +182,7 @@ test_that("fit_celltype_programs stores loading posterior SDs (both modes)", {
 
 test_that("program_sharing with zero sharing groups returns an unmatched descriptive summary", {
   # No mashr fit is invoked when no group is matched.
-  testthat::local_mocked_bindings(.has_mashr = function() TRUE)
+  testthat::local_mocked_bindings(.has_mashr = function() TRUE,.package="cellprograms")
   # Cell types A and C share no planted program (A_1/A_2 vs C_1 unrelated), so
   # matching finds zero significant pairs. Regression: names(results) <-
   # paste0("group", seq_along(results)) crashed on the empty results list
