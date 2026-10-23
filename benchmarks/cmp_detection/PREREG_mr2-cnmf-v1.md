@@ -130,3 +130,18 @@ registered deviation from the §2 "same matrices" wording, not a silent change.
 Also: cnmf 1.7.1 reports stability as consensus *silhouette* (higher = stabler),
 replacing the older local_density; the §2 K-selection rule (largest K within
 0.05 of max stability, ties → smaller K) is applied to silhouette unchanged.
+
+## Addendum B (2026-10-22) — Y scale correction in the rebuilt substrate
+
+The first rebuilt semi_base stored RAW COUNTS as Y; the sim_cmp.R contract is
+Y = log2(CPM + 1) (the ambient scenario inverts it via 2^Y - 1, and the
+planting amplitude msd is a log-scale sd). The raw-count base made planted
+signals vanishingly small in relative terms and crashed the ambient transform
+(2^counts = Inf). Fixed in the rebuild script (Y.mtx.gz now stores
+log2(CPM+1)); all fits from the raw-count base are DISCARDED. The cNMF input
+(Addendum A) is amended accordingly: cNMF consumes round(max(2^Y - 1, 0)) —
+CPM-scale pseudo-counts recovered from the planted log-space matrix — and
+runs its own normalization internally. Also: HSC (15 donors) and RBC (17) are
+dropped from the rebuilt base (MIN_DONORS = 32): the C4 residual-df guard
+(added 2026-10-16, after the v1.2 run) aborts any type with n < K + 2 = 32 at
+the registered max_factors = 30.

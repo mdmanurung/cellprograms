@@ -17,15 +17,14 @@ cnmf_fit_object <- function(x, kgrid = c(5, 10, 20, 30), tmpdir = tempfile()) {
   dir.create(tmpdir, recursive = TRUE, showWarnings = FALSE)
   scores <- list(); loadings <- list(); ks <- list()
   for (ct in x$cell_types) {
-    ## MR-2 input decision (registered deviation, see PREREG_mr2-cnmf-v1.md Addendum):
-    ## the planted semi matrices are continuous (centered signal, min < 0), but cNMF
-    ## requires non-negative integer counts. cNMF therefore consumes the planted
-    ## donor x gene matrix rounded + clipped to >= 0 (its native count input), NOT
-    ## the centered/residualized matrix K30 fits. This tests each backend on its
-    ## natural input; the alternative (shift the processed matrix) fabricates an
-    ## arbitrary offset and is methodologically worse.
-    Y <- as.matrix(x$pseudobulk[[ct]])          # donors x genes, planted (continuous)
-    Y <- pmax(round(Y), 0)                      # recover count space for cNMF
+    ## MR-2 input decision (registered deviation, see PREREG_mr2-cnmf-v1.md
+    ## Addendum A as amended): the simulated Y is log2(CPM+1) (the sim_cmp.R
+    ## contract). cNMF requires non-negative counts; recover CPM-scale values
+    ## via 2^Y - 1 and round to pseudo-counts. cNMF then runs its own TPM
+    ## normalization + HVG selection internally. Each backend is tested on its
+    ## natural input scale.
+    Y <- as.matrix(x$pseudobulk[[ct]])          # donors x genes, log2(CPM+1)
+    Y <- pmax(round(2^Y - 1), 0)                # recover CPM-scale pseudo-counts
     storage.mode(Y) <- "integer"
     stopifnot(all(Y == round(Y)), min(Y) >= 0)
     pref <- file.path(tmpdir, paste0("ct_", gsub("[^A-Za-z0-9_]", "_", ct)))
