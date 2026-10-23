@@ -41,7 +41,8 @@ MAJOR = {
     "CD16_mono": ["CD16_mono", "C1_CD16_mono"],
     "DC": ["DC1", "DC2", "DC3", "pDC", "DC_prolif", "ASDC"],
     "Platelets": ["Platelets"],
-    "HSC": ["HSC"],
+    "HSC": ["HSC", "HSC_CD38pos", "HSC_myeloid", "HSC_CD38neg",
+            "HSC_prolif", "HSC_erythroid", "HSC_MK"],
     "RBC": ["RBC"],
 }
 EXCLUDED = ["B_malignant"]  # malignant cells are not a normal donor program
