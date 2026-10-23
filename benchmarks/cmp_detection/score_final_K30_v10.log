@@ -1,0 +1,10 @@
+Warning messages:
+1: package ‘Matrix’ was built under R version 4.4.3 
+2: package ‘data.table’ was built under R version 4.4.3 
+files 104 
+Error in FUN(X[[i]], ...) : subscript out of bounds
+Calls: eval_method -> bind -> <Anonymous> -> lapply
+In addition: Warning message:
+In parallel::mclapply(files, function(f) { :
+  104 function calls resulted in an error
+Execution halted
