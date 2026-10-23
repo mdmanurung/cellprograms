@@ -169,8 +169,13 @@ def main(h5ad_path, annot_path, semi_dir):
         cpm_mean = np.asarray(cpm.mean(0)).ravel()  # type-level mean CPM profile
         tdir = os.path.join(semi_dir, major)
         os.makedirs(tdir, exist_ok=True)
+        # Y.mtx.gz stores log2(CPM + 1): the sim_cmp.R contract is "Y logCPM"
+        # (the ambient transform inverts it via 2^Y - 1, and the planting
+        # amplitude msd is a log-scale sd). The cNMF arm recovers CPM-scale
+        # values via 2^Y - 1 (Addendum A as amended).
+        Ylog = np.log2(cpm.toarray() + 1) if sparse.issparse(cpm) else np.log2(cpm + 1)
         with gzip.open(os.path.join(tdir, "Y.mtx.gz"), "wb") as fh:
-            scio.mmwrite(fh, Y)
+            scio.mmwrite(fh, sparse.csr_matrix(Ylog))
         with open(os.path.join(tdir, "donors.txt"), "w") as fh:
             fh.write("\n".join(ud) + "\n")
         pd.DataFrame({"gene": genes, "cpm_mean": cpm_mean}).to_csv(
