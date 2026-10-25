@@ -161,9 +161,52 @@
   }))
 }
 
-.cmp_perm <- function(Z, blocks) {
+# Cluster (patient) permutation plan for repeated observations. A permutation
+# moves whole clusters onto other clusters with the identical visit set within
+# the same block, mapping (cluster, visit) -> (pi(cluster), visit). Within-cluster
+# dependence is therefore preserved in every permuted data set.
+.cmp_cluster_plan <- function(ids, clusters, visits, blocks) {
+  cl <- as.character(clusters[ids])
+  vi <- if (is.null(visits)) rep("1", length(ids)) else as.character(visits[ids])
+  key <- paste(cl, vi, sep = "\r")
+  if (anyDuplicated(key)) {
+    .stopf("Each cluster/visit pair must identify exactly one observation%s.",
+           if (is.null(visits)) " (supply `visits` for repeated observations)" else "")
+  }
+  b <- as.character(blocks[ids])
+  if (any(tapply(b, cl, function(x) length(unique(x))) > 1L)) {
+    .stopf("`strata` (and `context` in mode = 'within') must be constant within each cluster.")
+  }
+  first <- match(unique(cl), cl)
+  sig <- vapply(unique(cl), function(k) paste(sort(vi[cl == k]), collapse = "\r"), "")
+  groups <- split(unique(cl), paste(b[first], sig, sep = "\n"))
+  list(ids = ids, cl = cl, vi = vi, key = stats::setNames(ids, key), groups = groups,
+       n_clusters = length(first),
+       n_exchangeable = sum(vapply(groups, length, 1L)[vapply(groups, length, 1L) > 1L]))
+}
+
+.cmp_cluster_map <- function(plan) {
+  map <- stats::setNames(plan$ids, plan$ids)
+  for (g in plan$groups) {
+    if (length(g) < 2L) next
+    to <- g[sample.int(length(g))]
+    rows <- which(plan$cl %in% g)
+    target <- to[match(plan$cl[rows], g)]
+    map[rows] <- plan$key[paste(target, plan$vi[rows], sep = "\r")]
+  }
+  map
+}
+
+.cmp_perm <- function(Z, blocks, plan = NULL) {
   lapply(Z, function(S) {
-    P <- S[.perm_within(nrow(S), blocks[rownames(S)]), , drop = FALSE]
+    if (is.null(plan)) {
+      P <- S[.perm_within(nrow(S), blocks[rownames(S)]), , drop = FALSE]
+    } else {
+      m <- .cmp_cluster_map(plan)[rownames(S)]
+      P <- matrix(NA_real_, nrow(S), ncol(S), dimnames = dimnames(S))
+      ok <- !is.na(m) & m %in% rownames(S)
+      P[ok, ] <- S[m[ok], , drop = FALSE]
+    }
     rownames(P) <- rownames(S)
     attr(P, "program_support") <- attr(S, "program_support")
     P
@@ -255,6 +298,17 @@
 #'   to be compared (default 20).
 #' @param min_donors Minimum donors for a cell type to be used (default 20).
 #' @param seed Random seed.
+#' @param clusters Optional cluster (e.g. patient) identifier for repeated
+#'   observations: a `sample_metadata` column name or a vector named by
+#'   observation ID. When supplied, permutations move whole clusters (never
+#'   single observations), so within-cluster dependence is preserved under the
+#'   null. Clusters are exchanged only with clusters in the same `strata` block
+#'   that have the identical set of `visits`; `strata` must be constant within a
+#'   cluster. Edge |T| values then use the observation count and are not
+#'   calibrated normal statistics; only the permutation node p-values are.
+#' @param visits Visit identifier within cluster (column name or named vector);
+#'   required when a cluster has more than one observation. Each
+#'   cluster/visit pair must identify exactly one observation.
 #'
 #' @section Observed support:
 #' Each program is rank-transformed and projected only on its observed donors;
@@ -344,7 +398,8 @@ find_coordinated_programs <- function(fit, strata = NULL, context = NULL,
                                       ambient_threshold = 0.3, profiles = NULL,
                                       alpha = 0.05, n_perm = 199L, tau = 2,
                                       link_threshold = 3, min_shared = 20L,
-                                      min_donors = 20L, seed = 1L) {
+                                      min_donors = 20L, seed = 1L,
+                                      clusters = NULL, visits = NULL) {
   mode <- match.arg(mode)
   ambient <- match.arg(ambient)
   if (is.null(fit$scores) || is.null(fit$loadings)) {
@@ -359,11 +414,25 @@ find_coordinated_programs <- function(fit, strata = NULL, context = NULL,
   st <- .cmp_resolve_var(fit, strata, "strata")
   cx <- .cmp_resolve_var(fit, context, "context")
   blocks <- .cmp_blocks(ids, st, cx, mode)
+  plan <- NULL
+  if (!is.null(clusters)) {
+    cv <- .cmp_resolve_var(fit, clusters, "clusters")
+    vv <- if (is.null(visits)) NULL else .cmp_resolve_var(fit, visits, "visits")
+    plan <- .cmp_cluster_plan(ids, cv, vv, blocks)
+    if (plan$n_exchangeable < 2L) .stopf("Cluster permutation needs at least two exchangeable clusters.")
+  } else if (!is.null(visits)) {
+    .stopf("`visits` requires `clusters`.")
+  }
   settings <- list(strata = if (is.character(strata) && length(strata) == 1L) strata else if (is.null(strata)) NULL else "<vector>",
                    context = if (is.character(context) && length(context) == 1L) context else if (is.null(context)) NULL else "<vector>",
                    mode = mode, ambient = ambient, ambient_threshold = ambient_threshold, alpha = alpha,
                    n_perm = n_perm, tau = tau, link_threshold = link_threshold,
-                   min_shared = min_shared, min_donors = min_donors, seed = seed)
+                   min_shared = min_shared, min_donors = min_donors, seed = seed,
+                   permutation = if (is.null(plan)) "observation-within-strata" else "cluster-within-strata-and-visit-set",
+                   clusters = if (is.character(clusters) && length(clusters) == 1L) clusters else if (is.null(clusters)) NULL else "<vector>",
+                   visits = if (is.character(visits) && length(visits) == 1L) visits else if (is.null(visits)) NULL else "<vector>",
+                   n_clusters = if (is.null(plan)) NULL else plan$n_clusters,
+                   n_exchangeable_clusters = if (is.null(plan)) NULL else plan$n_exchangeable)
 
   amb <- if (ambient != "none") ambient_program_scores(fit, profiles) else NULL
   Z <- .cmp_prep(fit$scores, blocks, min_donors)
@@ -412,7 +481,7 @@ find_coordinated_programs <- function(fit, strata = NULL, context = NULL,
   idx <- .cmp_node_index(edges)
   A <- .cmp_node_stat(edges$stat, idx, tau)
   mx <- vapply(seq_len(n_perm), function(b) {
-    max(.cmp_node_stat(.cmp_edges(.cmp_perm(Z, blocks), pairs)$stat, idx, tau))
+    max(.cmp_node_stat(.cmp_edges(.cmp_perm(Z, blocks, plan), pairs)$stat, idx, tau))
   }, 1)
   pA <- vapply(A, function(a) (1 + sum(mx >= a)) / (n_perm + 1), 1)
   callable_nodes <- unique(c(idx$ka[edges$callable], idx$kb[edges$callable]))

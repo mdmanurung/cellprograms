@@ -166,3 +166,77 @@ test_that("empty score set after min_donors/ambient filtering fails closed (was:
     "No cell type retained programs"
   )
 })
+
+# Repeated-visit toy: every cell type carries a patient effect shared across that
+# patient's visits, but there is no cross-cell-type coupling (complete null).
+.cmp_visit_toy <- function(n_pat = 40, visits = c("T1", "T2"), k = 3, seed = 1, rho = 0.8, cts = c("A", "B", "C")) {
+  set.seed(seed)
+  pat <- rep(sprintf("p%03d", seq_len(n_pat)), each = length(visits))
+  vis <- rep(visits, n_pat)
+  ids <- paste(pat, vis, sep = "_")
+  n <- length(ids)
+  scores <- loadings <- list()
+  for (ct in cts) {
+    U <- matrix(rnorm(n_pat * k), n_pat, k)
+    S <- sqrt(rho) * U[match(pat, unique(pat)), , drop = FALSE] + sqrt(1 - rho) * matrix(rnorm(n * k), n, k)
+    dimnames(S) <- list(ids, paste0(ct, "_", seq_len(k)))
+    scores[[ct]] <- S
+    loadings[[ct]] <- matrix(rnorm(50 * k), 50, k, dimnames = list(sprintf("G%02d", 1:50), colnames(S)))
+  }
+  structure(list(scores = scores, loadings = loadings, cell_types = cts, observation_ids = ids,
+                 sample_metadata = data.frame(observation_id = ids, patient = pat, visit = vis,
+                                              site = ifelse(match(pat, unique(pat)) %% 2 == 1, "s1", "s2"),
+                                              visit_site = ifelse(seq_len(n) %% 4 < 2, "s1", "s2"),
+                                              stringsAsFactors = FALSE)),
+            class = c("cell_program_fit", "cell_program_data", "list"))
+}
+
+test_that("cluster permutation moves whole patients and keeps visits and strata", {
+  fit <- .cmp_visit_toy(n_pat = 12)
+  md <- fit$sample_metadata
+  blocks <- stats::setNames(md$site, md$observation_id)
+  plan <- .cmp_cluster_plan(md$observation_id, stats::setNames(md$patient, md$observation_id),
+                            stats::setNames(md$visit, md$observation_id), blocks)
+  set.seed(4)
+  m <- .cmp_cluster_map(plan)
+  expect_setequal(unname(m), md$observation_id)
+  src <- md[match(names(m), md$observation_id), ]; dst <- md[match(m, md$observation_id), ]
+  expect_identical(src$visit, dst$visit)
+  expect_identical(src$site, dst$site)
+  moved <- tapply(dst$patient, src$patient, function(x) length(unique(x)))
+  expect_true(all(moved == 1L))
+})
+
+test_that("one-observation clusters reproduce the observation permutation exactly", {
+  fit <- .cmp_toy(seed = 11)
+  a <- find_coordinated_programs(fit, strata = "site", n_perm = 39, ambient = "none", seed = 3)
+  b <- find_coordinated_programs(fit, strata = "site", n_perm = 39, ambient = "none", seed = 3,
+                                 clusters = "observation_id")
+  expect_equal(a$nodes, b$nodes)
+  expect_equal(a$cmps, b$cmps)
+  expect_identical(b$settings$permutation, "cluster-within-strata-and-visit-set")
+})
+
+test_that("cluster permutation validates its design", {
+  fit <- .cmp_visit_toy(n_pat = 12)
+  expect_error(find_coordinated_programs(fit, n_perm = 39, ambient = "none", clusters = "patient"),
+               "supply `visits`")
+  expect_error(find_coordinated_programs(fit, n_perm = 39, ambient = "none", visits = "visit"),
+               "requires `clusters`")
+  expect_error(find_coordinated_programs(fit, strata = "visit_site", n_perm = 39, ambient = "none",
+                                         clusters = "patient", visits = "visit"),
+               "constant within each cluster")
+})
+
+test_that("repeated visits: cluster permutation holds the null where observation permutation does not", {
+  calls <- vapply(1:12, function(s) {
+    fit <- .cmp_visit_toy(seed = 500 + s)
+    obs <- find_coordinated_programs(fit, n_perm = 99, ambient = "none", seed = s, min_shared = 20)
+    clu <- find_coordinated_programs(fit, n_perm = 99, ambient = "none", seed = s, min_shared = 20,
+                                     clusters = "patient", visits = "visit")
+    c(observation = any(obs$nodes$node_p < 0.05, na.rm = TRUE),
+      cluster = any(clu$nodes$node_p < 0.05, na.rm = TRUE))
+  }, c(observation = TRUE, cluster = TRUE))
+  expect_lte(sum(calls["cluster", ]), 3L)
+  expect_gt(sum(calls["observation", ]), sum(calls["cluster", ]))
+})

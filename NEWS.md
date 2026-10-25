@@ -1,5 +1,18 @@
 # cellprograms 0.2.0.9001 (development)
 
+## Repeated-observation coordination
+
+* `find_coordinated_programs()` gains opt-in `clusters` and `visits`
+  arguments. When supplied, the node permutation moves whole clusters (e.g.
+  patients) onto clusters with the identical visit set inside the same
+  `strata` block, so within-patient dependence is preserved under the null.
+  The default (no `clusters`) is unchanged, and one-observation clusters
+  reproduce it exactly. In a generated repeated-visit complete null (40
+  patients x 2 visits, within-patient correlation 0.8, 100 replicates,
+  `n_perm = 99`) the family-wise any-node false-call rate was 0.31 with
+  observation permutation and 0.04 with cluster permutation. This is a
+  software calibration check on generated data, not a biological result.
+
 ## Repository completion
 
 * Promoted the real ordinary/native-fit, serialization and actual stability
