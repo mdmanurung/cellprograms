@@ -18,7 +18,9 @@ find_coordinated_programs(
   link_threshold = 3,
   min_shared = 20L,
   min_donors = 20L,
-  seed = 1L
+  seed = 1L,
+  clusters = NULL,
+  visits = NULL
 )
 }
 \arguments{
@@ -64,6 +66,19 @@ to be compared (default 20).}
 \item{min_donors}{Minimum donors for a cell type to be used (default 20).}
 
 \item{seed}{Random seed.}
+
+\item{clusters}{Optional cluster (e.g. patient) identifier for repeated
+observations: a `sample_metadata` column name or a vector named by
+observation ID. When supplied, permutations move whole clusters (never
+single observations), so within-cluster dependence is preserved under the
+null. Clusters are exchanged only with clusters in the same `strata` block
+that have the identical set of `visits`; `strata` must be constant within a
+cluster. Edge |T| values then use the observation count and are not
+calibrated normal statistics; only the permutation node p-values are.}
+
+\item{visits}{Visit identifier within cluster (column name or named vector);
+required when a cluster has more than one observation. Each
+cluster/visit pair must identify exactly one observation.}
 }
 \value{
 An object of class `cmp_result`, a list with

@@ -15,11 +15,11 @@ type; cross-cell-type coordination is investigated subsequently, never
 assumed.
 }
 \author{
-\strong{Maintainer}: Mikhael Dito Manurung \email{mikhael@example.org}
+\strong{Maintainer}: Mikhael Dito Manurung \email{mikhael.manurung@gmail.com}
 
 Authors:
 \itemize{
-  \item Mikhael Dito Manurung \email{mikhael@example.org}
+  \item Mikhael Dito Manurung \email{mikhael.manurung@gmail.com}
 }
 
 }
