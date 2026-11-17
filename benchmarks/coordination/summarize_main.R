@@ -4,6 +4,7 @@
 ## run: R_LIBS_USER=/workspace/.Rlib Rscript benchmarks/coordination/summarize_main.R
 here <- local({ f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)[1]); dirname(normalizePath(f)) })
 library(stats)
+source(file.path(here, "family.R"))
 
 read_dir <- function(d) {
   fs <- list.files(d, pattern = "\\.csv$", full.names = TRUE)
@@ -76,12 +77,14 @@ paired <- if (length(methods) && nrow(prim)) do.call(rbind, lapply(methods, func
              stringsAsFactors = FALSE)
 })) else data.frame()
 if (is.null(paired)) paired <- data.frame()
+paired <- add_family(paired, "primary: act_only, R50+R20, act_cor = 1, recall vs pa_cc")
 
 write.csv(rate_tab, file.path(here, "out", sub, "summary_rates.csv"), row.names = FALSE)
 write.csv(prog_tab, file.path(here, "out", sub, "summary_programs.csv"), row.names = FALSE)
 write.csv(paired, file.path(here, "out", sub, "summary_paired_primary.csv"), row.names = FALSE)
 
 cat("\n== primary endpoint: paired recall vs pa_cc (act_only, R50+R20) ==\n")
+if (nrow(paired)) cat(sprintf("family: %d arm-versus-pa_cc contrasts, p-values unadjusted\n", nrow(paired)))
 print(paired, row.names = FALSE)
 cat("\n== null family: spurious rates ==\n")
 print(rate_tab[grepl("^null", rate_tab$family), ], row.names = FALSE)

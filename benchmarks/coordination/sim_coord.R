@@ -9,6 +9,25 @@
 ## breadth: "all" co-plants R100+R50+R20; "R100"/"R50"/"R20" plant that program alone;
 ##   "R20small" plants an R20 whose members are forced into two small cell types.
 ## All planted gene sets are carved from one pool and are mutually disjoint.
+## Trap modes (added 2026-11-17; no recurring programs, so any multi-cell-type call is spurious).
+##   donor_deletion: a set of n_del_genes genes is absent (shifted down by del_depth) in a fraction
+##                   del_frac of donors, in every cell type -- a genotype-like binary donor axis.
+##   ig_tcr        : in n_clone_cts cell types, a set of n_clone_genes genes is large in a fraction
+##                   clone_frac of that cell type's donors (drawn independently per cell type),
+##                   with gene weights of sd clone_mult * amp -- clonal Ig/TCR-like expression.
+## These arguments have no defaults: their values are impactful design choices (prereg-coord-v2).
+
+## `.residualize()` was an internal helper of R/ebmf.R until 0.3.0 and is gone from the package; this
+## benchmark code still calls it. Same definition as before, on top of the package's .cov_design().
+if (!exists(".residualize", mode = "function")) {
+  .residualize <- function(Y, meta, covariates, ct) {
+    X <- .cov_design(rownames(Y), meta, covariates, ct)
+    if (is.null(X)) return(Y)
+    R <- stats::lm.fit(X, Y)$residuals
+    dimnames(R) <- dimnames(Y)
+    R
+  }
+}
 
 COORD_CTS <- sprintf("ct%02d", 1:10)
 COORD_BREADTH <- c(R100 = 10L, R50 = 5L, R20 = 2L)
@@ -17,8 +36,17 @@ gen_coord <- function(mode, amp, seed, act_cor = 1, G = getOption("ms.G", 4000L)
                       n_prog_genes = getOption("ms.npg", 50L), priv_amp = 1, n_donors = 100L,
                       breadth = c("all", "R100", "R50", "R20", "R20small"),
                       cor_priv = 0.7, n_decoy_pairs = 3L, private_per_ct = c(1L, 2L),
-                      n_priv_genes = n_prog_genes) {
-  stopifnot(mode %in% c("act+genes", "act+half", "act_only", "genes_only", "priv_corr", "null"))
+                      n_priv_genes = n_prog_genes,
+                      del_frac = NULL, n_del_genes = NULL, del_depth = NULL,
+                      clone_frac = NULL, clone_mult = NULL, n_clone_cts = NULL, n_clone_genes = NULL) {
+  stopifnot(mode %in% c("act+genes", "act+half", "act_only", "genes_only", "priv_corr", "null",
+                        "donor_deletion", "ig_tcr"))
+  if (mode == "donor_deletion") {
+    stopifnot(!is.null(del_frac), !is.null(n_del_genes), !is.null(del_depth))
+  }
+  if (mode == "ig_tcr") {
+    stopifnot(!is.null(clone_frac), !is.null(clone_mult), !is.null(n_clone_cts), !is.null(n_clone_genes))
+  }
   breadth <- match.arg(breadth)
   set.seed(seed)
   cts <- COORD_CTS
@@ -49,7 +77,7 @@ gen_coord <- function(mode, amp, seed, act_cor = 1, G = getOption("ms.G", 4000L)
   plant <- switch(breadth,
                   all  = names(COORD_BREADTH),
                   R100 = "R100", R50 = "R50", R20 = "R20", R20small = "R20")
-  if (mode %in% c("null", "priv_corr")) plant <- character(0)
+  if (mode %in% c("null", "priv_corr", "donor_deletion", "ig_tcr")) plant <- character(0)
 
   ## planted recurring programs
   progs <- list()
@@ -110,6 +138,22 @@ gen_coord <- function(mode, amp, seed, act_cor = 1, G = getOption("ms.G", 4000L)
            function(k) list(g = take(n_priv_genes), w = rnorm(n_priv_genes, sd = priv_amp)))
   })
 
+  ## trap structures (new modes only; their draws come after every draw the older modes make)
+  traps <- list()
+  if (mode == "donor_deletion") {
+    traps$donor_deletion <- list(genes = take(n_del_genes),
+                                 donors = sort(sample(ids, round(del_frac * n_donors))),
+                                 depth = del_depth)
+  }
+  if (mode == "ig_tcr") {
+    chosen <- sort(sample(cts, n_clone_cts))
+    traps$ig_tcr <- lapply(setNames(chosen, chosen), function(ct) {
+      list(genes = take(n_clone_genes),
+           donors = sort(sample(donors[[ct]], max(1L, round(clone_frac * length(donors[[ct]]))))),
+           w = rnorm(n_clone_genes, sd = clone_mult * amp))
+    })
+  }
+
   pb <- list(); ncell <- list()
   priv_truth <- setNames(vector("list", length(cts)), cts)
   for (ct in cts) {
@@ -130,15 +174,25 @@ gen_coord <- function(mode, amp, seed, act_cor = 1, G = getOption("ms.G", 4000L)
       pt[[length(pt) + 1L]] <- list(z = dp$z[[ct]][d], genes = dp$genes[[ct]], w = dp$w[[ct]],
                                     decoy_pair = dp$id)
     }
+    if (!is.null(traps$donor_deletion)) {          # genes absent in the deleted donors, every cell type
+      tp <- traps$donor_deletion; rows <- which(d %in% tp$donors)
+      if (length(rows)) Y[rows, tp$genes] <- Y[rows, tp$genes] - tp$depth
+    }
+    if (!is.null(traps$ig_tcr[[ct]])) {            # clonal donors carry the gene set at high weight
+      ti <- traps$ig_tcr[[ct]]
+      Y[, ti$genes] <- Y[, ti$genes] + outer(as.numeric(d %in% ti$donors), ti$w)
+    }
     priv_truth[[ct]] <- pt
     pb[[ct]] <- Y; ncell[[ct]] <- nc
   }
   meta <- data.frame(observation_id = ids, institute = factor(inst), stringsAsFactors = FALSE)
-  list(x = as_cell_program_data(pb, sample_metadata = meta), ncell = ncell,
-       truth = list(mode = mode, breadth = breadth, programs = progs, decoy_pairs = decoy_pairs,
-                    privates = priv_truth, nuisance = bz, small = small, overlap = overlap,
-                    donors = donors),
-       strata = setNames(as.character(inst), ids))
+  out <- list(x = as_cell_program_data(pb, sample_metadata = meta), ncell = ncell,
+              truth = list(mode = mode, breadth = breadth, programs = progs, decoy_pairs = decoy_pairs,
+                           privates = priv_truth, nuisance = bz, small = small, overlap = overlap,
+                           donors = donors),
+              strata = setNames(as.character(inst), ids))
+  if (length(traps)) out$truth$traps <- traps    # only the trap modes carry this element
+  out
 }
 
 ## Adjusted expression matrices without stage-1 fits: residualize on the

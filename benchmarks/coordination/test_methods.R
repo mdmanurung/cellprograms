@@ -6,7 +6,7 @@
 here <- local({ f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)[1]); dirname(normalizePath(f)) })
 root <- normalizePath(file.path(here, "..", ".."))
 library(stats); library(utils)
-for (f in c("data-model.R", "utils.R", "ebmf.R", "principal-angles.R", "block-joint.R", "eb-cp.R")) source(file.path(root, "R", f))
+source(file.path(root, "benchmarks", "coordination", "load_package.R")); load_package(root)
 for (f in c("methods.R", "eb_cp.R", "scoring.R")) source(file.path(here, f))
 set.seed(1)
 cts <- sprintf("ct%02d", 1:10); ids <- sprintf("d%03d", 1:100)
@@ -47,6 +47,16 @@ for (m in c("node_cor", "subspace_sum", "pa_cc", "gene_match")) {
   cat(m, "clusters:", length(unique(r$clusters$cluster)), "\n")
   chk(length(unique(r$clusters$cluster)) == 0, paste(m, "returns 0 clusters on the null"))
 }
+
+## node_agg (the n_agg_noanc statistic; restored 2026-11-17, not part of the frozen prereg-coord-v1 arm list)
+ra <- run_method("node_agg", f, strata, n_perm = 199, seed = 1)
+cat("node_agg clusters:", length(unique(ra$clusters$cluster)), "\n")
+big_a <- ra$clusters$cell_type[ra$clusters$cluster == which.max(table(ra$clusters$cluster))]
+chk(length(big_a) >= 8, "node_agg recovers an R100-sized cluster on planted data")
+chk(identical(names(ra), c("method", "n_perm", "clusters", "activity", "edges")), "node_agg returns the same fields as node_cor")
+rna <- run_method("node_agg", fn, strata, n_perm = 199, seed = 2)
+chk(length(unique(rna$clusters$cluster)) == 0, "node_agg returns 0 clusters on the null")
+chk(!"node_agg" %in% METHODS, "node_agg is not in the frozen METHODS vector")
 
 ## scorer self-check
 score_selfcheck()

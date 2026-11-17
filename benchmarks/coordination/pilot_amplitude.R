@@ -7,7 +7,7 @@
 here <- local({ f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)[1]); dirname(normalizePath(f)) })
 root <- normalizePath(file.path(here, "..", ".."))
 library(stats)
-for (f in c("data-model.R", "utils.R", "ebmf.R", "principal-angles.R", "block-joint.R", "eb-cp.R")) source(file.path(root, "R", f))
+source(file.path(root, "benchmarks", "coordination", "load_package.R")); load_package(root)
 for (f in c("sim_coord.R", "methods.R", "eb_cp.R", "scoring.R")) source(file.path(here, f))
 
 G <- as.integer(Sys.getenv("PILOT_G", "2000"))

@@ -6,6 +6,11 @@ here <- local({ f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), va
 res_root <- if (length(a) >= 1) a[1] else file.path(here, "results")
 out_csv <- if (length(a) >= 2) a[2] else file.path(res_root, "decisions.csv")
 B <- 4000L; set.seed(20260101)
+## Untested-pair guard. "absolute" (default) is the guard registered in PREREG.md/DEVIATIONS D3
+## (arm <= 0.05); "relative" is for FUTURE registrations only (arm <= base + 0.05) and was not
+## applied post hoc to prereg-v1 (decision 2026-10-10, D8). Select with UNTESTED_GUARD=relative.
+UNTESTED_GUARD <- Sys.getenv("UNTESTED_GUARD", "absolute")
+stopifnot(UNTESTED_GUARD %in% c("absolute", "relative"))
 
 K_ARMS <- c("k_n", "k_20", "k_stab"); R_ARMS <- c("genes_after", "vt_12", "w_S")
 MARGIN <- c(P = 0.10, R = 0.02); GUARD <- c(F = 0.03, R = 0.02, time = 3, untested = 0.05)  # untested: DEVIATIONS D3
@@ -51,7 +56,7 @@ paired <- function(tab, col, arm, scen) {
 }
 mean_of <- function(tab, col, arm, scen) mean(tab[[col]][tab$arm == arm & tab$scenario %in% scen])
 
-rows <- list(); calib <- list()
+rows <- list(); calib <- list(); conf <- list()
 for (base in c("semi", "param")) {
   pr <- per_rep(base); if (is.null(pr)) next
   for (s in c("S0", "S7")) {
@@ -60,6 +65,18 @@ for (base in c("semi", "param")) {
       ci <- binom.test(sum(v), length(v))$conf.int
       calib[[length(calib) + 1L]] <- data.frame(base = base, scenario = s, n = length(v), F_base = mean(v), cp_lo = ci[1], cp_hi = ci[2])
     }
+  }
+  ## Confounder check (PREREG.md "Reported, not gated"): `none` must show F inflated on S0, else the null
+  ## holds no usable batch confounder and the strata result is uninformative. PREREG.md does not say how
+  ## much is "inflated", so this table reports F with Clopper-Pearson 95% bounds and no verdict. (A
+  ## lower bound above 0.05 would call semi `none`, F = 0.09 [0.054, 0.139], inflated; RESULTS.md
+  ## records that case as not inflated. The threshold is an open row for the next registration.)
+  for (a in c("base", "none", "none_strata", "strata")) {
+    v <- pr$F[pr$F$arm == a & pr$F$scenario == "S0", "F"]
+    if (!length(v)) next
+    ci <- binom.test(sum(v), length(v))$conf.int
+    conf[[length(conf) + 1L]] <- data.frame(base = base, arm = a, n = length(v), F = mean(v),
+                                            cp_lo = ci[1], cp_hi = ci[2])
   }
   tmed <- tapply(pr$R$secs, pr$R$arm, median)
   ## untested = sharing test produced no row (error or pair absent); worst scenario per arm. Missing column (old results) -> NA -> guard fails.
@@ -73,7 +90,7 @@ for (base in c("semi", "param")) {
     g_t <- unname(tmed[arm] / tmed["base"])
     g_u <- unname(unt_max[arm])
     guards <- is.finite(g_t) && all(g_F <= GUARD["F"], na.rm = TRUE) && g_R >= -GUARD["R"] && g_t <= GUARD["time"] &&
-      is.finite(g_u) && g_u <= GUARD["untested"]
+      is.finite(g_u) && g_u <= (if (UNTESTED_GUARD == "relative") unt_max["base"] + GUARD["untested"] else GUARD["untested"])
     if (arm %in% K_ARMS) {
       e <- boot(paired(pr$P, "P", arm, "S3")); thr <- MARGIN["P"]; endpoint <- "dP_S3"
       pass <- is.finite(e["est"]) && e["est"] >= thr && e["lo"] > 0
@@ -110,4 +127,7 @@ d <- merge(d, w[, c("arm", "adopt", "final")], by = "arm")
 dir.create(dirname(out_csv), showWarnings = FALSE, recursive = TRUE)
 write.csv(d[order(d$arm, d$base), ], out_csv, row.names = FALSE)
 if (length(calib)) write.csv(do.call(rbind, calib), sub("\\.csv$", "_base_calibration.csv", out_csv), row.names = FALSE)
+if (length(conf)) write.csv(do.call(rbind, conf), sub("\\.csv$", "_confounder.csv", out_csv), row.names = FALSE)
 print(w[, c("arm", "adopt", "final")]); if (length(calib)) print(do.call(rbind, calib))
+if (length(conf)) { cat("\nConfounder check (S0, share of datasets with any shared call; no verdict):\n"); print(do.call(rbind, conf)) }
+cat("untested guard:", UNTESTED_GUARD, "\n")
