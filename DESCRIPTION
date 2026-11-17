@@ -1,7 +1,7 @@
 Package: cellprograms
 Type: Package
 Title: Cell-Type-Specific Transcriptional Programs via Empirical-Bayes Matrix Factorization
-Version: 0.2.0.9001
+Version: 0.3.0
 Authors@R: person("Mikhael Dito", "Manurung", email = "mikhael.manurung@gmail.com", role = c("aut", "cre"))
 Description: Discover cell-type-specific transcriptional programs from
     pseudobulk single-cell RNA-seq data using empirical-Bayes matrix

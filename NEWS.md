@@ -1,4 +1,4 @@
-# cellprograms (development, 0.3.0)
+# cellprograms 0.3.0
 
 ## Repeated visits and seeds
 
@@ -29,6 +29,20 @@
 * `plot_cmp_network()` now marks ambient-flagged programs; `plot_alignment()`
   reads the significance that `align_programs()` output carries.
 
+## Dependencies, names and guidance
+
+* `Matrix`, `matrixStats` and `reticulate` moved from Imports to Suggests, and
+  `data.table` was dropped. Code that needs one of them stops with an install hint
+  when it is missing. `flashier.utils`, `digest` and `splines` stay in Imports.
+* Every `plot_*()` function checks for `ggplot2` first and stops with an install hint.
+* New snake_case names `metacells_by_groups_supercell()`, `optimize_gamma_supercell()`
+  and `get_metacell_supercell()`. The PascalCase names still work and warn once per
+  session.
+* The Rd descriptions of `fit_eb_cp()`, `eb_cp_from_fit()`, `eb_cp_programs()`,
+  `fit_joint_block()` and `block_clusters()` say "Experimental"; those of
+  `program_sharing()` and `span_alignment()` say "Descriptive".
+* The quickstart vignette has a "Which function should I use?" section.
+
 ## SEACells removed
 
 * SuperCell 2.0 + mcRigor (`GfellerLab/SuperCell@89b34c0`, supercell-2.0
@@ -38,8 +52,6 @@
   export helpers and the "metacells_seacells" article. The last tree with
   SEACells is the git tag `pre-seacells-removal`. Shared helpers moved to
   `R/metacells-common.R`.
-
-# cellprograms 0.2.0.9001 (development)
 
 ## Repeated-observation coordination
 
@@ -209,8 +221,6 @@
   codes are coerced to NA by DETECT's named-membership filter at mcRigor
   c70cd6f and aborted with "Cannot find cells provided"; the string
   convention is what the benchmark validated.
-# cellprograms 0.2.0.9000 (development)
-
 ## Metacell benchmark (2026-10-22)
 
 * Preregistered benchmark of SEACells vs SuperCell 2.0 (pure R) with mcRigor
