@@ -77,5 +77,10 @@ test_that("span_alignment recovers identical, subset, and orthogonal spans", {
   rownames(W) <- paste0("g", seq_len(200))
   Wp <- W[sample(200), ]
   expect_equal(span_alignment(W, Wp)$mean_overlap, 1, tolerance = 1e-8)
-  expect_error(span_alignment(W, W[1:50, ]), "same number")
+  expect_error(span_alignment(W, W[1:50, ]), "200 vs 50")
+  # same size, partly different genes: fail instead of silently intersecting
+  Wq <- W; rownames(Wq)[1:10] <- paste0("other", 1:10)
+  expect_error(span_alignment(W, Wq), "different gene names")
+  Wd <- W; rownames(Wd)[2] <- rownames(Wd)[1]
+  expect_error(span_alignment(Wd, Wd), "duplicated")
 })

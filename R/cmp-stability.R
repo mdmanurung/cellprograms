@@ -369,12 +369,13 @@ print.cmp_stability <- function(x, ...) {
   if (anyDuplicated(md$observation_id)) .stopf("sample_metadata observation_id must be unique.")
   n_per_donor <- table(donor)
   if (any(n_per_donor > 1L) && is.null(visit_col)) {
-    .stopf(paste0("%d donors contribute > 1 observation; supply `visit_col` (or `observation_group_col`) ",
+    .stopf(paste0("%d donors contribute > 1 observation; supply `visit_col` ",
                   "so the paired-observation estimand is explicit."), sum(n_per_donor > 1L))
   }
   st <- if (is.null(donor_strata)) NA_character_ else {
     if (!donor_strata %in% names(md)) .stopf("donor_strata '%s' not found in sample_metadata.", donor_strata)
     sv <- as.character(md[[donor_strata]])
+    if (anyNA(sv)) .stopf("donor_strata '%s' contains NA values.", donor_strata)
     bad <- tapply(sv, donor, function(x) length(unique(x)), simplify = TRUE)
     if (any(bad > 1L)) .stopf("donor_strata '%s' must be constant within donor.", donor_strata)
     sv

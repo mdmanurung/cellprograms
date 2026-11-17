@@ -494,8 +494,9 @@ match_programs <- function(fit_a, fit_b, cell_type,
 #'
 #' @param W1 Loading matrix (genes x programs) on the common gene panel.
 #' @param W2 Second loading matrix (genes x programs) on that same panel.
-#'   Row names should match; rows are matched by name when both have row
-#'   names, otherwise by position.
+#'   Both matrices need the same number of rows. When both have row names, they
+#'   must hold the same genes (any order; rows are matched by name) or the call
+#'   fails. Without row names, rows are matched by position.
 #' @param k Optional number of leading principal cosines to average for
 #'   `mean_overlap_topk` (default: all).
 #' @return A list with `principal_cosines` (descending cosines of the
@@ -513,16 +514,16 @@ span_alignment <- function(W1, W2, k = NULL) {
   }
   W1 <- as.matrix(W1); W2 <- as.matrix(W2)
   if (nrow(W1) != nrow(W2)) {
-    .stopf("`W1` and `W2` must have the same number of gene rows ({nrow(W1)} vs {nrow(W2)}).")
+    .stopf("`W1` and `W2` must have the same number of gene rows (%d vs %d).", nrow(W1), nrow(W2))
   }
-  if (!is.null(rownames(W1)) && !is.null(rownames(W2)) &&
-      !setequal(rownames(W1), rownames(W2))) {
-    common <- intersect(rownames(W1), rownames(W2))
-    if (!length(common)) {
-      .stopf("`W1` and `W2` share no gene row names.")
+  if (!is.null(rownames(W1)) && !is.null(rownames(W2))) {
+    if (anyDuplicated(rownames(W1)) || anyDuplicated(rownames(W2))) {
+      .stopf("`W1` and `W2` must not have duplicated gene row names.")
     }
-    W1 <- W1[common, , drop = FALSE]; W2 <- W2[common, , drop = FALSE]
-  } else if (!is.null(rownames(W1)) && !is.null(rownames(W2))) {
+    if (!setequal(rownames(W1), rownames(W2))) {
+      .stopf("`W1` and `W2` have different gene names (%d of %d in `W1` are missing from `W2`).",
+             length(setdiff(rownames(W1), rownames(W2))), nrow(W1))
+    }
     W2 <- W2[rownames(W1), , drop = FALSE]
   }
   basis <- function(W) {

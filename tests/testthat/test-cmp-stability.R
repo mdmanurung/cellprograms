@@ -125,6 +125,16 @@ test_that("donor_strata must be constant within donor", {
                "constant within donor")
 })
 
+test_that("donor_strata with NA values is refused, not silently dropped", {
+  fit <- .make_cmpstab_fit()
+  fit$sample_metadata$donor <- rep(paste0("d", 1:30), 2)[1:60]
+  fit$sample_metadata$visit <- rep(c("v1", "v2"), each = 30)
+  by_donor <- rep(c("x", "y"), length.out = 30); by_donor[3] <- NA
+  fit$sample_metadata$batch <- by_donor[match(fit$sample_metadata$donor, paste0("d", 1:30))]
+  expect_error(cellprograms:::.cmpstab_donor_map(fit, "donor", "visit", "batch"),
+               "contains NA")
+})
+
 test_that("replicate failures are ledgered; rates stay NA on all-fail", {
   fit <- .make_cmpstab_fit()
   fake_ref <- structure(

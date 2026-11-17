@@ -10,8 +10,9 @@ span_alignment(W1, W2, k = NULL)
 \item{W1}{Loading matrix (genes x programs) on the common gene panel.}
 
 \item{W2}{Second loading matrix (genes x programs) on that same panel.
-Row names should match; rows are matched by name when both have row
-names, otherwise by position.}
+Both matrices need the same number of rows. When both have row names, they
+must hold the same genes (any order; rows are matched by name) or the call
+fails. Without row names, rows are matched by position.}
 
 \item{k}{Optional number of leading principal cosines to average for
 `mean_overlap_topk` (default: all).}
