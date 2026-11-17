@@ -53,11 +53,11 @@ computed dimensions of the reduction.}
 \item{layer}{Layer (Seurat v5) to extract counts from. Default `counts`.}
 
 \item{mode}{How to aggregate constituent cells into metacells: `"sum"`
-(raw-count sums, the SEACells default and the benchmark configuration) or
+(raw-count sums, the benchmark configuration) or
 `"average"` (divide by metacell size). Default `"sum"`.}
 
 \item{cells_per_metacell}{Target number of single cells per metacell  - 
-SuperCell's native `gamma`. Default 75 (SEACells guidance; hdWGCNA k
+SuperCell's native `gamma`. Default 75 (hdWGCNA k
 guidance: 20-75).}
 
 \item{target_metacells}{Optional cap on the number of metacells per group.
@@ -90,7 +90,7 @@ construction is deterministic but the parameter is kept for API parity
 and on-the-fly PCA reproducibility). Default 20261016.}
 
 \item{name}{Reserved for interface parity with
-[MetacellsByGroupsSEACells()] (metacell names are `<group>_<i>`).
+hdWGCNA (metacell names are `<group>_<i>`).
 Default `"SC"`.}
 
 \item{wgcna_name}{Name under which results are stored in
@@ -113,22 +113,21 @@ Constructs transcriptomically homogeneous metacells from a Seurat object
 using SuperCell 2.0 (Bilous et al. 2022) as the aggregation backend,
 computed separately within each level of the supplied groupings (typically
 donor, cell type, or condition), following the hdWGCNA `MetacellsByGroups`
-interface (Morabito et al. 2023). This is the package's **default**,
-pure-R metacell path: a preregistered benchmark
+interface (Morabito et al. 2023). This is the package's pure-R metacell
+path: a preregistered benchmark
 (`benchmarks/metacell_comparison/`) found SuperCell + mcRigor comparable to
 SEACells on dubious-detection ARI and program-recovery fidelity at ~200x
 lower construction cost. Metacell quality is governed by mcRigor (Liu & Li
 2025): per-metacell mcDiv dubious detection with double-permutation nulls,
 DubRate/ZeroRate scoring, and optional granularity optimization via
-[OptimizeGammaSuperCell()]. The SEACells backend remains available in
-[MetacellsByGroupsSEACells()].
+[OptimizeGammaSuperCell()].
 }
 \details{
 Groups are processed independently; each group's cells are
   subsetted (with their reduction), SCimplify partitions the KNN graph,
   metacell counts are summarized from raw counts, and mcRigor QC is
   computed against the group's single-cell counts. The result is
-  hdWGCNA-interoperable in the same way as the SEACells backend.
+  hdWGCNA-interoperable.
 }
 \references{
 Bilous et al. (2022) Bioinformatics, doi:10.1093/bioinformatics/btac104;

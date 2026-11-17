@@ -1,15 +1,14 @@
 # SuperCell 2.0 metacell backend (pure R; the benchmark-default path).
 #
 # Benchmark (benchmarks/metacell_comparison/, ledger 2026-10-22): SuperCell 2.0
-# + mcRigor matches SEACells on dubious-detection ARI (gap 0.019 <= 0.05) and
+# + mcRigor matched SEACells on dubious-detection ARI (gap 0.019 <= 0.05) and
 # program-recovery fidelity (gap 5.4% <= 10%) at ~200x lower membership
-# construction cost, so it is the default R-native metacell path. SEACells
-# remains available unchanged (R/metacells-seacells.R).
+# construction cost, so it is the package's only metacell path. SEACells was
+# removed in 0.3.0 (git tag pre-seacells-removal).
 #
 # SuperCell (Bilous et al. 2022, doi:10.1093/bioinformatics/btac104; v2.0,
 # GfellerLab/SuperCell@89b34c0, supercell-2.0 branch) is used via
-# SCimplify_for_Seurat_v5: gamma is natively "cells per metacell", matching
-# the SEACells interface's cells_per_metacell parameter.
+# SCimplify_for_Seurat_v5: gamma is natively "cells per metacell".
 
 .sc_gamma_for_target <- function(obj_g, target, reduction, dims, assay, k.knn,
                                  tol = 0.10, max_iter = 14) {
@@ -58,7 +57,7 @@
 .sc_aggregate_counts <- function(counts_g, mem_codes, mc_names, mode) {
     # Aggregate single-cell counts into metacells by sparse indicator product
     # (benchmark-proven: counts (genes x cells) %*% t(ind) (cells x k) ->
-    # genes x k). mode = "sum" (raw sums, SEACells default) or "average"
+    # genes x k). mode = "sum" (raw sums) or "average"
     # (divide by metacell size).
     uid <- sort(unique(mem_codes))
     ind <- Matrix::sparseMatrix(
@@ -121,15 +120,14 @@
 #' using SuperCell 2.0 (Bilous et al. 2022) as the aggregation backend,
 #' computed separately within each level of the supplied groupings (typically
 #' donor, cell type, or condition), following the hdWGCNA `MetacellsByGroups`
-#' interface (Morabito et al. 2023). This is the package's **default**,
-#' pure-R metacell path: a preregistered benchmark
+#' interface (Morabito et al. 2023). This is the package's pure-R metacell
+#' path: a preregistered benchmark
 #' (`benchmarks/metacell_comparison/`) found SuperCell + mcRigor comparable to
 #' SEACells on dubious-detection ARI and program-recovery fidelity at ~200x
 #' lower construction cost. Metacell quality is governed by mcRigor (Liu & Li
 #' 2025): per-metacell mcDiv dubious detection with double-permutation nulls,
 #' DubRate/ZeroRate scoring, and optional granularity optimization via
-#' [OptimizeGammaSuperCell()]. The SEACells backend remains available in
-#' [MetacellsByGroupsSEACells()].
+#' [OptimizeGammaSuperCell()].
 #'
 #' @param seurat_obj A Seurat object with raw counts and a dimensionality
 #'   reduction (default `pca`). Set `reduction = NULL` to compute a standard
@@ -147,10 +145,10 @@
 #' @param slot Slot (Seurat v4) to extract counts from. Default `counts`.
 #' @param layer Layer (Seurat v5) to extract counts from. Default `counts`.
 #' @param mode How to aggregate constituent cells into metacells: `"sum"`
-#'   (raw-count sums, the SEACells default and the benchmark configuration) or
+#'   (raw-count sums, the benchmark configuration) or
 #'   `"average"` (divide by metacell size). Default `"sum"`.
 #' @param cells_per_metacell Target number of single cells per metacell  - 
-#'   SuperCell's native `gamma`. Default 75 (SEACells guidance; hdWGCNA k
+#'   SuperCell's native `gamma`. Default 75 (hdWGCNA k
 #'   guidance: 20-75).
 #' @param target_metacells Optional cap on the number of metacells per group.
 #'   When set, gamma is bisected (log scale) to land within +/-10% of the
@@ -174,7 +172,7 @@
 #'   construction is deterministic but the parameter is kept for API parity
 #'   and on-the-fly PCA reproducibility). Default 20261016.
 #' @param name Reserved for interface parity with
-#'   [MetacellsByGroupsSEACells()] (metacell names are `<group>_<i>`).
+#'   hdWGCNA (metacell names are `<group>_<i>`).
 #'   Default `"SC"`.
 #' @param wgcna_name Name under which results are stored in
 #'   `seurat_obj@misc`. Default `"SuperCell"`.
@@ -193,7 +191,7 @@
 #'   subsetted (with their reduction), SCimplify partitions the KNN graph,
 #'   metacell counts are summarized from raw counts, and mcRigor QC is
 #'   computed against the group's single-cell counts. The result is
-#'   hdWGCNA-interoperable in the same way as the SEACells backend.
+#'   hdWGCNA-interoperable.
 #'
 #' @references
 #' Bilous et al. (2022) Bioinformatics, doi:10.1093/bioinformatics/btac104;
@@ -432,8 +430,7 @@ MetacellsByGroupsSuperCell <- function(
 #' Runs SuperCell's SCimplify at several granularities (cells per metacell  - 
 #' SuperCell's native `gamma`) per group and calls `mcRigor::mcRigor_OPTIMIZE`
 #' to select the granularity maximizing the mcRigor Score
-#' (1 - w*DubRate - (1-w)*ZeroRate). Cheap relative to the SEACells analogue:
-#' one graph partition per group per candidate granularity (seconds).
+#' (1 - w*DubRate - (1-w)*ZeroRate). Cheap: one graph partition per group per candidate granularity (seconds).
 #'
 #' @param seurat_obj A Seurat object.
 #' @param group.by Metadata column(s) defining groups (as in

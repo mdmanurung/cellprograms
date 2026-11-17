@@ -1,3 +1,15 @@
+# cellprograms (development, 0.3.0)
+
+## SEACells removed
+
+* SuperCell 2.0 + mcRigor (`GfellerLab/SuperCell@89b34c0`, supercell-2.0
+  branch) is now the only metacell path. Removed:
+  `MetacellsByGroupsSEACells()`, `OptimizeGammaSEACells()`,
+  `GetMetacellSEACells()`, the SEACells basilisk environment, the Python
+  export helpers and the "metacells_seacells" article. The last tree with
+  SEACells is the git tag `pre-seacells-removal`. Shared helpers moved to
+  `R/metacells-common.R`.
+
 # cellprograms 0.2.0.9001 (development)
 
 ## Repeated-observation coordination

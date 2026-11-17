@@ -68,6 +68,5 @@ A list with `optimal_gamma` (named list, per group), `scores` (per
 Runs SuperCell's SCimplify at several granularities (cells per metacell  - 
 SuperCell's native `gamma`) per group and calls `mcRigor::mcRigor_OPTIMIZE`
 to select the granularity maximizing the mcRigor Score
-(1 - w*DubRate - (1-w)*ZeroRate). Cheap relative to the SEACells analogue:
-one graph partition per group per candidate granularity (seconds).
+(1 - w*DubRate - (1-w)*ZeroRate). Cheap: one graph partition per group per candidate granularity (seconds).
 }

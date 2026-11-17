@@ -64,24 +64,6 @@ test_that("degenerate permutation null gives NA z instead of NaN/Inf", {
 
 # ---- 2026-10-19 implementation review: criticals ----
 
-test_that("multi-group soft assignments combine block-diagonally (C-1)", {
-  mk <- function(cells, mcs, w) {
-    Matrix::Matrix(w, length(cells), length(mcs), sparse = TRUE,
-                   dimnames = list(cells, mcs))
-  }
-  a <- mk(paste0("c", 1:3), paste0("grpA_", 1:2), 0.5)
-  b <- mk(paste0("c", 4:6), paste0("grpB_", 1:4), 0.25)   # unequal metacell counts
-  s <- .combine_soft_assignments(list(A = a, B = b))
-  expect_s4_class(s, "dgCMatrix")
-  expect_equal(dim(s), c(6L, 6L))
-  expect_equal(rownames(s), paste0("c", 1:6))
-  expect_equal(colnames(s), c(paste0("grpA_", 1:2), paste0("grpB_", 1:4)))
-  # group-local weights: no cross-group leakage
-  expect_true(all(s[1:3, 3:6] == 0))
-  expect_true(all(s[4:6, 1:2] == 0))
-  expect_equal(Matrix::nnzero(s), Matrix::nnzero(a) + Matrix::nnzero(b))
-})
-
 test_that("cmp_context_association never reports x* covariates as context terms (C-2)", {
   set.seed(11)
   ids <- paste0("d", seq_len(40))

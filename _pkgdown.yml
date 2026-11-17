@@ -89,16 +89,11 @@ reference:
   desc: >
     Optional upstream aggregation of single cells into metacells before
     program discovery. The default backend is SuperCell 2.0 (pure R, no
-    Python) with mcRigor QC and granularity optimization. The SEACells
-    backend remains available and additionally requires basilisk (the
-    SEACells Python environment is built on first use).
+    Python) with mcRigor QC and granularity optimization.
   contents:
   - MetacellsByGroupsSuperCell
   - OptimizeGammaSuperCell
   - GetMetacellSuperCell
-  - MetacellsByGroupsSEACells
-  - OptimizeGammaSEACells
-  - GetMetacellSEACells
 - title: Program plots
   desc: Fit-level visualisations.
   contents:
@@ -143,7 +138,6 @@ articles:
   navbar: ~
   contents:
   - quickstart
-  - articles/metacells_seacells
   - articles/metacells_to_programs
 
 - title: Methods

@@ -18,8 +18,8 @@ has_metacells <- requireNamespace("Seurat", quietly = TRUE) &&
 This article runs the **full `cellprograms` pipeline downstream of metacell
 construction**. The starting point is a single-cell Seurat object; metacells
 are built with the default SuperCell 2.0 + mcRigor backend (pure R — no
-Python; see "Metacells: SuperCell (default) and SEACells" for construction
-details and the benchmark behind the default), and the metacell counts then
+Python; the benchmark behind this choice is in
+`benchmarks/metacell_comparison/`), and the metacell counts then
 feed program discovery, stability assessment, coordinated multicellular
 program (CMP) detection, sharing assessment, and cell-level projection.
 

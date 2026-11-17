@@ -122,7 +122,7 @@ historical case studies remain withdrawn.
 - `cebmf_torch` is a distinct experimental estimator, not numerical equivalence
   to ordinary flashier. Its supported controls and native environment must be
   validated independently; unsupported combinations fail early.
-- SuperCell, SEACells/mcRigor, optional covariate integrations and metacell
+- SuperCell/mcRigor, optional covariate integrations and metacell
   projection have separate dependency and aggregation-scale limitations.
   Ordinary checks do not certify them.
 - Historical COVID, DIVAS, immune-aging and comparator material is retained for

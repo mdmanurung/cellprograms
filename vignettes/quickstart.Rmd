@@ -57,8 +57,7 @@ When the starting point is a single-cell object rather than pseudobulk
 profiles, `MetacellsByGroupsSuperCell()` aggregates cells into
 transcriptomically homogeneous metacells with SuperCell 2.0 (pure R — no
 Python) and mcRigor QC, stratified so metacells never cross donors or cell
-types; the SEACells backend (`MetacellsByGroupsSEACells()`, basilisk
-Python) remains available as an alternative. The metacell counts feed
+types. The metacell counts feed
 donor-by-visit-by-cell-type aggregation before primary donor-level inference.
 The following optional construction is not a donor-level inference example:
 
