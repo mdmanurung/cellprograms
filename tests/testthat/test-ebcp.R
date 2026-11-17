@@ -25,6 +25,7 @@ make_mats <- function(seed, signal = 1.2) {
 }
 
 test_that("fit_eb_cp recovers a shared activity+genes program", {
+  skip_if_not_installed("matrixStats")
   cp <- fit_eb_cp(make_mats(11), Kmax = 8L, seed = 1L)
   expect_s3_class(cp, "eb_cp_fit")
   expect_gt(cp$n_components, 0L)
@@ -35,6 +36,7 @@ test_that("fit_eb_cp recovers a shared activity+genes program", {
 })
 
 test_that("fit_eb_cp does not call a coordination program on correlated privates", {
+  skip_if_not_installed("matrixStats")
   ## A and B get correlated (r = 0.7) donor activities on DISJOINT genes: the
   ## S5 trap. Truth: distinct programs; a call containing both is a failure.
   set.seed(11)
@@ -57,6 +59,7 @@ test_that("fit_eb_cp does not call a coordination program on correlated privates
 })
 
 test_that("eb_cp_from_fit derives strata from the fit's covariates", {
+  skip_if_not_installed("matrixStats")
   x <- .toy()   # A + B share a latent program; batch/age nuisance; metadata attached
   f <- canonicalize_programs(fit_celltype_programs(
     x, max_factors = 6L, covariates = "batch", covariate_mode = "residualize",

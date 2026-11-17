@@ -30,6 +30,7 @@ test_that("CPUB-001 tensor normalization preserves products for either anchor si
 })
 
 test_that("CPUB-001 actual assembly and diagnostic agree with mocked rank-one solver", {
+  skip_if_not_installed("matrixStats")
   ids <- paste0("d", 1:20)
   genes <- paste0("g", 1:10)
   u <- -seq_len(10)/10
@@ -59,6 +60,7 @@ test_that("CPUB-001 actual assembly and diagnostic agree with mocked rank-one so
 })
 
 test_that("CPUB-001 zero-rank output is well-formed and zero-energy error undefined", {
+  skip_if_not_installed("matrixStats")
   m <- matrix(0, 20, 10, dimnames = list(paste0("d", 1:20), paste0("g", 1:10)))
   cp <- fit_eb_cp(list(A = m, B = m), Kmax = 0)
   expect_equal(dim(cp$U), c(10, 0))
@@ -77,6 +79,7 @@ test_that("CPUB-009 unusable strata and ragged halves fail before solving", {
 })
 
 test_that("CPUB-001 tiny real EB normal-means fit has self-consistent diagnostics", {
+  skip_if_not_installed("matrixStats")
   skip_if_not_installed("ebnm")
   set.seed(7)
   ids <- paste0("d", 1:30); genes <- paste0("g", 1:20)
