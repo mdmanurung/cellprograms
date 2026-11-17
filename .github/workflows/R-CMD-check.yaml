@@ -24,7 +24,8 @@ jobs:
           - {os: ubuntu-latest, r: 'release', lane: 'pinned'}
           - {os: macos-latest, r: 'release', lane: 'pinned'}
           - {os: windows-latest, r: 'release', lane: 'pinned'}
-          - {os: ubuntu-latest, r: '4.3', lane: 'pinned'}
+          # R 4.3 lane removed: its Bioconductor 3.18 index returns 404 on the posit mirror, so
+          # dependency setup fails before any test runs. Depends: R (>= 4.3) is not tested.
           # upstream-main lane: flashier-utils main, to catch upstream drift early
           - {os: ubuntu-latest, r: 'release', lane: 'upstream-main'}
     env:
