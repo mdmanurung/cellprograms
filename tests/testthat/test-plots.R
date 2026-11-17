@@ -114,3 +114,33 @@ test_that("plot_cmp_network handles results computed with ambient = 'none' (no a
   p <- plot_cmp_network(cm_none)             # regressed: setNames length mismatch
   expect_true(inherits(p, "ggplot"))
 })
+
+test_that("plot_cmp_network marks ambient-flagged programs with the hollow-triangle shape", {
+  skip_if_not_installed("ggplot2")
+  ids <- c("A_1", "B_1", "C_1")
+  cmp <- structure(list(
+    edges = data.frame(prog_a = c("A_1", "A_1"), prog_b = c("B_1", "C_1"),
+                       stat = c(4, 3), sign = c(1, -1), stringsAsFactors = FALSE),
+    nodes = data.frame(cell_type = c("A", "B", "C"), program_id = ids,
+                       node_stat = c(5, 4, 3), ambient_score = c(0.9, 0.1, 0.1),
+                       stringsAsFactors = FALSE),
+    cmps = data.frame(cmp = 1L, cell_type = c("A", "B", "C"), program_id = ids,
+                      stringsAsFactors = FALSE),
+    settings = list(ambient_threshold = 0.3)), class = "cmp_result")
+  p <- plot_cmp_network(cmp, seed = 1)
+  pts <- ggplot2::ggplot_build(p)$data[[2]]
+  ## shape 24 = ambient; exactly one of the three nodes (A_1) is flagged
+  expect_equal(sum(pts$shape == 24), 1L)
+})
+
+test_that("plot_alignment reports significance from align_programs() output", {
+  skip_if_not_installed("ggplot2")
+  mk <- function(p) structure(list(
+    program_weights = list(a = matrix(c(1, 0), 2, 1, dimnames = list(c("A_1", "A_2"), "d1")),
+                           b = matrix(c(0, 1), 2, 1, dimnames = list(c("B_1", "B_2"), "d1"))),
+    p_pair = p, underpowered = FALSE), class = "principal_angles")
+  x <- structure(list(B = mk(0.001), C = mk(0.4)), reference = "A")
+  p <- plot_alignment(x)
+  expect_match(p$labels$subtitle, "1/2 pairs significant")
+  expect_match(p$labels$subtitle, "unadjusted p")
+})

@@ -492,7 +492,7 @@ plot_cmp_network <- function(cmp, max_edges = NULL, seed = 1) {
   ## no exclusion was applied, so no node is ambient-flagged.
   amb_raw <- if (is.null(n$ambient_score)) rep(FALSE, nrow(n)) else
     n$ambient_score >= (cmp$settings$ambient_threshold %||% 0.3)
-  amb <- stats::setNames(amb_raw, paste(n$cell_type, n$program_id, sep = "_"))
+  amb <- stats::setNames(amb_raw, n$program_id)
 
   nodes <- unique(c(e$prog_a, e$prog_b))
   nd <- data.frame(label = nodes, cmp_lab = ifelse(is.na(memb[nodes]), "unassigned",
@@ -875,10 +875,13 @@ plot_alignment <- function(x, q_alpha = 0.05) {
   })
   df <- do.call(rbind, rows)
   if (is.null(df) || !nrow(df)) return(.empty_plot("No alignment results to plot."))
-  sig_lab <- if (any(df$q_pair < q_alpha, na.rm = TRUE)) {
-    sprintf("%d/%d pairs significant (q < %.2f)", sum(df$q_pair < q_alpha, na.rm = TRUE),
-            length(unique(df$pair)), q_alpha)
-  } else "no pair significant"
+  ## align_programs() objects carry the raw permutation p; only sharing_spectrum adds BH q
+  sig_kind <- if (all(df$sig_kind == "q")) "q" else "unadjusted p"
+  pair_p <- tapply(df$sig_p, df$pair, function(v) v[1L])
+  sig_lab <- if (any(pair_p < q_alpha, na.rm = TRUE)) {
+    sprintf("%d/%d pairs significant\n(%s < %.2f)", sum(pair_p < q_alpha, na.rm = TRUE),
+            length(pair_p), sig_kind, q_alpha)
+  } else sprintf("no pair significant\n(%s < %.2f)", sig_kind, q_alpha)
   ggplot2::ggplot(df, ggplot2::aes(direction, program, fill = weight)) +
     ggplot2::geom_tile(color = "white") +
     ggplot2::scale_fill_gradient2(low = .diverging_pal()[1], mid = .diverging_pal()[2],
@@ -902,7 +905,9 @@ plot_alignment <- function(x, q_alpha = 0.05) {
   if (is.null(df)) return(df)
   df$direction <- factor(df$direction, levels = sort(unique(df$direction)),
                          labels = paste("dir", sort(unique(df$direction))))
-  df$q_pair <- r$q_pair
+  has_q <- !is.null(r$q_pair) && length(r$q_pair) == 1L && !is.na(r$q_pair)
+  df$sig_p <- if (has_q) r$q_pair else (r$p_pair %||% NA_real_)
+  df$sig_kind <- if (has_q) "q" else "p"
   df
 }
 
