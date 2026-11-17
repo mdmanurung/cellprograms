@@ -77,3 +77,18 @@ test_that("fit consumers fail closed with a clear message on a non-canonicalized
   fit_c <- canonicalize_programs(fit_raw)
   expect_s3_class(program_summary(fit_c), "data.frame")
 })
+
+test_that("match_method is deprecated and does not change stability results", {
+  skip_if_not_installed("flashier"); skip_if_not_installed("ebnm")
+  fit <- canonicalize_programs(fit_celltype_programs(.toy(), covariates = ~ batch + age,
+                                                     max_factors = 3, seed = 1))
+  run <- function(...) suppressWarnings(assess_program_stability(
+    fit, n_boot = 3, seed = 1, progress = FALSE, ...))
+  base <- run()
+  expect_warning(sub <- assess_program_stability(fit, n_boot = 3, seed = 1, progress = FALSE,
+                                                 match_method = "subspace"),
+                 "match_method.*deprecated")
+  corr <- run(match_method = "correlation")
+  expect_equal(sub$stability$per_program, base$stability$per_program)
+  expect_equal(corr$stability$per_program, base$stability$per_program)
+})

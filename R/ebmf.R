@@ -785,6 +785,13 @@ canonicalize_programs <- function(fit) {
         f, sample_side = "rows", scaling = "rms", orientation = "anchor_feature")
       Zc <- as.matrix(rms$activity)
       Wc <- as.matrix(rms$effects)
+      # the native dimnames are copied over below, so first check that
+      # standardize_factors kept observations and genes in the fit's order
+      stopifnot(
+        "standardize_factors kept the observation order" =
+          is.null(rownames(Zc)) || is.null(rownames(Z)) || identical(rownames(Zc), rownames(Z)),
+        "standardize_factors kept the gene order" =
+          is.null(rownames(Wc)) || is.null(rownames(W)) || identical(rownames(Wc), rownames(W)))
       # preserve the native dimnames so downstream reconstruction/extraction
       # matches the legacy inline branch exactly
       dimnames(Zc) <- dimnames(Z)
@@ -830,6 +837,13 @@ canonicalize_programs <- function(fit) {
     W <- matrix(0, nrow = length(genes_ct), ncol = K,
                 dimnames = list(genes_ct, prog_names))
     if (K > 0L) {
+      # Z[] and W[] fill by position, so the canonical matrices must already
+      # be in the fitted data's observation and gene order
+      stopifnot(
+        "canonical score rows match the fitted observations" =
+          is.null(rownames(canon[[ct]]$Z)) || identical(rownames(canon[[ct]]$Z), rownames(Y_used)),
+        "canonical loading rows match the fitted genes" =
+          is.null(rownames(canon[[ct]]$W)) || identical(rownames(canon[[ct]]$W), genes_ct))
       Z[] <- canon[[ct]]$Z
       W[] <- canon[[ct]]$W
     }

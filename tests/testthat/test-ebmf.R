@@ -121,3 +121,37 @@ test_that("C4 guard does not bind at or below the bound, and degenerate types ke
                                                  loading_prior = "point_normal", seed = 1))
   expect_true(isTRUE(fitd$fits$A$skipped))
 })
+
+test_that("canonicalize_programs refuses rows or genes that move relative to the fit", {
+  skip_if_not_installed("flashier"); skip_if_not_installed("ebnm")
+  skip_if_not_installed("flashier.utils")
+  set.seed(11)
+  Y <- matrix(rnorm(30 * 60), 30, 60,
+              dimnames = list(paste0("s", 1:30), paste0("g", 1:60)))
+  Y[1:15, 1:5] <- Y[1:15, 1:5] + 3
+  cpd <- as_cell_program_data(list(CT1 = Y),
+                              sample_metadata = data.frame(observation_id = rownames(Y)))
+  fit <- fit_celltype_programs(cpd, seed = 1)
+  expect_s3_class(canonicalize_programs(fit), "cell_program_fit")   # clean fit still works
+
+  # upstream standardize_factors returns observations in another order
+  orig <- flashier.utils::standardize_factors
+  testthat::local_mocked_bindings(
+    standardize_factors = function(...) {
+      r <- orig(...); r$activity <- r$activity[rev(seq_len(nrow(r$activity))), , drop = FALSE]; r
+    }, .package = "flashier.utils")
+  expect_error(canonicalize_programs(fit), "observation order")
+})
+
+test_that("canonicalize_programs refuses scores whose rows differ from the fitted data", {
+  skip_if_not_installed("flashier"); skip_if_not_installed("ebnm")
+  set.seed(11)
+  Y <- matrix(rnorm(30 * 60), 30, 60,
+              dimnames = list(paste0("s", 1:30), paste0("g", 1:60)))
+  Y[1:15, 1:5] <- Y[1:15, 1:5] + 3
+  cpd <- as_cell_program_data(list(CT1 = Y),
+                              sample_metadata = data.frame(observation_id = rownames(Y)))
+  fit <- fit_celltype_programs(cpd, seed = 1)
+  fit$fits$CT1$Y_used <- fit$fits$CT1$Y_used[rev(seq_len(nrow(fit$fits$CT1$Y_used))), ]
+  expect_error(canonicalize_programs(fit), "match the fitted")
+})

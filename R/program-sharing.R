@@ -263,7 +263,11 @@
     if (is.na(k)) .stopf("Unknown program '%s' in cell type '%s'.", prog, ct)
     s_k <- fit$canonicalization[[ct]]$scale_multiplier[k]
     B[, j] <- W[genes, k]
-    S[, j] <- fit$fits[[ct]]$flash$F_psd[match(genes, rownames(W)), k] * s_k
+    F_psd <- fit$fits[[ct]]$flash$F_psd
+    # pair SDs with loadings by gene name; legacy unnamed F_psd shares W's row order
+    # (.sharing_check_fit already rejects an F_psd of the wrong shape)
+    if (is.null(rownames(F_psd))) rownames(F_psd) <- rownames(W)
+    S[, j] <- F_psd[genes, k] * s_k
   }
   # Degenerate posteriors from the sparse point-laplace prior: genes unused by a member's
   # program get loadings at the numerical noise floor (1e-16 and below, with an exponential

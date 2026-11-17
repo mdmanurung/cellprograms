@@ -201,3 +201,25 @@ test_that("program_sharing with zero sharing groups returns an unmatched descrip
   expect_true(all(res$summary$evidence == "no_significant_match"))
   expect_equal(nrow(res$summary), 3L)   # A_1, A_2, C_1
 })
+
+test_that(".sharing_matrices pairs SDs with loadings by gene name", {
+  skip_if_not_installed("flashier"); skip_if_not_installed("ebnm")
+  sim <- simulate_pseudobulk(n_samples = 30, n_genes = 200, program_size = 30, seed = 1)
+  fit <- canonicalize_programs(fit_celltype_programs(as_cell_program_data(sim$pseudobulk),
+                                                     max_factors = 3, seed = 1))
+  cts <- fit$cell_types[1:2]
+  group <- data.frame(cell_type = cts, program_id = paste0(cts, "_1"))
+  ok <- .sharing_matrices(fit, group, min_genes = 10L)
+  ct <- cts[1]
+  expect_equal(unname(ok$S[, 1]),
+               unname(fit$fits[[ct]]$flash$F_psd[rownames(ok$S), 1] *
+                        fit$canonicalization[[ct]]$scale_multiplier[1]))
+  # F_psd stored in another gene order: names, not positions, decide the pairing
+  fit2 <- fit
+  fit2$fits[[ct]]$flash$F_psd <- fit$fits[[ct]]$flash$F_psd[rev(seq_len(nrow(fit$loadings[[ct]]))), ]
+  expect_equal(.sharing_matrices(fit2, group, min_genes = 10L)$S, ok$S)
+  # F_psd with the wrong number of rows is refused by the fit check
+  fit3 <- fit
+  fit3$fits[[ct]]$flash$F_psd <- fit$fits[[ct]]$flash$F_psd[-1, ]
+  expect_error(.sharing_matrices(fit3, group, min_genes = 10L), "F_psd")
+})

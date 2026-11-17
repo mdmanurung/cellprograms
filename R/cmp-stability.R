@@ -254,7 +254,7 @@ assess_cmp_stability <- function(fit, donor_col = NULL, visit_col = NULL,
       # donor-score concordance on shared donors
       sc <- NA_real_
       if (best >= jaccard_threshold && !is.null(rep_scores) && paste0("CMP", j) %in% colnames(rep_scores)) {
-        a <- ref_scores[rownames(ref_scores) %in% rec$obs_keep, k]
+        a <- ref_scores[rownames(ref_scores) %in% rec$obs_keep, paste0("CMP", names(ref_members)[k])]
         bb <- rep_scores[, paste0("CMP", j)]
         common <- intersect(names(a)[!is.na(a)], names(bb)[!is.na(bb)])
         if (length(common) >= 4L) {

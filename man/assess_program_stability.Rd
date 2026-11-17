@@ -21,7 +21,8 @@ preprocessing settings, gene sets and covariates).}
 
 \item{n_boot}{Number of subsample refits.}
 
-\item{match_method}{Matching method for `match_programs`.}
+\item{match_method}{Deprecated; it has no effect. Factor-level matches are the
+greedy loading-cosine matches of [match_programs()] under either value.}
 
 \item{sim_threshold}{Minimum |cosine| for a factor-level match.}
 

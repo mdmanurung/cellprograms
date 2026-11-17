@@ -31,7 +31,8 @@
 #'   preprocessing settings, gene sets and covariates).
 #' @param n_boot Number of subsample refits.
 #' @param resample_frac Fraction of donors kept per cell type per refit.
-#' @param match_method Matching method for `match_programs`.
+#' @param match_method Deprecated; it has no effect. Factor-level matches are the
+#'   greedy loading-cosine matches of [match_programs()] under either value.
 #' @param sim_threshold Minimum |cosine| for a factor-level match.
 #' @param top_n Top-gene set size for Jaccard recovery.
 #' @param seed Random seed.
@@ -86,7 +87,12 @@ assess_program_stability <- function(fit, n_boot = 100L,
       n_boot != as.integer(n_boot)) .stopf("n_boot must be a positive integer.")
   if (length(resample_frac) != 1L || !is.finite(resample_frac) ||
       resample_frac <= 0 || resample_frac > 1) .stopf("resample_frac must be in (0, 1].")
-  match_method <- match.arg(match_method)
+  # match_method never changed the factor-level matches used here (both methods
+  # return the same greedy loading-cosine matches); "correlation" skips the unused
+  # principal-angle work.
+  if (!missing(match_method)) {
+    .warnf("`match_method` is deprecated and has no effect on the stability results.")
+  }
   if (!is.null(seed)) withr::local_seed(seed)
   pre <- fit$preprocessing
   # Legacy fits can carry provenance$seed = numeric(0); numeric(0) + b would
@@ -183,7 +189,7 @@ assess_program_stability <- function(fit, n_boot = 100L,
       ct_eligible <- isTRUE(k_by_ct[[ct]] > 0L)
       mp <- NULL
       if (ct_eligible) {
-        mp <- match_programs(fit, fit_b, ct, method = match_method,
+        mp <- match_programs(fit, fit_b, ct, method = "correlation",
                              sim_threshold = sim_threshold)
       }
       for (p in prog_ids[prog_tab$cell_type == ct]) {
@@ -248,6 +254,6 @@ assess_program_stability <- function(fit, n_boot = 100L,
                         valid_refits = valid_refits, failed_refits = failed_refits,
                         replicate_log = repl,
                         target = "full_fitting_procedure_including_documented_fallback_ladder",
-                        match_method = match_method, sim_threshold = sim_threshold)
+                        sim_threshold = sim_threshold)
   fit
 }

@@ -43,6 +43,35 @@ test_that("planted CMP is recovered under synchronized subsampling", {
   expect_true(all(st$cell_type_survival$survival_freq == 1))
 })
 
+test_that("donor-score concordance follows CMP ids, not the order CMPs appear in", {
+  set.seed(3)
+  N <- 60; ids <- paste0("d", seq_len(N)); cts <- paste0("CT", 1:3)
+  z1 <- rnorm(N); z2 <- rnorm(N)
+  scores <- lapply(cts, function(ct) {
+    S <- matrix(rnorm(N * 3), N, 3, dimnames = list(ids, paste0(ct, "_P", 1:3)))
+    S[, 1] <- z1 + rnorm(N, sd = 0.3); S[, 2] <- z2 + rnorm(N, sd = 0.3)
+    S
+  })
+  names(scores) <- cts
+  fit <- structure(list(scores = scores,
+    loadings = lapply(cts, function(ct) matrix(0, 5, 3)),
+    cell_types = cts, observation_ids = ids,
+    sample_metadata = data.frame(observation_id = ids)),
+    class = c("cell_program_fit", "cell_program_data", "list"))
+  orig <- find_coordinated_programs
+  # list the reference CMPs in descending id order; ids and members are unchanged
+  testthat::local_mocked_bindings(find_coordinated_programs = function(...) {
+    r <- orig(...)
+    if (!is.null(r$cmps) && nrow(r$cmps)) r$cmps <- r$cmps[order(-r$cmps$cmp), , drop = FALSE]
+    r
+  })
+  st <- assess_cmp_stability(fit, n_boot = 6, subsample_frac = 0.8,
+                             cmp_args = .cmpstab_args, seed = 5, progress = FALSE)
+  expect_gte(nrow(st$summary), 2)
+  expect_true(all(st$summary$donor_score_concordance > 0.5, na.rm = TRUE))
+  expect_false(anyNA(st$summary$donor_score_concordance))
+})
+
 test_that("no reference CMPs -> ineligibility reported, not zero stability", {
   fit <- .make_cmpstab_fit(plant = FALSE)
   expect_message(
