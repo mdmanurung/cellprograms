@@ -10,11 +10,11 @@ checklist is everything that can be verified or prepared ahead.
       `--no-manual --ignore-vignettes` on the built tarball).
 - [x] R CMD check on built tarball: 0 errors / 0 warnings / 0 notes
       (`_R_CHECK_FORCE_SUGGESTS_=false`; optional Suggests covered in CI).
-- [x] Full testthat suite green (558 pass / 0 fail at v0.2.0).
+- [x] Full testthat suite green (558 pass at v0.2.0; see reports/HANDOFF.md 2026-11-17 for 0.3.0).
 - [x] Every export has a roxygen page with a runnable example and at least one
       test (repo law).
 - [x] NEWS.md current through v0.2.0 (Stage B section added).
-- [x] DESCRIPTION: Imports complete (digest added 2026-10-16); Version 0.2.0.
+- [x] DESCRIPTION: Imports complete (digest added 2026-10-16); Version 0.3.0 (0.2.0 at first prep).
 
 ## Before submission (manual or next session)
 
@@ -44,3 +44,5 @@ checklist is everything that can be verified or prepared ahead.
    https://cran.r-project.org/submit.html.
 2. Reply to the maintainer confirmation email within the window.
 3. Archive the submission receipt in this file with the date.
+
+> 2026-11-17: CRAN is out of scope for 0.3.0 (GitHub release only). This list is unchanged since 0.2.0 apart from the version.

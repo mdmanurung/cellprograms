@@ -1,5 +1,17 @@
 # Handoff — cellprograms: metaprogram repair phase; learning from the Biomni CMP benchmark
 
+## Update 2026-11-17 — release/0.3.0 ready for review
+
+**Branch `release/0.3.0`** (fast-forward of the archive branch `completion/software-20261023`, plus fixes). Version 0.3.0. Scope: GitHub release only; no CRAN; owner gates O1-O18, biological claims and the 30 open archive tasks stay owner-gated.
+
+**Local check:** `R CMD build` and `R CMD check --no-manual` with `_R_CHECK_FORCE_SUGGESTS_=false` and SuperCell/mcRigor absent: Status OK (R 4.5.1, `R4_51` env). The SuperCell and mcRigor end-to-end tests were skipped, so the metacell path is untested here.
+
+**Decisions in force:** `n_agg_noanc` is the default CMP caller; SEACells is removed (SuperCell 2.0 + mcRigor only); `seed = 1L` default in `principal_angles`, `assess_program_stability`, `assess_cmp_stability`; cluster permutation in `principal_angles` and `assess_program_stability`; PascalCase SuperCell names deprecated.
+
+**Tests changed to pass CI:** the stability golden test now pins sampled row positions, not fit numerics. The fallback test no longer asserts that `point_normal` fires (it also failed on `cce9844`). The R 4.3 CI lane was removed (Bioconductor 3.18 index returns 404); `Depends: R (>= 4.3)` is untested.
+
+**Not done:** hosted CI has not run on the new commits. `benchmarks/model_selection/arms.R` and `benchmarks/cmp_*/` still call `.residualize()` without a fallback. `benchmarks/coordination/PREREG_coord_v2_DRAFT.md` is a draft with open rows. `reports/historical/c1/` holds the C1 side-clone audit trail (a different study from the default caller).
+
 ## Update 2026-10-16 — Stage A merged; phased execution plan in force
 
 **Main @ `31bd5bd`.** Stage A is merged and the release gate is signed (user plan approval
