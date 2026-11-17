@@ -396,10 +396,15 @@ plot_sharing_spectrum <- function(spectrum) {
   s$sig <- ifelse(s$underpowered, "underpowered",
                   ifelse(!is.na(s$shared) & s$shared, "shared", "n.s."))
   s$pair_lab <- ifelse(s$sig == "shared", sprintf("%s (q = %.3f)", s$pair, s$q_pair), s$pair)
+  # a pair that could not be tested (sharing_spectrum(clusters = ) skipped it) has no
+  # angle: keep its row on the axis, label it, and draw no point
+  skipped <- is.na(s$min_angle_deg)
+  s$pair_lab[skipped] <- paste(s$pair[skipped], "(skipped)")
   s$pair_lab <- factor(s$pair_lab, levels = s$pair_lab[order(s$pair)])
   ggplot2::ggplot(s, ggplot2::aes(min_angle_deg, pair_lab)) +
-    ggplot2::geom_point(ggplot2::aes(size = n_shared_05, color = sig),
-                        stroke = 1.2) +
+    ggplot2::geom_point(data = s[!skipped, , drop = FALSE],
+                        ggplot2::aes(size = n_shared_05, color = sig), stroke = 1.2) +
+    ggplot2::scale_y_discrete(drop = FALSE) +
     ggplot2::scale_color_manual(values = c(shared = "#0072B2", `n.s.` = "grey60",
                                            underpowered = "#E69F00"),
                                 name = NULL) +

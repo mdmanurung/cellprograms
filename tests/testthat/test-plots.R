@@ -144,3 +144,14 @@ test_that("plot_alignment reports significance from align_programs() output", {
   expect_match(p$labels$subtitle, "1/2 pairs significant")
   expect_match(p$labels$subtitle, "unadjusted p")
 })
+
+test_that("plot_sharing_spectrum keeps a skipped pair visible and builds without warnings", {
+  skip_if_not_installed("ggplot2")
+  s <- data.frame(pair = c("A vs B", "A vs C"), k_a = c(3L, NA), k_b = c(3L, NA),
+                  effective_dim = c(40L, NA), min_angle_deg = c(12, NA), n_shared_05 = c(2L, NA),
+                  p_pair = c(0.01, NA), z_pair = c(5, NA), excess_frac = c(0.5, NA),
+                  underpowered = c(FALSE, TRUE), q_pair = c(0.02, NA), shared = c(TRUE, FALSE))
+  p <- plot_sharing_spectrum(list(summary = s))
+  expect_no_warning(b <- ggplot2::ggplot_build(p))
+  expect_true(any(grepl("skipped", levels(p$data$pair_lab))))
+})

@@ -19,8 +19,7 @@
   `assess_cmp_stability()` now default to `seed = 1L`. Calls that omitted `seed`
   used to be unseeded and are now reproducible; calls that passed a seed give
   the same results as before (pinned by golden values). Pass `seed = NULL` for
-  unseeded draws. A seeded call no longer advances the caller's random number
-  stream.
+  unseeded draws.
 * `assess_program_stability(match_method =)` is deprecated; it never changed
   the results.
 * `canonicalize_programs()`, `program_sharing()` and `assess_cmp_stability()`

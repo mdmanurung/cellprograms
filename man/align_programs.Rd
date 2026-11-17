@@ -16,7 +16,10 @@ align_programs(fit, reference = NULL, space = c("scores", "loadings"), ...)
 \item{...}{Passed to `principal_angles` (e.g. `seed`, `strata`, `clusters`,
 `visits`). Every non-reference cell type receives the same `seed`, so the
 per-pair permutation streams are the same and the per-pair p-values are
-correlated; use [sharing_spectrum()] for independent per-pair streams.}
+correlated; use [sharing_spectrum()] for independent per-pair streams.
+With `clusters`, a pair that has fewer than 2 exchangeable clusters stops the
+whole call with a `cp_few_clusters` error; [sharing_spectrum()] skips such a
+pair instead.}
 }
 \description{
 Align all cell types' program subspaces to a reference cell type

@@ -141,7 +141,7 @@
 # movable cluster has no null; few clusters give few distinct permutations, so
 # the smallest attainable p-value is above 1 / (n_perm + 1).
 .pa_check_plan <- function(plan, n_perm, ct_a, ct_b) {
-  if (plan$n_exchangeable < 2L) {
+  if (n_perm > 0L && plan$n_exchangeable < 2L) {
     stop(structure(class = c("cp_few_clusters", "error", "condition"), list(
       message = sprintf(paste0("%s vs %s: fewer than 2 clusters can be exchanged (same strata and visit ",
                                "set); %d of %d clusters are movable, so the cluster permutation null ",
@@ -430,6 +430,9 @@ sharing_spectrum <- function(fit, pairs = NULL, space = c("scores", "loadings"),
 #'   `visits`). Every non-reference cell type receives the same `seed`, so the
 #'   per-pair permutation streams are the same and the per-pair p-values are
 #'   correlated; use [sharing_spectrum()] for independent per-pair streams.
+#'   With `clusters`, a pair that has fewer than 2 exchangeable clusters stops the
+#'   whole call with a `cp_few_clusters` error; [sharing_spectrum()] skips such a
+#'   pair instead.
 #' @examples
 #' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
 #' x <- as_cell_program_data(sim$pseudobulk)

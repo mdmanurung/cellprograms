@@ -124,3 +124,10 @@ test_that("sharing_spectrum forwards clusters and visits and skips pairs it cann
                  "skipped")
   expect_true(all(ss2$summary$underpowered[grepl("C", ss2$summary$pair)]))
 })
+
+test_that("n_perm = 0 with clusters returns the angles without a cluster check", {
+  few <- .cmp_visit_toy(n_pat = 1)
+  r <- suppressWarnings(principal_angles(few, "A", "B", n_perm = 0, clusters = "patient", visits = "visit"))
+  expect_s3_class(r, "principal_angles")
+  expect_null(r$p_values)
+})
