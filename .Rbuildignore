@@ -14,3 +14,8 @@
 ^IMPLEMENTATION_SUPPORT\.md$
 __pycache__
 \.py[co]$
+^\.c1-work$
+^\.claude$
+^python$
+^analyses$
+^experiments$
