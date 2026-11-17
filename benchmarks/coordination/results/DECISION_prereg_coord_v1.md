@@ -36,6 +36,8 @@ uses the corrected, frozen endpoint (act_cor = 1 only). Per-family tables were n
 **Preregistered conclusion: no arm meets the adoption rule at this operating point.
 `pa_cc` remains the package default for coordination calls.**
 
+> **Superseded for the package default (2026-11-17):** see `DECISION_default_caller.md`. The `prereg-coord-v1` verdicts above are unchanged.
+
 ## Key secondary results
 
 - **block_E is the power direction, but its margin is modest on the frozen endpoint.**

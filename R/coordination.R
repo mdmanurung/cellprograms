@@ -329,8 +329,9 @@
 #' The proposed fixed-score node null is independence from the joint score
 #' collection of all other cell types, conditional on the declared blocks.
 #' Its validity requires an appropriate exchangeability argument; residualizing
-#' on blocks is not a blanket guarantee. Row permutation does not implement
-#' patient-cluster permutation for repeated visits. A future known-score
+#' on blocks is not a blanket guarantee. With repeated visits, supply `clusters`
+#' and `visits` so whole clusters are permuted; row permutation treats repeated
+#' observations as independent donors. A future known-score
 #' calibration cannot be relabeled as strong end-to-end learned-factor FWER.
 #' Fixed-threshold links and greedy grouping add no edge- or CMP-set error
 #' guarantee; two genuine groups can be falsely bridged without rejecting a

@@ -109,8 +109,11 @@ prior on every resample.
 on the declared null, exchangeability, missingness and selection design; this
 does not establish general learned-factor, edge-family or merged-CMP-set error
 control. Ordinary row shuffling is not patient-cluster permutation for repeated
-visits. Preserve uncallable nodes and reasons rather than interpreting them as
-negative evidence.
+visits; supply `clusters` and `visits` to permute whole patients. The caller is
+`n_agg_noanc` (rank-Gauss scores, ambient filter, node-aggregate max-T); see
+`benchmarks/coordination/results/DECISION_default_caller.md` for the evidence and
+its limits (simulated data only). Preserve uncallable nodes and reasons rather
+than interpreting them as negative evidence.
 
 `program_sharing()` and block memberships are **descriptive**. Activity in both
 conditions does not prove equal effects, common structure, private biology or
