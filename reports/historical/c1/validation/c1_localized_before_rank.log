@@ -1,0 +1,72 @@
+
+══ Testing test-coordination.R ═════════════════════════════════════════════════
+
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 0 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 1 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 2 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 3 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 4 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 5 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 6 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 7 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 8 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 9 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 10 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 11 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 12 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 13 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 14 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 15 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 16 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 17 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 18 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 19 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 20 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 21 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 22 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 23 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 24 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 25 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 26 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 27 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 28 ]
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 29 ]
+[ FAIL 1 | WARN 0 | SKIP 0 | PASS 29 ]
+[ FAIL 2 | WARN 0 | SKIP 0 | PASS 29 ]
+[ FAIL 3 | WARN 0 | SKIP 0 | PASS 29 ]
+[ FAIL 4 | WARN 0 | SKIP 0 | PASS 29 ]
+
+── Failure ('test-coordination.R:94:3'): localized surplus scores do not mask broad rank activity ──
+Expected `all(e$called)` to be TRUE.
+Differences:
+`actual`:   FALSE
+`expected`: TRUE 
+
+
+── Failure ('test-coordination.R:95:3'): localized surplus scores do not mask broad rank activity ──
+Expected `x$summary$n_members` to equal 10L.
+Differences:
+  `actual`:   
+`expected`: 10
+
+
+── Failure ('test-coordination.R:96:3'): localized surplus scores do not mask broad rank activity ──
+Expected `x$provenance$correlation_method` to be identical to "spearman".
+Differences:
+`actual` is NULL
+`expected` is a character vector ('spearman')
+
+
+── Failure ('test-coordination.R:97:3'): localized surplus scores do not mask broad rank activity ──
+Expected `e$correlation[1]` to equal `stats::cor(...)`.
+Differences:
+  `actual`: 0.9909
+`expected`: 0.9837
+
+
+[ FAIL 4 | WARN 0 | SKIP 0 | PASS 29 ]
+Error:
+! Test failures.
+Warning message:
+package ‘testthat’ was built under R version 4.5.2 
+Execution halted

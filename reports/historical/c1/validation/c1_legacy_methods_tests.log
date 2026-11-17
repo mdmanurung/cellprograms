@@ -1,0 +1,28 @@
+node_cor :
+  cluster                                         cell_type
+1       1 ct01,ct02,ct03,ct04,ct05,ct06,ct07,ct08,ct09,ct10
+2       2                          ct01,ct03,ct05,ct08,ct10
+3       3                                         ct02,ct09
+subspace_sum :
+  cluster                                         cell_type
+1       1 ct01,ct02,ct03,ct04,ct05,ct06,ct07,ct08,ct09,ct10
+2       2                          ct01,ct03,ct05,ct08,ct10
+3       3                                         ct01,ct09
+pa_cc :
+  cluster                                         cell_type
+1       1 ct01,ct02,ct03,ct04,ct05,ct06,ct07,ct08,ct09,ct10
+gene_match :
+  cluster                                         cell_type
+1       1 ct01,ct02,ct03,ct04,ct05,ct06,ct07,ct08,ct09,ct10
+2       2                                         ct02,ct09
+3       3                          ct01,ct03,ct05,ct08,ct10
+Warning message:
+n_perm = 199 gives a permutation floor of 0.0050, above the BH level of one true pair among 45 (0.0011); BH can only call pairs if many hit the floor. Use n_perm >= 900.
+--- null (expect no clusters) ---
+node_cor clusters: 0
+subspace_sum clusters: 0
+pa_cc clusters: 0
+gene_match clusters: 0
+Warning message:
+n_perm = 199 gives a permutation floor of 0.0050, above the BH level of one true pair among 45 (0.0011); BH can only call pairs if many hit the floor. Use n_perm >= 900.
+OK

@@ -1,0 +1,23 @@
+  --Estimate of factor 5 is numerically zero!
+  --Estimate of factor 6 is numerically zero!
+Warning message:
+flashier needed fallback "point_normal" in cell type "ct10".
+Member types ct04 ct10 common donors 35
+          P1    P2  R100   R20
+ct04_1  0.21  0.01 -1.00 -0.06
+ct04_2  0.09 -0.31 -0.04 -1.00
+ct04_3  0.99 -0.08 -0.17 -0.07
+ct04_4  0.12 -0.99  0.07 -0.28
+ct04_5  0.27 -0.21 -0.26 -0.06
+ct04_6 -0.23 -0.02 -0.02  0.01
+ct04_7 -0.36 -0.16  0.18 -0.26
+          P1   P2  R100   R20
+ct10_1  0.15 0.09 -1.00 -0.09
+ct10_2 -0.01 0.21 -0.07 -1.00
+ct10_3  0.98 0.14 -0.19 -0.03
+ct10_4  0.18 0.98 -0.12 -0.26
+ct10_5  0.16 0.10  0.07 -0.36
+ct10_6  0.08 0.08 -0.02  0.36
+Observed R20 correlation 0.9816472 truth 0.9899013
+    ct_a prog_a ct_b prog_b n_shared correlation statistic p_maxT called
+408 ct04 ct04_2 ct10 ct10_2       35   0.9778613  12.70655  0.075  FALSE

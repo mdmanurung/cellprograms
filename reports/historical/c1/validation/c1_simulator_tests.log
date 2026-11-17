@@ -1,0 +1,28 @@
+ok: act+genes 10 cell types
+ok: act+genes small cell types share >= 30 donors
+ok: act+genes breadth 10/5/2
+ok: act+genes z shared across members
+ok: act+genes gene overlap 1
+ok: act+genes R50 genes disjoint from R100/R20
+ok: act+half 10 cell types
+ok: act+half small cell types share >= 30 donors
+ok: act+half breadth 10/5/2
+ok: act+half z shared across members
+ok: act+half gene overlap 0.5
+ok: act+half R50 genes disjoint from R100/R20
+ok: act_only 10 cell types
+ok: act_only small cell types share >= 30 donors
+ok: act_only breadth 10/5/2
+ok: act_only z shared across members
+ok: act_only gene overlap 0
+ok: act_only R50 genes disjoint from R100/R20
+ok: genes_only 10 cell types
+ok: genes_only small cell types share >= 30 donors
+ok: genes_only breadth 10/5/2
+ok: genes_only: z independent across members
+ok: genes_only gene overlap 1
+ok: genes_only R50 genes disjoint from R100/R20
+ok: null 10 cell types
+ok: null small cell types share >= 30 donors
+ok: null has no recurring programs
+all checks passed

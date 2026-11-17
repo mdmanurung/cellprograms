@@ -1,0 +1,49 @@
+                                     cell observed planned amp_R100 amp_R50
+genes_only                     genes_only        3       3      1.0     1.0
+mid_large                       mid_large        3       3      1.0     1.0
+mid_small                       mid_small        3       3      1.0     1.0
+null                                 null        3       3      1.0     1.0
+raw_nuisance                 raw_nuisance        3       3      1.0     1.0
+strong_small                 strong_small        3       3      1.5     1.5
+trial_balanced_genes trial_balanced_genes        3      10      2.0     2.0
+trial_balanced_small trial_balanced_small       10      10      2.0     2.0
+trial_genes_small       trial_genes_small       10      10      1.0     1.0
+trial_high_genes         trial_high_genes       10      10      2.0     2.0
+trial_high_small         trial_high_small       10      10      2.0     2.0
+trial_main_small         trial_main_small       10      10      1.0     1.0
+trial_r20_genes           trial_r20_genes       10      10      1.0     1.0
+trial_r20_small           trial_r20_small       10      10      1.0     1.0
+weak_small                     weak_small        3       3      0.5     0.5
+                     amp_R20      R100 R50       R20 pooled_precision  spurious
+genes_only               1.0        NA  NA        NA        0.0000000 0.0000000
+mid_large                1.0 1.0000000 1.0 1.0000000        1.0000000 0.0000000
+mid_small                1.0 1.0000000 1.0 1.0000000        1.0000000 0.0000000
+null                     1.0        NA  NA        NA        0.0000000 0.0000000
+raw_nuisance             1.0        NA  NA        NA        0.0000000 1.0000000
+strong_small             1.5 1.0000000 1.0 0.6666667        1.0000000 0.0000000
+trial_balanced_genes     4.0 1.0000000 1.0 1.0000000        1.0000000 0.0000000
+trial_balanced_small     4.0 1.0000000 1.0 0.7000000        0.9869281 0.1000000
+trial_genes_small        1.0 1.0000000 1.0 0.5000000        0.9718310 0.2000000
+trial_high_genes         2.0 1.0000000 1.0 0.6000000        0.9735099 0.2000000
+trial_high_small         2.0 1.0000000 1.0 0.9000000        1.0000000 0.0000000
+trial_main_small         1.0 1.0000000 1.0 0.8000000        0.9866667 0.1000000
+trial_r20_genes          4.0 1.0000000 0.9 0.9000000        1.0000000 0.1000000
+trial_r20_small          4.0 1.0000000 0.8 0.9000000        0.9868421 0.3000000
+weak_small               0.5 0.3333333 0.0 0.0000000        1.0000000 0.6666667
+                     decoy mean_seconds
+genes_only               0     144.7208
+mid_large                0     177.1939
+mid_small                0     136.7892
+null                     0     159.5985
+raw_nuisance             1      30.9209
+strong_small             0     148.6485
+trial_balanced_genes     0     138.1650
+trial_balanced_small     0     173.5671
+trial_genes_small        0     180.5373
+trial_high_genes         0     185.9428
+trial_high_small         0     174.0768
+trial_main_small         0     184.4535
+trial_r20_genes          0     169.7818
+trial_r20_small          0     184.4153
+weak_small               0     182.4288
+Valid exploratory Pearson records: 94 

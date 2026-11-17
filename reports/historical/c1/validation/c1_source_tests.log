@@ -1,0 +1,127 @@
+✔ | F W  S  OK | Context
+
+⠏ |          0 | coordination
+⠋ |          1 | coordination
+⠏ |         10 | coordination
+⠼ |         15 | coordination
+⠧ |         28 | coordination
+✔ |         29 | coordination [1.0s]
+
+⠏ |          0 | covariates
+⠋ |          1 | covariates
+⠹ |          3 | covariates                                                     Covariate(s) "site" constant in cell type "B"; dropped for this cell type.
+
+⠸ |          4 | covariates
+⠴ |          6 | covariates
+⠙ |         12 | covariates
+⠹ |   1     12 | covariates
+✔ |   1     13 | covariates [9.7s]
+────────────────────────────────────────────────────────────────────────────────
+Warning ('test-covariates.R:52:3'): a flashier nullcheck failure falls back to no nullcheck and is recorded
+flashier needed fallback "no_nullcheck" in cell type "B".
+Backtrace:
+    ▆
+ 1. ├─testthat::expect_warning(...) at test-covariates.R:52:3
+ 2. │ └─testthat:::expect_condition_matching_(...)
+ 3. │   └─testthat:::quasi_capture(...)
+ 4. │     ├─testthat (local) .capture(...)
+ 5. │     │ └─base::withCallingHandlers(...)
+ 6. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+ 7. └─cellprograms::fit_celltype_programs(...)
+ 8.   └─cli::cli_warn("flashier needed fallback {.val {fallback}} in cell type {.val {ct}}.") at .c1-work/R/ebmf.R:174:7
+────────────────────────────────────────────────────────────────────────────────
+
+⠏ |          0 | data-model                                                     cell_program_data
+B: 10 observations x 50 genes
+CD4: 10 observations x 50 genes
+NK: 7 observations x 50 genes
+Shared genes across all cell types: 50
+
+⠼ |          5 | data-model
+⠇ |          9 | data-model
+⠹ |   2     11 | data-model
+✔ |   2     17 | data-model
+────────────────────────────────────────────────────────────────────────────────
+Warning ('test-data-model.R:53:3'): validate warns on small N and zero-variance genes
+Cell type "B" has only 5 observations; EBMF is unreliable at very small N.
+Backtrace:
+    ▆
+ 1. ├─testthat::expect_warning(validate_cell_program_data(x), "near-zero variance") at test-data-model.R:53:3
+ 2. │ └─testthat:::expect_condition_matching_(...)
+ 3. │   └─testthat:::quasi_capture(...)
+ 4. │     ├─testthat (local) .capture(...)
+ 5. │     │ └─base::withCallingHandlers(...)
+ 6. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+ 7. └─cellprograms::validate_cell_program_data(x)
+ 8.   └─cli::cli_warn("Cell type {.val {ct}} has only {n} observations; EBMF is unreliable at very small N.") at .c1-work/R/data-model.R:110:7
+
+Warning ('test-data-model.R:54:3'): validate warns on small N and zero-variance genes
+Cell type "B": 1 gene(s) have near-zero variance.
+Backtrace:
+    ▆
+ 1. ├─testthat::expect_warning(validate_cell_program_data(x), "only 5 observations") at test-data-model.R:54:3
+ 2. │ └─testthat:::expect_condition_matching_(...)
+ 3. │   └─testthat:::quasi_capture(...)
+ 4. │     ├─testthat (local) .capture(...)
+ 5. │     │ └─base::withCallingHandlers(...)
+ 6. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+ 7. └─cellprograms::validate_cell_program_data(x)
+ 8.   └─cli::cli_warn("Cell type {.val {ct}}: {n_zero} gene(s) have near-zero variance.") at .c1-work/R/data-model.R:118:7
+────────────────────────────────────────────────────────────────────────────────
+
+⠏ |          0 | ebmf
+⠋ |          1 | ebmf                                                           All genes are degenerate (zero after preprocessing) in cell type "B"; recording K=0 fit.
+
+⠴ |          6 | ebmf
+⠙ |         12 | ebmf
+⠹ |         13 | ebmf
+✔ |         16 | ebmf [1.3s]
+
+⠏ |          0 | extract-stability
+⠋ |          1 | extract-stability
+⠴ |          6 | extract-stability
+⠧ |          8 | extract-stability
+✔ |         12 | extract-stability [7.9s]
+
+⠏ |          0 | mofacellular
+⠇ |          9 | mofacellular
+✔ |         13 | mofacellular [1.2s]
+
+⠏ |          0 | principal-angles
+⠋ |          1 | principal-angles
+⠸ |   1      3 | principal-angles
+⠼ |   1     34 | principal-angles
+⠼ |   1     44 | principal-angles
+⠧ |   1     47 | principal-angles
+✔ |   1     48 | principal-angles [8.9s]
+────────────────────────────────────────────────────────────────────────────────
+Warning ('test-principal-angles.R:8:3'): principal_angles on adjusted fits finds the shared program
+Gene intersection for A vs B is 60 (< 200); angles may be unstable.
+Backtrace:
+    ▆
+ 1. └─cellprograms::principal_angles(...) at test-principal-angles.R:8:3
+ 2.   └─cellprograms:::.warnf(...) at .c1-work/R/principal-angles.R:188:7
+────────────────────────────────────────────────────────────────────────────────
+
+⠏ |          0 | review-fixes
+⠧ |          8 | review-fixes
+⠙ |         12 | review-fixes
+✔ |         14 | review-fixes [3.7s]
+
+⠏ |          0 | sharing-calibration
+⠋ |          1 | sharing-calibration
+⠸ |          4 | sharing-calibration
+⠋ |         11 | sharing-calibration
+✔ |         13 | sharing-calibration [3.9s]
+
+⠏ |          0 | simulation
+✔ |          5 | simulation
+
+══ Results ═════════════════════════════════════════════════════════════════════
+Duration: 38.2 s
+
+[ FAIL 0 | WARN 4 | SKIP 0 | PASS 180 ]
+
+You are a coding rockstar!
+Warning message:
+package ‘testthat’ was built under R version 4.5.2

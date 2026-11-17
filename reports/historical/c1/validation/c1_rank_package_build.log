@@ -1,0 +1,9 @@
+* checking for file ‘./DESCRIPTION’ ... OK
+* preparing ‘cellprograms’:
+* checking DESCRIPTION meta-information ... OK
+* checking for LF line-endings in source and make files and shell scripts
+* checking for empty or unneeded directories
+Removed empty directory ‘cellprograms/tests/testthat/_snaps’
+* building ‘cellprograms_0.2.0.tar.gz’
+Warning: invalid uid value replaced by that for user 'nobody'
+
