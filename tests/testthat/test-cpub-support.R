@@ -270,11 +270,11 @@ test_that("automatic reduction grouped SuperCell integration conserves count sum
   skip_if_not_installed("SuperCell")
   obj <- .support_seurat()
   obj$donor <- rep(c("d1", "d2"), each = 16)
-  out <- MetacellsByGroupsSuperCell(obj, group.by = "donor", reduction = NULL,
+  out <- metacells_by_groups_supercell(obj, group.by = "donor", reduction = NULL,
                                     n_pc = 3, n_top_genes = 40, min_cells = 16,
                                     k.knn = 5, cells_per_metacell = 4,
                                     run_mcrigor = FALSE, verbose = FALSE)
-  mc <- GetMetacellSuperCell(out)$metacell_object
+  mc <- get_metacell_supercell(out)$metacell_object
   expect_equal(sum(SeuratObject::LayerData(mc, layer = "counts")),
                sum(SeuratObject::LayerData(obj, layer = "counts")))
   expect_true(all(grepl("^donor_", colnames(mc))))

@@ -19,6 +19,9 @@ A list with `programs` (one row per component: program id, member
   (donors x components, only for coordination components).
 }
 \description{
+**Experimental.** See [fit_eb_cp()].
+}
+\details{
 Extracts per-component cell-type memberships (a cell type is a member of
 component r iff its |W| reaches `member_thresh` of the component maximum)
 and donor activities. Components with fewer than `min_members` member cell

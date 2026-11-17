@@ -91,9 +91,9 @@ reference:
     program discovery. The default backend is SuperCell 2.0 (pure R, no
     Python) with mcRigor QC and granularity optimization.
   contents:
-  - MetacellsByGroupsSuperCell
-  - OptimizeGammaSuperCell
-  - GetMetacellSuperCell
+  - metacells_by_groups_supercell
+  - optimize_gamma_supercell
+  - get_metacell_supercell
 - title: Program plots
   desc: Fit-level visualisations.
   contents:

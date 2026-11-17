@@ -35,7 +35,10 @@
 ## A component with >= min_members members is a coordination call.
 
 ## per-row variance of a matrix, floored
-.cp_rowvar <- function(m) pmax(matrixStats::rowVars(m), 1e-8)
+.cp_rowvar <- function(m) {
+  .require_pkg("matrixStats", "fit_eb_cp()")
+  pmax(matrixStats::rowVars(m), 1e-8)
+}
 
 ## donor-synchronous 50/50 split, stratified
 .cp_split_donors <- function(donors, strata, seed) {
@@ -162,6 +165,8 @@
 }
 
 #' EB-CP tensor factorization across cell types
+#'
+#' **Experimental.** Not part of the supported ordinary workflow; held-out component selection is a screening statistic, and the 2026-10 benchmark did not adopt it.
 #'
 #' Fits a greedy rank-greedy three-mode tensor factorization (genes x donors x
 #' cell types) to per-cell-type pseudobulk matrices with EBNM normal-means
@@ -354,6 +359,8 @@ fit_eb_cp <- function(mats, strata = NULL, Kmax = 15L,
 
 #' EB-CP coordination programs from a fitted `cell_program_fit`
 #'
+#' **Experimental.** See [fit_eb_cp()].
+#'
 #' Runs [fit_eb_cp()] on the adjusted expression matrices (`Y_used`) of a
 #' `cell_program_fit`. If `strata` is missing, it is derived from the
 #' categorical covariates used at fit time. Automatic strata from numeric
@@ -391,6 +398,8 @@ eb_cp_from_fit <- function(fit, strata, ...) {
 }
 
 #' Coordination programs from an EB-CP fit
+#'
+#' **Experimental.** See [fit_eb_cp()].
 #'
 #' Extracts per-component cell-type memberships (a cell type is a member of
 #' component r iff its |W| reaches `member_thresh` of the component maximum)

@@ -92,6 +92,7 @@
 #'                     annotation = "severity")
 #' @export
 plot_program_scores <- function(fit, cell_types = NULL, annotation = NULL, zscore = TRUE) {
+  .require_ggplot2()
   cts <- (cell_types %||% names(fit$scores))
   cts <- cts[vapply(cts, function(ct) ncol(fit$scores[[ct]]) > 0L, TRUE)]
   if (!length(cts)) return(.empty_plot("No programs retained: nothing to plot."))
@@ -199,6 +200,7 @@ plot_program_scores <- function(fit, cell_types = NULL, annotation = NULL, zscor
 #' plot_top_genes(fit, c("B_1", "CD4_1"), n = 8)
 #' @export
 plot_top_genes <- function(fit, programs, n = 10) {
+  .require_ggplot2()
   rows <- lapply(programs, function(p) {
     ct <- sub("_[^_]+$", "", p)
     W <- fit$loadings[[ct]]
@@ -239,6 +241,7 @@ plot_top_genes <- function(fit, programs, n = 10) {
 #' plot_variance_explained(fit)
 #' @export
 plot_variance_explained <- function(fit) {
+  .require_ggplot2()
   if (is.null(fit$scores)) {
     cli::cli_abort("{.arg fit} has no canonicalized scores; run {.fn canonicalize_programs} first.")
   }
@@ -301,6 +304,7 @@ plot_variance_explained <- function(fit) {
 #' }
 #' @export
 plot_sharing <- function(share, level = c("program", "cell_type"), q_alpha = 0.05) {
+  .require_ggplot2()
   level <- match.arg(level)
   m <- share$matches
   summ <- share$summary
@@ -387,6 +391,7 @@ plot_sharing <- function(share, level = c("program", "cell_type"), q_alpha = 0.0
 #' plot_sharing_spectrum(sharing_spectrum(fit, n_perm = 200))
 #' @export
 plot_sharing_spectrum <- function(spectrum) {
+  .require_ggplot2()
   s <- spectrum$summary
   if (is.null(s) || !nrow(s)) return(.empty_plot("Empty sharing spectrum."))
   # Color encodes the significance class (3 levels, safe for any number of
@@ -432,6 +437,7 @@ plot_sharing_spectrum <- function(spectrum) {
 #' plot_artifact_flags(flag_artifact_genes(fit))
 #' @export
 plot_artifact_flags <- function(flags, threshold = 0.2) {
+  .require_ggplot2()
   if (is.null(flags) || !nrow(flags)) return(.empty_plot("No programs to flag."))
   # Detect the screened sets generically from `<set>_frac` columns so any
   # `sets` subset of flag_artifact_genes() plots (the previous hardcoded
@@ -487,6 +493,7 @@ plot_artifact_flags <- function(flags, threshold = 0.2) {
 #' plot_cmp_network(cmp)
 #' @export
 plot_cmp_network <- function(cmp, max_edges = NULL, seed = 1) {
+  .require_ggplot2()
   e <- cmp$edges; n <- cmp$nodes
   if (is.null(e) || !nrow(e)) return(.empty_plot("No significant coordination edges."))
   if (!is.null(max_edges) && nrow(e) > max_edges) {
@@ -573,6 +580,7 @@ plot_cmp_network <- function(cmp, max_edges = NULL, seed = 1) {
 #' plot_cmp_nodes(cmp)
 #' @export
 plot_cmp_nodes <- function(cmp) {
+  .require_ggplot2()
   n <- cmp$nodes
   if (is.null(n) || !nrow(n)) return(.empty_plot("No programs entered the coordination test."))
   n$label <- paste(n$cell_type, n$program_id, sep = "_")
@@ -622,6 +630,7 @@ plot_cmp_nodes <- function(cmp) {
 #' plot_cmp_membership(cmps)
 #' @export
 plot_cmp_membership <- function(cmp_list, alpha = 0.05, label_programs = FALSE) {
+  .require_ggplot2()
   if (!is.list(cmp_list) || is.null(names(cmp_list)) ||
       any(!nzchar(names(cmp_list))) ||
       !all(vapply(cmp_list, inherits, TRUE, "cmp_result"))) {
@@ -812,6 +821,7 @@ plot_cmp_membership <- function(cmp_list, alpha = 0.05, label_programs = FALSE) 
 #' plot_context_association(cmp_context_association(fit, cmp, ctx))
 #' @export
 plot_context_association <- function(assoc, p_alpha = 0.05) {
+  .require_ggplot2()
   if (is.null(assoc) || !nrow(assoc)) return(.empty_plot("No context associations to plot."))
   df <- assoc
   df$se <- abs(df$estimate / df$t)
@@ -869,6 +879,7 @@ plot_context_association <- function(assoc, p_alpha = 0.05) {
 #' plot_alignment(principal_angles(fit, "B", "CD4", n_perm = 200))
 #' @export
 plot_alignment <- function(x, q_alpha = 0.05) {
+  .require_ggplot2()
   if (inherits(x, "principal_angles")) return(.plot_one_alignment(x, q_alpha))
   ref <- attr(x, "reference")
   rows <- lapply(names(x), function(ct) {
@@ -956,6 +967,7 @@ plot_alignment <- function(x, q_alpha = 0.05) {
 #' plot_stability(fit)
 #' @export
 plot_stability <- function(fit) {
+  .require_ggplot2()
   st <- fit$stability$per_program
   if (is.null(st) || !nrow(st)) {
     return(.empty_plot("No stability results: run assess_program_stability() first."))

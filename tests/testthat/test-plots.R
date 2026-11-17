@@ -155,3 +155,17 @@ test_that("plot_sharing_spectrum keeps a skipped pair visible and builds without
   expect_no_warning(b <- ggplot2::ggplot_build(p))
   expect_true(any(grepl("skipped", levels(p$data$pair_lab))))
 })
+
+test_that("every plot function says which package is missing when ggplot2 is absent", {
+  testthat::local_mocked_bindings(.pkg_available = function(pkg) FALSE)
+  fns <- grep("^plot_", getNamespaceExports("cellprograms"), value = TRUE)
+  expect_length(fns, 12L)
+  for (fn in fns) {
+    expect_error(do.call(fn, list()), "ggplot2", info = fn)
+  }
+})
+
+test_that("optional-package helpers name the package and the task", {
+  testthat::local_mocked_bindings(.pkg_available = function(pkg) FALSE)
+  expect_error(.require_pkg("Matrix", "metacell construction"), "Matrix.*metacell construction")
+})

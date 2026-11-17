@@ -23,14 +23,16 @@ A list with `principal_cosines` (descending cosines of the
   `mean_overlap_topk`, and `dim` (the two span ranks).
 }
 \description{
+**Descriptive.** The overlap measures describe two spans; they are not a significance test.
+}
+\details{
 Computes the principal angles between the column spans of two loading
 matrices (genes x programs) on the same gene panel — e.g. a discovery fit
 vs a stability refit, or the same cohort fit by two methods. Each span is
 orthonormalized (rank-aware via SVD), and the singular values of the
 cross-product of the bases are the cosines of the principal angles
 between the spans.
-}
-\details{
+
 The registered tier-2 use (immune-aging application, 2026-10-16) is the
 **stability-normalized conservation ratio**: the between-cohort span
 overlap (`mean_overlap`) divided by the within-cohort bootstrap ceiling —

@@ -177,3 +177,15 @@ test_that("exclude_artifacts applies the preset blacklist; union with exclude_ge
   expect_true(all(c("TRAC", "CD3D", "HBB", "XIST", "GSTM1") %in% fit0$fits$CT1$genes))
   expect_false(fit0$preprocessing$exclude_artifacts)
 })
+
+test_that("artifact_gene_sets holds a V(D)J regex and closed gene-ID sets", {
+  expect_setequal(names(artifact_gene_sets), c("vdj", "genotype_marker", "sex", "canonical_marker"))
+  expect_length(artifact_gene_sets$vdj, 1L)
+  expect_true(all(grepl(artifact_gene_sets$vdj, c("IGHV1-2", "IGKC", "JCHAIN", "TRAV1-2"))))
+  expect_false(any(grepl(artifact_gene_sets$vdj, c("CD3D", "GSTM1", "XIST"))))
+  closed <- artifact_gene_sets[setdiff(names(artifact_gene_sets), "vdj")]
+  expect_true(all(vapply(closed, is.character, logical(1))))
+  expect_true(all(vapply(closed, function(g) !anyDuplicated(g) && !anyNA(g), logical(1))))
+  expect_true("GSTM1" %in% artifact_gene_sets$genotype_marker)
+  expect_true("XIST" %in% artifact_gene_sets$sex)
+})

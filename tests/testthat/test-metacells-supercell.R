@@ -62,11 +62,11 @@ test_that("metacell count aggregation: sum and average modes", {
     expect_equal(as.numeric(avg_mc["g2", ]), c(4.5, 6))
 })
 
-test_that("MetacellsByGroupsSuperCell end-to-end on a tiny synthetic object", {
+test_that("metacells_by_groups_supercell end-to-end on a tiny synthetic object", {
     skip_if_not(requireNamespace("Seurat", quietly = TRUE))
     skip_if_not(requireNamespace("SuperCell", quietly = TRUE))
     obj <- .sc_test_fixture()
-    out <- MetacellsByGroupsSuperCell(
+    out <- metacells_by_groups_supercell(
         obj, group.by = c("donor", "group"), min_cells = 50,
         cells_per_metacell = 10, seed = 5, verbose = FALSE
     )
@@ -89,16 +89,16 @@ test_that("MetacellsByGroupsSuperCell end-to-end on a tiny synthetic object", {
     expect_true(all(c("gamma", "n_metacells") %in% colnames(res$fit_stats)))
 })
 
-test_that("MetacellsByGroupsSuperCell mcRigor QC populates dubious verdicts", {
+test_that("metacells_by_groups_supercell mcRigor QC populates dubious verdicts", {
     skip_if_not(requireNamespace("Seurat", quietly = TRUE))
     skip_if_not(requireNamespace("SuperCell", quietly = TRUE))
     skip_if_not(requireNamespace("mcRigor", quietly = TRUE))
     obj <- .sc_test_fixture()
-    out <- MetacellsByGroupsSuperCell(
+    out <- metacells_by_groups_supercell(
         obj, group.by = "group", min_cells = 50, cells_per_metacell = 10,
         seed = 5, verbose = FALSE
     )
-    res <- GetMetacellSuperCell(out)
+    res <- get_metacell_supercell(out)
     expect_true(any(!is.na(res$qc$dubious)))
     expect_true(all(c("mcDiv", "mcDiv_threshold", "zerorate_mc") %in%
                         colnames(res$qc)))
@@ -106,20 +106,20 @@ test_that("MetacellsByGroupsSuperCell mcRigor QC populates dubious verdicts", {
     expect_true("dubious" %in% colnames(res$metacell_object@meta.data))
 })
 
-test_that("MetacellsByGroupsSuperCell target_metacells bisects gamma", {
+test_that("metacells_by_groups_supercell target_metacells bisects gamma", {
     skip_if_not(requireNamespace("Seurat", quietly = TRUE))
     skip_if_not(requireNamespace("SuperCell", quietly = TRUE))
     obj <- .sc_test_fixture()
-    out <- MetacellsByGroupsSuperCell(
+    out <- metacells_by_groups_supercell(
         obj, group.by = "group", min_cells = 50, target_metacells = 10,
         seed = 5, verbose = FALSE
     )
-    res <- GetMetacellSuperCell(out)
+    res <- get_metacell_supercell(out)
     n_mc <- ncol(res$metacell_object)
     expect_lte(abs(n_mc - 20), 0.10 * 20)   # 2 groups x ~10
 })
 
-test_that("MetacellsByGroupsSuperCell skips small groups and errors when all skip", {
+test_that("metacells_by_groups_supercell skips small groups and errors when all skip", {
     skip_if_not(requireNamespace("Seurat", quietly = TRUE))
     skip_if_not(requireNamespace("SuperCell", quietly = TRUE))
     obj <- .sc_test_fixture()
@@ -128,7 +128,7 @@ test_that("MetacellsByGroupsSuperCell skips small groups and errors when all ski
     cells_B <- colnames(obj)[obj$group == "B"]
     obj_mix <- subset(obj, cells = c(cells_A[1:10], cells_B))
     expect_warning(
-        out <- MetacellsByGroupsSuperCell(
+        out <- metacells_by_groups_supercell(
             obj_mix, group.by = "group", min_cells = 50,
             cells_per_metacell = 10, seed = 5, verbose = FALSE
         ),
@@ -138,19 +138,19 @@ test_that("MetacellsByGroupsSuperCell skips small groups and errors when all ski
     expect_equal(out@misc$SuperCell$skipped_groups$reason, "below min_cells")
     # all groups below min_cells -> hard error
     expect_error(
-        MetacellsByGroupsSuperCell(
+        metacells_by_groups_supercell(
             obj, group.by = "group", min_cells = 1000, verbose = FALSE
         ),
         "no groups passed min_cells"
     )
 })
 
-test_that("OptimizeGammaSuperCell picks a gamma and returns the score table", {
+test_that("optimize_gamma_supercell picks a gamma and returns the score table", {
     skip_if_not(requireNamespace("Seurat", quietly = TRUE))
     skip_if_not(requireNamespace("SuperCell", quietly = TRUE))
     skip_if_not(requireNamespace("mcRigor", quietly = TRUE))
     obj <- .sc_test_fixture()
-    res <- OptimizeGammaSuperCell(
+    res <- optimize_gamma_supercell(
         obj, group.by = "group", gammas = c(5, 10, 20), min_cells = 50,
         seed = 5, verbose = FALSE
     )
@@ -183,4 +183,20 @@ test_that("mcRigor_DETECT accepts MC-string labels at current HEAD (regression)"
     # metacell labels are remapped to the ORIGINAL names, not MC codes
     expect_true(all(qc$metacell %in% mem_lab))
     expect_true(any(!is.na(qc$dubious)))
+})
+
+test_that("snake_case metacell functions exist and the PascalCase names warn once", {
+  expect_true(all(c("metacells_by_groups_supercell", "optimize_gamma_supercell",
+                    "get_metacell_supercell") %in% getNamespaceExports("cellprograms")))
+  env <- cellprograms:::.deprecated_names
+  rm(list = ls(env), envir = env)
+  testthat::local_mocked_bindings(
+    metacells_by_groups_supercell = function(...) "new",
+    optimize_gamma_supercell = function(...) "new",
+    get_metacell_supercell = function(...) "new")
+  expect_warning(out <- MetacellsByGroupsSuperCell(), "metacells_by_groups_supercell")
+  expect_identical(out, "new")
+  expect_no_warning(MetacellsByGroupsSuperCell())               # once per session
+  expect_warning(OptimizeGammaSuperCell(), "optimize_gamma_supercell")
+  expect_warning(GetMetacellSuperCell(), "get_metacell_supercell")
 })

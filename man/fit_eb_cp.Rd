@@ -58,6 +58,9 @@ A list of class `eb_cp_fit` with gene loadings `U` (genes x
   `frac_unexplained`, `n_components`), and the frozen rules.
 }
 \description{
+**Experimental.** Not part of the supported ordinary workflow; held-out component selection is a screening statistic, and the 2026-10 benchmark did not adopt it.
+}
+\details{
 Fits a greedy rank-greedy three-mode tensor factorization (genes x donors x
 cell types) to per-cell-type pseudobulk matrices with EBNM normal-means
 updates per mode (point-laplace on gene and cell-type modes, normal on the

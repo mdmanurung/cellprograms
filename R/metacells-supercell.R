@@ -127,7 +127,7 @@
 #' lower construction cost. Metacell quality is governed by mcRigor (Liu & Li
 #' 2025): per-metacell mcDiv dubious detection with double-permutation nulls,
 #' DubRate/ZeroRate scoring, and optional granularity optimization via
-#' [OptimizeGammaSuperCell()].
+#' [optimize_gamma_supercell()].
 #'
 #' @param seurat_obj A Seurat object with raw counts and a dimensionality
 #'   reduction (default `pca`). Set `reduction = NULL` to compute a standard
@@ -199,7 +199,7 @@
 #' Morabito et al. (2023) Cell Rep Methods, doi:10.1016/j.crmeth.2023.100498.
 #'
 #' @export
-MetacellsByGroupsSuperCell <- function(
+metacells_by_groups_supercell <- function(
     seurat_obj,
     group.by = "seurat_clusters",
     ident.group = NULL,
@@ -223,6 +223,7 @@ MetacellsByGroupsSuperCell <- function(
     verbose = TRUE
 ) {
     mode <- match.arg(mode)
+    .require_pkg("Matrix", "metacell construction")
     if (!requireNamespace("Seurat", quietly = TRUE) ||
         !requireNamespace("SeuratObject", quietly = TRUE)) {
         cli::cli_abort(
@@ -434,20 +435,20 @@ MetacellsByGroupsSuperCell <- function(
 #'
 #' @param seurat_obj A Seurat object.
 #' @param group.by Metadata column(s) defining groups (as in
-#'   [MetacellsByGroupsSuperCell()]).
+#'   [metacells_by_groups_supercell()]).
 #' @param gammas Candidate granularities as cells-per-metacell values.
 #'   Default `c(25, 50, 100)`.
-#' @param reduction Passed to [MetacellsByGroupsSuperCell()] internals.
-#' @param dims Passed to [MetacellsByGroupsSuperCell()] internals.
-#' @param assay Passed to [MetacellsByGroupsSuperCell()] internals.
-#' @param slot Passed to [MetacellsByGroupsSuperCell()] internals.
-#' @param layer Passed to [MetacellsByGroupsSuperCell()] internals.
-#' @param min_cells Passed to [MetacellsByGroupsSuperCell()] internals.
-#' @param k.knn Passed to [MetacellsByGroupsSuperCell()] internals.
-#' @param n_top_genes Passed to [MetacellsByGroupsSuperCell()] internals.
-#' @param n_pc Passed to [MetacellsByGroupsSuperCell()] internals.
-#' @param seed Passed to [MetacellsByGroupsSuperCell()] internals.
-#' @param verbose Passed to [MetacellsByGroupsSuperCell()] internals.
+#' @param reduction Passed to [metacells_by_groups_supercell()] internals.
+#' @param dims Passed to [metacells_by_groups_supercell()] internals.
+#' @param assay Passed to [metacells_by_groups_supercell()] internals.
+#' @param slot Passed to [metacells_by_groups_supercell()] internals.
+#' @param layer Passed to [metacells_by_groups_supercell()] internals.
+#' @param min_cells Passed to [metacells_by_groups_supercell()] internals.
+#' @param k.knn Passed to [metacells_by_groups_supercell()] internals.
+#' @param n_top_genes Passed to [metacells_by_groups_supercell()] internals.
+#' @param n_pc Passed to [metacells_by_groups_supercell()] internals.
+#' @param seed Passed to [metacells_by_groups_supercell()] internals.
+#' @param verbose Passed to [metacells_by_groups_supercell()] internals.
 #' @param mcrigor_args Optional named list overriding mcRigor_OPTIMIZE
 #'   arguments (`Nrep`, `weight`, ...).
 #'
@@ -459,7 +460,7 @@ MetacellsByGroupsSuperCell <- function(
 #'   warning (`NA` in `scores`).
 #'
 #' @export
-OptimizeGammaSuperCell <- function(
+optimize_gamma_supercell <- function(
     seurat_obj,
     group.by = "seurat_clusters",
     gammas = c(25, 50, 100),
@@ -502,7 +503,7 @@ OptimizeGammaSuperCell <- function(
                     " cells < min_cells = ", min_cells, call. = FALSE)
             next
         }
-        if (verbose) message("[OptimizeGammaSuperCell] group '", g, "': ",
+        if (verbose) message("[optimize_gamma_supercell] group '", g, "': ",
                              length(gammas), " granularities")
         counts_g <- .get_counts_matrix(seurat_obj, assay, slot, layer, cells_g)
         obj_g <- subset(seurat_obj, cells = cells_g)
@@ -622,10 +623,10 @@ OptimizeGammaSuperCell <- function(
     list(gamma = best_gamma, score_tab = score_tab)
 }
 
-#' Access metacell results stored by MetacellsByGroupsSuperCell
+#' Access metacell results stored by metacells_by_groups_supercell
 #'
 #' @param seurat_obj A Seurat object processed by
-#'   [MetacellsByGroupsSuperCell()].
+#'   [metacells_by_groups_supercell()].
 #' @param wgcna_name Name under which results were stored. Default
 #'   `"SuperCell"`.
 #'
@@ -634,11 +635,58 @@ OptimizeGammaSuperCell <- function(
 #'   `score_overall`, `params`, `skipped_groups`, `call`.
 #'
 #' @export
-GetMetacellSuperCell <- function(seurat_obj, wgcna_name = "SuperCell") {
+get_metacell_supercell <- function(seurat_obj, wgcna_name = "SuperCell") {
     out <- seurat_obj@misc[[wgcna_name]]
     if (is.null(out)) {
         stop("no metacell results under misc[['", wgcna_name,
-             "']]; run MetacellsByGroupsSuperCell first")
+             "']]; run metacells_by_groups_supercell first")
     }
     out
+}
+
+## ---------------------------------------------------------------------------
+## Deprecated PascalCase names (renamed in 0.3.0). Each warns once per session.
+## ---------------------------------------------------------------------------
+
+.deprecated_names <- new.env(parent = emptyenv())
+
+.deprecate_renamed <- function(old, new) {
+  if (!isTRUE(.deprecated_names[[old]])) {
+    .deprecated_names[[old]] <- TRUE
+    .warnf("`%s()` is deprecated and will be removed; use `%s()`.", old, new)
+  }
+  invisible(NULL)
+}
+
+#' Deprecated names of the SuperCell metacell functions
+#'
+#' `MetacellsByGroupsSuperCell()`, `OptimizeGammaSuperCell()` and
+#' `GetMetacellSuperCell()` were renamed in 0.3.0. They call the new functions
+#' and warn once per session.
+#'
+#' @param ... Passed to the renamed function.
+#' @return What the renamed function returns.
+#' @name supercell-deprecated
+#' @keywords internal
+NULL
+
+#' @rdname supercell-deprecated
+#' @export
+MetacellsByGroupsSuperCell <- function(...) {
+  .deprecate_renamed("MetacellsByGroupsSuperCell", "metacells_by_groups_supercell")
+  metacells_by_groups_supercell(...)
+}
+
+#' @rdname supercell-deprecated
+#' @export
+OptimizeGammaSuperCell <- function(...) {
+  .deprecate_renamed("OptimizeGammaSuperCell", "optimize_gamma_supercell")
+  optimize_gamma_supercell(...)
+}
+
+#' @rdname supercell-deprecated
+#' @export
+GetMetacellSuperCell <- function(...) {
+  .deprecate_renamed("GetMetacellSuperCell", "get_metacell_supercell")
+  get_metacell_supercell(...)
 }

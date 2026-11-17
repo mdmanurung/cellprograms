@@ -558,6 +558,8 @@ match_programs <- function(fit_a, fit_b, cell_type,
 
 #' Principal-angle alignment between two loading subspaces
 #'
+#' **Descriptive.** The overlap measures describe two spans; they are not a significance test.
+#'
 #' Computes the principal angles between the column spans of two loading
 #' matrices (genes x programs) on the same gene panel — e.g. a discovery fit
 #' vs a stability refit, or the same cohort fit by two methods. Each span is

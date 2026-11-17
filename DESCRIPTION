@@ -19,12 +19,9 @@ Imports:
     splines,
     cli,
     digest,
-    Matrix,
     flashier,
     ebnm,
-    matrixStats,
     flashier.utils,
-    reticulate,
     withr
 VignetteBuilder: knitr
 Suggests:
@@ -32,7 +29,9 @@ Suggests:
     rmarkdown,
     testthat (>= 3.2.0),
     ggplot2,
-    data.table,
+    Matrix,
+    matrixStats,
+    reticulate,
     mashr,
     igraph,
     basilisk,

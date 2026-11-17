@@ -82,7 +82,7 @@ obj <- Seurat::FindVariableFeatures(obj, nfeatures = 200, verbose = FALSE)
 obj <- Seurat::ScaleData(obj, verbose = FALSE)
 obj <- Seurat::RunPCA(obj, npcs = 10, verbose = FALSE)
 
-obj <- MetacellsByGroupsSuperCell(obj,
+obj <- metacells_by_groups_supercell(obj,
                                   group.by = c("donor", "celltype"),
                                   cells_per_metacell = 15,
                                   min_cells = 50,
@@ -90,13 +90,13 @@ obj <- MetacellsByGroupsSuperCell(obj,
                                   n_pc = 10,
                                   mcrigor_args = list(Nrep = 5),
                                   seed = 7, verbose = FALSE)
-res <- GetMetacellSuperCell(obj)
+res <- get_metacell_supercell(obj)
 mc <- res$metacell_object
 ncol(mc)                          # total metacells
 head(res$qc[, c("metacell", "mcDiv", "dubious")])
 ```
 
-`OptimizeGammaSuperCell()` can replace the fixed `cells_per_metacell` when
+`optimize_gamma_supercell()` can replace the fixed `cells_per_metacell` when
 you want the granularity chosen by the mcRigor score (see the metacells
 article); the downstream workflow is identical either way.
 

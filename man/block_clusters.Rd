@@ -16,6 +16,9 @@ data.frame(cluster, cell_type, program_id, stat, fwer_p) with one
   row per member cell type, plus `activity`: donor x cluster state matrix.
 }
 \description{
+**Experimental.** See [fit_joint_block()].
+}
+\details{
 A shared factor (class "global" or "partial") with >= 2 member cell types
 is one coordination call; membership = block mass > `mass_thresh`
 (0.1 matches the classifier's partial rule). Private factors are

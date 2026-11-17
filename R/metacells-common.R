@@ -166,7 +166,7 @@
 }
 
 .mc_validate_gammas <- function(gammas) {
-    # OptimizeGammaSuperCell candidate granularities: positive integers,
+    # optimize_gamma_supercell candidate granularities: positive integers,
     # deduplicated and sorted. Duplicates would produce identically named
     # membership columns for mcRigor_OPTIMIZE; non-integers fail cryptically
     # inside SCimplify.

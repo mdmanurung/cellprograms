@@ -15,6 +15,9 @@ from the fit's covariates.}
 \item{...}{Forwarded to [fit_eb_cp()] (`Kmax`, `heldout_z`, `seed`, ...).}
 }
 \description{
+**Experimental.** See [fit_eb_cp()].
+}
+\details{
 Runs [fit_eb_cp()] on the adjusted expression matrices (`Y_used`) of a
 `cell_program_fit`. If `strata` is missing, it is derived from the
 categorical covariates used at fit time. Automatic strata from numeric

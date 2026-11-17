@@ -54,7 +54,7 @@ optimum; freeze any study-specific tuning policy before examining test outcomes.
 ## From single cells: metacells (optional)
 
 When the starting point is a single-cell object rather than pseudobulk
-profiles, `MetacellsByGroupsSuperCell()` aggregates cells into
+profiles, `metacells_by_groups_supercell()` aggregates cells into
 transcriptomically homogeneous metacells with SuperCell 2.0 (pure R — no
 Python) and mcRigor QC, stratified so metacells never cross donors or cell
 types. The metacell counts feed
@@ -64,13 +64,13 @@ The following optional construction is not a donor-level inference example:
 ```{r metacells, eval=FALSE}
 # Requires: install.packages("Seurat"); remotes::install_github("GfellerLab/SuperCell");
 # remotes::install_github("JSB-UCLA/mcRigor")
-seu <- MetacellsByGroupsSuperCell(
+seu <- metacells_by_groups_supercell(
   seurat_obj,                         # Seurat object with raw counts (+ PCA, computed if absent)
   group.by = c("donor", "celltype"),  # stratification: metacells stay within donor x cell type
   cells_per_metacell = 75,
   min_cells = 100
 )
-res <- GetMetacellSuperCell(seu)
+res <- get_metacell_supercell(seu)
 mc <- res$metacell_object
 head(res$qc)  # per-metacell mcRigor QC (mcDiv, divergence threshold, dubious flag)
 
@@ -85,7 +85,7 @@ fit <- fit_celltype_programs(x, loading_prior = "point_laplace",
 fit <- canonicalize_programs(fit)
 ```
 
-`OptimizeGammaSuperCell()` selects the granularity (`cells_per_metacell`) by
+`optimize_gamma_supercell()` selects the granularity (`cells_per_metacell`) by
 the mcRigor score when you prefer data-driven granularity over the default.
 
 ## Inspect programs
@@ -190,6 +190,27 @@ flag_artifact_genes(fit)
 # excl <- artifact_genes(colnames(sim$pseudobulk$B))
 # fit_masked <- fit_celltype_programs(x, exclude_genes = excl, ...)
 ```
+
+## Which function should I use?
+
+Several functions touch "do programs agree across cell types". They answer
+different questions.
+
+**Donor activity across cell types (scores)**
+
+| Question | Function | Notes |
+|---|---|---|
+| Which programs, in how many cell types, rise and fall together across donors? | `find_coordinated_programs()` | Package default caller `n_agg_noanc`; permutation-adjusted node p-values. Pass `clusters` and `visits` for repeated visits. |
+| Do two cell types' activity subspaces overlap? | `principal_angles()`, `sharing_spectrum()`, `align_programs()` | Pair level; scores use raw values. `clusters` and `visits` for repeated visits. |
+| Can one joint model find the shared factors? | `fit_joint_block()`, `fit_eb_cp()` | Experimental. Benchmarked and not adopted. |
+
+**Gene loadings**
+
+| Question | Function | Notes |
+|---|---|---|
+| Do matched programs use the same genes? | `program_sharing()` | Descriptive, not a calibrated test; needs `mashr`. |
+| How similar are two loading spans? | `principal_angles(space = "loadings")`, `span_alignment()` | Descriptive. |
+| Which program of one fit is which in another? | `match_programs()` | Greedy loading-cosine matches; also used by `assess_program_stability()`. |
 
 ## Next steps
 

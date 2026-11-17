@@ -1,6 +1,10 @@
-# Scheduled opt-in integration suite (CPMC_INTEGRATION=1): catches backend
-# drift in the SEACells basilisk env (floating transitive pip deps), mcRigor
-# GitHub HEAD, and the floating R stack (Seurat/Matrix) before it bites users.
+# Scheduled opt-in integration suite: runs the full test suite with every
+# optional package installed (SuperCell, mcRigor, Seurat, mashr and the cebmf
+# basilisk env), so tests that skip on ordinary CI actually execute. Catches
+# drift in the cebmf env's floating transitive pip deps, the mcRigor and
+# SuperCell GitHub pins, and the floating R stack (Seurat/Matrix) before it
+# bites users. No test reads CPMC_INTEGRATION since SEACells was removed; the
+# variable is kept for the workflow's own log header.
 # PRs stay fast: this does NOT run on push/PR — see R-CMD-check.yaml.
 on:
   schedule:
@@ -107,7 +111,7 @@ jobs:
           script: |
             const title = "Integration suite failing (backend drift?)";
             const body = `Scheduled CPMC_INTEGRATION=1 run failed at ${process.env.GITHUB_SHA}.
-            Likely causes: floating transitive pip deps in the SEACells env, mcRigor HEAD changes, or Seurat/Matrix updates.
+            Likely causes: floating transitive pip deps in the cebmf env, SuperCell or mcRigor pin changes, or Seurat/Matrix updates.
             Run: ${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
             const { data: issues } = await github.rest.issues.listForRepo({
               owner: context.repo.owner, repo: context.repo.repo,

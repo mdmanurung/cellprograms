@@ -41,5 +41,5 @@ the stage-1 fit from its own scores has no defined residual semantics.}
 An integration-style list with method `"block"`.
 }
 \description{
-Block-structured joint EBMF (Level 3 candidate A)
+**Experimental.** Benchmarked and not adopted: its null false-call rate failed the registered gate (`benchmarks/coordination/results/DECISION_prereg_coord_v1.md`).
 }

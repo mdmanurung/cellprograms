@@ -6,6 +6,19 @@
 
 .warnf <- function(fmt, ...) warning(sprintf(fmt, ...), call. = FALSE)
 
+## Optional packages: one mockable availability check, one message that names the
+## package and the task that needs it.
+.pkg_available <- function(pkg) requireNamespace(pkg, quietly = TRUE)
+
+.require_pkg <- function(pkg, what) {
+  if (!.pkg_available(pkg)) {
+    cli::cli_abort("Package {.pkg {pkg}} is needed for {what} but is not installed.")
+  }
+  invisible(TRUE)
+}
+
+.require_ggplot2 <- function() .require_pkg("ggplot2", "the plot functions")
+
 ## Orthonormal basis for the column space of a matrix (rank-revealing via SVD)
 .orthobasis <- function(W, tol = sqrt(.Machine$double.eps)) {
   if (ncol(W) == 0L) return(matrix(0, nrow(W), 0L))

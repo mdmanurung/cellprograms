@@ -78,6 +78,8 @@
 
 #' Block-structured joint EBMF (Level 3 candidate A)
 #'
+#' **Experimental.** Benchmarked and not adopted: its null false-call rate failed the registered gate (`benchmarks/coordination/results/DECISION_prereg_coord_v1.md`).
+#'
 #' @param fit A `cell_program_fit` (uses its processed matrices / scores).
 #' @param level `"expression"` or `"scores"`.
 #' @param order `"shared_first"` (default) or `"private_first"` (expression
@@ -219,6 +221,8 @@ fit_joint_block <- function(fit, level = c("scores", "expression"),
 }
 
 #' Coordination calls from a block_joint fit (benchmark output contract)
+#'
+#' **Experimental.** See [fit_joint_block()].
 #'
 #' A shared factor (class "global" or "partial") with >= 2 member cell types
 #' is one coordination call; membership = block mass > `mass_thresh`
