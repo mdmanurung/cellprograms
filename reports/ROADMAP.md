@@ -5,6 +5,42 @@
 > version pair, parity evidence, and rollback. This roadmap's scientific
 > decisions are unchanged.
 
+## Update 2026-11-17: 0.3.0 release branch and the 0.4 queue
+
+`release/0.3.0` is the archived `completion/software-20261023` branch (213 commits over the previous
+`main`) plus fixes. What changed, in the order it was done: SEACells removed (SuperCell 2.0 + mcRigor is
+the only metacell path); cluster and visit permutation for `principal_angles()` and donor-level draws for
+`assess_program_stability()`; `seed = 1L` defaults; `n_agg_noanc` recorded as the default CMP caller
+(`benchmarks/coordination/results/DECISION_default_caller.md`); `Matrix`, `matrixStats`, `reticulate` moved
+to Suggests (`flashier.utils` stays in Imports: ordinary fits route through it); snake_case metacell names.
+
+**C1 side clone (`.c1-work`)** reviewed read-only. It is a different study (`node_rank`, alpha .025, a
+qualification harness) that never reached a held-out run; its code conflicts with the default caller and
+is not in the package. Kept: the audit trail in `reports/historical/c1/`, tags `archive/c1-0ffa453` and
+`archive/c1-e95f1d7`, and the raw results in the backup tar.
+
+**Benchmark scripts.** The coordination scripts sourced a fixed list of six `R/` files and called an
+internal `.residualize()` that left the package; both broke on this branch. They now load the package with
+`benchmarks/coordination/load_package.R`, and `sim_coord.R` carries a guarded `.residualize()`.
+`benchmarks/model_selection/arms.R` and `benchmarks/cmp_*/` still call `.residualize()` without a fallback.
+
+**0.4 queue** (code and drafts exist for the first seven; nothing has been run on the cluster):
+1. `prereg-coord-v2` draft: `benchmarks/coordination/PREREG_coord_v2_DRAFT.md`. Its open rows need your
+   values before registration.
+2. `node_agg` arm restored in `methods.R` (not part of the frozen v1 arms).
+3. Trap scenarios `donor_deletion` and `ig_tcr` in `sim_coord.R` (three of the parameters are set, five are open).
+4. Family line (unadjusted p-values) in `summarize_main.R`; relative untested guard and confounder table in
+   `benchmarks/model_selection/summarize.R`.
+5. `ebmf2` stage-2 probe: `benchmarks/coordination/probe_ebmf2_stage2.R` (one-seed smoke run only).
+6. Node-level scorer: port `reports/historical/c1/code/evaluate.R` to this simulator.
+7. `both` label merge rule and the "inflated" threshold of the confounder check.
+8. Then, once registered: the SLURM run (about 5.4 h on 12 workers at v1 scale) and a same-simulator
+   comparison of `node_agg` against `pa_cc`.
+
+**Owner-gated, unchanged:** gates O1 to O18 and the 30 open tasks in the archive's `REMAINING_TASKS.md`
+(biological data rights, signed protocol, compute budget, independent reproduction, CRAN). 0.3.0 is a
+software release with no biological claims.
+
 ## Update 2026-10-13 — milestone closure
 
 - **M2 (main run + decisions): done.** Adopted arm: Cap 30 + node-aggregate (`n_agg_noanc`); `strata` rejected (locked 2026-10-10); `k_stab`/`w_S` dropped at M1.
