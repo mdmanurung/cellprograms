@@ -13,7 +13,7 @@ assess_cmp_stability(
   subsample_frac = 0.8,
   jaccard_threshold = 0.5,
   cmp_args = list(),
-  seed = NULL,
+  seed = 1L,
   progress = TRUE
 )
 }
@@ -50,7 +50,8 @@ link_threshold = 3)`. `seed` is always overridden by the per-replicate
 seed recorded in the replicate log.}
 
 \item{seed}{Base seed for reproducibility. Replicate `b` uses seed
-`seed + b - 1` for both the donor draw and the CMP permutation null.}
+`seed + b - 1` for both the donor draw and the CMP permutation null. Default `1L`; `NULL` draws the
+replicate seeds from the caller's random number stream.}
 
 \item{progress}{Print progress every 10 replicates.}
 }

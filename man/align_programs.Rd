@@ -13,7 +13,10 @@ align_programs(fit, reference = NULL, space = c("scores", "loadings"), ...)
 
 \item{space}{Passed to `principal_angles` (default `"scores"`).}
 
-\item{...}{Passed to `principal_angles`.}
+\item{...}{Passed to `principal_angles` (e.g. `seed`, `strata`, `clusters`,
+`visits`). Every non-reference cell type receives the same `seed`, so the
+per-pair permutation streams are the same and the per-pair p-values are
+correlated; use [sharing_spectrum()] for independent per-pair streams.}
 }
 \description{
 Align all cell types' program subspaces to a reference cell type

@@ -11,8 +11,11 @@ assess_program_stability(
   sim_threshold = 0.5,
   top_n = 20L,
   resample_frac = 0.8,
-  seed = NULL,
-  progress = TRUE
+  seed = 1L,
+  progress = TRUE,
+  donor_col = NULL,
+  visit_col = NULL,
+  donor_strata = NULL
 )
 }
 \arguments{
@@ -28,11 +31,24 @@ greedy loading-cosine matches of [match_programs()] under either value.}
 
 \item{top_n}{Top-gene set size for Jaccard recovery.}
 
-\item{resample_frac}{Fraction of donors kept per cell type per refit.}
+\item{resample_frac}{Fraction of observations kept per cell type per refit (of
+donors when `donor_col` is set).}
 
-\item{seed}{Random seed.}
+\item{seed}{Random seed (default `1L`; `NULL` leaves the random number
+stream unseeded).}
 
 \item{progress}{Print progress messages.}
+
+\item{donor_col, visit_col, donor_strata}{Optional `sample_metadata` column
+names for repeated observations, as in [assess_cmp_stability()]. With
+`donor_col`, each replicate draws whole donors once (a fraction
+`resample_frac` of them, within `donor_strata` when given), keeps all of a
+drawn donor's observations in every cell type, and refits on those. A
+donor with more than one observation needs `visit_col`. Without
+`donor_col`, observations are subsampled independently within each cell
+type, so repeated visits of one donor count as independent donors. A draw
+that leaves a cell type with fewer than 5 observations keeps all of that
+cell type's observations and warns once.}
 }
 \value{
 The fit with `fit$stability` populated:
@@ -70,6 +86,13 @@ The fit with `fit$stability` populated:
 \description{
 Assess program stability by donor subsampling
 }
+\section{What stability measures}{
+
+Subsampling without replacement measures how well programs survive losing
+donors. It is not a bootstrap, gives no confidence interval, and refits
+still treat the observations in a replicate as independent rows.
+}
+
 \examples{
 sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
 x <- as_cell_program_data(sim$pseudobulk)

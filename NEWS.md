@@ -1,5 +1,35 @@
 # cellprograms (development, 0.3.0)
 
+## Repeated visits and seeds
+
+* `principal_angles()` gains `clusters` and `visits` (scores space). Permutations
+  then move whole clusters (patients) between clusters with the same `strata`
+  block and visit set, as `find_coordinated_programs()` does. A pair with fewer
+  than 2 exchangeable clusters fails with class `cp_few_clusters`;
+  `sharing_spectrum()` skips such a pair with a warning and lists it as
+  underpowered. A warning says when fewer than `n_perm + 1` distinct cluster
+  permutations exist. In a 40-dataset complete-null simulation with 30
+  patients and 2 visits, row permutation gave `p_pair < 0.05` in 15 datasets and
+  cluster permutation in 0 (`tests/testthat/test-principal-angles.R`). Calibration
+  on real repeated-visit data has not been established.
+* `assess_program_stability()` gains `donor_col`, `visit_col` and `donor_strata`
+  (as in `assess_cmp_stability()`): each replicate draws whole donors once, shared
+  by every cell type, and keeps all of a drawn donor's visits.
+* **Seed defaults.** `principal_angles()`, `assess_program_stability()` and
+  `assess_cmp_stability()` now default to `seed = 1L`. Calls that omitted `seed`
+  used to be unseeded and are now reproducible; calls that passed a seed give
+  the same results as before (pinned by golden values). Pass `seed = NULL` for
+  unseeded draws. A seeded call no longer advances the caller's random number
+  stream.
+* `assess_program_stability(match_method =)` is deprecated; it never changed
+  the results.
+* `canonicalize_programs()`, `program_sharing()` and `assess_cmp_stability()`
+  now align scores, loadings, posterior SDs and CMP scores by name and stop when
+  the order differs; `span_alignment()` fails on different or duplicated gene
+  names.
+* `plot_cmp_network()` now marks ambient-flagged programs; `plot_alignment()`
+  reads the significance that `align_programs()` output carries.
+
 ## SEACells removed
 
 * SuperCell 2.0 + mcRigor (`GfellerLab/SuperCell@89b34c0`, supercell-2.0

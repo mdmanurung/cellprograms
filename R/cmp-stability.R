@@ -49,7 +49,8 @@
 #'   link_threshold = 3)`. `seed` is always overridden by the per-replicate
 #'   seed recorded in the replicate log.
 #' @param seed Base seed for reproducibility. Replicate `b` uses seed
-#'   `seed + b - 1` for both the donor draw and the CMP permutation null.
+#'   `seed + b - 1` for both the donor draw and the CMP permutation null. Default `1L`; `NULL` draws the
+#'   replicate seeds from the caller's random number stream.
 #' @param progress Print progress every 10 replicates.
 #'
 #' @return An object of class `cmp_stability`, a list with
@@ -107,7 +108,7 @@
 assess_cmp_stability <- function(fit, donor_col = NULL, visit_col = NULL,
                                  donor_strata = NULL, n_boot = 100L,
                                  subsample_frac = 0.8, jaccard_threshold = 0.5,
-                                 cmp_args = list(), seed = NULL,
+                                 cmp_args = list(), seed = 1L,
                                  progress = TRUE) {
   if (!is.list(cmp_args) || "fit" %in% names(cmp_args)) {
     .stopf("`cmp_args` must be a named list of find_coordinated_programs() arguments without `fit`.")

@@ -60,7 +60,7 @@
   idx
 }
 
-.pa_engine <- function(Ma, Mb, n_perm, seed, strata = NULL) {
+.pa_engine <- function(Ma, Mb, n_perm, seed, strata = NULL, plan = NULL) {
   sa <- .subspace(Ma); sb <- .subspace(Mb)
   if (sa$rank == 0L || sb$rank == 0L) .stopf("Degenerate (rank-0) subspace.")
   s <- svd(crossprod(sa$U, sb$U))
@@ -72,7 +72,12 @@
     if (!is.null(seed)) withr::local_seed(seed)
     null_sigma <- matrix(NA_real_, nrow = n_perm, ncol = length(sigma))
     for (p in seq_len(n_perm)) {
-      Mb_p <- Mb[.perm_within(nrow(Mb), strata), , drop = FALSE]
+      # a cluster plan moves whole patients (see .cmp_cluster_plan); otherwise rows move
+      Mb_p <- if (is.null(plan)) {
+        Mb[.perm_within(nrow(Mb), strata), , drop = FALSE]
+      } else {
+        Mb[match(.cmp_cluster_map(plan), rownames(Mb)), , drop = FALSE]
+      }
       sb_p <- .subspace(Mb_p)
       d_p <- svd(crossprod(sa$U, sb_p$U))$d
       null_sigma[p, seq_along(d_p)] <- pmin(d_p, 1)
@@ -132,6 +137,27 @@
   pmin(w, 10 * stats::median(w))   # cap: one near-perfectly fitted gene must not dominate the angles
 }
 
+# Checks a cluster plan before it drives a permutation null. A plan with no
+# movable cluster has no null; few clusters give few distinct permutations, so
+# the smallest attainable p-value is above 1 / (n_perm + 1).
+.pa_check_plan <- function(plan, n_perm, ct_a, ct_b) {
+  if (plan$n_exchangeable < 2L) {
+    stop(structure(class = c("cp_few_clusters", "error", "condition"), list(
+      message = sprintf(paste0("%s vs %s: fewer than 2 clusters can be exchanged (same strata and visit ",
+                               "set); %d of %d clusters are movable, so the cluster permutation null ",
+                               "is degenerate."),
+                        ct_a, ct_b, plan$n_exchangeable, plan$n_clusters),
+      call = NULL)))
+  }
+  sizes <- vapply(plan$groups, length, 1L)
+  log_distinct <- sum(lfactorial(sizes))
+  if (n_perm > 0L && log_distinct < log(n_perm + 1)) {
+    .warnf("Only about %.0f distinct cluster permutations exist (fewer than n_perm + 1 = %d); the smallest attainable p-value is above 1 / (n_perm + 1).",
+           exp(log_distinct), n_perm + 1L)
+  }
+  invisible(plan)
+}
+
 #' Principal angles between the program subspaces of two cell types
 #'
 #' @param fit A `cell_program_fit` object.
@@ -140,24 +166,49 @@
 #'   (shared gene usage).
 #' @param weight Loadings space only: `"none"` or `"residual_sd"` whitening.
 #' @param n_perm Permutations for the label-permutation null (0 skips).
-#' @param seed Random seed for permutations.
+#' @param seed Random seed for permutations (default `1L`; `NULL` leaves the
+#'   random number stream unseeded).
 #' @param strata Scores space only: named vector (names = observation ids) of
 #'   stratum labels, e.g. batch or institute. Observations of `ct_b` are
 #'   permuted only within strata, so the null preserves stratum-level
 #'   structure shared by both cell types (blocked permutation).
+#' @param clusters Scores space only: cluster (for example patient)
+#'   identifier for repeated observations, as a `sample_metadata` column name
+#'   or a vector named by observation id. Permutations then move whole
+#'   clusters, never single observations, onto other clusters with the same
+#'   `strata` block and the same set of `visits`. Without `clusters`, repeated
+#'   observations of one patient are permuted as if they were independent
+#'   donors, and the null is anti-conservative for repeated-visit data.
+#' @param visits Visit identifier within a cluster (column name or named
+#'   vector); required when a cluster has more than one observation. Each
+#'   cluster/visit pair must identify one observation.
+#' @section Repeated visits:
+#' The cluster permutation is designed to respect patient clustering. Its
+#' calibration on repeated-visit data has not been established, so do not read
+#' the p-values as a controlled error rate. Clusters whose strata block and
+#' visit set match no other cluster cannot move and keep their true pairing in
+#' every permuted data set, which makes the test conservative. Scores-space
+#' angles use the raw scores; unlike [find_coordinated_programs()] they do not
+#' rank-transform or residualize on strata.
 #' @return An object of class `principal_angles`.
 #' @export
 principal_angles <- function(fit, ct_a, ct_b,
                              space = c("scores", "loadings"),
                              weight = c("none", "residual_sd"),
-                             n_perm = 200L, seed = NULL, strata = NULL) {
+                             n_perm = 200L, seed = 1L, strata = NULL,
+                             clusters = NULL, visits = NULL) {
   .require_canonicalized(fit, "principal_angles()")
   space <- match.arg(space)
   weight <- match.arg(weight)
   if (!is.null(strata) && space != "scores") {
     .stopf("`strata` applies to scores space only.")
   }
+  if ((!is.null(clusters) || !is.null(visits)) && space != "scores") {
+    .stopf("`clusters` and `visits` apply to scores space only.")
+  }
+  if (!is.null(visits) && is.null(clusters)) .stopf("`visits` requires `clusters`.")
   strata_ids <- NULL
+  plan <- NULL
 
   if (space == "scores") {
     Za <- fit$scores[[ct_a]]; Zb <- fit$scores[[ct_b]]
@@ -182,6 +233,13 @@ principal_angles <- function(fit, ct_a, ct_b,
       }
       strata_ids <- strata[ids]
       if (anyNA(strata_ids)) .stopf("`strata` has NA for shared observations.")
+    }
+    if (!is.null(clusters)) {
+      cl <- .cmp_resolve_var(fit, clusters, "clusters")
+      vi <- .cmp_resolve_var(fit, visits, "visits")
+      blocks <- stats::setNames(if (is.null(strata_ids)) rep("all", length(ids)) else
+                                  as.character(strata_ids), ids)
+      plan <- .pa_check_plan(.cmp_cluster_plan(ids, cl, vi, blocks), n_perm, ct_a, ct_b)
     }
     if (weight != "none") {
       .warnf("`weight` applies to loadings space only; ignored for scores.")
@@ -208,7 +266,7 @@ principal_angles <- function(fit, ct_a, ct_b,
     eff_dim <- g_inter
   }
 
-  eng <- .pa_engine(Ma, Mb, n_perm, seed, strata_ids)
+  eng <- .pa_engine(Ma, Mb, n_perm, seed, strata_ids, plan)
   k_a <- eng$ranks["a"]; k_b <- eng$ranks["b"]
   asymptotic_ref <- (sqrt(k_a) + sqrt(k_b)) / sqrt(max(eff_dim, 1))
   ## sharing requires BOTH beating the permutation null AND a minimum effect
@@ -234,7 +292,9 @@ principal_angles <- function(fit, ct_a, ct_b,
     program_weights = eng$program_weights,
     dims = c(k_a = unname(k_a), k_b = unname(k_b), effective_dim = eff_dim),
     weight = if (space == "loadings") weight else "none",
-    n_perm = n_perm
+    n_perm = n_perm,
+    permutation = if (!is.null(plan)) "cluster-within-strata-and-visit-set" else
+      if (!is.null(strata_ids)) "observation-within-strata" else "observation"
   )
   class(out) <- "principal_angles"
   out
@@ -280,7 +340,11 @@ print.principal_angles <- function(x, ...) {
 #'   value warns. Pairs get distinct seeds derived from `seed`.
 #' @param seed Master seed (default 1, so default runs are reproducible); each
 #'   pair gets a deterministic sub-seed. `NULL` leaves the RNG unseeded.
-#' @param ... Passed to `principal_angles` (e.g. `strata`).
+#' @param ... Passed to `principal_angles` (e.g. `strata`, or `clusters` and
+#'   `visits` for repeated observations). With `clusters`, a pair that has fewer
+#'   than 2 exchangeable clusters is skipped with a warning and listed as
+#'   `underpowered` with `NA` statistics; its element of `pairs` has class
+#'   `pa_skipped`.
 #' @return Per-pair `principal_angles` objects plus a summary table. `p_pair` is
 #'   a single permutation p-value per pair (statistic sum of squared cosines);
 #'   `z_pair` and `excess_frac` are graded effect sizes against the
@@ -322,11 +386,22 @@ sharing_spectrum <- function(fit, pairs = NULL, space = c("scores", "loadings"),
     a <- dots
     # distinct deterministic stream per pair; seed = NULL opts out (unseeded)
     a$seed <- if (!is.null(seed)) .pair_seed(seed, pr) else NULL
-    do.call(principal_angles, c(list(fit, pr[1L], pr[2L], space = space, n_perm = n_perm), a))
+    tryCatch(
+      do.call(principal_angles, c(list(fit, pr[1L], pr[2L], space = space, n_perm = n_perm), a)),
+      cp_few_clusters = function(e) {
+        .warnf("Pair %s skipped: %s", paste(pr, collapse = " vs "), conditionMessage(e))
+        structure(list(ct_a = pr[1L], ct_b = pr[2L], skipped = TRUE), class = "pa_skipped")
+      })
   })
   names(res) <- vapply(pairs, paste, character(1L), collapse = " vs ")
 
   summ <- do.call(rbind, lapply(res, function(r) {
+    if (inherits(r, "pa_skipped")) {
+      return(data.frame(pair = paste(r$ct_a, "vs", r$ct_b), k_a = NA_integer_, k_b = NA_integer_,
+                        effective_dim = NA_integer_, min_angle_deg = NA_real_, n_shared_05 = NA_integer_,
+                        p_pair = NA_real_, z_pair = NA_real_, excess_frac = NA_real_,
+                        underpowered = TRUE, stringsAsFactors = FALSE))
+    }
     data.frame(pair = paste(r$ct_a, "vs", r$ct_b),
                k_a = unname(r$dims["k_a"]), k_b = unname(r$dims["k_b"]),
                effective_dim = unname(r$dims["effective_dim"]),
@@ -351,7 +426,10 @@ sharing_spectrum <- function(fit, pairs = NULL, space = c("scores", "loadings"),
 #' @param fit A `cell_program_fit` object.
 #' @param reference Reference cell type (default: most programs).
 #' @param space Passed to `principal_angles` (default `"scores"`).
-#' @param ... Passed to `principal_angles`.
+#' @param ... Passed to `principal_angles` (e.g. `seed`, `strata`, `clusters`,
+#'   `visits`). Every non-reference cell type receives the same `seed`, so the
+#'   per-pair permutation streams are the same and the per-pair p-values are
+#'   correlated; use [sharing_spectrum()] for independent per-pair streams.
 #' @examples
 #' sim <- simulate_pseudobulk(n_samples = 24, n_genes = 300, program_size = 30, seed = 1)
 #' x <- as_cell_program_data(sim$pseudobulk)

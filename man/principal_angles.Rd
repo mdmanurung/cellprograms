@@ -11,8 +11,10 @@ principal_angles(
   space = c("scores", "loadings"),
   weight = c("none", "residual_sd"),
   n_perm = 200L,
-  seed = NULL,
-  strata = NULL
+  seed = 1L,
+  strata = NULL,
+  clusters = NULL,
+  visits = NULL
 )
 }
 \arguments{
@@ -27,12 +29,25 @@ principal_angles(
 
 \item{n_perm}{Permutations for the label-permutation null (0 skips).}
 
-\item{seed}{Random seed for permutations.}
+\item{seed}{Random seed for permutations (default `1L`; `NULL` leaves the
+random number stream unseeded).}
 
 \item{strata}{Scores space only: named vector (names = observation ids) of
 stratum labels, e.g. batch or institute. Observations of `ct_b` are
 permuted only within strata, so the null preserves stratum-level
 structure shared by both cell types (blocked permutation).}
+
+\item{clusters}{Scores space only: cluster (for example patient)
+identifier for repeated observations, as a `sample_metadata` column name
+or a vector named by observation id. Permutations then move whole
+clusters, never single observations, onto other clusters with the same
+`strata` block and the same set of `visits`. Without `clusters`, repeated
+observations of one patient are permuted as if they were independent
+donors, and the null is anti-conservative for repeated-visit data.}
+
+\item{visits}{Visit identifier within a cluster (column name or named
+vector); required when a cluster has more than one observation. Each
+cluster/visit pair must identify one observation.}
 }
 \value{
 An object of class `principal_angles`.
@@ -40,3 +55,14 @@ An object of class `principal_angles`.
 \description{
 Principal angles between the program subspaces of two cell types
 }
+\section{Repeated visits}{
+
+The cluster permutation is designed to respect patient clustering. Its
+calibration on repeated-visit data has not been established, so do not read
+the p-values as a controlled error rate. Clusters whose strata block and
+visit set match no other cluster cannot move and keep their true pairing in
+every permuted data set, which makes the test conservative. Scores-space
+angles use the raw scores; unlike [find_coordinated_programs()] they do not
+rank-transform or residualize on strata.
+}
+

@@ -30,13 +30,29 @@
 #' @param fit A canonicalized `cell_program_fit` (refit uses its stored
 #'   preprocessing settings, gene sets and covariates).
 #' @param n_boot Number of subsample refits.
-#' @param resample_frac Fraction of donors kept per cell type per refit.
+#' @param resample_frac Fraction of observations kept per cell type per refit (of
+#'   donors when `donor_col` is set).
 #' @param match_method Deprecated; it has no effect. Factor-level matches are the
 #'   greedy loading-cosine matches of [match_programs()] under either value.
 #' @param sim_threshold Minimum |cosine| for a factor-level match.
 #' @param top_n Top-gene set size for Jaccard recovery.
-#' @param seed Random seed.
+#' @param seed Random seed (default `1L`; `NULL` leaves the random number
+#'   stream unseeded).
 #' @param progress Print progress messages.
+#' @param donor_col,visit_col,donor_strata Optional `sample_metadata` column
+#'   names for repeated observations, as in [assess_cmp_stability()]. With
+#'   `donor_col`, each replicate draws whole donors once (a fraction
+#'   `resample_frac` of them, within `donor_strata` when given), keeps all of a
+#'   drawn donor's observations in every cell type, and refits on those. A
+#'   donor with more than one observation needs `visit_col`. Without
+#'   `donor_col`, observations are subsampled independently within each cell
+#'   type, so repeated visits of one donor count as independent donors. A draw
+#'   that leaves a cell type with fewer than 5 observations keeps all of that
+#'   cell type's observations and warns once.
+#' @section What stability measures:
+#' Subsampling without replacement measures how well programs survive losing
+#' donors. It is not a bootstrap, gives no confidence interval, and refits
+#' still treat the observations in a replicate as independent rows.
 #' @return The fit with `fit$stability` populated:
 #'   \describe{
 #'     \item{per_program}{One row per program: `n_hit` (refits whose match
@@ -81,8 +97,12 @@ assess_program_stability <- function(fit, n_boot = 100L,
                                      match_method = c("subspace", "correlation"),
                                      sim_threshold = 0.5, top_n = 20L,
                                      resample_frac = 0.8,
-                                     seed = NULL, progress = TRUE) {
+                                     seed = 1L, progress = TRUE,
+                                     donor_col = NULL, visit_col = NULL, donor_strata = NULL) {
   .require_canonicalized(fit, "assess_program_stability()")
+  if (!is.null(visit_col) && is.null(donor_col)) .stopf("`visit_col` requires `donor_col`.")
+  if (!is.null(donor_strata) && is.null(donor_col)) .stopf("`donor_strata` requires `donor_col`.")
+  dmap <- if (is.null(donor_col)) NULL else .cmpstab_donor_map(fit, donor_col, visit_col, donor_strata)
   if (length(n_boot) != 1L || !is.finite(n_boot) || n_boot < 1L ||
       n_boot != as.integer(n_boot)) .stopf("n_boot must be a positive integer.")
   if (length(resample_frac) != 1L || !is.finite(resample_frac) ||
@@ -119,6 +139,7 @@ assess_program_stability <- function(fit, n_boot = 100L,
   if (length(small_cts)) {
     cli::cli_warn("Cell type(s) {.val {small_cts}} have fewer than 5 donors and cannot be subsampled; their replicates reuse all donors (stability is optimistic for them).")
   }
+  thin_cts <- character(0)
   for (b in seq_len(n_boot)) {
     if (progress && b %% 10L == 0L) message(sprintf("subsample %d/%d", b, n_boot))
     t0 <- Sys.time()
@@ -126,9 +147,25 @@ assess_program_stability <- function(fit, n_boot = 100L,
     # observation_ids, sample_metadata and dims are subset to the sampled
     # rows (previously the full-data values were retained, leaving dims and
     # metadata stale relative to the subsampled matrices).
-    sampled_ids <- lapply(fit$pseudobulk, function(Y) {
-      Y[sample.int(nrow(Y), min(nrow(Y), max(5L, floor(resample_frac * nrow(Y))))), , drop = FALSE]
-    })
+    sampled_ids <- if (is.null(dmap)) {
+      lapply(fit$pseudobulk, function(Y) {
+        Y[sample.int(nrow(Y), min(nrow(Y), max(5L, floor(resample_frac * nrow(Y))))), , drop = FALSE]
+      })
+    } else {
+      # whole donors, drawn once and shared by every cell type; all of a drawn
+      # donor's observations (visits) enter together
+      drawn <- .cmpstab_draw(dmap$donor, resample_frac, dmap$strata)
+      obs_keep <- dmap$observation_id[dmap$donor %in% drawn]
+      stats::setNames(lapply(names(fit$pseudobulk), function(ct) {
+        Y <- fit$pseudobulk[[ct]]
+        Yb <- Y[rownames(Y) %in% obs_keep, , drop = FALSE]
+        if (nrow(Yb) < min(5L, nrow(Y))) {
+          thin_cts <<- union(thin_cts, ct)
+          Yb <- Y   # as without donor_col: a cell type this thin enters the replicate intact
+        }
+        Yb
+      }), names(fit$pseudobulk))
+    }
     keep <- unique(unlist(lapply(sampled_ids, rownames)))
     x_b <- list(
       pseudobulk = sampled_ids,
@@ -249,11 +286,16 @@ assess_program_stability <- function(fit, n_boot = 100L,
       stringsAsFactors = FALSE
     )
   }))
+  if (length(thin_cts)) {
+    cli::cli_warn("With {.arg donor_col}, a draw left fewer than 5 observations in cell type(s) {.val {thin_cts}}; those replicates reuse all of their observations (stability is optimistic for them).")
+  }
   repl <- do.call(rbind, repl_log)
   fit$stability <- list(per_program = stab, n_boot = n_boot,
                         valid_refits = valid_refits, failed_refits = failed_refits,
                         replicate_log = repl,
                         target = "full_fitting_procedure_including_documented_fallback_ladder",
-                        sim_threshold = sim_threshold)
+                        sim_threshold = sim_threshold,
+                        resampling = if (is.null(dmap)) "observations-within-cell-type" else "donors",
+                        donor_col = donor_col, visit_col = visit_col, donor_strata = donor_strata)
   fit
 }

@@ -28,7 +28,11 @@ value warns. Pairs get distinct seeds derived from `seed`.}
 \item{seed}{Master seed (default 1, so default runs are reproducible); each
 pair gets a deterministic sub-seed. `NULL` leaves the RNG unseeded.}
 
-\item{...}{Passed to `principal_angles` (e.g. `strata`).}
+\item{...}{Passed to `principal_angles` (e.g. `strata`, or `clusters` and
+`visits` for repeated observations). With `clusters`, a pair that has fewer
+than 2 exchangeable clusters is skipped with a warning and listed as
+`underpowered` with `NA` statistics; its element of `pairs` has class
+`pa_skipped`.}
 }
 \value{
 Per-pair `principal_angles` objects plus a summary table. `p_pair` is

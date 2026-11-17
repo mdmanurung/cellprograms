@@ -167,30 +167,6 @@ test_that("empty score set after min_donors/ambient filtering fails closed (was:
   )
 })
 
-# Repeated-visit toy: every cell type carries a patient effect shared across that
-# patient's visits, but there is no cross-cell-type coupling (complete null).
-.cmp_visit_toy <- function(n_pat = 40, visits = c("T1", "T2"), k = 3, seed = 1, rho = 0.8, cts = c("A", "B", "C")) {
-  set.seed(seed)
-  pat <- rep(sprintf("p%03d", seq_len(n_pat)), each = length(visits))
-  vis <- rep(visits, n_pat)
-  ids <- paste(pat, vis, sep = "_")
-  n <- length(ids)
-  scores <- loadings <- list()
-  for (ct in cts) {
-    U <- matrix(rnorm(n_pat * k), n_pat, k)
-    S <- sqrt(rho) * U[match(pat, unique(pat)), , drop = FALSE] + sqrt(1 - rho) * matrix(rnorm(n * k), n, k)
-    dimnames(S) <- list(ids, paste0(ct, "_", seq_len(k)))
-    scores[[ct]] <- S
-    loadings[[ct]] <- matrix(rnorm(50 * k), 50, k, dimnames = list(sprintf("G%02d", 1:50), colnames(S)))
-  }
-  structure(list(scores = scores, loadings = loadings, cell_types = cts, observation_ids = ids,
-                 sample_metadata = data.frame(observation_id = ids, patient = pat, visit = vis,
-                                              site = ifelse(match(pat, unique(pat)) %% 2 == 1, "s1", "s2"),
-                                              visit_site = ifelse(seq_len(n) %% 4 < 2, "s1", "s2"),
-                                              stringsAsFactors = FALSE)),
-            class = c("cell_program_fit", "cell_program_data", "list"))
-}
-
 test_that("cluster permutation moves whole patients and keeps visits and strata", {
   fit <- .cmp_visit_toy(n_pat = 12)
   md <- fit$sample_metadata
