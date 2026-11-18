@@ -103,3 +103,50 @@ test_that(".cmp_node_stat ignores non-finite edge stats and sums over cell-type 
   expect_equal(unname(.cmp_node_stat(c(Inf, 1), idx, 2)), c(0, 0, 0))
   expect_equal(unname(.cmp_node_stat(c(1, 1), idx, -1)), c(4, 4, 4))
 })
+
+# ---- stat-only fast path equals the reference edge table ----------------------------------
+
+.perf_prepared <- function(case) {
+  fit <- case$fit
+  args <- case$args
+  blocks <- .cmp_blocks(fit$observation_ids, .cmp_resolve_var(fit, args$strata, "strata"),
+                        .cmp_resolve_var(fit, args$context, "context"), args$mode %||% "marginal")
+  Z <- .cmp_prep(fit$scores, blocks, args$min_donors %||% 20L)
+  pairs <- .cmp_pairs(Z, args$min_shared %||% 20L)
+  edges <- .cmp_edges(Z, pairs)
+  idx <- .cmp_node_index(edges)
+  list(Z = Z, blocks = blocks, pairs = pairs, edges = edges, idx = idx,
+       plan = .cmp_stat_plan(Z, pairs, idx))
+}
+
+for (nm in names(cases)) {
+  test_that(paste0("fast edge and node statistics equal the reference on permuted data: ", nm), {
+    pr <- .perf_prepared(cases[[nm]])
+    expect_identical(.cmp_edge_stat(pr$Z, pr$plan), pr$edges$stat)
+    set.seed(11)
+    for (b in 1:4) {
+      Zp <- .cmp_perm(pr$Z, pr$blocks)
+      ref <- .cmp_edges(Zp, pr$pairs)$stat
+      fast <- .cmp_edge_stat(Zp, pr$plan)
+      expect_identical(fast, ref)
+      expect_identical(.cmp_node_stat_fast(fast, pr$plan, 2), unname(.cmp_node_stat(ref, pr$idx, 2)))
+    }
+  })
+}
+
+test_that("the fast path copies the callable NA quirk and the n <= 3 mask", {
+  set.seed(3)
+  ids <- sprintf("d%02d", 1:30)
+  Za <- matrix(rnorm(60), 30, 2, dimnames = list(ids, c("A_1", "A_2")))
+  Zb <- matrix(rnorm(90), 30, 3, dimnames = list(ids, c("B_1", "B_2", "B_3")))
+  Zb[1:27, 2] <- NA
+  attr(Za, "program_support") <- data.frame(program_id = c("A_1", "A_2"), callable = c(TRUE, FALSE))
+  attr(Zb, "program_support") <- data.frame(program_id = c("B_1", "B_2"), callable = c(TRUE, TRUE))
+  Z <- list(A = Za, B = Zb)
+  pairs <- list(list(a = "A", b = "B", ids = ids, min_shared = 4L))
+  edges <- .cmp_edges(Z, pairs)
+  idx <- .cmp_node_index(edges)
+  plan <- .cmp_stat_plan(Z, pairs, idx)
+  expect_identical(.cmp_edge_stat(Z, plan), edges$stat)
+  expect_identical(.cmp_node_stat_fast(edges$stat, plan, 2), unname(.cmp_node_stat(edges$stat, idx, 2)))
+})
