@@ -5,7 +5,6 @@
 suppressMessages(pkgload::load_all(".", quiet = TRUE))
 source("tests/testthat/helper-sharing-perf.R")
 golden <- list(
-  continuous = .match_programs_loadings(.sharing_perf_fit(), n_perm = 199L, seed = 1L),
-  ties = .match_programs_loadings(.sharing_tie_fit(), n_perm = 99L, seed = 1L)
+  continuous = .match_programs_loadings(.sharing_perf_fit(), n_perm = 199L, seed = 1L)
 )
 saveRDS(golden, "tests/testthat/fixtures/sharing_perf_golden.rds", version = 2)

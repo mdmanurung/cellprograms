@@ -29,8 +29,10 @@ continuous loadings. A differential fuzz run found that it changes p-values when
 contain exact ties (discrete values; 36 of 180 configurations, p off by up to 0.38),
 because `cor()` and a cross-product of scaled columns differ by about 1e-17, which breaks
 ties in `|null| >= |obs|` differently. Real EBMF loadings are continuous, but 1.5x is not
-worth a change in seeded results, so the code is unchanged. The golden tests, including a
-tie fixture, stay. The fuzz run also showed that `stats::cor()` forces `y` before `x`, so
+worth a change in seeded results, so the code is unchanged. The golden test on
+continuous loadings stays. A tie fixture was tried and dropped: on exact ties p depends on the
+platform's floating-point arithmetic (macOS CI broke ties differently from Linux), so it cannot
+be pinned across platforms. The fuzz run also showed that `stats::cor()` forces `y` before `x`, so
 the old loop draws the second matrix's permutation first; any rewrite must keep that order.
 
 ## What is left, and why there is no Rcpp
