@@ -21,3 +21,22 @@
   structure(list(loadings = loadings, fits = fits, canonicalization = canon, cell_types = cts),
             class = c("cell_program_fit", "cell_program_data", "list"))
 }
+
+# Discrete loadings make exact ties |null| == |obs| common. Different arithmetic for the
+# same correlation (cor() vs crossprod of scaled columns) breaks such ties differently,
+# so this fixture guards the p-values against a change in how the null is computed.
+.sharing_tie_fit <- function(g = 30, k = 2, seed = 5, cts = c("A", "B")) {
+  set.seed(seed)
+  genes <- sprintf("G%02d", seq_len(g))
+  loadings <- fits <- canon <- list()
+  for (ct in cts) {
+    W <- matrix(sample(c(-1, 0, 1, 2), g * k, TRUE), g, k,
+                dimnames = list(genes, paste0(ct, "_", seq_len(k))))
+    loadings[[ct]] <- W
+    fits[[ct]] <- list(flash = list(F_pm = W, F_psd = matrix(0.3, g, k, dimnames = dimnames(W))),
+                       genes = genes)
+    canon[[ct]] <- list(scale_multiplier = rep(1, k), sign_multiplier = rep(1, k))
+  }
+  structure(list(loadings = loadings, fits = fits, canonicalization = canon, cell_types = cts),
+            class = c("cell_program_fit", "cell_program_data", "list"))
+}

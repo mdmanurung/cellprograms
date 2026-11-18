@@ -71,21 +71,6 @@
 }
 
 
-# Columns centred and scaled to unit length, so crossprod() of two such matrices
-# is their correlation matrix.
-.scale_cols <- function(W) {
-  W <- sweep(W, 2L, colMeans(W), "-")
-  sweep(W, 2L, sqrt(colSums(W^2)), "/")
-}
-
-# cor(Wa[pa, ], Wb[pb, ]) from the scaled matrices: pair row pa[g] of Sa with row
-# pb[g] of Sb, which is one row permutation of Sb.
-.perm_cor <- function(Sa, Sb, pa, pb) {
-  rho <- integer(length(pa))
-  rho[pa] <- pb
-  crossprod(Sa, Sb[rho, , drop = FALSE])
-}
-
 #' Candidate cross-cell-type program matches from loading correlation
 #'
 #' For every pair of cell types, correlates (absolute Pearson) each program's
@@ -128,15 +113,10 @@
     exc <- matrix(0, nrow(obs), ncol(obs))
     withr::local_seed(.pair_seed(seed, pr))
     G <- length(genes)
-    # Row permutations do not change column means or norms, so centre and scale
-    # once and take a cross-product per permutation. The same two sample.int()
-    # draws are made in the same order as before, so seeded p-values are unchanged.
-    Sa <- .scale_cols(Wa); Sb <- .scale_cols(Wb)
-    obs_s <- crossprod(Sa, Sb)
     for (p in seq_len(n_perm)) {
-      # stats::cor() forces `y` before `x`, so the old call drew Wb's permutation first
-      pb <- sample.int(G); pa <- sample.int(G)
-      exc <- exc + (abs(.perm_cor(Sa, Sb, pa, pb)) >= abs(obs_s))
+      null <- stats::cor(Wa[sample.int(G), , drop = FALSE],
+                         Wb[sample.int(G), , drop = FALSE])
+      exc <- exc + (abs(null) >= abs(obs))
     }
     pv <- (1 + exc) / (n_perm + 1)
     for (i in seq_len(ncol(Wa))) {
