@@ -31,7 +31,8 @@ jobs:
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           dependencies: '"hard"'
-          extra-packages: any::pkgdown, local::.
+          # matrixStats is a Suggests: the coordination_joint article runs fit_eb_cp()
+          extra-packages: any::pkgdown, any::matrixStats, local::.
           needs: website
       - name: Build documentation
         shell: Rscript {0}
