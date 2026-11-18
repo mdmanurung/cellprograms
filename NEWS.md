@@ -1,3 +1,12 @@
+# cellprograms (development)
+
+## Speed
+
+* `find_coordinated_programs()` is 3-4 times faster at 5-20 cell types: the permutation
+  loop no longer builds a data frame per cell-type pair and permutation. Results and
+  seeded streams are identical to 0.3.0 (checked on 96 randomised configurations). Timings
+  and method: `benchmarks/performance/RESULTS.md`.
+
 # cellprograms 0.3.0
 
 ## Repeated visits and seeds

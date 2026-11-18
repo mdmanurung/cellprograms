@@ -230,6 +230,54 @@
   stats::setNames(as.numeric(out), names(out))
 }
 
+# Statistic-only path for the permutation loop. .cmp_edges() builds a labelled
+# data.frame per pair and the loop used only its `stat` column; this computes the
+# same numbers with the same arithmetic (so results are identical, not close) and
+# drops the strings, data.frames and rbind. Everything that does not change between
+# permutations (row ids, thresholds, support masks, group indices) is built once.
+.cmp_stat_plan <- function(Z, pairs, idx) {
+  pp <- lapply(pairs, function(p) {
+    sa <- attr(Z[[p$a]], "program_support")
+    sb <- attr(Z[[p$b]], "program_support")
+    list(a = p$a, b = p$b, ids = p$ids, thr = max(4L, p$min_shared %||% 4L),
+         ma = if (is.null(sa)) NULL else sa$callable[match(colnames(Z[[p$a]]), sa$program_id)],
+         mb = if (is.null(sb)) NULL else sb$callable[match(colnames(Z[[p$b]]), sb$program_id)])
+  })
+  n_edge <- length(idx$ka)
+  members <- split(seq_along(idx$grp), as.integer(idx$grp))
+  width <- max(lengths(members))
+  # slot j of every group, as indices into c(stat, stat, -Inf); the last element pads
+  cols <- lapply(seq_len(width), function(j) {
+    vapply(members, function(ix) if (j <= length(ix)) ix[j] else 2L * n_edge + 1L, 1L)
+  })
+  list(pairs = pp, cols = cols, node = as.integer(idx$node), n_edge = n_edge)
+}
+
+.cmp_edge_stat <- function(Z, plan) {
+  unlist(lapply(plan$pairs, function(p) {
+    Za <- Z[[p$a]][p$ids, , drop = FALSE]
+    Zb <- Z[[p$b]][p$ids, , drop = FALSE]
+    r <- suppressWarnings(stats::cor(Za, Zb, use = "pairwise.complete.obs"))
+    n <- crossprod(!is.na(Za), !is.na(Zb))
+    callable <- is.finite(r) & n >= p$thr
+    if (!is.null(p$ma)) callable <- callable & p$ma
+    if (!is.null(p$mb)) callable <- t(t(callable) & p$mb)
+    t <- atanh(pmin(pmax(r, -0.999999), 0.999999)) * sqrt(pmax(n - 3, 0))
+    t[!callable] <- NA_real_
+    as.vector(abs(t))
+  }), use.names = FALSE)
+}
+
+# Same values as unname(.cmp_node_stat(stat, idx, tau)), in the same order and with
+# the same summation order, so the permutation maxima do not move.
+.cmp_node_stat_fast <- function(stat, plan, tau) {
+  stat[!is.finite(stat)] <- -Inf
+  s <- c(stat, stat, -Inf)
+  m <- Reduce(pmax, lapply(plan$cols, function(ix) s[ix]))
+  v <- pmax(0, m - tau)^2
+  as.numeric(rowsum(v, plan$node, reorder = TRUE)[, 1])
+}
+
 # greedy single linkage, strongest edge first, at most one program per cell type per group
 .cmp_group <- function(edges) {
   edges <- edges[order(-edges$stat), , drop = FALSE]
@@ -481,8 +529,9 @@ find_coordinated_programs <- function(fit, strata = NULL, context = NULL,
   res$edge_support <- edges
   idx <- .cmp_node_index(edges)
   A <- .cmp_node_stat(edges$stat, idx, tau)
+  stat_plan <- .cmp_stat_plan(Z, pairs, idx)
   mx <- vapply(seq_len(n_perm), function(b) {
-    max(.cmp_node_stat(.cmp_edges(.cmp_perm(Z, blocks, plan), pairs)$stat, idx, tau))
+    max(.cmp_node_stat_fast(.cmp_edge_stat(.cmp_perm(Z, blocks, plan), stat_plan), stat_plan, tau))
   }, 1)
   pA <- vapply(A, function(a) (1 + sum(mx >= a)) / (n_perm + 1), 1)
   callable_nodes <- unique(c(idx$ka[edges$callable], idx$kb[edges$callable]))
